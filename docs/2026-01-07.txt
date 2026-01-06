@@ -1,0 +1,4 @@
+1. 对接agent大模型-ai助手
+2. 开发对接jumpserver的资产导入api
+3. 开发交换机管理监控页面
+4. 开发windows主机管理的页面
