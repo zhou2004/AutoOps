@@ -96,8 +96,16 @@ func (c *TaskAnsibleController) List(ctx *gin.Context) {
 // @Param hostGroups formData string true "主机分组JSON"
 // @Param gitRepo formData string false "Git仓库地址(type=2时必填)"
 // @Param variables formData string false "全局变量JSON"
-// @Param playbooks formData file false "playbook文件(type=1时上传)"
+// @Param playbooks formData string false "playbook路径JSON数组(type=2时使用，如[\"site.yml\",\"deploy/app.yml\"])"
+// @Param playbooks formData file false "playbook文件(type=1时上传，支持多文件)"
 // @Param roles formData file false "roles目录(type=1时上传)"
+// @Param extra_vars formData string false "额外变量(JSON/YAML字符串)"
+// @Param cli_args formData string false "命令行参数"
+// @Param use_config formData int false "是否使用配置中心(0=否，1=是)"
+// @Param inventory_config_id formData int false "Inventory配置ID"
+// @Param global_vars_config_id formData int false "全局变量配置ID"
+// @Param extra_vars_config_id formData int false "额外变量配置ID"
+// @Param cli_args_config_id formData int false "命令行参数配置ID"
 // @Success 200 {object} result.Result{data=model.TaskAnsible}
 // @Router /api/v1/task/ansible [post]
 // @Security ApiKeyAuth
@@ -108,6 +116,37 @@ func (c *TaskAnsibleController) CreateTask(ctx *gin.Context) {
 	hostGroupsJSON := ctx.PostForm("hostGroups")
 	gitRepo := ctx.PostForm("gitRepo")
 	variablesJSON := ctx.PostForm("variables")
+	extraVars := ctx.PostForm("extra_vars")
+	cliArgs := ctx.PostForm("cli_args")
+
+	useConfig, _ := strconv.Atoi(ctx.PostForm("use_config"))
+
+	var inventoryConfigID, globalVarsConfigID, extraVarsConfigID, cliArgsConfigID *uint
+
+	if val := ctx.PostForm("inventory_config_id"); val != "" {
+		if id, err := strconv.ParseUint(val, 10, 64); err == nil {
+			uid := uint(id)
+			inventoryConfigID = &uid
+		}
+	}
+	if val := ctx.PostForm("global_vars_config_id"); val != "" {
+		if id, err := strconv.ParseUint(val, 10, 64); err == nil {
+			uid := uint(id)
+			globalVarsConfigID = &uid
+		}
+	}
+	if val := ctx.PostForm("extra_vars_config_id"); val != "" {
+		if id, err := strconv.ParseUint(val, 10, 64); err == nil {
+			uid := uint(id)
+			extraVarsConfigID = &uid
+		}
+	}
+	if val := ctx.PostForm("cli_args_config_id"); val != "" {
+		if id, err := strconv.ParseUint(val, 10, 64); err == nil {
+			uid := uint(id)
+			cliArgsConfigID = &uid
+		}
+	}
 
 	// 验证参数
 	if name == "" {
@@ -125,6 +164,26 @@ func (c *TaskAnsibleController) CreateTask(ctx *gin.Context) {
 	if taskType == 2 && gitRepo == "" {
 		result.Failed(ctx, http.StatusBadRequest, "Git任务类型必须提供仓库地址")
 		return
+	}
+
+	// Type=2时，解析playbook路径列表
+	var playbookPaths []string
+	if taskType == 2 {
+		playbooksStr := ctx.PostForm("playbooks")
+		if playbooksStr != "" {
+			if err := json.Unmarshal([]byte(playbooksStr), &playbookPaths); err != nil {
+				result.Failed(ctx, http.StatusBadRequest, "playbooks参数格式错误，需为JSON数组")
+				return
+			}
+		}
+		// 根据需求: type=2建议使用playbooks参数，如果为空后续逻辑可以支持自动扫描，或者在这里强制报错
+		// 如果必须强制指定，可取消下面注释
+		/*
+			if len(playbookPaths) == 0 {
+				result.Failed(ctx, http.StatusBadRequest, "Git任务类型必须指定playbooks列表")
+				return
+			}
+		*/
 	}
 
 	// Type=3 K8s任务不应该通过通用接口创建
@@ -197,13 +256,21 @@ func (c *TaskAnsibleController) CreateTask(ctx *gin.Context) {
 
 	// 构建请求参数
 	req := &service.CreateTaskRequest{
-		TaskType:         taskType,
-		Name:             name,
-		HostGroups:       hostGroups,
-		GitRepo:          gitRepo,
-		RolesContent:     rolesContent,
-		PlaybookContents: playbookContents,
-		Variables:        variables,
+		TaskType:           taskType,
+		Name:               name,
+		HostGroups:         hostGroups,
+		GitRepo:            gitRepo,
+		RolesContent:       rolesContent,
+		PlaybookContents:   playbookContents,
+		PlaybookPaths:      playbookPaths, // 传递解析后的路径列表
+		Variables:          variables,
+		ExtraVars:          extraVars,
+		CliArgs:            cliArgs,
+		UseConfig:          useConfig,
+		InventoryConfigID:  inventoryConfigID,
+		GlobalVarsConfigID: globalVarsConfigID,
+		ExtraVarsConfigID:  extraVarsConfigID,
+		CliArgsConfigID:    cliArgsConfigID,
 	}
 
 	// 调用服务层
@@ -325,7 +392,6 @@ func (c *TaskAnsibleController) GetTasksByType(ctx *gin.Context) {
 	c.service.GetTasksByType(ctx, taskType)
 }
 
-
 // CreateK8sTask 创建K8s部署任务
 // @Summary 创建K8s部署任务
 // @Description 创建K8s集群部署任务
@@ -390,19 +456,19 @@ func (c *TaskAnsibleController) CreateK8sTask(ctx *gin.Context) {
 
 	// 解析主机ID数组
 	var masterHostIDs, workerHostIDs, etcdHostIDs []uint
-	
+
 	if err := json.Unmarshal([]byte(masterHostIDsJSON), &masterHostIDs); err != nil {
 		result.Failed(ctx, http.StatusBadRequest, "Master节点主机ID格式错误")
 		return
 	}
-	
+
 	if workerHostIDsJSON != "" {
 		if err := json.Unmarshal([]byte(workerHostIDsJSON), &workerHostIDs); err != nil {
 			result.Failed(ctx, http.StatusBadRequest, "Worker节点主机ID格式错误")
 			return
 		}
 	}
-	
+
 	if err := json.Unmarshal([]byte(etcdHostIDsJSON), &etcdHostIDs); err != nil {
 		result.Failed(ctx, http.StatusBadRequest, "ETCD节点主机ID格式错误")
 		return
@@ -422,18 +488,18 @@ func (c *TaskAnsibleController) CreateK8sTask(ctx *gin.Context) {
 
 	// 构建K8s任务请求
 	req := &service.CreateK8sTaskRequest{
-		Name:             name,
-		Description:      description,
-		ClusterName:      clusterName,
-		ClusterVersion:   clusterVersion,
-		DeploymentMode:   deploymentMode,
-		MasterHostIDs:    masterHostIDs,
-		WorkerHostIDs:    workerHostIDs,
-		EtcdHostIDs:      etcdHostIDs,
+		Name:              name,
+		Description:       description,
+		ClusterName:       clusterName,
+		ClusterVersion:    clusterVersion,
+		DeploymentMode:    deploymentMode,
+		MasterHostIDs:     masterHostIDs,
+		WorkerHostIDs:     workerHostIDs,
+		EtcdHostIDs:       etcdHostIDs,
 		EnabledComponents: enabledComponents,
-		PrivateRegistry:  privateRegistry,
-		RegistryUsername: registryUsername,
-		RegistryPassword: registryPassword,
+		PrivateRegistry:   privateRegistry,
+		RegistryUsername:  registryUsername,
+		RegistryPassword:  registryPassword,
 	}
 
 	// 调用服务层

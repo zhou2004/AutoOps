@@ -7698,7 +7698,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "file",
-                        "description": "playbook文件(type=1时上传)",
+                        "description": "playbook文件(type=1时上传，支持多文件)",
                         "name": "playbooks",
                         "in": "formData"
                     },
@@ -7706,6 +7706,48 @@ const docTemplate = `{
                         "type": "file",
                         "description": "roles目录(type=1时上传)",
                         "name": "roles",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "额外变量(JSON/YAML字符串)",
+                        "name": "extra_vars",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "命令行参数",
+                        "name": "cli_args",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "是否使用配置中心(0=否，1=是)",
+                        "name": "use_config",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Inventory配置ID",
+                        "name": "inventory_config_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "全局变量配置ID",
+                        "name": "global_vars_config_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "额外变量配置ID",
+                        "name": "extra_vars_config_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "命令行参数配置ID",
+                        "name": "cli_args_config_id",
                         "in": "formData"
                     }
                 ],
