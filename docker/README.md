@@ -47,8 +47,8 @@ docker/
 ### 1. 拉取镜像(可选,首次部署会自动拉取)
 
 ```bash
-docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-api:v1.0
-docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-web:v1.0
+docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-api:v3.0
+docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-web:v3.0
 docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/pushgateway:v1.9.0
 docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/redis:7.0-alpine
 docker pull crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/prometheus:v2.47.0
@@ -88,15 +88,15 @@ REDIS_PASSWORD=zhangfan@123
 - **修改后重启**: `docker-compose down && docker-compose up -d`
 - **IMAGE_HOST**: 必须修改为实际的外网访问地址,否则图片无法正常显示
 
-## 快速启动
-chown -R 65534:65534 prometheus/data
-chown -R 65534:65534 pushgateway/data
-
 ### 1. 启动所有服务
 
 ```bash
-cd /Users/apple/Desktop/git/deviops/docker
-docker-compose up -d
+# 脚本+镜像版本+ip+前端端口
+cd /root/deviops/docker
+./devops-start.sh  v3.0 ip 8080
+# v3.0表示版本
+# ip 是你本地可以访问的ip
+# 8080  是你外部暴露的端口
 ```
 
 ### 2. 查看服务状态
