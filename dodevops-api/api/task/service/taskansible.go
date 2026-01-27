@@ -27,6 +27,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// ITaskAnsibleService 定义Ansible任务服务接口
+type ITaskAnsibleService interface {
+	CreateTask(c *gin.Context, req *CreateTaskRequest)               // 创建任务
+	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)         // 创建K8s任务
+	List(c *gin.Context, page, size int)                             // 获取任务列表
+	StartJob(c *gin.Context, taskID uint)                            // 启动任务
+	StopJob(c *gin.Context, taskID, workID uint)                     // 停止任务
+	GetJobLog(c *gin.Context, taskID, workID uint)                   // 实时获取任务日志(SSE)
+	GetJobStatus(c *gin.Context, taskID, workID uint)                // 获取任务状态
+	GetTaskDetail(c *gin.Context, taskID uint)                       // 获取任务详情
+	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error) // 获取子任务详情
+	DeleteTask(c *gin.Context, taskID uint)                          // 删除任务
+	GetTasksByName(c *gin.Context, name string)                      // 根据名称模糊查询任务
+	GetTasksByType(c *gin.Context, taskType int)                     // 根据类型查询任务
+	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)  // 修改任务
+}
+
 // RealTimeLogWriter 实时日志写入器，支持立即刷新到磁盘
 type RealTimeLogWriter struct {
 	file *os.File
@@ -47,23 +64,6 @@ func (w *RealTimeLogWriter) Write(p []byte) (n int, err error) {
 func (w *RealTimeLogWriter) WriteWithTime(content string) error {
 	_, err := w.Write([]byte(content))
 	return err
-}
-
-// ITaskAnsibleService 定义Ansible任务服务接口
-type ITaskAnsibleService interface {
-	CreateTask(c *gin.Context, req *CreateTaskRequest)               // 创建任务
-	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)         // 创建K8s任务
-	List(c *gin.Context, page, size int)                             // 获取任务列表
-	StartJob(c *gin.Context, taskID uint)                            // 启动任务
-	StopJob(c *gin.Context, taskID, workID uint)                     // 停止任务
-	GetJobLog(c *gin.Context, taskID, workID uint)                   // 实时获取任务日志(SSE)
-	GetJobStatus(c *gin.Context, taskID, workID uint)                // 获取任务状态
-	GetTaskDetail(c *gin.Context, taskID uint)                       // 获取任务详情
-	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error) // 获取子任务详情
-	DeleteTask(c *gin.Context, taskID uint)                          // 删除任务
-	GetTasksByName(c *gin.Context, name string)                      // 根据名称模糊查询任务
-	GetTasksByType(c *gin.Context, taskType int)                     // 根据类型查询任务
-	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)  // 修改任务
 }
 
 // UpdateTaskRequest 修改任务请求参数
