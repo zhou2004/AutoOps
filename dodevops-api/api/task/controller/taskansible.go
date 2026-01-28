@@ -466,3 +466,120 @@ func (c *TaskAnsibleController) CreateK8sTask(ctx *gin.Context) {
 	// 调用服务层
 	c.service.CreateK8sTask(ctx, req)
 }
+
+// GetTaskHistoryList 获取任务历史记录列表
+// @Summary 获取任务历史记录列表
+// @Description 获取任务的历史执行记录列表，支持分页
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param id path int true "任务ID"
+// @Param page query int false "页码" default(1)
+// @Param limit query int false "每页数量" default(10)
+// @Success 200 {object} result.Result{data=map[string]interface{}}
+// @Router /api/v1/task/ansible/{id}/history [get]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) GetTaskHistoryList(ctx *gin.Context) {
+	taskID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的任务ID")
+		return
+	}
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
+
+	c.service.GetTaskHistoryList(ctx, uint(taskID), page, limit)
+}
+
+// GetTaskHistoryDetail 获取任务历史记录详情
+// @Summary 获取任务历史记录详情
+// @Description 获取任务的历史执行详情，包含每个主机的执行日志
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param history_id path int true "历史记录ID"
+// @Success 200 {object} result.Result{data=model.TaskAnsibleHistory}
+// @Router /api/v1/task/ansible/history/{history_id} [get]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) GetTaskHistoryDetail(ctx *gin.Context) {
+	historyID, err := strconv.ParseUint(ctx.Param("history_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的历史ID")
+		return
+	}
+
+	c.service.GetTaskHistoryDetail(ctx, uint(historyID))
+}
+
+// GetTaskHistoryLog 获取历史记录日志内容
+// @Summary 获取历史记录日志内容
+// @Description 获取指定子任务历史记录的日志内容
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param work_history_id path int true "子任务历史记录ID"
+// @Success 200 {object} result.Result{data=string}
+// @Router /api/v1/task/ansible/history/work/{work_history_id}/log [get]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) GetTaskHistoryLog(ctx *gin.Context) {
+	workHistoryID, err := strconv.ParseUint(ctx.Param("work_history_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的ID")
+		return
+	}
+
+	c.service.GetTaskHistoryLog(ctx, uint(workHistoryID))
+}
+
+// GetTaskHistoryLogByDetails 获取历史记录日志内容(通过详细信息)
+// @Summary 获取历史记录日志内容(通过详细信息)
+// @Description 根据任务ID、WORKID和HistoryID获取历史任务日志
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param task_id path int true "任务ID"
+// @Param work_id path int true "子任务ID"
+// @Param history_id path int true "历史记录ID"
+// @Success 200 {object} result.Result{data=string}
+// @Router /api/v1/task/ansible/history/detail/task/{task_id}/work/{work_id}/history/{history_id}/log [get]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) GetTaskHistoryLogByDetails(ctx *gin.Context) {
+	taskID, err := strconv.ParseUint(ctx.Param("task_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的任务ID")
+		return
+	}
+	workID, err := strconv.ParseUint(ctx.Param("work_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的子任务ID")
+		return
+	}
+	historyID, err := strconv.ParseUint(ctx.Param("history_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的历史记录ID")
+		return
+	}
+
+	c.service.GetTaskHistoryLogByDetails(ctx, uint(taskID), uint(workID), uint(historyID))
+}
+
+// DeleteTaskHistory 删除任务历史记录
+// @Summary 删除任务历史记录
+// @Description 删除指定的任务历史记录及关联的日志文件
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param id path int true "任务ID"
+// @Param history_id path int true "历史记录ID"
+// @Success 200 {object} result.Result
+// @Router /api/v1/task/ansible/{id}/history/{history_id} [delete]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) DeleteTaskHistory(ctx *gin.Context) {
+historyID, err := strconv.ParseUint(ctx.Param("history_id"), 10, 64)
+if err != nil {
+result.Failed(ctx, 400, "无效的历史记录ID")
+return
+}
+
+c.service.DeleteTaskHistory(ctx, uint(historyID))
+}

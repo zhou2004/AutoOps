@@ -23,6 +23,7 @@ type TaskAnsible struct {
 	GlobalVarsConfigID *uint             `gorm:"comment:'选用的global_vars配置ID'"`
 	ExtraVarsConfigID  *uint             `gorm:"comment:'选用的extra_vars配置ID'"`
 	CliArgsConfigID    *uint             `gorm:"comment:'选用的cli_args配置ID'"`
+	MaxHistoryKeep     int               `gorm:"default:3;comment:'最大保留历史记录数'"`
 	CreatedAt          time.Time         `gorm:"not null;comment:'创建时间'"`
 	UpdatedAt          time.Time         `gorm:"not null;comment:'更新时间'"`
 	Works              []TaskAnsibleWork `gorm:"foreignKey:TaskID;comment:'子任务列表'"`

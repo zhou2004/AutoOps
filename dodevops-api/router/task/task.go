@@ -68,6 +68,13 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.GET("/task/ansible/query/name", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasksByName)  // 根据名称模糊查询任务
 	router.GET("/task/ansible/query/type", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasksByType)  // 根据类型查询任务
 
+	// 任务历史记录路由
+	router.GET("/task/ansible/:id/history", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTaskHistoryList)                                                                // 获取任务历史列表
+	router.GET("/task/ansible/:id/history/:history_id", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTaskHistoryDetail)                                                  // 获取任务历史详情(包含taskId校验)
+	router.DELETE("/task/ansible/:id/history/:history_id", middleware.AuthMiddleware(), taskAnsibleCtrl.DeleteTaskHistory)                                                  // 删除任务历史记录
+	router.GET("/task/ansible/history/work/:work_history_id/log", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTaskHistoryLog)                                           // 获取历史任务日志内容
+	router.GET("/task/ansible/history/detail/task/:task_id/work/:work_id/history/:history_id/log", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTaskHistoryLogByDetails) // 获取历史任务日志内容(通过详细信息)
+
 	// Ansible配置管理路由
 	configAnsibleCtrl := controller.NewConfigAnsibleController(service.NewConfigAnsibleService(common.GetDB()))
 	router.POST("/config/ansible", middleware.AuthMiddleware(), configAnsibleCtrl.Create)

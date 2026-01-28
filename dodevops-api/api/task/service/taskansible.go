@@ -29,19 +29,24 @@ import (
 
 // ITaskAnsibleService 定义Ansible任务服务接口
 type ITaskAnsibleService interface {
-	CreateTask(c *gin.Context, req *CreateTaskRequest)               // 创建任务
-	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)         // 创建K8s任务
-	List(c *gin.Context, page, size int)                             // 获取任务列表
-	StartJob(c *gin.Context, taskID uint)                            // 启动任务
-	StopJob(c *gin.Context, taskID, workID uint)                     // 停止任务
-	GetJobLog(c *gin.Context, taskID, workID uint)                   // 实时获取任务日志(SSE)
-	GetJobStatus(c *gin.Context, taskID, workID uint)                // 获取任务状态
-	GetTaskDetail(c *gin.Context, taskID uint)                       // 获取任务详情
-	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error) // 获取子任务详情
-	DeleteTask(c *gin.Context, taskID uint)                          // 删除任务
-	GetTasksByName(c *gin.Context, name string)                      // 根据名称模糊查询任务
-	GetTasksByType(c *gin.Context, taskType int)                     // 根据类型查询任务
-	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)  // 修改任务
+	CreateTask(c *gin.Context, req *CreateTaskRequest)                         // 创建任务
+	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                   // 创建K8s任务
+	List(c *gin.Context, page, size int)                                       // 获取任务列表
+	StartJob(c *gin.Context, taskID uint)                                      // 启动任务
+	StopJob(c *gin.Context, taskID, workID uint)                               // 停止任务
+	GetJobLog(c *gin.Context, taskID, workID uint)                             // 实时获取任务日志(SSE)
+	GetJobStatus(c *gin.Context, taskID, workID uint)                          // 获取任务状态
+	GetTaskDetail(c *gin.Context, taskID uint)                                 // 获取任务详情
+	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error)           // 获取子任务详情
+	DeleteTask(c *gin.Context, taskID uint)                                    // 删除任务
+	GetTasksByName(c *gin.Context, name string)                                // 根据名称模糊查询任务
+	GetTasksByType(c *gin.Context, taskType int)                               // 根据类型查询任务
+	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)            // 修改任务
+	GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int)           // 获取任务历史记录列表
+	GetTaskHistoryDetail(c *gin.Context, historyID uint)                       // 获取任务历史记录详情
+	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                      // 获取历史任务日志
+	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint) // 获取历史任务日志(通过详细信息)
+	DeleteTaskHistory(c *gin.Context, historyID uint)                          // 删除任务历史记录
 }
 
 // RealTimeLogWriter 实时日志写入器，支持立即刷新到磁盘
@@ -813,7 +818,9 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
 		for _, work := range task.Works {
 
 			// 创建日志目录（使用绝对路径）
-			absLogDir := filepath.Join(workDir, fmt.Sprintf("logs/ansible/%d/%d", taskID, work.ID))
+			// 使用时间戳作为唯一ID，隔离每次执行的日志
+			runID := time.Now().Format("20060102150405")
+			absLogDir := filepath.Join(workDir, fmt.Sprintf("logs/ansible/%d/%d/%s", taskID, work.ID, runID))
 			if err := os.MkdirAll(absLogDir, 0755); err != nil {
 				s.updateTaskErrorStatus(taskID, fmt.Errorf("创建日志目录失败: %v", err))
 				return
@@ -830,7 +837,7 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
 			}
 			absLogPath := filepath.Join(absLogDir, fmt.Sprintf("%s.log", logFileName))
 			// 用于数据库存储的相对路径
-			relativeLogPath := fmt.Sprintf("logs/ansible/%d/%d/%s.log", taskID, work.ID, logFileName)
+			relativeLogPath := fmt.Sprintf("logs/ansible/%d/%d/%s/%s.log", taskID, work.ID, runID, logFileName)
 
 			// 更新子任务状态为运行中，记录开始时间和日志路径
 			workStartTime := time.Now()
@@ -1010,6 +1017,58 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
 					"total_duration": totalDuration,
 					"updated_at":     time.Now(),
 				})
+
+			// --- 保存历史记录 ---
+			uniqId := fmt.Sprintf("%d-%d", taskID, time.Now().Unix())
+
+			// 创建主历史记录
+			history := &model.TaskAnsibleHistory{
+				TaskID:        taskID,
+				UniqId:        uniqId,
+				Status:        finalStatus,
+				TotalDuration: int(totalDuration),
+				CreatedAt:     time.Now(),
+				Trigger:       1, // 默认为手动
+			}
+			s.dao.CreateTaskAnsibleHistory(history)
+
+			// 创建子任务历史记录
+			var workHistories []model.TaskAnsibleworkHistory
+			for _, w := range works {
+				// LogPath is relative, join with workDir to get absolute path check if needed,
+				// but here we just store the relative or whatever path we used for the active job.
+				// However, if we want to read it later, we need to know where it is.
+				// The previous logic used 'relativeLogPath' to store in DB.
+				// Let's verify what `w.LogPath` contains. It contains `logs/ansible/...`.
+				// To be safe and since we want to avoid DB size bloat, we store the path.
+
+				workHistories = append(workHistories, model.TaskAnsibleworkHistory{
+					HistoryID: history.ID,
+					TaskID:    taskID,
+					WorkID:    w.ID,
+					HostName:  w.EntryFileName, // Playbook name
+					Status:    w.Status,
+					LogPath:   w.LogPath, // Save relative path: logs/ansible/taskID/workID/xxx.log
+					Duration:  w.Duration,
+					CreatedAt: time.Now(),
+				})
+			}
+
+			if len(workHistories) > 0 {
+				s.dao.CreateTaskAnsibleworkHistories(workHistories)
+			}
+
+			// 清理旧历史记录
+			// 获取MaxHistoryKeep
+			var currentTask model.TaskAnsible
+			if err := s.dao.DB.First(&currentTask, taskID).Error; err == nil {
+				maxKeep := currentTask.MaxHistoryKeep
+				if maxKeep <= 0 {
+					maxKeep = 3 // 默认3条
+				}
+				s.dao.DeleteOldHistory(taskID, maxKeep)
+			}
+			// --- 历史记录保存结束 ---
 		}
 	}()
 
@@ -1883,4 +1942,132 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 	}
 
 	result.Success(c, task)
+}
+
+// GetTaskHistoryList 获取任务历史记录列表 Service
+func (s *TaskAnsibleServiceImpl) GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int) {
+	histories, total, err := s.dao.GetTaskAnsibleHistoryList(taskID, page, limit)
+	if err != nil {
+		result.Failed(c, 500, fmt.Sprintf("获取历史记录列表失败: %v", err))
+		return
+	}
+	result.Success(c, gin.H{
+		"data":  histories,
+		"total": total,
+	})
+}
+
+// GetTaskHistoryDetail 获取任务历史记录详情 Service
+func (s *TaskAnsibleServiceImpl) GetTaskHistoryDetail(c *gin.Context, historyID uint) {
+	history, err := s.dao.GetTaskAnsibleHistoryDetail(historyID)
+	if err != nil {
+		result.Failed(c, 500, fmt.Sprintf("获取历史记录详情失败: %v", err))
+		return
+	}
+	result.Success(c, history)
+}
+
+// GetTaskHistoryLog 获取历史记录的日志内容
+func (s *TaskAnsibleServiceImpl) GetTaskHistoryLog(c *gin.Context, historyWorkID uint) {
+	// 1. 获取SubHistory记录
+	var workHistory model.TaskAnsibleworkHistory
+	if err := s.dao.DB.First(&workHistory, historyWorkID).Error; err != nil {
+		result.Failed(c, 404, "未找到历史任务日志记录")
+		return
+	}
+
+	// 2. 获取LogPath
+	logPath := workHistory.LogPath
+	if logPath == "" {
+		result.Failed(c, 404, "日志路径为空")
+		return
+	}
+
+	// 3. 构建绝对路径 (假设运行目录在项目根目录)
+	// LogPath is usually "logs/ansible/..."
+	workDir, _ := os.Getwd()
+	// 防御性处理，如果已经在 task 目录下
+	if strings.Contains(workDir, "/task/") {
+		workDir = strings.Split(workDir, "/task/")[0]
+	}
+	absLogPath := filepath.Join(workDir, logPath)
+
+	// 4. 读取文件
+	content, err := os.ReadFile(absLogPath)
+	if err != nil {
+		result.Failed(c, 500, fmt.Sprintf("读取日志文件失败: %v", err))
+		return
+	}
+
+	result.Success(c, string(content))
+}
+
+// GetTaskHistoryLogByDetails 根据 TaskID, WorkID, HistoryID 获取日志
+func (s *TaskAnsibleServiceImpl) GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint) {
+	// 1. 查询 TaskAnsibleworkHistory
+	var workHistory model.TaskAnsibleworkHistory
+	err := s.dao.DB.Where("task_id = ? AND work_id = ? AND history_id = ?", taskID, workID, historyID).
+		First(&workHistory).Error
+
+	if err != nil {
+		result.Failed(c, 404, "未找到历史日志记录")
+		return
+	}
+
+	// 2. 获取LogPath
+	logPath := workHistory.LogPath
+	if logPath == "" {
+		result.Failed(c, 404, "日志路径为空")
+		return
+	}
+
+	// 3. 读取文件
+	workDir, _ := os.Getwd()
+	if strings.Contains(workDir, "/task/") {
+		workDir = strings.Split(workDir, "/task/")[0]
+	}
+	absLogPath := filepath.Join(workDir, logPath)
+
+	content, err := os.ReadFile(absLogPath)
+	if err != nil {
+		result.Failed(c, 500, fmt.Sprintf("读取日志文件失败: %v", err))
+		return
+	}
+
+	result.Success(c, string(content))
+}
+
+// DeleteTaskHistory 删除任务历史记录
+func (s *TaskAnsibleServiceImpl) DeleteTaskHistory(c *gin.Context, historyID uint) {
+	// 1. 获取History记录
+	history, err := s.dao.GetTaskAnsibleHistoryDetail(historyID)
+	if err != nil {
+		result.Failed(c, 404, "未找到历史记录")
+		return
+	}
+
+	// 2. 删除文件 (RunID目录)
+	for _, work := range history.WorkHistories {
+		if work.LogPath != "" {
+			workDir, _ := os.Getwd()
+			if strings.Contains(workDir, "/task/") {
+				workDir = strings.Split(workDir, "/task/")[0]
+			}
+			absLogPath := filepath.Join(workDir, work.LogPath)
+			dirToDelete := filepath.Dir(absLogPath)
+
+			// 安全检查：确保要删除的目录在 logs/ansible 之下
+			if strings.Contains(dirToDelete, "logs/ansible") && len(dirToDelete) > 12 {
+				os.RemoveAll(dirToDelete)
+			}
+		}
+	}
+
+	// 3. 删除数据库记录
+	if err := s.dao.DeleteHistory(historyID); err != nil {
+		result.Failed(c, 500, fmt.Sprintf("删除历史记录失败: %v", err))
+		return
+	}
+
+	result.Success(c, gin.H{"message": "删除成功", "id": historyID})
 }

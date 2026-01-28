@@ -8154,6 +8154,328 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/task/ansible/{id}/history": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取任务的历史执行记录列表，支持分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "获取任务历史记录列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/ansible/history/{history_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取任务的历史执行详情，包含每个主机的执行日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "获取任务历史记录详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "历史记录ID",
+                        "name": "history_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.TaskAnsibleHistory"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/ansible/{id}/history/{history_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "删除指定的任务历史记录及关联的日志文件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "删除任务历史记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "历史记录ID",
+                        "name": "history_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/result.Result"
+                        }
+                    }
+                }
+            },
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取任务的历史执行详情，包含每个主机的执行日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "获取任务历史记录详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "历史记录ID",
+                        "name": "history_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.TaskAnsibleHistory"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/ansible/history/detail/task/{task_id}/work/{work_id}/history/{history_id}/log": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "根据任务ID、WORKID和HistoryID获取历史任务日志",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "获取历史记录日志内容(通过详细信息)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "子任务ID",
+                        "name": "work_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "历史记录ID",
+                        "name": "history_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/ansible/history/work/{work_history_id}/log": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取指定子任务历史记录的日志内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "获取历史记录日志内容",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "子任务历史记录ID",
+                        "name": "work_history_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/task/delete": {
             "delete": {
                 "security": [
@@ -27598,6 +27920,88 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.TaskAnsible"
                 },
                 "taskID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.TaskAnsibleHistory": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "errorMsg": {
+                    "type": "string"
+                },
+                "finishedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "operatorID": {
+                    "type": "integer"
+                },
+                "operatorName": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "taskAnsible": {
+                    "$ref": "#/definitions/model.TaskAnsible"
+                },
+                "taskID": {
+                    "type": "integer"
+                },
+                "totalDuration": {
+                    "type": "integer"
+                },
+                "trigger": {
+                    "type": "integer"
+                },
+                "uniqId": {
+                    "type": "string"
+                },
+                "workHistories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TaskAnsibleworkHistory"
+                    }
+                }
+            }
+        },
+        "model.TaskAnsibleworkHistory": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "historyID": {
+                    "type": "integer"
+                },
+                "hostName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "logPath": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "taskID": {
+                    "type": "integer"
+                },
+                "workID": {
                     "type": "integer"
                 }
             }

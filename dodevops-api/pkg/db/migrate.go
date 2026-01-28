@@ -29,6 +29,8 @@ var models = []interface{}{
 	&taskmodel.TaskWork{},
 	&taskmodel.TaskAnsible{},
 	&taskmodel.TaskAnsibleWork{},
+	&taskmodel.TaskAnsibleHistory{},
+	&taskmodel.TaskAnsibleworkHistory{},
 	&taskmodel.ConfigAnsible{},
 	&monitormodel.Agent{},
 	&k8smodel.KubeCluster{},
