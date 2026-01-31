@@ -27,9 +27,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// OnTaskConfigChange 任务配置变更钩子
-var OnTaskConfigChange func(task *model.TaskAnsible)
-
 // ITaskAnsibleService 定义Ansible任务服务接口
 type ITaskAnsibleService interface {
 	CreateTask(c *gin.Context, req *CreateTaskRequest)                                   // 创建任务
@@ -51,48 +48,18 @@ type ITaskAnsibleService interface {
 	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                // 获取历史任务日志
 	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)           // 获取历史任务日志(通过详细信息)
 	DeleteTaskHistory(c *gin.Context, historyID uint)                                    // 删除任务历史记录
-	ExecuteTask(taskID uint) error
+	ExecuteTask(taskID uint) error 														 // 执行任务
 }
 
-// RealTimeLogWriter 实时日志写入器，支持立即刷新到磁盘
-type RealTimeLogWriter struct {
-	file *os.File
-}
-
-// Write 实现io.Writer接口，每次写入后立即刷新到磁盘
-func (w *RealTimeLogWriter) Write(p []byte) (n int, err error) {
-	n, err = w.file.Write(p)
-	if err != nil {
-		return n, err
+func NewTaskAnsibleService(db *gorm.DB) ITaskAnsibleService {
+	return &TaskAnsibleServiceImpl{
+		dao: dao.NewTaskAnsibleDao(db),
 	}
-	// 立即刷新到磁盘，确保SSE能实时读取
-	w.file.Sync()
-	return n, nil
 }
 
-// WriteWithTime 带时间戳的写入
-func (w *RealTimeLogWriter) WriteWithTime(content string) error {
-	_, err := w.Write([]byte(content))
-	return err
-}
-
-// UpdateTaskRequest 修改任务请求参数
-type UpdateTaskRequest struct {
-	Name               string            `json:"name"`
-	HostGroups         map[string][]uint `json:"hostGroups"`
-	GitRepo            string            `json:"gitRepo"`
-	PlaybookPaths      []string          `json:"playbookPaths"`
-	Variables          map[string]string `json:"variables"`
-	ExtraVars          string            `json:"extraVars"`
-	CliArgs            string            `json:"cliArgs"`
-	UseConfig          int               `json:"useConfig"`
-	InventoryConfigID  *uint             `json:"inventoryConfigId"`
-	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
-	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
-	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
-	CronExpr           string            `json:"cronExpr"`
-	IsRecurring        *int              `json:"isRecurring"`
-	ViewID             *uint             `json:"viewId"`
+// TaskAnsibleServiceImpl 实现Ansible任务服务
+type TaskAnsibleServiceImpl struct {
+	dao *dao.TaskAnsibleDao
 }
 
 // CreateTaskRequest 创建任务请求参数
@@ -114,6 +81,25 @@ type CreateTaskRequest struct {
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
 	CronExpr           string            `json:"cronExpr"`
 	IsRecurring        int               `json:"isRecurring"`
+	ViewID             *uint             `json:"viewId"`
+}
+
+// UpdateTaskRequest 修改任务请求参数
+type UpdateTaskRequest struct {
+	Name               string            `json:"name"`
+	HostGroups         map[string][]uint `json:"hostGroups"`
+	GitRepo            string            `json:"gitRepo"`
+	PlaybookPaths      []string          `json:"playbookPaths"`
+	Variables          map[string]string `json:"variables"`
+	ExtraVars          string            `json:"extraVars"`
+	CliArgs            string            `json:"cliArgs"`
+	UseConfig          int               `json:"useConfig"`
+	InventoryConfigID  *uint             `json:"inventoryConfigId"`
+	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
+	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
+	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
+	CronExpr           string            `json:"cronExpr"`
+	IsRecurring        *int              `json:"isRecurring"`
 	ViewID             *uint             `json:"viewId"`
 }
 
@@ -172,17 +158,6 @@ type K8sConfigJSON struct {
 	} `json:"registry,omitempty"`
 }
 
-// TaskAnsibleServiceImpl 实现Ansible任务服务
-type TaskAnsibleServiceImpl struct {
-	dao *dao.TaskAnsibleDao
-}
-
-func NewTaskAnsibleService(db *gorm.DB) ITaskAnsibleService {
-	return &TaskAnsibleServiceImpl{
-		dao: dao.NewTaskAnsibleDao(db),
-	}
-}
-
 // HostSSHInfo 主机SSH连接信息
 type HostSSHInfo struct {
 	ID       uint
@@ -198,6 +173,31 @@ type HostSSHInfo struct {
 type HostSSHInfoCollection struct {
 	Groups    map[string][]HostSSHInfo
 	HostInfos map[uint]HostSSHInfo
+}
+
+// RealTimeLogWriter 实时日志写入器，支持立即刷新到磁盘
+type RealTimeLogWriter struct {
+	file *os.File
+}
+
+// OnTaskConfigChange 任务配置变更钩子
+var OnTaskConfigChange func(task *model.TaskAnsible)
+
+// Write 实现io.Writer接口，每次写入后立即刷新到磁盘
+func (w *RealTimeLogWriter) Write(p []byte) (n int, err error) {
+	n, err = w.file.Write(p)
+	if err != nil {
+		return n, err
+	}
+	// 立即刷新到磁盘，确保SSE能实时读取
+	w.file.Sync()
+	return n, nil
+}
+
+// WriteWithTime 带时间戳的写入
+func (w *RealTimeLogWriter) WriteWithTime(content string) error {
+	_, err := w.Write([]byte(content))
+	return err
 }
 
 // GetHostSSHInfo 获取主机SSH信息
