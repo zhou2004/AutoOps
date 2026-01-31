@@ -66,6 +66,7 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.DELETE("/task/ansible/:id", middleware.AuthMiddleware(), taskAnsibleCtrl.DeleteTask)          // 删除任务(级联删除子任务)
 	router.GET("/task/ansible/:id/log/:work_id", middleware.AuthMiddleware(), taskAnsibleCtrl.GetJobLog) // 获取任务日志(SSE)
 	router.GET("/task/ansible/query/name", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasksByName)  // 根据名称模糊查询任务
+	router.GET("/task/ansible/query", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasks)             // 多条件查询任务
 	router.GET("/task/ansible/query/type", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasksByType)  // 根据类型查询任务
 
 	// 任务历史记录路由

@@ -27,26 +27,31 @@ import (
 	"gorm.io/gorm"
 )
 
+// OnTaskConfigChange 任务配置变更钩子
+var OnTaskConfigChange func(task *model.TaskAnsible)
+
 // ITaskAnsibleService 定义Ansible任务服务接口
 type ITaskAnsibleService interface {
-	CreateTask(c *gin.Context, req *CreateTaskRequest)                         // 创建任务
-	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                   // 创建K8s任务
-	List(c *gin.Context, page, size int)                                       // 获取任务列表
-	StartJob(c *gin.Context, taskID uint)                                      // 启动任务
-	StopJob(c *gin.Context, taskID, workID uint)                               // 停止任务
-	GetJobLog(c *gin.Context, taskID, workID uint)                             // 实时获取任务日志(SSE)
-	GetJobStatus(c *gin.Context, taskID, workID uint)                          // 获取任务状态
-	GetTaskDetail(c *gin.Context, taskID uint)                                 // 获取任务详情
-	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error)           // 获取子任务详情
-	DeleteTask(c *gin.Context, taskID uint)                                    // 删除任务
-	GetTasksByName(c *gin.Context, name string)                                // 根据名称模糊查询任务
-	GetTasksByType(c *gin.Context, taskType int)                               // 根据类型查询任务
-	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)            // 修改任务
-	GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int)           // 获取任务历史记录列表
-	GetTaskHistoryDetail(c *gin.Context, historyID uint)                       // 获取任务历史记录详情
-	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                      // 获取历史任务日志
-	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint) // 获取历史任务日志(通过详细信息)
-	DeleteTaskHistory(c *gin.Context, historyID uint)                          // 删除任务历史记录
+	CreateTask(c *gin.Context, req *CreateTaskRequest)                                   // 创建任务
+	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                             // 创建K8s任务
+	List(c *gin.Context, page, size int)                                                 // 获取任务列表
+	StartJob(c *gin.Context, taskID uint)                                                // 启动任务
+	StopJob(c *gin.Context, taskID, workID uint)                                         // 停止任务
+	GetJobLog(c *gin.Context, taskID, workID uint)                                       // 实时获取任务日志(SSE)
+	GetJobStatus(c *gin.Context, taskID, workID uint)                                    // 获取任务状态
+	GetTaskDetail(c *gin.Context, taskID uint)                                           // 获取任务详情
+	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error)                     // 获取子任务详情
+	DeleteTask(c *gin.Context, taskID uint)                                              // 删除任务
+	GetTasksByName(c *gin.Context, name string)                                          // 根据名称模糊查询任务
+	GetTasksByType(c *gin.Context, taskType int)                                         // 根据类型查询任务
+	GetTasks(c *gin.Context, name string, taskType int, viewName string, page, size int) // 综合查询任务列表
+	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)                      // 修改任务
+	GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int)                     // 获取任务历史记录列表
+	GetTaskHistoryDetail(c *gin.Context, historyID uint)                                 // 获取任务历史记录详情
+	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                // 获取历史任务日志
+	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)           // 获取历史任务日志(通过详细信息)
+	DeleteTaskHistory(c *gin.Context, historyID uint)                                    // 删除任务历史记录
+	ExecuteTask(taskID uint) error
 }
 
 // RealTimeLogWriter 实时日志写入器，支持立即刷新到磁盘
@@ -85,6 +90,9 @@ type UpdateTaskRequest struct {
 	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
 	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
+	CronExpr           string            `json:"cronExpr"`
+	IsRecurring        *int              `json:"isRecurring"`
+	ViewID             *uint             `json:"viewId"`
 }
 
 // CreateTaskRequest 创建任务请求参数
@@ -104,6 +112,9 @@ type CreateTaskRequest struct {
 	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
 	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
+	CronExpr           string            `json:"cronExpr"`
+	IsRecurring        int               `json:"isRecurring"`
+	ViewID             *uint             `json:"viewId"`
 }
 
 // CreateK8sTaskRequest 创建K8s任务请求参数
@@ -332,6 +343,11 @@ func (s *TaskAnsibleServiceImpl) DeleteTask(c *gin.Context, taskID uint) {
 	if err := s.dao.Delete(taskID); err != nil {
 		c.JSON(500, gin.H{"error": fmt.Sprintf("删除任务失败: %v", err)})
 		return
+	}
+
+	// 触发任务配置变更钩子 (通知调度器移除任务)
+	if OnTaskConfigChange != nil {
+		OnTaskConfigChange(&model.TaskAnsible{ID: taskID, IsRecurring: 0})
 	}
 
 	// 4. 删除任务相关的文件目录（异步处理，避免影响响应速度）
@@ -701,28 +717,44 @@ func (s *TaskAnsibleServiceImpl) GetWorkByID(taskID, workID uint) (*model.TaskAn
 	return s.dao.GetWorkByID(taskID, workID)
 }
 
+// GetTasks 查询任务列表
+func (s *TaskAnsibleServiceImpl) GetTasks(c *gin.Context, name string, taskType int, viewName string, page, size int) {
+	tasks, total, err := s.dao.GetTasks(name, taskType, viewName, page, size)
+	if err != nil {
+		result.Failed(c, 500, "查询任务列表失败: "+err.Error())
+		return
+	}
+	result.Success(c, gin.H{"data": tasks, "total": total})
+}
+
 // StartJob 启动任务
 func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
+	if err := s.ExecuteTask(taskID); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "任务已开始执行"})
+}
+
+// ExecuteTask 执行任务
+func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
 	// 1. 获取任务详情（包含子任务）
 	task, err := s.dao.GetTaskDetail(taskID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("获取任务失败: %v", err)})
-		return
+		return fmt.Errorf("获取任务失败: %v", err)
 	}
 
 	// 检查任务是否存在子任务
 	if len(task.Works) == 0 {
-		c.JSON(400, gin.H{"error": "任务没有子任务，无法执行"})
-		return
+		return fmt.Errorf("任务没有子任务，无法执行")
 	}
 
 	// 2. 更新任务状态为运行中（状态=2）
 	if err := s.dao.DB.Model(&model.TaskAnsible{}).Where("id = ?", taskID).Update("status", 2).Error; err != nil {
-		c.JSON(500, gin.H{"error": fmt.Sprintf("更新任务状态失败: %v", err)})
-		return
+		return fmt.Errorf("更新任务状态失败: %v", err)
 	}
 
-	// 3. 异步执行Ansible任务（优化版本 - 直接执行，无需重复查询）
+	// 3. 异步执行Ansible任务
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -1072,7 +1104,7 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
 		}
 	}()
 
-	c.JSON(200, gin.H{"message": "任务已开始执行"})
+	return nil
 }
 
 // updateTaskErrorStatus 更新任务为错误状态
@@ -1160,6 +1192,9 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 		GlobalVarsConfigID: req.GlobalVarsConfigID,
 		ExtraVarsConfigID:  req.ExtraVarsConfigID,
 		CliArgsConfigID:    req.CliArgsConfigID,
+		CronExpr:           req.CronExpr,
+		IsRecurring:        req.IsRecurring,
+		ViewID:             req.ViewID,
 	}
 
 	// 如果是Git任务，设置仓库地址
@@ -1203,6 +1238,11 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 	if err != nil {
 		result.Failed(c, 500, fmt.Sprintf("获取任务详情失败: %v", err))
 		return
+	}
+
+	// 触发任务配置变更钩子
+	if OnTaskConfigChange != nil {
+		OnTaskConfigChange(updatedTask)
 	}
 
 	result.Success(c, updatedTask)
@@ -1933,12 +1973,36 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 		task.GlobalVars = toJSON(req.Variables)
 	}
 
+	// Update New fields (支持增量更新)
+	// 只有当 CronExpr 不为空字符串时才更新
+	if req.CronExpr != "" {
+		task.CronExpr = req.CronExpr
+	}
+
+	// 只有当 IsRecurring 传了值（不为nil）时才更新
+	if req.IsRecurring != nil {
+		task.IsRecurring = *req.IsRecurring
+	}
+
+	// 只有当 ViewID 传了值（不为nil）时才更新
+	if req.ViewID != nil {
+		task.ViewID = req.ViewID
+	}
+
 	task.UpdatedAt = time.Now()
 
 	// 7. 保存
 	if err := s.dao.Update(task); err != nil {
 		result.Failed(c, 500, fmt.Sprintf("更新任务失败: %v", err))
 		return
+	}
+
+	// 触发任务配置变更钩子
+	if OnTaskConfigChange != nil {
+		// 重新获取完整任务信息以确保调度器获取最新配置
+		if fullTask, err := s.dao.GetTaskDetail(taskID); err == nil {
+			OnTaskConfigChange(fullTask)
+		}
 	}
 
 	result.Success(c, task)

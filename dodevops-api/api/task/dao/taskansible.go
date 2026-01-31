@@ -354,25 +354,62 @@ func (d *TaskAnsibleDao) DeleteOldHistory(taskID uint, maxKeep int) error {
 
 // DeleteHistory 删除历史记录
 func (d *TaskAnsibleDao) DeleteHistory(historyID uint) error {
-// 开启事务
-tx := d.DB.Begin()
-defer func() {
-if r := recover(); r != nil {
-tx.Rollback()
-}
-}()
+	// 开启事务
+	tx := d.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
-// 1. 删除子表 TaskAnsibleworkHistory
-if err := tx.Where("history_id = ?", historyID).Delete(&model.TaskAnsibleworkHistory{}).Error; err != nil {
-tx.Rollback()
-return err
+	// 1. 删除子表 TaskAnsibleworkHistory
+	if err := tx.Where("history_id = ?", historyID).Delete(&model.TaskAnsibleworkHistory{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 2. 删除主表 TaskAnsibleHistory
+	if err := tx.Where("id = ?", historyID).Delete(&model.TaskAnsibleHistory{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
-// 2. 删除主表 TaskAnsibleHistory
-if err := tx.Where("id = ?", historyID).Delete(&model.TaskAnsibleHistory{}).Error; err != nil {
-tx.Rollback()
-return err
-}
+// GetTasks 查询任务列表 (多条件)
+func (d *TaskAnsibleDao) GetTasks(name string, taskType int, viewName string, page, size int) ([]model.TaskAnsible, int64, error) {
+	var tasks []model.TaskAnsible
+	var total int64
 
-return tx.Commit().Error
+	// 基础查询
+	query := d.DB.Model(&model.TaskAnsible{}).Preload("View")
+
+	// 关联查询视图表，以便按视图名称筛选
+	if viewName != "" {
+		query = query.Joins("JOIN task_ansible_view ON task_ansible.view_id = task_ansible_view.id").
+			Where("task_ansible_view.name = ?", viewName)
+	}
+
+	// 任务名称模糊查询
+	if name != "" {
+		query = query.Where("task_ansible.name LIKE ?", "%"+name+"%")
+	}
+
+	// 任务类型查询
+	if taskType != 0 {
+		query = query.Where("task_ansible.type = ?", taskType)
+	}
+
+	// 计算总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	if err := query.Order("task_ansible.id DESC").Offset((page - 1) * size).Limit(size).Find(&tasks).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return tasks, total, nil
 }
