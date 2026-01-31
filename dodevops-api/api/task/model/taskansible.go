@@ -28,6 +28,12 @@ type TaskAnsible struct {
 	UpdatedAt          time.Time         `gorm:"not null;comment:'更新时间'"`
 	Works              []TaskAnsibleWork `gorm:"foreignKey:TaskID;comment:'子任务列表'"`
 
+	// 新增字段
+	CronExpr    string           `gorm:"size:64;comment:'定时表达式'"`
+	IsRecurring int              `gorm:"not null;default:0;comment:'是否周期性任务:0-否,1-是'"`
+	ViewID      *uint            `gorm:"comment:'视图ID'"`
+	View        *TaskAnsibleView `gorm:"foreignKey:ViewID"`
+
 	InventoryConfig  *ConfigAnsible `gorm:"foreignKey:InventoryConfigID"`
 	GlobalVarsConfig *ConfigAnsible `gorm:"foreignKey:GlobalVarsConfigID"`
 	ExtraVarsConfig  *ConfigAnsible `gorm:"foreignKey:ExtraVarsConfigID"`

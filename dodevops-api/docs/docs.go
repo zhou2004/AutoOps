@@ -7877,6 +7877,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/task/ansible/query": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "多条件查询Ansible任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "任务作业"
+                ],
+                "summary": "多条件查询Ansible任务",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称（支持模糊查询）",
+                        "name": "name",
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务类型（1=手动，2=Git导入，3=K8s部署）",
+                        "name": "type",
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "type": "string",
+                        "description": "视图名称",
+                        "name": "viewName",
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/result.Result"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.TaskAnsible"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/task/ansible/{id}": {
             "get": {
                 "security": [

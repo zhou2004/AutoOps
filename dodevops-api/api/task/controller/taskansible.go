@@ -575,11 +575,35 @@ func (c *TaskAnsibleController) GetTaskHistoryLogByDetails(ctx *gin.Context) {
 // @Router /api/v1/task/ansible/{id}/history/{history_id} [delete]
 // @Security ApiKeyAuth
 func (c *TaskAnsibleController) DeleteTaskHistory(ctx *gin.Context) {
-historyID, err := strconv.ParseUint(ctx.Param("history_id"), 10, 64)
-if err != nil {
-result.Failed(ctx, 400, "无效的历史记录ID")
-return
+	historyID, err := strconv.ParseUint(ctx.Param("history_id"), 10, 64)
+	if err != nil {
+		result.Failed(ctx, 400, "无效的历史记录ID")
+		return
+	}
+
+	c.service.DeleteTaskHistory(ctx, uint(historyID))
 }
 
-c.service.DeleteTaskHistory(ctx, uint(historyID))
+// GetTasks 查询任务列表 (多条件)
+// @Summary 查询任务列表
+// @Description 支持任务名称、类型、视图名称的多条件查询和分页
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param name query string false "任务名称(模糊)"
+// @Param type query int false "任务类型"
+// @Param viewName query string false "视图名称"
+// @Param page query int false "页码" default(1)
+// @Param size query int false "每页数量" default(10)
+// @Success 200 {object} result.Result{data=ListResponse}
+// @Router /api/v1/task/ansible/query [get]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) GetTasks(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	size, _ := strconv.Atoi(ctx.DefaultQuery("size", "10"))
+	name := ctx.Query("name")
+	taskType, _ := strconv.Atoi(ctx.Query("type"))
+	viewName := ctx.Query("viewName")
+
+	c.service.GetTasks(ctx, name, taskType, viewName, page, size)
 }
