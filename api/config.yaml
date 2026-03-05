@@ -14,8 +14,8 @@ db:
   port: 3306
 #  db: gin-api
   db: autoops
-  username: admin
-  password: 123456
+  username: root
+  password: devops@2025
   charset: utf8
   # 最大空闲数
   maxIdle: 50
@@ -53,3 +53,4 @@ monitor:
     heartbeat_token: "agent-heartbeat-token-2024"
   webhook:
     token: "webhook-notify-token-2024"
+
