@@ -180,15 +180,18 @@ Web 前端: http://localhost:8080
 ## 感谢以下同学对本项目提供的打赏
 
 <p align="center">
-  <img src="assets/image.png" width="120" />
-  <img src="assets/image-1.png" width="120" />
-  <img src="assets/image-2.png" width="120" />
-  <img src="assets/image-3.png" width="120" />
-  <img src="assets/image-4.png" width="120" />
-  <img src="assets/image-5.png" width="120" />
-  <img src="assets/image-6.png" width="120" />
-  <img src="assets/image-7.png" width="120" />
-  <img src="assets/image-8.png" width="120" />
+  <img src="assets/zanzhu/1.png" width="120" />
+  <img src="assets/zanzhu/4.png" width="120" />
+  <img src="assets/zanzhu/5.png" width="120" />
+  <img src="assets/zanzhu/6.png" width="120" />
+  <img src="assets/zanzhu/7.png" width="120" />
+  <img src="assets/zanzhu/8.png" width="120" />
+  <img src="assets/zanzhu/9.png" width="120" />
+  <img src="assets/zanzhu/10.png" width="120" />
+  <img src="assets/zanzhu/11.png" width="120" />
+  <img src="assets/zanzhu/12.png" width="120" />
+  <img src="assets/zanzhu/13.png" width="120" />
+  <img src="assets/zanzhu/14.png" width="120" />
 </p>
 
 ## 联系作者
