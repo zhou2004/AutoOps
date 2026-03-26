@@ -161,7 +161,7 @@ docker一键安装
 ```bash
 # 脚本+镜像版本+ip+前端端口
 cd /root/deviops/docker
-./devops-start.sh  v3.0 ip 8080
+./devops-start.sh  v4.0   ip     8080
 ```
 
 
