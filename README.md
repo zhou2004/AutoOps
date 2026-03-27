@@ -197,7 +197,8 @@ Web 前端: http://localhost:8080
 ## 联系作者
 
 ## 技术交流+社区
-
+- 微信技术交流: zf5391621
+- 建议邮箱: zfwh1024@163.com
 <img src="assets/zf.jpg" width="300" />
 
 #### 加群技术交流
