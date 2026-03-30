@@ -79,6 +79,7 @@ type CreateTaskRequest struct {
 	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
 	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
+	MaxHistoryKeep     int               `gorm:"default:3;comment:'最大保留历史记录数'"`
 	CronExpr           string            `json:"cronExpr"`
 	IsRecurring        int               `json:"isRecurring"`
 	ViewID             *uint             `json:"viewId"`
@@ -98,6 +99,7 @@ type UpdateTaskRequest struct {
 	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
 	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
+	MaxHistoryKeep     int               `gorm:"default:3;comment:'最大保留历史记录数'"`
 	CronExpr           string            `json:"cronExpr"`
 	IsRecurring        *int              `json:"isRecurring"`
 	ViewID             *uint             `json:"viewId"`
@@ -702,6 +704,9 @@ func (s *TaskAnsibleServiceImpl) GetTaskDetail(c *gin.Context, taskID uint) {
 		"GlobalVarsConfigID": task.GlobalVarsConfigID,
 		"ExtraVarsConfigID":  task.ExtraVarsConfigID,
 		"CliArgsConfigID":    task.CliArgsConfigID,
+		"IsRecurring":		  task.IsRecurring,
+		"CronExpr":			  task.CronExpr,
+		"MaxHistoryKeep":	  task.MaxHistoryKeep,
 		"CreatedAt":          task.CreatedAt,
 		"UpdatedAt":          task.UpdatedAt,
 		"Works":              works,
@@ -1197,6 +1202,7 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 		GlobalVarsConfigID: req.GlobalVarsConfigID,
 		ExtraVarsConfigID:  req.ExtraVarsConfigID,
 		CliArgsConfigID:    req.CliArgsConfigID,
+		MaxHistoryKeep: 	req.MaxHistoryKeep,
 		CronExpr:           req.CronExpr,
 		IsRecurring:        req.IsRecurring,
 		ViewID:             req.ViewID,
@@ -1996,6 +2002,10 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 	// 只有当 IsRecurring 传了值（不为nil）时才更新
 	if req.IsRecurring != nil {
 		task.IsRecurring = *req.IsRecurring
+	}
+
+	if req.MaxHistoryKeep > 0 {
+		task.MaxHistoryKeep = req.MaxHistoryKeep
 	}
 
 	// 只有当 ViewID 传了值（不为nil）时才更新
