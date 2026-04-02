@@ -16,13 +16,6 @@ module.exports = defineConfig({
     host: "0.0.0.0",
     https: false,
     open:false,
-    proxy: {
-      "/api/v1": {
-        target: "http://127.0.0.1:8000",  // 后端服务地址
-        changeOrigin: true
-        // 完全移除 pathRewrite，让 /api/v1 前缀直接传递给后端
-      }
-    },
     client: {
       overlay: false  // 关闭全屏错误提示
     }
