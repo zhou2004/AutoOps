@@ -1,5 +1,21 @@
 package model
 
+// MonitorDataSource 监控数据源统一管理表
+type MonitorDataSource struct {
+	ID           uint      `gorm:"primaryKey;column:id;autoIncrement;comment:主键ID" json:"id"`
+	Name         string    `gorm:"column:name;type:varchar(128);not null;uniqueIndex:idx_name;comment:数据源名称，如：北京核心机房-K8s集群" json:"name"`
+	Type         string    `gorm:"column:type;type:varchar(64);not null;comment:数据源类型：Prometheus, Nightingale, Zabbix等" json:"type"`
+	DeployMethod string    `gorm:"column:deploy_method;type:varchar(64);not null;comment:部署方式：Kubernetes, Docker, Host, CloudManaged等" json:"deployMethod"`
+	ApiUrl       string    `gorm:"column:api_url;type:varchar(255);not null;comment:数据源的直连/查询接口地址" json:"apiUrl"`
+	Config       string    `gorm:"column:config;type:json;not null;comment:动态凭证配置 (格式由 deploy_method 决定)" json:"config"`
+	Status       int       `gorm:"column:status;type:tinyint(1);default:1;comment:状态：1-启用，0-停用" json:"status"`
+}
+
+// TableName 表名
+func (MonitorDataSource) TableName() string {
+	return "monitor_data_source"
+}
+
 type HostMetrics struct {
 	CPUUsage     float64 `json:"cpuUsage"`     // CPU使用率百分比
 	MemoryUsage  float64 `json:"memoryUsage"`  // 内存使用率百分比

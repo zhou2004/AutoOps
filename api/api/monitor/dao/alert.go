@@ -16,6 +16,10 @@ type AlertDao interface {
         GetTemplateById(id int) (*model.PrometheusAlertDB, error)
 
         GetAllAlertRouter() ([]*model.AlertRouter, error)
+	CreateAlertRouter(router *model.AlertRouter) error
+	DeleteAlertRouter(id int) error
+	UpdateAlertRouter(router *model.AlertRouter) error
+	GetAlertRouterById(id int) (*model.AlertRouter, error)
         GetRecordExist(alertname, level, labels, instance, startAt, endAt, summary, description, status string) bool
         AddAlertRecord(record *model.AlertRecord) error
         GetAlertConfig(key string) string
@@ -93,4 +97,22 @@ func (d *alertDao) GetAllAlertConfig() map[string]string {
                 configs[cfg.ConfKey] = cfg.ConfValue
         }
         return configs
+}
+
+func (d *alertDao) CreateAlertRouter(router *model.AlertRouter) error {
+return d.db.Create(router).Error
+}
+
+func (d *alertDao) DeleteAlertRouter(id int) error {
+return d.db.Delete(&model.AlertRouter{}, id).Error
+}
+
+func (d *alertDao) UpdateAlertRouter(router *model.AlertRouter) error {
+return d.db.Save(router).Error
+}
+
+func (d *alertDao) GetAlertRouterById(id int) (*model.AlertRouter, error) {
+var router model.AlertRouter
+err := d.db.Preload("Tpl").First(&router, id).Error
+return &router, err
 }

@@ -28,14 +28,15 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.DELETE("/alert/template/:id", alertController.DeleteTemplate)
 	monitorGroup.PUT("/alert/template/:id", alertController.UpdateTemplate)
 	monitorGroup.GET("/alert/templates", alertController.GetTemplate)
+
 	// Router CRUD
-	// monitorGroup.POST("/alert/router", alertController.CreateRouter)
-	// monitorGroup.DELETE("/alert/router/:id", alertController.DeleteRouter)
-	// monitorGroup.PUT("/alert/router/:id", alertController.UpdateRouter)
-	// monitorGroup.GET("/alert/routers", alertController.GetRouter)
+	monitorGroup.POST("/alert/router", alertController.CreateRouter)
+	monitorGroup.DELETE("/alert/router/:id", alertController.DeleteRouter)
+	monitorGroup.PUT("/alert/router/:id", alertController.UpdateRouter)
+	monitorGroup.GET("/alert/routers", alertController.GetRouter)
 	// Component Config Operations
-	// monitorGroup.POST("/alert/router/reload", alertController.ReloadConfig)
-	// monitorGroup.GET("/alert/router/health", alertController.HealthCheck)
+	monitorGroup.POST("/alert/router/reload", alertController.ReloadConfig)
+	monitorGroup.GET("/alert/router/health", alertController.HealthCheck)
 	// Records Operations
 	monitorGroup.GET("/alert/records", alertController.GetRecords)
 	monitorGroup.DELETE("/alert/records/clean", alertController.CleanRecords)
@@ -56,4 +57,20 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.GET("/agent/list", agentController.GetAgentList)             // 获取agent列表
 	monitorGroup.GET("/agent/statistics", agentController.GetAgentStatistics) // 获取统计信息
 	monitorGroup.DELETE("/agent/delete/:id", agentController.DeleteAgent)     // 删除agent数据(用于离线服务器)
+
+	// Monitor Data Source CRUD
+	dataSourceController := controller.NewMonitorDataSourceController()
+	monitorGroup.POST("/datasource", dataSourceController.Create)
+	monitorGroup.DELETE("/datasource/:id", dataSourceController.Delete)
+	monitorGroup.PUT("/datasource", dataSourceController.Update)
+	monitorGroup.GET("/datasource/:id", dataSourceController.GetByID)
+	monitorGroup.GET("/datasources", dataSourceController.GetList)
+
+	// Monitor Alert Rule CRUD (Apply to Kubernetes / Prometheus)
+	ruleController := controller.NewMonitorAlertRuleController()
+	monitorGroup.POST("/alertrule", ruleController.Create)
+	monitorGroup.DELETE("/alertrule/:id", ruleController.Delete)
+	monitorGroup.PUT("/alertrule", ruleController.Update)
+	monitorGroup.GET("/alertrule/:id", ruleController.GetByID)
+	monitorGroup.GET("/alertrules", ruleController.GetList)
 }

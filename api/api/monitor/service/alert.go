@@ -30,9 +30,12 @@ type AlertServiceInterface interface {
 	UpdateTemplate(tpl *alertModel.PrometheusAlertDB) error
 	GetTemplateList() ([]*alertModel.PrometheusAlertDB, error)
 	GetTemplateById(id int) (*alertModel.PrometheusAlertDB, error)
-
 	PrometheusAlertHandle(pMsg alertModel.PrometheusAlertMsg, pJson interface{}, pAlertManagerJson map[string]interface{}, GlobalAlertRouter []*alertModel.AlertRouter) (string, error)
 	GetAllAlertRouter() ([]*alertModel.AlertRouter, error)
+	CreateAlertRouter(router *alertModel.AlertRouter) error
+	DeleteAlertRouter(id int) error
+	UpdateAlertRouter(router *alertModel.AlertRouter) error
+	GetAlertRouterById(id int) (*alertModel.AlertRouter, error)
 }
 
 type alertService struct {
@@ -815,4 +818,21 @@ func (s *alertService) SendMessagePrometheusAlert(message string, pmsg *alertMod
 		ReturnMsg = "参数错误"
 	}
 	return ReturnMsg
+}
+
+func (s *alertService) CreateAlertRouter(router *alertModel.AlertRouter) error {
+router.Created = time.Now()
+return s.alertDao.CreateAlertRouter(router)
+}
+
+func (s *alertService) DeleteAlertRouter(id int) error {
+return s.alertDao.DeleteAlertRouter(id)
+}
+
+func (s *alertService) UpdateAlertRouter(router *alertModel.AlertRouter) error {
+return s.alertDao.UpdateAlertRouter(router)
+}
+
+func (s *alertService) GetAlertRouterById(id int) (*alertModel.AlertRouter, error) {
+return s.alertDao.GetAlertRouterById(id)
 }

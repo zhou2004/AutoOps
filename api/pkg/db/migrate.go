@@ -30,6 +30,8 @@ var models = []interface{}{
 	&taskmodel.TaskAnsible{},
 	&taskmodel.TaskAnsibleWork{},
 	&monitormodel.Agent{},
+	&monitormodel.MonitorDataSource{},
+	&monitormodel.MonitorAlertRule{},
 	&monitormodel.PrometheusAlertDB{},
 	&monitormodel.AlertRecord{},
 	&monitormodel.AlertRouter{},
