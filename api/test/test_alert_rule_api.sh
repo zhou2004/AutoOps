@@ -1,112 +1,163 @@
 #!/bin/bash
 
 # ========================================
-# 监控告警规则 & 数据源 API 测试脚本
-# 使用前请自行修改基础配置中的 URL 和 TOKEN
+# 监控告警群组 & 子规则 & 分类(Style) API 完整测试脚本
 # ========================================
 
-# --- 基础配置区 ---
-BASE_URL="http://172.22.107.76:8000/api/v1" # 请修改为后端实际运行的端口
-# 对于 /monitor 相关的接口由于注册在 `monitorGroup.Use(middleware.AuthMiddleware())` 下，需要有效的 JWT Token
-TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODksInVzZXJuYW1lIjoiYWRtaW4iLCJuaWNrbmFtZSI6ImFkbWluIiwiaWNvbiI6Imh0dHA6Ly8xOTIuMTY4LjMuNzo4MDgwL2FwaS92MS91cGxvYWQvMjAyNTEyMTMvODYyMzI4MDAwLnBuZyIsImVtYWlsIjoiMTIzNDU2Nzg5QHFxLmNvbSIsInBob25lIjoiMTM3NTQzNTQ1MzYiLCJub3RlIjoi5ZCO56uv56CU5Y-RIiwiZXhwIjoxNzc1NjMzMDg5LCJpc3MiOiJhZG1pbiJ9.T4HM5cVA8vpmDj6JVtwGqAApyxwnGNoo6-h9-5VcmYs"     
+BASE_URL="http://172.22.107.76:8000/api/v1"
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODksInVzZXJuYW1lIjoiYWRtaW4iLCJuaWNrbmFtZSI6ImFkbWluIiwiaWNvbiI6Imh0dHA6Ly8xOTIuMTY4LjMuNzo4MDgwL2FwaS92MS91cGxvYWQvMjAyNTEyMTMvODYyMzI4MDAwLnBuZyIsImVtYWlsIjoiMTIzNDU2Nzg5QHFxLmNvbSIsInBob25lIjoiMTM3NTQzNTQ1MzYiLCJub3RlIjoi5ZCO56uv56CU5Y-RIiwiZXhwIjoxNzc1NzE5OTU0LCJpc3MiOiJhZG1pbiJ9.fScdJkkKnS1rhDuODHj5udUREFgnyw-4keBGnDHS1Gg"
 
-# 提取 Token 后请求的基础 Headers
 HEADER_JSON="Content-Type: application/json"
 HEADER_AUTH="Authorization: Bearer ${TOKEN}"
-
-# echo "========================================"
-# echo "1. 创建监控数据源 (POST /monitor/datasource)"
-# echo "========================================"
-# # 由于 k8s 规则需要基于数据源里的 config 来进行鉴权下发，因此先创建数据源
-# CREATE_DS_PAYLOAD=$(cat <<EOF
-# {
-#   "name": "北京核心 K8s 集群 (本机测试)",
-#   "type": "Prometheus",
-#   "deployMethod": "Kubernetes",
-#   "apiUrl": "https://192.168.0.51:6443",
-#   "config": "{\"auth_type\":\"service_account\",\"k8s_api_url\":\"https://192.168.0.51:6443\",\"namespace\":\"monitor\",\"token\":\"eyJhbGciOiJSUzI1NiIsImtpZCI6IkRtejVzMmo3b3JkMFFOa0Etby1JdVRBZWZfM2MtcTZMSTExbjZJajJfOUEifQ.eyJhdWQiOlsiYXBpIiwiaXN0aW8tY2EiXSwiZXhwIjoyMDkwOTAyNzY3LCJpYXQiOjE3NzU1NDI3NjcsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2YyIsImp0aSI6ImRiNjg4NjViLTRkM2EtNDAxZC1hYzY5LWFmOTkwNGJkMTNiMSIsImt1YmVybmV0ZXMuaW8iOnsibmFtZXNwYWNlIjoibW9uaXRvciIsInNlcnZpY2VhY2NvdW50Ijp7Im5hbWUiOiJtb25pdG9yLW1hbmFnZXItc2EiLCJ1aWQiOiI4NmYwYTAyMS0wNjk1LTQ1ZTYtYmQ0OS00NjI1MTg2MTU2OGQifX0sIm5iZiI6MTc3NTU0Mjc2Nywic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Om1vbml0b3I6bW9uaXRvci1tYW5hZ2VyLXNhIn0.ez8h2RjDcMc7-OW55JWcz1h2IOMTQitEv-F8tqqIZNjV8EUbkzfU8CPU4UdqgLeZK26eh4-0Ql_I-7GgmS_Il93Dxow9jHi1ihwrQc7oao9EHCRyjEqDVUuJdECY4SKEolwupeFc_dJYQre0UNGbxPttyqFNfh5-36gekIe4rt96-5F-yDL_U6Jfv58wXEXGPl-ReAowjwHhY9djCrFYtKbA4Fs6hkmycIi_34lqn0w-9RmJ4MWss0XosUEqtPBw41EhO4cJ7xsrQgHEenQBKQOV7RGhtPfA8i8Pyd0OiYvKyb1dzXFbbB96zWOKdMKXIweFjMkD6V4cP6pg0r196A\",\"insecure_skip_tls_verify\":true}"
-# }
-# EOF
-# )
-
-# CREATE_DS_RES=$(curl -s -X POST "${BASE_URL}/monitor/datasource" \
-#   -H "${HEADER_JSON}" \
-#   -H "${HEADER_AUTH}" \
-#   -d "${CREATE_DS_PAYLOAD}")
-
-# echo "数据源返回结果: ${CREATE_DS_RES}"
-
-# # 注意：如果安装了 jq 命令，可以通过以下方式拿到动态产生的 id
-# # DS_ID=$(echo "${CREATE_DS_RES}" | jq '.data.id')
-# # 此处我们假设接口返回的数据源 ID 为 1，执行时可将其手动修改为实际返回的值
-
-
-
 # DS_ID=1
+
+# echo "========================================"
+# echo "0. 创建告警分类 (POST /monitor/alert/style)"
+# echo "========================================"
+# CREATE_STYLE_RES=$(curl -s -X POST "${BASE_URL}/monitor/alert/style" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d '{"name": "CPU", "description": "CPU指标告警规则"}')
+# echo "新建分类结果: ${CREATE_STYLE_RES}"
+# STYLE_ID=$(echo "${CREATE_STYLE_RES}" | jq -r '.data.ID // .data.id')
+
+# CREATE_STYLE_RES2=$(curl -s -X POST "${BASE_URL}/monitor/alert/style" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d '{"name": "Memory", "description": "内存指标告警规则"}')
+# STYLE_ID2=$(echo "${CREATE_STYLE_RES2}" | jq -r '.data.ID // .data.id')
+
+# echo "========================================"
+# echo "0.1 查询告警分类列表 (GET /monitor/alert/styles)"
+# echo "========================================"
+# curl -s -X GET "${BASE_URL}/monitor/alert/styles" -H "${HEADER_AUTH}" | jq .
 
 # echo ""
 # echo "========================================"
-# echo "2. 创建告警规则并应用到 K8s (POST /monitor/alertrule)"
+# echo "1. 创建告警群组 (POST /monitor/alert/group)"
 # echo "========================================"
-# # 下面的 YAML 代表了我们要下发的 PrometheusRule
-# YAML_RULE="apiVersion: monitoring.coreos.com/v1\\nkind: PrometheusRule\\nmetadata:\\n  name: node-cpu-usage\\n  namespace: monitor\\n  labels:\\n    release: prometheus\\nspec:\\n  groups:\\n    - name: node.cpu.usage.rules\\n      rules:\\n        - alert: HighCPUUsage\\n          expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\\\"idle\\\"}[5m])) * 100) > 1\\n          for: 1m\\n          labels:\\n            severity: warning\\n          annotations:\\n            summary: \\\"CPU 使用率高\\\"\\n            description: \\\"CPU 使用率持续 > 90%。\\\"\\n        - alert: HighCPUUsageCritical\\n          expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\\\"idle\\\"}[5m])) * 100) > 95\\n          for: 3m\\n          labels:\\n            severity: critical\\n          annotations:\\n            summary: \\\"CPU 使用率高\\\"\\n            description: \\\"CPU 使用率持续 > 95%。\\\""
+# YAML_RULE="apiVersion: monitoring.coreos.com/v1\nkind: PrometheusRule\nmetadata:\n  name: node-cpu-usage\n  namespace: monitor\n  labels:\n    release: prometheus\nspec:\n  groups:\n    - name: node.cpu.usage.rules\n      rules: []"
 
-# CREATE_RULE_PAYLOAD=$(cat <<EOF
+# CREATE_GROUP_PAYLOAD=$(cat <<PAYLOAD
 # {
-#   "id": 2,
-#   "dataSourceId": ${DS_ID},
-#   "name": "test-cpu-alert",
-#   "labels": {
-#     "instance": "192.168.0.51:9100"
-#   },
-#   "ruleContent": "${YAML_RULE}",
-#   "status": "inactive"
+#   "data_source_id": ${DS_ID},
+#   "group_name": "node-system-usage",
+#   "labels": "{\"cluster\": \"beijing-core\"}",
+#   "rule_content": "${YAML_RULE}"
 # }
-# EOF
+# PAYLOAD
 # )
 
-# CREATE_RULE_RES=$(curl -s -X PUT "${BASE_URL}/monitor/alertrule" \
-#   -H "${HEADER_JSON}" \
-#   -H "${HEADER_AUTH}" \
-#   -d "${CREATE_RULE_PAYLOAD}")
+# CREATE_GROUP_RES=$(curl -s -X POST "${BASE_URL}/monitor/alert/group" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d "${CREATE_GROUP_PAYLOAD}")
+# echo "告警群组创建返回结果: ${CREATE_GROUP_RES}"
+# GROUP_ID=$(echo "${CREATE_GROUP_RES}" | jq -r '.data.ID // .data.id')
+# echo "Group ID: ${GROUP_ID}"
 
-# echo "告警创建返回结果: ${CREATE_RULE_RES}"
+# echo ""
+# echo "========================================"
+# echo "2. 直接添加两条子规则 (测试 Style 与 Enabled 字段) (POST /monitor/alert/rule)"
+# echo "========================================"
+# CREATE_RULE_PAYLOAD1=$(cat <<PAYLOAD
+# {
+#   "group_id": ${GROUP_ID},
+#   "alert": "NodeCPUUsage",
+#   "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) > 90",
+#   "for_duration": "5m",
+#   "severity": "warning",
+#   "summary": "CPU使用率高",
+#   "description": "节点CPU持续超过 90%",
+#   "constraints": "{\"service\": \"nginx\", \"env\": \"prod\"}",
+#   "labels": "{\"team\": \"devops\"}",
+#   "style": "CPU",
+#   "enabled": 1
+# }
+# PAYLOAD
+# )
+
+# CREATE_RULE_RES1=$(curl -s -X POST "${BASE_URL}/monitor/alert/rule" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d "${CREATE_RULE_PAYLOAD1}")
+# echo "新增子规则1(CPU, 启用)返回结果: ${CREATE_RULE_RES1}"
+# RULE_ID1=$(echo "${CREATE_RULE_RES1}" | jq -r '.data.ID // .data.id')
+GROUP_ID=9
+CREATE_RULE_PAYLOAD2=$(cat <<PAYLOAD
+{
+  "group_id": ${GROUP_ID},
+  "alert": "NodeMemoryUsage",
+  "expr": "100 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90",
+  "for_duration": "5m",
+  "severity": "warning",
+  "summary": "内存使用率高",
+  "description": "节点内存持续超过 90%",
+  "constraints": "{\"service\": \"mysql\", \"env\": \"prod\"}",
+  "labels": "{\"team\": \"devops\"}",
+  "style": "Memory",
+  "enabled": 1
+}
+PAYLOAD
+)
+
+CREATE_RULE_RES2=$(curl -s -X POST "${BASE_URL}/monitor/alert/rule" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d "${CREATE_RULE_PAYLOAD2}")
+echo "新增子规则2(Memory, 禁用)返回结果: ${CREATE_RULE_RES2}"
+RULE_ID2=$(echo "${CREATE_RULE_RES2}" | jq -r '.data.ID // .data.id')
+
+# echo ""
+# echo "========================================"
+# echo "3. 测试多条件分页组合查询接口 (GET /monitor/alert/rules_list)"
+# echo "========================================"
+# echo ">> 查询 Style=CPU 且 Enabled=1 的规则:"
+# curl -s -X GET "${BASE_URL}/monitor/alert/rules_list?style=CPU&enabled=1&page=1&pageSize=10" -H "${HEADER_AUTH}" | jq .
+
+# echo ">> 查询 Style=Memory 且 Enabled=0 的规则:"
+# curl -s -X GET "${BASE_URL}/monitor/alert/rules_list?style=Memory&enabled=0&page=1&pageSize=10" -H "${HEADER_AUTH}" | jq .
+
+# echo ""
+# echo "========================================"
+# echo "3.1 测试据所属群组直接拉取下属所有规则列表 (GET /monitor/alert/rules/:groupId)"
+# echo "========================================"
+# echo ">> 拉取 GroupID=${GROUP_ID} 的所有告警(包括已启用和未启用):"
+# curl -s -X GET "${BASE_URL}/monitor/alert/rules/${GROUP_ID}?page=1&pageSize=10" -H "${HEADER_AUTH}" | jq .
 
 
+# echo ""
+# echo "========================================"
+# echo "4. 获取刚才创建的告警群组，验证群组YAML配置是否只下发了启用的规则"
+# echo "========================================"
+# curl -s -X GET "${BASE_URL}/monitor/alert/group/${GROUP_ID}" -H "${HEADER_AUTH}" | jq -r '.data.rule_content'
 
+# echo ""
+# echo "========================================"
+# echo "5. 修改分类 (PUT /monitor/alert/style)"
+# echo "========================================"
+# curl -s -X PUT "${BASE_URL}/monitor/alert/style" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d "{\"id\": ${STYLE_ID}, \"name\": \"CPU-Metrics\", \"description\": \"CPU 相关\"}" | jq .
 
+# echo ""
+# echo "========================================"
+# echo "6. 单条子规则停用测试 (将 CPU 规则 Enabled 设置为 0) (PUT /monitor/alert/rule)"
+# echo "========================================"
+# UPDATE_RULE_PAYLOAD=$(cat <<PAYLOAD
+# {
+#   "id": ${RULE_ID1},
+#   "group_id": ${GROUP_ID},
+#   "alert": "NodeCPUUsage Updated",
+#   "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100) > 90",
+#   "for_duration": "3m",
+#   "severity": "critical",
+#   "summary": "CPU使用率高",
+#   "description": "节点CPU持续超过 90%",
+#   "constraints": "{\"service\": \"nginx\", \"env\": \"prod\"}",
+#   "labels": "{\"team\": \"sre\"}",
+#   "style": "CPU-Metrics",
+#   "enabled": 0
+# }
+# PAYLOAD
+# )
+# curl -s -X PUT "${BASE_URL}/monitor/alert/rule" -H "${HEADER_JSON}" -H "${HEADER_AUTH}" -d "${UPDATE_RULE_PAYLOAD}" | jq .
 
+# echo ">> 再次获取 Group YAML，确认未启用规则已被过滤 (此时应该为空 rules):"
+# curl -s -X GET "${BASE_URL}/monitor/alert/group/${GROUP_ID}" -H "${HEADER_AUTH}" | jq -r '.data.rule_content'
 
+# echo ""
+# echo "========================================"
+# echo "7. 资源清理: 删除子规则、群组、分类"
+# echo "========================================"
+# curl -s -X DELETE "${BASE_URL}/monitor/alert/rule/${RULE_ID1}" -H "${HEADER_AUTH}" | jq .
+# curl -s -X DELETE "${BASE_URL}/monitor/alert/rule/${RULE_ID2}" -H "${HEADER_AUTH}" | jq .
+# curl -s -X DELETE "${BASE_URL}/monitor/alert/group/${GROUP_ID}" -H "${HEADER_AUTH}" | jq .
+# curl -s -X DELETE "${BASE_URL}/monitor/alert/style/${STYLE_ID}" -H "${HEADER_AUTH}" | jq .
+# curl -s -X DELETE "${BASE_URL}/monitor/alert/style/${STYLE_ID2}" -H "${HEADER_AUTH}" | jq .
 
-
-
-
-
-# 假设返回的规则 ID 为 1
-RULE_ID=2
-
-echo ""
-echo "========================================"
-echo "3. 获取告警规则列表 (GET /monitor/alertrules)"
-echo "========================================"
-curl -s -X GET "${BASE_URL}/monitor/alertrules?page=1&pageSize=10" \
-  -H "${HEADER_AUTH}" | jq . || echo "请自行察看由于无jq格式化的打印"
-
-echo ""
-echo "========================================"
-echo "4. 根据 ID 获取单一条告警规则 (GET /monitor/alertrule/:id)"
-echo "========================================"
-curl -s -X GET "${BASE_URL}/monitor/alertrule/${RULE_ID}" \
-  -H "${HEADER_AUTH}" | jq . || echo "已返回内容"
-
-echo ""
-echo "========================================"
-echo "5. 删除并在 K8s 中卸载告警规则 (DELETE /monitor/alertrule/:id)"
-echo "========================================"
-DELETE_RULE_RES=$(curl -s -X DELETE "${BASE_URL}/monitor/alertrule/${RULE_ID}" \
-  -H "${HEADER_AUTH}")
-
-echo "删除返回结果: ${DELETE_RULE_RES}"
-
-echo ""
-echo "测试流程执行完毕！"
+# echo ""
+# echo "测试流程执行完毕！"

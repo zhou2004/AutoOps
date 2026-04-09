@@ -9,11 +9,12 @@ import configRoutes from './config'
 import task from './task'
 import tools from './Tools'
 import app from './app'
+import monitor from './monitor'
 
 // 路由集合
 const routes = [
-    {path: '/',      redirect: '/login'},
-    {path: '/login', component: Login},
+    { path: '/', redirect: '/login' },
+    { path: '/login', component: Login },
     {
         path: '/home',
         component: Home,
@@ -22,7 +23,7 @@ const routes = [
             {
                 path: '/dashboard',
                 component: Dashboard,
-                meta: {tTitle: '仪表盘'}
+                meta: { tTitle: '仪表盘' }
             },
             // 以下路由已注释，如需使用请先创建对应组件并导入
             // {
@@ -52,6 +53,7 @@ const routes = [
             ...task,
             ...tools,
             ...app,
+            ...monitor,
         ]
     }
 ]

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -13,15 +12,13 @@ import (
 
 	"dodevops-api/api/monitor/dao"
 	"dodevops-api/api/monitor/model"
-	"dodevops-api/common"
-
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
 
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql/parser"
-	"gopkg.in/yaml.v3"
 
+	"gopkg.in/yaml.v3"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/discovery"
@@ -29,203 +26,43 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
-	// "sigs.k8s.io/yaml"
 )
 
 type MonitorAlertRuleService interface {
-	Create(data *model.MonitorAlertRule) error
-	Delete(id uint) error
-	Update(data *model.MonitorAlertRule) error
-	GetByID(id uint) (*model.MonitorAlertRule, error)
-	GetList(page, pageSize int) ([]*model.MonitorAlertRule, int64, error)
+	// Group
+	CreateGroup(data *model.MonitorAlertGroupRule) error
+	DeleteGroup(id uint) error
+	UpdateGroup(data *model.MonitorAlertGroupRule) error
+	GetGroupByID(id uint) (*model.MonitorAlertGroupRule, error)
+	GetGroupList(page, pageSize int) ([]*model.MonitorAlertGroupRule, int64, error)
+
+	// Rule
+	CreateRule(data *model.MonitorAlertRule) error
+	DeleteRule(id uint) error
+	UpdateRule(data *model.MonitorAlertRule) error
+	GetRuleByID(id uint) (*model.MonitorAlertRule, error)
+	GetRuleListByGroup(groupId uint, page, pageSize int) ([]*model.MonitorAlertRule, int64, error)
+	GetRuleList(req *model.MonitorAlertRuleQuery) ([]*model.MonitorAlertRule, int64, error)
 }
 
 type monitorAlertRuleService struct {
+	groupRuleDao  dao.MonitorAlertGroupRuleDao
 	ruleDao       dao.MonitorAlertRuleDao
 	dataSourceDao dao.MonitorDataSourceDao
 }
 
 func NewMonitorAlertRuleService() MonitorAlertRuleService {
 	s := &monitorAlertRuleService{
+		groupRuleDao:  dao.NewMonitorAlertGroupRuleDao(),
 		ruleDao:       dao.NewMonitorAlertRuleDao(),
 		dataSourceDao: dao.NewMonitorDataSourceDao(),
 	}
 
-	// 启动后台轮询，从 Prometheus 直接同步状态到 DB
 	go s.syncStatusLoop()
 	return s
 }
 
-// syncStatusLoop 定时调用 Prometheus 原生 API 更新每个 Rule 的最新状态
-func (s *monitorAlertRuleService) syncStatusLoop() {
-	time.Sleep(5 * time.Second) // 等待服务启动
-	for {
-		s.syncStatusOnce()
-		time.Sleep(30 * time.Second) // 每30s轮询一次
-	}
-}
-
-type promRulesResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		Groups []struct {
-			Rules []struct {
-				State string `json:"state"`
-				Name  string `json:"name"`
-				Type  string `json:"type"`
-			} `json:"rules"`
-		} `json:"groups"`
-	} `json:"data"`
-}
-
-type localPromRuleDoc struct {
-	Spec struct {
-		Groups []struct {
-			Rules []struct {
-				Alert string `yaml:"alert"`
-			} `yaml:"rules"`
-		} `yaml:"groups"`
-	} `yaml:"spec"`
-}
-
-func (s *monitorAlertRuleService) syncStatusOnce() {
-	// 获取所有数据源和规则
-	dsList, _, err := s.dataSourceDao.GetList(0, 0)
-	if err != nil {
-		log.Printf("[状态同步] 获取数据源失败: %v\n", err)
-		return
-	}
-	ruleList, _, err := s.ruleDao.GetList(0, 0)
-	if err != nil || len(ruleList) == 0 {
-		return
-	}
-
-	// 映射 Data Source ID -> DS
-	dsMap := make(map[uint]*model.MonitorDataSource)
-	for _, ds := range dsList {
-		// 忽略大小写匹配
-		if strings.EqualFold(ds.Type, "Prometheus") {
-			dsMap[ds.ID] = ds
-		}
-	}
-
-	// 分组 Rules by DataSourceID
-	rulesByDS := make(map[uint][]*model.MonitorAlertRule)
-	for _, r := range ruleList {
-		rulesByDS[r.DataSourceID] = append(rulesByDS[r.DataSourceID], r)
-	}
-
-	// 对每个 Prometheus 数据源更新
-	for dsID, ds := range dsMap {
-		rules := rulesByDS[dsID]
-		if len(rules) == 0 {
-			continue
-		}
-
-		// 调用 Prometheus /api/v1/rules
-		url := fmt.Sprintf("%s/api/v1/rules?type=alert", strings.TrimRight(ds.ApiUrl, "/"))
-		log.Printf("[同步检测] 数据源 ID=%d 准备请求 Prometheus API: %s\n", dsID, url)
-		resp, err := http.Get(url)
-		if err != nil {
-			log.Printf("[状态同步] 无法连接 %s - %v\n", url, err)
-			continue
-		}
-
-		bodyBytes, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		if err != nil {
-			log.Printf("[状态同步] 解析包体数据失败: %v\n", err)
-			continue
-		}
-
-		var promResp promRulesResponse
-		if err := json.Unmarshal(bodyBytes, &promResp); err != nil {
-			snippet := string(bodyBytes)
-			if len(snippet) > 200 {
-				snippet = snippet[:200] + "..."
-			}
-			log.Printf("[状态同步] json解析出错: %v (响应前段: %s)\n", err, snippet)
-			continue
-		}
-
-		if promResp.Status != "success" {
-			continue
-		}
-
-		// 解析 Prometheus 返回的每个规则名 -> 状态的映射 (取最严重状态: firing > pending > inactive)
-		alertStates := make(map[string]string)
-		for _, g := range promResp.Data.Groups {
-			for _, r := range g.Rules {
-				if r.Type == "alerting" && r.Name != "" {
-					existing := alertStates[r.Name]
-					if existing == "" || r.State == "firing" || (r.State == "pending" && existing == "inactive") {
-						alertStates[r.Name] = r.State
-					}
-				}
-			}
-		}
-
-		// 根据 DB 里的 YAML 解出 Rule 里涉及的 alert 对象，结合最新的 Status 更新数据库
-		for _, r := range rules {
-			// **核心优化**: 使用 Redis 高速分布缓存存放当前规则包含的具体 Alert 名称集合，从而大幅度降低 CPU 算力损耗 (原 YAML 解析非常缓慢)
-			var alertNames []string
-			needParse := true // 是否需要进行厚重的 YAML 递归解析
-			cacheKey := fmt.Sprintf("autoops:monitor:alert_rule:%d:alerts", r.ID)
-			ctx := context.Background()
-			redisCli := common.GetRedisClient()
-
-			// 1. **缓存读取**: 验证 Redis 连接有效性，尝试命中缓存记录
-			if redisCli != nil {
-				cachedStr, err := redisCli.Get(ctx, cacheKey).Result()
-				if err == nil && cachedStr != "" {
-					// 缓存命中: 进行无损轻量级的反序列化
-					if jsonErr := json.Unmarshal([]byte(cachedStr), &alertNames); jsonErr == nil {
-						needParse = false
-					}
-				}
-			}
-
-			// 2. **缓存穿透回源**: 未命中缓存则立即启动 YAML 离线计算
-			if needParse {
-				var doc localPromRuleDoc
-				if err := yaml.Unmarshal([]byte(r.RuleContent), &doc); err == nil {
-					for _, g := range doc.Spec.Groups {
-						for _, pr := range g.Rules {
-							if pr.Alert != "" {
-								alertNames = append(alertNames, pr.Alert)
-							}
-						}
-					}
-				}
-				// 3. **缓存写入**: 将高净值计算结果持久化推送到 Redis 中（设定TTL防止脏数据存留太久，同时在 Update/Delete 时做主动清理）
-				if redisCli != nil {
-					if b, err := json.Marshal(alertNames); err == nil {
-						redisCli.Set(ctx, cacheKey, string(b), 24*time.Hour)
-					}
-				}
-			}
-
-			finalStatus := "inactive"
-			for _, alertName := range alertNames {
-				state := alertStates[alertName]
-				if state == "firing" {
-					finalStatus = "firing"
-				} else if state == "pending" && finalStatus != "firing" {
-					finalStatus = "pending"
-				}
-			}
-
-			// 只更新发生状态改变的规则数据
-			if r.Status != finalStatus {
-				log.Printf("[状态更新] 规则 [%s] (ID:%d) 状态由于发生变化正在更新: %s -> %s\n", r.Name, r.ID, r.Status, finalStatus)
-				r.Status = finalStatus
-				_ = s.ruleDao.Update(r)
-			}
-		}
-	}
-}
-
-// 模拟 k8s 配置结构
+// ============== Kubernetes Engine ==============
 type k8sDataSourceConfig struct {
 	AuthType              string `json:"auth_type"`
 	K8sApiUrl             string `json:"k8s_api_url"`
@@ -234,7 +71,6 @@ type k8sDataSourceConfig struct {
 	InsecureSkipTlsVerify bool   `json:"insecure_skip_tls_verify"`
 }
 
-// applyToKubernetes 通过 K8s 动态客户端将规则应用到 K8s 集群
 func (s *monitorAlertRuleService) applyToKubernetes(dataSource *model.MonitorDataSource, ruleContent string, action string) error {
 	var k8sConfig k8sDataSourceConfig
 	if err := json.Unmarshal([]byte(dataSource.Config), &k8sConfig); err != nil {
@@ -291,7 +127,6 @@ func (s *monitorAlertRuleService) applyToKubernetes(dataSource *model.MonitorDat
 	}
 
 	ctx := context.TODO()
-
 	if action == "apply" {
 		existing, err := resourceInterface.Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
@@ -320,106 +155,422 @@ func (s *monitorAlertRuleService) applyToKubernetes(dataSource *model.MonitorDat
 	return nil
 }
 
-// syncRuleToDataSource 同步规则到对应的数据源
-func (s *monitorAlertRuleService) syncRuleToDataSource(rule *model.MonitorAlertRule, action string) error {
-	dataSource, err := s.dataSourceDao.GetByID(rule.DataSourceID)
+func (s *monitorAlertRuleService) applyGroupToDataSources(group *model.MonitorAlertGroupRule, action string) error {
+	ds, err := s.dataSourceDao.GetByID(group.DataSourceID)
 	if err != nil {
-		return fmt.Errorf("获取数据源失败: %v", err)
+		return err
+	}
+	if ds.Type == "Prometheus" && ds.DeployMethod == "Kubernetes" {
+		return s.applyToKubernetes(ds, group.RuleContent, action)
+	}
+	return nil
+}
+
+// ============== Yaml AST Parsing Types ==============
+
+type promYamlRoot struct {
+	ApiVersion string   `yaml:"apiVersion"`
+	Kind       string   `yaml:"kind"`
+	Metadata   promMeta `yaml:"metadata"`
+	Spec       promSpec `yaml:"spec"`
+}
+
+type promMeta struct {
+	Name      string            `yaml:"name"`
+	Namespace string            `yaml:"namespace"`
+	Labels    map[string]string `yaml:"labels,omitempty"`
+}
+
+type promSpec struct {
+	Groups []promGroup `yaml:"groups"`
+}
+
+type promGroup struct {
+	Name  string      `yaml:"name"`
+	Rules []promAlert `yaml:"rules"`
+}
+
+type promAlert struct {
+	Alert       string            `yaml:"alert"`
+	Expr        string            `yaml:"expr"`
+	For         string            `yaml:"for"`
+	Labels      map[string]string `yaml:"labels,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
+}
+
+// yamlSyncGroupToRules (自上而下解析) 将 Group 的 RuleContent 拆解到子规则
+func (s *monitorAlertRuleService) yamlSyncGroupToRules(group *model.MonitorAlertGroupRule) error {
+	// 1. 删除旧规则
+	s.ruleDao.DeleteByGroupID(group.ID)
+
+	// 2. 解析群组YAML
+	var doc promYamlRoot
+	if err := yaml.Unmarshal([]byte(group.RuleContent), &doc); err != nil {
+		return err
 	}
 
-	// 根据数据源类型和部署方式执行对应逻辑
-	if dataSource.Type == "Prometheus" && dataSource.DeployMethod == "Kubernetes" {
-		return s.applyToKubernetes(dataSource, ProcessRuleYAML(rule.RuleContent, rule.Labels), action)
+	if len(doc.Spec.Groups) == 0 {
+		return nil
+	}
+
+	pg := doc.Spec.Groups[0] // 仅保存第一个 Group
+
+	// 构建子规则
+	for _, pr := range pg.Rules {
+		rLabels, _ := json.Marshal(pr.Labels)
+		contentBytes, _ := yaml.Marshal(pr)
+
+		rule := &model.MonitorAlertRule{
+			GroupID:     group.ID,
+			Alert:       pr.Alert,
+			Expr:        pr.Expr,
+			ForDuration: pr.For,
+			Labels:      string(rLabels),
+			Severity:    pr.Labels["severity"],
+			Summary:     pr.Annotations["summary"],
+			Description: pr.Annotations["description"],
+			RuleContent: string(contentBytes),
+			Status:      "inactive",
+		}
+		s.ruleDao.Create(rule)
 	}
 
 	return nil
 }
 
-func (s *monitorAlertRuleService) Create(data *model.MonitorAlertRule) error {
-	// 1. 同步到数据源（如 Kubernetes）
-	if err := s.syncRuleToDataSource(data, "apply"); err != nil {
+// yamlSyncRulesToGroup (自下而上拼装) 将子规则拼装成 Group 的 RuleContent 并推向 K8s
+func (s *monitorAlertRuleService) yamlSyncRulesToGroup(group *model.MonitorAlertGroupRule) error {
+	rules, _ := s.ruleDao.GetByGroupID(group.ID)
+
+	// 从群组读出 Labels 以便级联下发
+	var groupLabels map[string]string
+	_ = json.Unmarshal([]byte(group.Labels), &groupLabels)
+
+	var doc promYamlRoot
+	_ = yaml.Unmarshal([]byte(group.RuleContent), &doc) // 保持外壳
+	if len(doc.Spec.Groups) == 0 {
+		doc.Spec.Groups = []promGroup{{Name: group.GroupName}}
+	}
+
+	var newRules []promAlert
+	for _, r := range rules {
+		// 跳过未启用的规则
+		if r.Enabled != nil && *r.Enabled == 0 {
+			continue
+		}
+		var pr promAlert
+		_ = yaml.Unmarshal([]byte(r.RuleContent), &pr)
+
+		// 基础覆盖
+		pr.Alert = r.Alert
+		pr.Expr = r.Expr
+		pr.For = r.ForDuration
+
+		// Constraints处理：将非空的约束条件动态注入到 Expr 中
+		if r.Constraints != "" && r.Constraints != "{}" {
+			var constraintsMap map[string]string
+			if err := json.Unmarshal([]byte(r.Constraints), &constraintsMap); err == nil {
+				validConstraints := make(map[string]string)
+				for k, v := range constraintsMap {
+					if v != "" { // 过滤掉空值
+						validConstraints[k] = v
+					}
+				}
+				if len(validConstraints) > 0 {
+					pr.Expr = modifyPromQL(pr.Expr, validConstraints)
+				}
+			}
+		}
+
+		// Labels合并与处理（Rule的Labels优先级大于Group的Labels）
+		ruleL := make(map[string]string)
+		_ = json.Unmarshal([]byte(r.Labels), &ruleL)
+
+		finalLabels := make(map[string]string)
+		for k, v := range groupLabels {
+			finalLabels[k] = v // 来自Group
+		}
+		for k, v := range ruleL {
+			finalLabels[k] = v // 覆盖Group
+		}
+		if r.Severity != "" {
+			finalLabels["severity"] = r.Severity
+		}
+		pr.Labels = finalLabels
+
+		// Annotations处理
+		if pr.Annotations == nil {
+			pr.Annotations = make(map[string]string)
+		}
+		if r.Summary != "" {
+			pr.Annotations["summary"] = r.Summary
+		}
+		if r.Description != "" {
+			pr.Annotations["description"] = r.Description
+		}
+
+		// 反向回写到子节点缓存 (确保单节点 YAML 正确)
+		// b, _ := yaml.Marshal(pr)
+		// newContent := string(b)
+
+		// 优化: 如果最终生成的 YAML 与表里现存的完全一致，说明本条规则未被修改，则跳过不必要的全量子项 update 刷新
+		// if r.RuleContent != newContent {
+		// 	r.RuleContent = newContent
+		// 	s.ruleDao.Update(r)
+		// }
+
+		newRules = append(newRules, pr)
+	}
+
+	doc.Spec.Groups[0].Rules = newRules
+
+	// 写回群组
+	outBytes, err := yaml.Marshal(doc)
+	if err != nil {
 		return err
 	}
+	group.RuleContent = string(outBytes)
+	s.groupRuleDao.Update(group)
 
-	// 2. 状态默认为 inactive，创建入库
-	if data.Status == "" {
-		data.Status = "inactive"
-	}
-	return s.ruleDao.Create(data)
+	// 这里我们自动重新 apply K8s
+	return s.applyGroupToDataSources(group, "apply")
 }
 
-func (s *monitorAlertRuleService) Delete(id uint) error {
-	// 联动清理该规则在 Redis 里面的 YAML 解析缓存 (防内存溢出与脏存)
-	if redisCli := common.GetRedisClient(); redisCli != nil {
-		cacheKey := fmt.Sprintf("autoops:monitor:alert_rule:%d:alerts", id)
-		redisCli.Del(context.Background(), cacheKey)
-	}
+// ============== CRUD for Group ==============
 
-	// 1. 获取规则
-	rule, err := s.ruleDao.GetByID(id)
+func (s *monitorAlertRuleService) CreateGroup(data *model.MonitorAlertGroupRule) error {
+	if err := s.groupRuleDao.Create(data); err != nil {
+		return err
+	}
+	s.yamlSyncGroupToRules(data)
+	return s.applyGroupToDataSources(data, "apply")
+}
+
+func (s *monitorAlertRuleService) DeleteGroup(id uint) error {
+	group, err := s.groupRuleDao.GetByID(id)
+	if err != nil {
+		return err
+	}
+	_ = s.applyGroupToDataSources(group, "delete")
+	s.ruleDao.DeleteByGroupID(id)
+	return s.groupRuleDao.Delete(id)
+}
+
+func (s *monitorAlertRuleService) UpdateGroup(data *model.MonitorAlertGroupRule) error {
+	oldGroup, err := s.groupRuleDao.GetByID(data.ID)
 	if err != nil {
 		return err
 	}
 
-	// 2. 从数据源（如 Kubernetes）中删除规则
-	// 忽略删除失败的错误或记录日志，以防止 K8s 中资源不存在时无法在 DB 中删除
-	_ = s.syncRuleToDataSource(rule, "delete")
-
-	// 3. 数据库中删除
-	return s.ruleDao.Delete(id)
-}
-
-func (s *monitorAlertRuleService) Update(data *model.MonitorAlertRule) error {
-	// 每次更新规则也重新主动删掉对应的 Redis 缓存键，促使下一循环读取最新配置文件进行热计算并重新记录
-	if redisCli := common.GetRedisClient(); redisCli != nil {
-		cacheKey := fmt.Sprintf("autoops:monitor:alert_rule:%d:alerts", data.ID)
-		redisCli.Del(context.Background(), cacheKey)
+	// 判断是只改了外层基础字段还是直接传入了新的大 YAML 结构
+	if data.RuleContent != oldGroup.RuleContent && data.RuleContent != "" {
+		// 传入了新 YAML -> 冲刷子节点
+		s.groupRuleDao.Update(data)
+		s.yamlSyncGroupToRules(data)
+	} else {
+		// 只是改了基础字段 (如 GroupName 或 GroupLabels) - > 向下合并并且反推新 YAML
+		if data.RuleContent == "" {
+			data.RuleContent = oldGroup.RuleContent
+		}
+		s.groupRuleDao.Update(data)
+		s.yamlSyncRulesToGroup(data)
 	}
 
-	// 1. 验证存在与否
+	return s.applyGroupToDataSources(data, "apply")
+}
+
+func (s *monitorAlertRuleService) GetGroupByID(id uint) (*model.MonitorAlertGroupRule, error) {
+	return s.groupRuleDao.GetByID(id)
+}
+
+func (s *monitorAlertRuleService) GetGroupList(page, pageSize int) ([]*model.MonitorAlertGroupRule, int64, error) {
+	return s.groupRuleDao.GetList(page, pageSize)
+}
+
+// ============== CRUD for Rule ==============
+
+func (s *monitorAlertRuleService) CreateRule(data *model.MonitorAlertRule) error {
+	data.Status = "inactive"
+	if err := s.ruleDao.Create(data); err != nil {
+		return err
+	}
+	group, _ := s.groupRuleDao.GetByID(data.GroupID)
+	return s.yamlSyncRulesToGroup(group)
+}
+
+func (s *monitorAlertRuleService) DeleteRule(id uint) error {
+	rule, _ := s.ruleDao.GetByID(id)
+	if rule == nil {
+		return nil
+	}
+	s.ruleDao.Delete(id)
+	group, _ := s.groupRuleDao.GetByID(rule.GroupID)
+	return s.yamlSyncRulesToGroup(group)
+}
+
+func (s *monitorAlertRuleService) UpdateRule(data *model.MonitorAlertRule) error {
 	oldRule, err := s.ruleDao.GetByID(data.ID)
 	if err != nil {
 		return err
 	}
 
-	// 覆盖 DataSourceID 以防止被错误更新（或者直接取传递的）
-	if data.DataSourceID == 0 {
-		data.DataSourceID = oldRule.DataSourceID
+	if data.RuleContent != oldRule.RuleContent && data.RuleContent != "" {
+		// 修改了子规则的 YAML -> 解析抽出字段
+		var pr promAlert
+		if err := yaml.Unmarshal([]byte(data.RuleContent), &pr); err == nil {
+			data.Alert = pr.Alert
+			data.Expr = pr.Expr
+			data.ForDuration = pr.For
+			b, _ := json.Marshal(pr.Labels)
+			data.Labels = string(b)
+			data.Severity = pr.Labels["severity"]
+			data.Summary = pr.Annotations["summary"]
+			data.Description = pr.Annotations["description"]
+		}
 	}
-
-	// 2. 同步到数据源
-	if err := s.syncRuleToDataSource(data, "apply"); err != nil {
-		return err
-	}
-
-	// 3. 更新入库
-	return s.ruleDao.Update(data)
+	s.ruleDao.Update(data)
+	group, _ := s.groupRuleDao.GetByID(oldRule.GroupID)
+	return s.yamlSyncRulesToGroup(group)
 }
 
-func (s *monitorAlertRuleService) GetByID(id uint) (*model.MonitorAlertRule, error) {
+func (s *monitorAlertRuleService) GetRuleByID(id uint) (*model.MonitorAlertRule, error) {
 	return s.ruleDao.GetByID(id)
 }
 
-func (s *monitorAlertRuleService) GetList(page, pageSize int) ([]*model.MonitorAlertRule, int64, error) {
-	return s.ruleDao.GetList(page, pageSize)
+func (s *monitorAlertRuleService) GetRuleListByGroup(groupId uint, page, pageSize int) ([]*model.MonitorAlertRule, int64, error) {
+	req := &model.MonitorAlertRuleQuery{
+		GroupID:  groupId,
+		Page:     page,
+		PageSize: pageSize,
+	}
+	return s.ruleDao.GetListByQuery(req)
 }
 
-// ProcessRuleYAML 接收 YAML 字符串和 JSON 标签字符串，返回处理后的 YAML 字符串
-func ProcessRuleYAML(yamlData string, labelsJSON string) string {
-	// 1. 解析 JSON
-	var newLabels map[string]string
-	err := json.Unmarshal([]byte(labelsJSON), &newLabels)
-	if err != nil {
-		log.Printf("解析 JSON 标签失败: %v", err)
-		return yamlData
+func (s *monitorAlertRuleService) GetRuleList(req *model.MonitorAlertRuleQuery) ([]*model.MonitorAlertRule, int64, error) {
+	return s.ruleDao.GetListByQuery(req)
+}
+
+// ============== Sync Status Background ==============
+func (s *monitorAlertRuleService) syncStatusLoop() {
+	time.Sleep(5 * time.Second)
+	for {
+		s.syncStatusOnce()
+		time.Sleep(30 * time.Second)
+	}
+}
+
+type promRulesResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		Groups []struct {
+			Rules []struct {
+				State string `json:"state"`
+				Name  string `json:"name"`
+				Type  string `json:"type"`
+			} `json:"rules"`
+		} `json:"groups"`
+	} `json:"data"`
+}
+
+func (s *monitorAlertRuleService) syncStatusOnce() {
+	dsList, _, _ := s.dataSourceDao.GetList(0, 0)
+	groups, err := s.groupRuleDao.GetAll()
+	if err != nil || len(groups) == 0 {
+		return
+	}
+
+	dsMap := make(map[uint]*model.MonitorDataSource)
+	for _, ds := range dsList {
+		if strings.EqualFold(ds.Type, "Prometheus") {
+			dsMap[ds.ID] = ds
+		}
+	}
+
+	groupsByDS := make(map[uint][]*model.MonitorAlertGroupRule)
+	for _, g := range groups {
+		groupsByDS[g.DataSourceID] = append(groupsByDS[g.DataSourceID], g)
+	}
+
+	for dsID, ds := range dsMap {
+		gs := groupsByDS[dsID]
+		if len(gs) == 0 {
+			continue
+		}
+
+		url := fmt.Sprintf("%s/api/v1/rules?type=alert", strings.TrimRight(ds.ApiUrl, "/"))
+		resp, err := http.Get(url)
+		if err != nil {
+			continue
+		}
+
+		var promResp promRulesResponse
+		if err := json.NewDecoder(resp.Body).Decode(&promResp); err != nil {
+			resp.Body.Close()
+			continue
+		}
+		resp.Body.Close()
+
+		if promResp.Status != "success" {
+			continue
+		}
+
+		alertStates := make(map[string]string)
+		for _, proMg := range promResp.Data.Groups {
+			for _, r := range proMg.Rules {
+				if r.Type == "alerting" && r.Name != "" {
+					existing := alertStates[r.Name]
+					if existing == "" || r.State == "firing" || (r.State == "pending" && existing == "inactive") {
+						alertStates[r.Name] = r.State
+					}
+				}
+			}
+		}
+
+		for _, g := range gs {
+			rules, _ := s.ruleDao.GetByGroupID(g.ID)
+			for _, r := range rules {
+				if r.Alert == "" {
+					continue
+				}
+				state := alertStates[r.Alert]
+				if state == "" {
+					state = "inactive"
+				}
+				if r.Status != state {
+					log.Printf("[状态更新] 规则 [%s] (ID:%d) 状态由于发生变化正在更新: %s -> %s\n", r.Alert, r.ID, r.Status, state)
+					s.ruleDao.UpdateStatus(r.ID, state)
+				}
+			}
+		}
+	}
+}
+
+// ProcessRuleYAML 接收 YAML 字符串以及 Labels 和 Constraints 的 JSON 格式字符串，将它们合并并注入到 expr 中，返回处理后的 YAML 字符串
+func ProcessRuleYAML(yamlData string, labelsJSON string, constraintsJSON string) string {
+	// 1. 合并解析 JSON (Labels 和 Constraints)
+	newLabels := make(map[string]string)
+	if labelsJSON != "" && labelsJSON != "{}" {
+		if err := json.Unmarshal([]byte(labelsJSON), &newLabels); err != nil {
+			log.Printf("解析 JSON 标签失败: %v", err)
+		}
+	}
+	if constraintsJSON != "" && constraintsJSON != "{}" {
+		var constraints map[string]string
+		if err := json.Unmarshal([]byte(constraintsJSON), &constraints); err != nil {
+			log.Printf("解析 JSON 约束失败: %v", err)
+		}
+		for k, v := range constraints {
+			if v != "" { // 如果值为 ""，表示没有约束，忽略
+				newLabels[k] = v
+			}
+		}
 	}
 
 	// 2. 解析 YAML (在这里将传入的 string 转换为 []byte)
 	var root yaml.Node
-	err = yaml.Unmarshal([]byte(yamlData), &root)
+	err := yaml.Unmarshal([]byte(yamlData), &root)
 	if err != nil {
-		log.Printf("解析 YAML 失败: %v", err)
-		return yamlData
+		log.Fatalf("解析 YAML 失败: %v", err)
 	}
 
 	// 3. 递归处理
@@ -431,8 +582,7 @@ func ProcessRuleYAML(yamlData string, labelsJSON string) string {
 	encoder.SetIndent(2)
 	err = encoder.Encode(&root)
 	if err != nil {
-		log.Printf("生成 YAML 失败: %v", err)
-		return yamlData
+		log.Fatalf("生成 YAML 失败: %v", err)
 	}
 
 	// 5. 直接将 Buffer 转换为 string 返回
@@ -460,7 +610,7 @@ func walkYAML(node *yaml.Node, newLabels map[string]string) {
 
 // modifyPromQL 使用 AST 引擎进行纯粹的新增与覆盖
 func modifyPromQL(query string, newLabels map[string]string) string {
-	expr, err := parser.ParseExpr(query)
+	expr, err := parser.NewParser(parser.Options{}).ParseExpr(query)
 	if err != nil {
 		log.Printf("警告: 无法解析 PromQL (%s): %v\n", query, err)
 		return query

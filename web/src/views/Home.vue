@@ -119,6 +119,32 @@ export default {
               })
             }
           }
+
+          // 手动添加监控中心子菜单
+          const monitorMenu = this.leftMenuList.find(item => item.menuName === '监控中心')
+          if (monitorMenu) {
+            if (!monitorMenu.menuSvoList) {
+              monitorMenu.menuSvoList = []
+            }
+            const alarmConfigExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警配置')
+            if (!alarmConfigExists) {
+              monitorMenu.menuSvoList.push({
+                id: 99998,
+                menuName: '告警配置',
+                url: 'monitor/alarm/rules',
+                icon: 'Setting'
+              })
+            }
+            const alarmNotifyExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警通知')
+            if (!alarmNotifyExists) {
+              monitorMenu.menuSvoList.push({
+                id: 99997,
+                menuName: '告警通知',
+                url: 'monitor/alarm/notify',
+                icon: 'Message'
+              })
+            }
+          }
         } else if (menuData) {
           // 如果数据存在但不是数组，尝试解析
           console.warn('菜单数据格式异常，尝试修复:', menuData);
