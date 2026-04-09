@@ -1640,7 +1640,7 @@ func (s *K8sWorkloadServiceImpl) UpdateDeployment(c *gin.Context, clusterId uint
 	}
 
 	// 更新Deployment的标签
-	if req.Labels != nil && len(req.Labels) > 0 {
+	if len(req.Labels) > 0 {
 		if deployment.Labels == nil {
 			deployment.Labels = make(map[string]string)
 		}

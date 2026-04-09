@@ -66,11 +66,26 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.GET("/datasource/:id", dataSourceController.GetByID)
 	monitorGroup.GET("/datasources", dataSourceController.GetList)
 
-	// Monitor Alert Rule CRUD (Apply to Kubernetes / Prometheus)
+	// Monitor Alert Group Rule CRUD (Apply to Kubernetes / Prometheus)
 	ruleController := controller.NewMonitorAlertRuleController()
-	monitorGroup.POST("/alertrule", ruleController.Create)
-	monitorGroup.DELETE("/alertrule/:id", ruleController.Delete)
-	monitorGroup.PUT("/alertrule", ruleController.Update)
-	monitorGroup.GET("/alertrule/:id", ruleController.GetByID)
-	monitorGroup.GET("/alertrules", ruleController.GetList)
+	monitorGroup.POST("/alert/group", ruleController.CreateGroup)
+	monitorGroup.DELETE("/alert/group/:id", ruleController.DeleteGroup)
+	monitorGroup.PUT("/alert/group", ruleController.UpdateGroup)
+	monitorGroup.GET("/alert/group/:id", ruleController.GetGroupByID)
+	monitorGroup.GET("/alert/groups", ruleController.GetGroupList)
+
+	// Monitor Alert Single Rule CRUD
+	monitorGroup.POST("/alert/rule", ruleController.CreateRule)
+	monitorGroup.DELETE("/alert/rule/:id", ruleController.DeleteRule)
+	monitorGroup.PUT("/alert/rule", ruleController.UpdateRule)
+	monitorGroup.GET("/alert/rule/:id", ruleController.GetRuleByID)
+	monitorGroup.GET("/alert/rules/:groupId", ruleController.GetRuleListByGroup)
+	monitorGroup.GET("/alert/rules_list", ruleController.GetRuleList)
+
+	// Monitor Alert Rule Style CRUD
+	styleController := controller.NewMonitorAlertRuleStyleController()
+	monitorGroup.POST("/alert/style", styleController.CreateStyle)
+	monitorGroup.DELETE("/alert/style/:id", styleController.DeleteStyle)
+	monitorGroup.PUT("/alert/style", styleController.UpdateStyle)
+	monitorGroup.GET("/alert/styles", styleController.GetStyleList)
 }

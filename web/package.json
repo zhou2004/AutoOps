@@ -21,7 +21,7 @@
     "echarts": "^5.1.2",
     "element-plus": "^2.10.2",
     "highlight.js": "^11.11.1",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "less": "^4.1.1",
     "less-loader": "^8.0.0",
     "moment": "^2.30.1",
