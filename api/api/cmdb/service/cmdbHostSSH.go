@@ -2,13 +2,13 @@ package service
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"dodevops-api/api/cmdb/dao"
 	configModel "dodevops-api/api/configcenter/model"
 	"dodevops-api/common"
 	"dodevops-api/common/util"
 	"dodevops-api/common/util/websocket"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -26,6 +27,16 @@ type CmdbHostSSHServiceInterface interface {
 	ConnectTerminal(c *gin.Context, hostID uint) (*websocket.WebSSH, error)
 	ExecuteCommand(c *gin.Context, hostID uint, command string) (*CommandResponse, error)
 	UploadFile(c *gin.Context, hostID uint, filePath string, destPath string) error
+	FileList(hostID uint, path string) ([]FileInfo, error)
+	DeleteFile(hostID uint, path string) error
+	DownloadFile(hostID uint, path string, writer io.Writer) error
+}
+
+type FileInfo struct {
+	Name    string `json:"name"`
+	IsDir   bool   `json:"isDir"`
+	Size    int64  `json:"size"`
+	ModTime string `json:"modTime"`
 }
 
 type CmdbHostSSHServiceImpl struct{}
@@ -98,7 +109,7 @@ func (s *CmdbHostSSHServiceImpl) ConnectTerminal(c *gin.Context, hostID uint) (*
 
 type CommandResponse struct {
 	Command string `json:"command"`
-	HostID  string `json:"hostId"` 
+	HostID  string `json:"hostId"`
 	Output  string `json:"output"`
 }
 
@@ -448,4 +459,130 @@ func (s *CmdbHostSSHServiceImpl) UploadFile(c *gin.Context, hostID uint, filePat
 
 func GetCmdbHostSSHService() CmdbHostSSHServiceInterface {
 	return &CmdbHostSSHServiceImpl{}
+}
+
+func (s *CmdbHostSSHServiceImpl) getSSHClient(hostID uint) (*ssh.Client, error) {
+	host, err := dao.NewCmdbHostSSHDao().GetHostSSHInfo(hostID)
+	if err != nil {
+		return nil, fmt.Errorf("获取主机信息失败: %v", err)
+	}
+
+	if host.SSHIP == "" || host.SSHPort == 0 || host.SSHName == "" {
+		return nil, errors.New("主机SSH信息不完整")
+	}
+
+	var password string
+	if host.SSHKeyID != 0 {
+		password, err = dao.NewCmdbHostSSHDao().GetSSHCredentials(host.SSHKeyID)
+		if err != nil {
+			return nil, fmt.Errorf("获取SSH凭据失败: %v", err)
+		}
+	} else {
+		return nil, errors.New("主机未配置SSH凭据")
+	}
+
+	config := &ssh.ClientConfig{
+		User: host.SSHName,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         10 * time.Second,
+	}
+
+	addr := fmt.Sprintf("%s:%d", host.SSHIP, host.SSHPort)
+	return ssh.Dial("tcp", addr, config)
+}
+
+func (s *CmdbHostSSHServiceImpl) FileList(hostID uint, path string) ([]FileInfo, error) {
+	client, err := s.getSSHClient(hostID)
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return nil, err
+	}
+	defer sftpClient.Close()
+
+	if path == "" {
+		path = "/"
+	}
+	files, err := sftpClient.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []FileInfo
+	for _, f := range files {
+		// skip . and .. ? Usually ReadDir doesn't return them
+		result = append(result, FileInfo{
+			Name:    f.Name(),
+			IsDir:   f.IsDir(),
+			Size:    f.Size(),
+			ModTime: f.ModTime().Format("2006-01-02 15:04:05"),
+		})
+	}
+	return result, nil
+}
+
+func (s *CmdbHostSSHServiceImpl) DeleteFile(hostID uint, path string) error {
+	client, err := s.getSSHClient(hostID)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return err
+	}
+	defer sftpClient.Close()
+
+	info, err := sftpClient.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		session, err := client.NewSession()
+		if err != nil {
+			return err
+		}
+		defer session.Close()
+		cmd := fmt.Sprintf("rm -rf %q", path)
+		if err := session.Run(cmd); err != nil {
+			return fmt.Errorf("删除目录失败: %v", err)
+		}
+	} else {
+		if err := sftpClient.Remove(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *CmdbHostSSHServiceImpl) DownloadFile(hostID uint, path string, writer io.Writer) error {
+	client, err := s.getSSHClient(hostID)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return err
+	}
+	defer sftpClient.Close()
+
+	file, err := sftpClient.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(writer, file)
+	return err
 }

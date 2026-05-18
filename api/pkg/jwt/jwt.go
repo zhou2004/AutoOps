@@ -2,13 +2,17 @@
 package jwt
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"dodevops-api/api/system/model"
+	"dodevops-api/common"
 	"dodevops-api/common/constant"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 type userStdClaims struct {
@@ -40,12 +44,23 @@ func GenerateTokenByAdmin(admin model.SysAdmin) (string, error) {
 	c := userStdClaims{
 		jwtAdmin,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(), //过期时间
-			Issuer:    "admin",                                    //签发人
+			// 取消JWT内置的过期时间验证，将控制权交给redis
+			// ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(), //过期时间
+			Issuer: "admin", //签发人
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	return token.SignedString(Secret)
+	tokenString, err := token.SignedString(Secret)
+
+	if err == nil {
+		// 将token保存到redis，设置过期时间
+		rc := common.GetRedisClient()
+		if rc != nil {
+			rc.Set(context.Background(), "token:"+tokenString, jwtAdmin.Username, TokenExpireDuration)
+		}
+	}
+
+	return tokenString, err
 }
 
 // ValidateToken 解析JWT
@@ -69,6 +84,16 @@ func ValidateToken(tokenString string) (*model.JwtAdmin, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// 验证Redis中的Token是否过期
+	rc := common.GetRedisClient()
+	if rc != nil {
+		err = rc.Get(context.Background(), "token:"+tokenString).Err()
+		if err != nil {
+			return nil, errors.New("token已在redis中过期")
+		}
+	}
+
 	return &claims.JwtAdmin, err
 }
 

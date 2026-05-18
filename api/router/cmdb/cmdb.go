@@ -36,6 +36,9 @@ func RegisterCmdbRoutes(router *gin.RouterGroup) {
 	router.GET("/cmdb/hostssh/connect/:id", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).ConnectTerminal) // SSH终端连接
 	router.GET("/cmdb/hostssh/command/:id", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).ExecuteCommand)  // SSH执行命令
 	router.POST("/cmdb/hostssh/upload/:id", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).UploadFile)      // SSH文件上传
+router.GET("/cmdb/hostssh/files", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).FileList)
+	router.DELETE("/cmdb/hostssh/file", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).DeleteFile)
+	router.GET("/cmdb/hostssh/download", controller.NewCmdbHostSSHController(service.GetCmdbHostSSHService()).DownloadFile)
 	// SQL执行
 	router.POST("/cmdb/sql/select", controller.GetCmdbSQLRecordController().ExecuteSelect)       // 执行查询语句(通过数据库ID/名称)
 	router.POST("/cmdb/sql", controller.GetCmdbSQLRecordController().ExecuteInsert)              // 执行插入语句(通过数据库ID/名称)

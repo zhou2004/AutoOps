@@ -23,7 +23,7 @@ Webhooks端点用于接收外部系统的监控与审计事件, 解析后进行�
 ### 1.3 接收Prometheus Webhook
 - **URL**: `/monitor/alert/webhook/prometheus`
 - **Method**: `POST`
-- **Description**: 接收来自Prometheus AlertManager的告警推送。
+- **Description**: 接收来自Prometheus AlertManager的告警推送。支持通过 `?from=aliyun` 兼容阿里云云监控告警回调。
 
 ---
 
@@ -36,22 +36,25 @@ Webhooks端点用于接收外部系统的监控与审计事件, 解析后进行�
 - **Description**: 创建一个新的告警通知模板(支持钉钉、微信、飞书等格式)。
 
 ### 2.2 删除模板
-- **URL**: `/monitor/alert/template/:id`
+- **URL**: `/monitor/alert/template`
 - **Method**: `DELETE`
+- **Query Params**: `id=<int>`
 - **Header**: `Authorization: Bearer <token>`
 - **Description**: 根据模板ID删除该模板。
 
 ### 2.3 更新模板
-- **URL**: `/monitor/alert/template/:id`
+- **URL**: `/monitor/alert/template`
 - **Method**: `PUT`
+- **Body JSON**: 必须包含 `Id` 字段
 - **Header**: `Authorization: Bearer <token>`
 - **Description**: 更新指定的模板信息。
 
-### 2.4 获取模板列表
-- **URL**: `/monitor/alert/templates`
+### 2.4 获取模板列表/详情
+- **URL**: `/monitor/alert/template` 或相应查询列表接口
 - **Method**: `GET`
+- **Query Params**: 传 `id` 获取详情，或传 `page`/`pageSize` 分页获取列表
 - **Header**: `Authorization: Bearer <token>`
-- **Description**: 获取已创建的系统告警通知模板。
+- **Description**: 获取已创建的系统告警通知模板，或指定ID的详情。
 
 ---
 
@@ -75,11 +78,17 @@ Webhooks端点用于接收外部系统的监控与审计事件, 解析后进行�
 - **Header**: `Authorization: Bearer <token>`
 - **Description**: 更新指定的路由规则。
 
-### 3.4 获取路由列表/详情
-- **URL**: `/monitor/alert/routers`
+### 3.4 获取路由列表
+- **URL**: `/monitor/alert/routers` 或相应列表接口
 - **Method**: `GET`
 - **Header**: `Authorization: Bearer <token>`
 - **Description**: 获取系统已有的路由规则列表。
+
+### 3.5 获取指定路由详情
+- **URL**: `/monitor/alert/router/:id`
+- **Method**: `GET`
+- **Header**: `Authorization: Bearer <token>`
+- **Description**: 根据主键ID获取指定告警路由详情。
 
 ---
 

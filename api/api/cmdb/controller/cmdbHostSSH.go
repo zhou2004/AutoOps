@@ -329,3 +329,59 @@ func (c *CmdbHostSSHController) UploadFile(ctx *gin.Context) {
 		"message":  "文件上传成功",
 	})
 }
+
+// FileList 获取服务端目录列表
+// @Summary 获取主机远程目录体列表
+// @Produce json
+// @Router /api/v1/cmdb/hostssh/files [get]
+// @Security ApiKeyAuth
+func (c *CmdbHostSSHController) FileList(ctx *gin.Context) {
+	hostIDStr := ctx.Query("hostId")
+	hostID, _ := strconv.Atoi(hostIDStr)
+	path := ctx.Query("path")
+	if path == "" {
+		path = "/"
+	}
+
+	resultData, err := c.hostSSHService.FileList(uint(hostID), path)
+	if err != nil {
+		result.Failed(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	result.Success(ctx, resultData)
+}
+
+// DeleteFile 删除服务器上的文件
+// @Summary 删除服务器文件或目录
+// @Produce json
+// @Router /api/v1/cmdb/hostssh/file [delete]
+// @Security ApiKeyAuth
+func (c *CmdbHostSSHController) DeleteFile(ctx *gin.Context) {
+	hostIDStr := ctx.Query("hostId")
+	hostID, _ := strconv.Atoi(hostIDStr)
+	path := ctx.Query("path")
+	
+	if err := c.hostSSHService.DeleteFile(uint(hostID), path); err != nil {
+		result.Failed(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	result.Success(ctx, "删除成功")
+}
+
+// DownloadFile 下载远程文件
+// @Summary 下载服务器文件
+// @Router /api/v1/cmdb/hostssh/download [get]
+// @Security ApiKeyAuth
+func (c *CmdbHostSSHController) DownloadFile(ctx *gin.Context) {
+	hostIDStr := ctx.Query("hostId")
+	hostID, _ := strconv.Atoi(hostIDStr)
+	path := ctx.Query("path")
+
+	filename := filepath.Base(path)
+	ctx.Header("Content-Disposition", "attachment; filename="+filename)
+	ctx.Header("Content-Type", "application/octet-stream")
+
+	if err := c.hostSSHService.DownloadFile(uint(hostID), path, ctx.Writer); err != nil {
+		log.Printf("文件下载失败: %v", err)
+	}
+}

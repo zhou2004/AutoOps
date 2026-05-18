@@ -191,7 +191,7 @@
                   @click="$emit('edit-host', scope.row.id)"
                 />
               </el-tooltip>
-              <el-tooltip class="item" effect="light" content="上传" placement="top-end">
+              <el-tooltip class="item" effect="light" content="文件上传" placement="top-end">
                 <el-button
                   type="primary"
                   icon="Upload"
@@ -200,6 +200,17 @@
                   plain
                    v-authority="['cmdb:ecs:upload']"
                   @click="$emit('show-upload', scope.row)"
+                />
+              </el-tooltip>
+              <el-tooltip class="item" effect="light" content="终端" placement="top-end">
+                <el-button
+                  type="info"
+                  icon="Monitor"
+                  size="mini"
+                  circle
+                  plain
+                  v-authority="['cmdb:ecs:terminal']"
+                  @click="openTerminalWindow(scope.row)"
                 />
               </el-tooltip>
               <el-tooltip class="item" effect="light" content="执行命令" placement="top-end">
@@ -399,6 +410,14 @@ export default {
     showTcpPortMonitor(host) {
       this.currentTcpPortHostId = host.id
       this.showTcpPortDialog = true
+    },
+    openTerminalWindow(host) {
+      // 打开新的标签页，使用纯黑背景的终端页面
+      const { href } = this.$router.resolve({
+        path: '/host-terminal',
+        query: { id: host.id, hostName: host.hostName }
+      });
+      window.open(href, '_blank');
     },
     
     // 显示复制图标

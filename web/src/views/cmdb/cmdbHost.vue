@@ -90,18 +90,6 @@
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>
-                
-                <!--终端按钮 - 背景渐变蓝色-->
-                <el-button 
-                  size="small" 
-                  v-authority="['cmdb:ecs:terminal']"
-                  @click="handleHostSSH"
-                  class="terminal-btn"
-                  style="margin-left: 10px"
-                >
-                  <el-icon><Monitor /></el-icon>
-                  <span style="margin-left: 4px">终端</span>
-                </el-button>
               </el-col>
             </el-row>
             </div>

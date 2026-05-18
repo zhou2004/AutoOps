@@ -488,5 +488,35 @@ export default {
             url: `monitor/agent/delete/${id}`,
             method: 'delete'
         })
+    },
+
+
+    // 获取主机远程目录列表
+    getCmdbHostFiles(params) {
+        return request({
+            url: '/cmdb/hostssh/files',
+            method: 'get',
+            params
+        })
+    },
+
+    // 删除主机远程文件
+    deleteCmdbHostFile(params) {
+        return request({
+            url: '/cmdb/hostssh/file',
+            method: 'delete',
+            params
+        })
+    },
+
+    // 上传文件到主机
+    uploadCmdbHostFile(hostId, data) {
+        return request({
+            url: `/cmdb/hostssh/upload/${hostId}`,
+            method: 'post',
+            data,
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 60000
+        })
     }
 }

@@ -10,11 +10,13 @@ import task from './task'
 import tools from './Tools'
 import app from './app'
 import monitor from './monitor'
+import FullscreenTerminal from '@/views/cmdb/Host/FullscreenTerminal.vue'
 
 // 路由集合
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: Login },
+    { path: '/host-terminal', component: FullscreenTerminal },
     {
         path: '/home',
         component: Home,
