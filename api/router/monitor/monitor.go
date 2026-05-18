@@ -90,4 +90,33 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.DELETE("/alert/style/:id", styleController.DeleteStyle)
 	monitorGroup.PUT("/alert/style", styleController.UpdateStyle)
 	monitorGroup.GET("/alert/styles", styleController.GetStyleList)
+
+	// 域名证书监控
+	domainCertController := controller.NewDomainCertController()
+	monitorGroup.POST("/domain-cert", domainCertController.Add)
+	monitorGroup.PUT("/domain-cert", domainCertController.Update)
+	monitorGroup.DELETE("/domain-cert/:id", domainCertController.Delete)
+	monitorGroup.GET("/domain-cert/:id", domainCertController.GetByID)
+	monitorGroup.POST("/domain-cert/batch-delete", domainCertController.BatchDelete)
+	monitorGroup.GET("/domain-cert/list", domainCertController.GetList)
+	monitorGroup.GET("/domain-cert/check/:id", domainCertController.CheckCert)
+	monitorGroup.POST("/domain-cert/check-all", domainCertController.CheckAllCerts)
+
+	// API端点监控
+	apiEndpointController := controller.NewAPIEndpointController()
+	monitorGroup.POST("/api-endpoint", apiEndpointController.Add)
+	monitorGroup.PUT("/api-endpoint", apiEndpointController.Update)
+	monitorGroup.DELETE("/api-endpoint/:id", apiEndpointController.Delete)
+	monitorGroup.GET("/api-endpoint/:id", apiEndpointController.GetByID)
+	monitorGroup.POST("/api-endpoint/batch-delete", apiEndpointController.BatchDelete)
+	monitorGroup.GET("/api-endpoint/list", apiEndpointController.GetList)
+	monitorGroup.GET("/api-endpoint/check/:id", apiEndpointController.CheckEndpoint)
+	monitorGroup.POST("/api-endpoint/check-all", apiEndpointController.CheckAllEndpoints)
+
+	// 故障管理
+	incidentController := controller.NewIncidentController()
+	monitorGroup.GET("/incident/list", incidentController.GetList)
+	monitorGroup.GET("/incident/stats", incidentController.GetStats)
+	monitorGroup.POST("/incident/resolve/:id", incidentController.Resolve)
+	monitorGroup.DELETE("/incident/:id", incidentController.Delete)
 }
