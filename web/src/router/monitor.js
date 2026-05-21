@@ -58,14 +58,14 @@ const routes = [
         meta: { sTitle: '基础监控', tTitle: 'HTTPS监控' }
     },
     {
-        path: '/monitor/domain-cert',
+        path: '/monitor/domain',
         component: DomainCert,
         meta: { sTitle: '基础监控', tTitle: '域名证书监控' }
     },
     {
         path: '/monitor/api-endpoint',
         component: APIEndpoint,
-        meta: { sTitle: '基础监控', tTitle: 'API端点监控' }
+        meta: { sTitle: '基础监控', tTitle: 'API监控' }
     },
     {
         path: '/monitor/incident',

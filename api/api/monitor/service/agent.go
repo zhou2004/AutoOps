@@ -73,19 +73,20 @@ func (d *EcsAuthDaoImpl) GetEcsAuthById(id uint) (EcsAuth, error) {
 
 // AgentServiceInterface agent服务接口
 type AgentServiceInterface interface {
-	DeployAgent(c *gin.Context, hostID uint)                                              // 部署agent到指定主机
-	BatchDeployAgent(c *gin.Context, dto *agentModel.BatchDeployAgentDto)                 // 批量部署agent
-	UninstallAgent(c *gin.Context, hostID uint)                                           // 卸载指定主机的agent
-	BatchUninstallAgent(c *gin.Context, dto *agentModel.BatchDeployAgentDto)              // 批量卸载agent
-	DeleteAgent(c *gin.Context, hostID uint)                                              // 删除agent数据(用于离线服务器，通过hostID)
-	DeleteAgentByID(c *gin.Context, agentID uint)                                         // 删除agent数据(通过agentID)
-	GetAgentStatus(c *gin.Context, hostID uint)                                           // 获取agent状态
-	RestartAgent(c *gin.Context, hostID uint)                                             // 重启agent
-	GetAgentList(c *gin.Context, dto *agentModel.AgentListDto)                            // 获取agent列表
-	UpdateHeartbeat(c *gin.Context, hostID uint, heartbeat *agentModel.AgentHeartbeatDto) // 更新心跳(旧版本，保持兼容)
-	UpdateHeartbeatByIP(c *gin.Context, heartbeat *agentModel.AgentHeartbeatDto)          // 通过IP更新心跳
-	GetAgentStatistics(c *gin.Context)                                                    // 获取统计信息
-	CheckOfflineAgents()                                                                  // 检查离线agent
+	DeployAgent(c *gin.Context, hostID uint)
+	BatchDeployAgent(c *gin.Context, dto *agentModel.BatchDeployAgentDto)
+	UninstallAgent(c *gin.Context, hostID uint)
+	BatchUninstallAgent(c *gin.Context, dto *agentModel.BatchDeployAgentDto)
+	DeleteAgent(c *gin.Context, hostID uint)
+	DeleteAgentByID(c *gin.Context, agentID uint)
+	GetAgentStatus(c *gin.Context, hostID uint)
+	RestartAgent(c *gin.Context, hostID uint)
+	GetAgentList(c *gin.Context, dto *agentModel.AgentListDto)
+	UpdateHeartbeat(c *gin.Context, hostID uint, heartbeat *agentModel.AgentHeartbeatDto)
+	UpdateHeartbeatByIP(c *gin.Context, heartbeat *agentModel.AgentHeartbeatDto)
+	GetAgentStatistics(c *gin.Context)
+	CheckOfflineAgents()
+	ScanNodeExporter(c *gin.Context, dto *agentModel.NodeExporterScanDto)
 }
 
 // AgentServiceImpl agent服务实现
@@ -383,6 +384,108 @@ func (s *AgentServiceImpl) GetAgentStatistics(c *gin.Context) {
 	}
 
 	result.Success(c, stats)
+}
+
+// ScanNodeExporter 扫描主机上的 node_exporter
+func (s *AgentServiceImpl) ScanNodeExporter(c *gin.Context, dto *agentModel.NodeExporterScanDto) {
+	if len(dto.HostIDs) == 0 {
+		result.Failed(c, 400, "主机ID列表不能为空")
+		return
+	}
+	port := dto.Port
+	if port <= 0 {
+		port = 9100
+	}
+
+	var results []*agentModel.NodeExporterResult
+
+	for _, hostID := range dto.HostIDs {
+		host, err := s.hostDao.GetCmdbHostById(hostID)
+		if err != nil {
+			results = append(results, &agentModel.NodeExporterResult{
+				HostID: hostID, Status: 2, ErrorMsg: "获取主机信息失败",
+			})
+			continue
+		}
+
+		resultItem := &agentModel.NodeExporterResult{
+			HostID: hostID, HostName: host.Name, SSHIP: host.SSHIP,
+			Port: port, Status: 2, URL: fmt.Sprintf("http://%s:%d/metrics", host.SSHIP, port),
+		}
+
+		// 通过 SSH 检查 node_exporter
+		var sshConfig util.SSHConfig
+		if host.SSHKeyID > 0 {
+			sshKey, err := s.getSSHKeyByID(host.SSHKeyID)
+			if err != nil {
+				resultItem.ErrorMsg = fmt.Sprintf("获取SSH认证失败: %v", err)
+				s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+				results = append(results, resultItem)
+				continue
+			}
+			sshConfig = util.SSHConfig{
+				IP: host.SSHIP, Port: host.SSHPort, Username: host.SSHName,
+				Type: sshKey.Type, Timeout: 15 * time.Second,
+			}
+			switch sshKey.Type {
+			case 1: sshConfig.Password = sshKey.Password
+			case 2: sshConfig.PublicKey = sshKey.PublicKey
+			}
+		} else {
+			resultItem.ErrorMsg = "主机未配置SSH认证"
+			s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+			results = append(results, resultItem)
+			continue
+		}
+
+		// 1. 检查进程
+		procCmd := fmt.Sprintf("ps aux | grep node_exporter | grep -v grep || echo 'NOT_FOUND'")
+		procOut, err := ExecuteSSHCommandWithOutput(sshConfig, procCmd)
+		if err != nil || strings.Contains(procOut, "NOT_FOUND") {
+			resultItem.Status = 3
+			resultItem.ErrorMsg = "未检测到 node_exporter 进程"
+			s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+			results = append(results, resultItem)
+			continue
+		}
+
+		// 2. 检查端口监听
+		portCmd := fmt.Sprintf("ss -tunlp | grep ':%d ' || netstat -tunlp | grep ':%d ' || echo 'PORT_NOT_FOUND'", port, port)
+		portOut, err := ExecuteSSHCommandWithOutput(sshConfig, portCmd)
+		if err != nil || strings.Contains(portOut, "PORT_NOT_FOUND") {
+			resultItem.Status = 2
+			resultItem.ErrorMsg = fmt.Sprintf("端口 %d 未监听", port)
+			s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+			results = append(results, resultItem)
+			continue
+		}
+
+		// 3. HTTP 验证
+		httpCmd := fmt.Sprintf("curl -s -o /dev/null -w '%%{http_code}' --connect-timeout 5 http://127.0.0.1:%d/metrics", port)
+		httpOut, err := ExecuteSSHCommandWithOutput(sshConfig, httpCmd)
+		if err != nil || httpOut != "200" {
+			// 尝试直接通过 IP 访问
+			httpCmd2 := fmt.Sprintf("curl -s -o /dev/null -w '%%{http_code}' --connect-timeout 5 http://%s:%d/metrics", host.SSHIP, port)
+			httpOut2, err2 := ExecuteSSHCommandWithOutput(sshConfig, httpCmd2)
+			if err2 != nil || httpOut2 != "200" {
+				resultItem.Status = 2
+				resultItem.ErrorMsg = "HTTP端点不可达"
+				s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+				results = append(results, resultItem)
+				continue
+			}
+		}
+
+		resultItem.Status = 1
+		resultItem.ErrorMsg = ""
+		s.agentDao.UpdateNodeExporterInfo(hostID, resultItem)
+		results = append(results, resultItem)
+	}
+
+	result.Success(c, map[string]interface{}{
+		"results": results,
+		"total":   len(results),
+	})
 }
 
 // CheckOfflineAgents 检查离线agent

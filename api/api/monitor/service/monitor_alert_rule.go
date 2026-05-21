@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -456,6 +457,9 @@ func (s *monitorAlertRuleService) evaluateRulesOnce() {
 		return
 	}
 
+	// 0. Evaluate internal monitor rules (domain_cert / api_endpoint)
+	s.evaluateInternalRules(ctx, rdb)
+
 	// 1. Get all groups and datasources
 	dsList, _, _ := s.dataSourceDao.GetList(0, 0)
 	groups, err := s.groupRuleDao.GetAll()
@@ -495,6 +499,10 @@ func (s *monitorAlertRuleService) evaluateRulesOnce() {
 			rules := rulesByGroup[g.ID]
 			for _, r := range rules {
 				if r.Expr == "" || r.Alert == "" {
+					continue
+				}
+				// Skip internal-style rules, processed by evaluateInternalRules
+				if r.Style == "domain_cert" || r.Style == "api_endpoint" {
 					continue
 				}
 
@@ -540,6 +548,360 @@ func (s *monitorAlertRuleService) evaluateRulesOnce() {
 				s.processRuleEvaluation(ctx, rdb, r, promResp.Data.Result)
 			}
 		}
+	}
+}
+
+// evaluateInternalRules 评估 domain_cert 和 api_endpoint 风格的规则
+func (s *monitorAlertRuleService) evaluateInternalRules(ctx context.Context, rdb *redis.Client) {
+	enabledVal := 1
+	activeRules, _, _ := s.ruleDao.GetListByQuery(&model.MonitorAlertRuleQuery{
+		Enabled: &enabledVal,
+	})
+	if len(activeRules) == 0 {
+		return
+	}
+
+	// 获取所有域名证书和API端点数据
+	domainCertSvc := NewDomainCertService().(*DomainCertServiceImpl)
+	apiEndpointSvc := NewAPIEndpointService().(*APIEndpointServiceImpl)
+
+	domainCerts, _ := domainCertSvc.GetAllForEval()
+	apiEndpoints, _ := apiEndpointSvc.GetAllForEval()
+
+	for _, r := range activeRules {
+		if r.Expr == "" || r.Alert == "" || r.Enabled == nil || *r.Enabled == 0 {
+			continue
+		}
+		if r.Style != "domain_cert" && r.Style != "api_endpoint" {
+			continue
+		}
+
+		if r.Style == "domain_cert" {
+			s.evalDomainCertRule(ctx, rdb, r, domainCerts)
+		} else if r.Style == "api_endpoint" {
+			s.evalAPIEndpointRule(ctx, rdb, r, apiEndpoints)
+		}
+	}
+}
+
+// evalDomainCertRule 评估域名证书规则
+func (s *monitorAlertRuleService) evalDomainCertRule(ctx context.Context, rdb *redis.Client, r *model.MonitorAlertRule, certs []model.DomainCert) {
+	dur, _ := time.ParseDuration(r.ForDuration)
+	now := time.Now()
+
+	var results []struct {
+		Metric map[string]string `json:"metric"`
+		Value  []interface{}     `json:"value"`
+	}
+
+	for _, cert := range certs {
+		matched := s.matchDomainCertRule(r, cert)
+		metric := map[string]string{
+			"domain":         cert.Domain,
+			"port":           strconv.Itoa(cert.Port),
+			"status":         strconv.Itoa(cert.Status),
+			"remaining_days": strconv.Itoa(cert.RemainingDays),
+		}
+
+		value := []interface{}{float64(now.Unix()), "0"}
+		if matched {
+			value = []interface{}{float64(now.Unix()), "1"}
+		}
+		results = append(results, struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		}{Metric: metric, Value: value})
+	}
+
+	s.processInternalEval(ctx, rdb, r, results, dur)
+}
+
+// evalAPIEndpointRule 评估API端点规则
+func (s *monitorAlertRuleService) evalAPIEndpointRule(ctx context.Context, rdb *redis.Client, r *model.MonitorAlertRule, endpoints []model.MonitorAPIEndpoint) {
+	dur, _ := time.ParseDuration(r.ForDuration)
+	now := time.Now()
+
+	var results []struct {
+		Metric map[string]string `json:"metric"`
+		Value  []interface{}     `json:"value"`
+	}
+
+	for _, ep := range endpoints {
+		matched := s.matchAPIEndpointRule(r, ep)
+		metric := map[string]string{
+			"name":              ep.Name,
+			"url":               ep.URL,
+			"method":            ep.Method,
+			"status":            strconv.Itoa(ep.Status),
+			"last_status_code":  strconv.Itoa(ep.LastStatusCode),
+			"last_response_ms":  strconv.FormatInt(ep.LastResponseTime, 10),
+		}
+
+		value := []interface{}{float64(now.Unix()), "0"}
+		if matched {
+			value = []interface{}{float64(now.Unix()), "1"}
+		}
+		results = append(results, struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		}{Metric: metric, Value: value})
+	}
+
+	s.processInternalEval(ctx, rdb, r, results, dur)
+}
+
+// matchDomainCertRule 检查单条域名证书记录是否匹配规则条件
+// expr支持: status != 1, remaining_days <= 30, status > 1 等形式
+// constraints支持: {"domain": "xxx.test.com", "port": "443"} 做精准匹配
+func (s *monitorAlertRuleService) matchDomainCertRule(r *model.MonitorAlertRule, cert model.DomainCert) bool {
+	// 先检查约束条件 (Constraints) 是否匹配
+	if r.Constraints != "" && r.Constraints != "{}" {
+		var constraints map[string]string
+		if err := json.Unmarshal([]byte(r.Constraints), &constraints); err == nil {
+			// 约束中的字段必须全部匹配
+			for k, v := range constraints {
+				if v == "" {
+					continue
+				}
+				switch k {
+				case "domain", "domain_name":
+					if cert.Domain != v {
+						return false
+					}
+				case "port":
+					portStr := strconv.Itoa(cert.Port)
+					if portStr != v {
+						return false
+					}
+				case "status":
+					statusStr := strconv.Itoa(cert.Status)
+					if statusStr != v {
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	expr := strings.TrimSpace(r.Expr)
+	if expr == "" {
+		return false
+	}
+
+	// 简单条件解析: remaining_days <= 30, status != 1, status > 1 等
+	parts := strings.SplitN(expr, " ", 3)
+	if len(parts) < 3 {
+		return false
+	}
+
+	field := strings.TrimSpace(parts[0])
+	op := strings.TrimSpace(parts[1])
+	valStr := strings.TrimSpace(parts[2])
+
+	var fieldVal int
+	switch field {
+	case "remaining_days":
+		fieldVal = cert.RemainingDays
+	case "status":
+		fieldVal = cert.Status
+	default:
+		return false
+	}
+
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		return false
+	}
+
+	switch op {
+	case "<=":
+		return fieldVal <= val
+	case ">=":
+		return fieldVal >= val
+	case "<":
+		return fieldVal < val
+	case ">":
+		return fieldVal > val
+	case "==", "=":
+		return fieldVal == val
+	case "!=":
+		return fieldVal != val
+	}
+	return false
+}
+
+// matchAPIEndpointRule 检查单条API端点记录是否匹配规则条件
+// constraints支持: {"name": "生产环境API", "url": "https://api.example.com/health"}
+func (s *monitorAlertRuleService) matchAPIEndpointRule(r *model.MonitorAlertRule, ep model.MonitorAPIEndpoint) bool {
+	// 先检查约束条件 (Constraints) 是否匹配
+	if r.Constraints != "" && r.Constraints != "{}" {
+		var constraints map[string]string
+		if err := json.Unmarshal([]byte(r.Constraints), &constraints); err == nil {
+			for k, v := range constraints {
+				if v == "" {
+					continue
+				}
+				switch k {
+				case "name":
+					if ep.Name != v {
+						return false
+					}
+				case "url":
+					if ep.URL != v {
+						return false
+					}
+				case "method":
+					if ep.Method != v {
+						return false
+					}
+				case "status":
+					statusStr := strconv.Itoa(ep.Status)
+					if statusStr != v {
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	expr := strings.TrimSpace(r.Expr)
+	if expr == "" {
+		return false
+	}
+
+	parts := strings.SplitN(expr, " ", 3)
+	if len(parts) < 3 {
+		return false
+	}
+
+	field := strings.TrimSpace(parts[0])
+	op := strings.TrimSpace(parts[1])
+	valStr := strings.TrimSpace(parts[2])
+
+	var fieldVal int
+	switch field {
+	case "status":
+		fieldVal = ep.Status
+	case "last_status_code":
+		fieldVal = ep.LastStatusCode
+	case "last_response_ms":
+		fieldVal = int(ep.LastResponseTime)
+	default:
+		return false
+	}
+
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		return false
+	}
+
+	switch op {
+	case "<=":
+		return fieldVal <= val
+	case ">=":
+		return fieldVal >= val
+	case "<":
+		return fieldVal < val
+	case ">":
+		return fieldVal > val
+	case "==", "=":
+		return fieldVal == val
+	case "!=":
+		return fieldVal != val
+	}
+	return false
+}
+
+// processInternalEval 处理内部评估结果，使用 Redis 状态管理
+func (s *monitorAlertRuleService) processInternalEval(ctx context.Context, rdb *redis.Client, r *model.MonitorAlertRule, results []struct {
+	Metric map[string]string `json:"metric"`
+	Value  []interface{}     `json:"value"`
+}, dur time.Duration) {
+	hashKey := fmt.Sprintf("alert:eval:rule:%d", r.ID)
+	activeFps := make(map[string]bool)
+	currentRuleStatus := "inactive"
+
+	for _, res := range results {
+		fp := metricFingerprint(res.Metric)
+		activeFps[fp] = true
+
+		var state AlertEvalState
+		valData, err := rdb.HGet(ctx, hashKey, fp).Result()
+		if err == redis.Nil {
+			state = AlertEvalState{ActiveAt: time.Now().Unix(), State: "pending"}
+		} else if err == nil {
+			json.Unmarshal([]byte(valData), &state)
+		} else {
+			continue
+		}
+
+		// 检查是否匹配（Value[1] 为 "1" 表示匹配）
+		isFiring := false
+		if len(res.Value) >= 2 {
+			if valStr, ok := res.Value[1].(string); ok && valStr == "1" {
+				isFiring = true
+			}
+		}
+
+		oldState := state.State
+
+		if isFiring {
+			// 匹配中: pending -> firing (如果持续时间到了)
+			if state.State == "pending" {
+				if time.Now().Unix()-state.ActiveAt >= int64(dur.Seconds()) {
+					state.State = "firing"
+				}
+			}
+			// firing 保持 firing, inactive 转为 pending
+			if state.State == "inactive" {
+				state.State = "pending"
+				state.ActiveAt = time.Now().Unix()
+			}
+		} else {
+			// 不再匹配: 从 firing 转为 resolved
+			if state.State == "firing" {
+				go sendWebhook(r, res.Metric, "resolved", time.Unix(state.ActiveAt, 0))
+				rdb.HDel(ctx, hashKey, fp)
+				// 从 activeFps 移除, 避免被下面的清理重复处理
+				delete(activeFps, fp)
+				continue
+			}
+			// pending 或不活跃 -> 删除状态, 下次重新开始
+			rdb.HDel(ctx, hashKey, fp)
+			delete(activeFps, fp)
+			continue
+		}
+
+		if state.State == "firing" {
+			currentRuleStatus = "firing"
+		} else if state.State == "pending" && currentRuleStatus != "firing" {
+			currentRuleStatus = "pending"
+		}
+
+		if state.State == "firing" && oldState != "firing" {
+			go sendWebhook(r, res.Metric, "firing", time.Unix(state.ActiveAt, 0))
+		}
+
+		stateBytes, _ := json.Marshal(state)
+		rdb.HSet(ctx, hashKey, fp, string(stateBytes))
+	}
+
+	// 清理已恢复的 (metric 从数据源完全消失)
+	allFps, _ := rdb.HGetAll(ctx, hashKey).Result()
+	for fp, valStr := range allFps {
+		if !activeFps[fp] {
+			var state AlertEvalState
+			json.Unmarshal([]byte(valStr), &state)
+			if state.State == "firing" {
+				go sendWebhook(r, nil, "resolved", time.Unix(state.ActiveAt, 0))
+			}
+			rdb.HDel(ctx, hashKey, fp)
+		}
+	}
+
+	if r.Status != currentRuleStatus {
+		log.Printf("[状态更新] 内部规则 [%s] (ID:%d) 状态变化: %s -> %s\n", r.Alert, r.ID, r.Status, currentRuleStatus)
+		s.ruleDao.UpdateStatus(r.ID, currentRuleStatus)
 	}
 }
 

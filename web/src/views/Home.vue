@@ -140,6 +140,15 @@ export default {
             if (!monitorMenu.menuSvoList) {
               monitorMenu.menuSvoList = []
             }
+            const apiPointConfigExists = monitorMenu.menuSvoList.some(sub => sub.menuName === 'API监控')
+            if (!apiPointConfigExists) {
+              monitorMenu.menuSvoList.push({
+                id: 99998,
+                menuName: 'API监控',
+                url: 'monitor/api-endpoint',
+                icon: 'Monitor'
+              })
+            }
             const alarmConfigExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警配置')
             if (!alarmConfigExists) {
               monitorMenu.menuSvoList.push({

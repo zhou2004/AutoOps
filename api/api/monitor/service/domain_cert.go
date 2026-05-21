@@ -28,16 +28,12 @@ type DomainCertServiceInterface interface {
 }
 
 type DomainCertServiceImpl struct {
-	dao           *dao.DomainCertDao
-	incidentDao   *dao.IncidentDao
-	alertService  AlertServiceInterface
+	dao *dao.DomainCertDao
 }
 
 func NewDomainCertService() DomainCertServiceInterface {
 	return &DomainCertServiceImpl{
-		dao:          dao.NewDomainCertDao(),
-		incidentDao:  dao.NewIncidentDao(),
-		alertService: NewAlertService(),
+		dao: dao.NewDomainCertDao(),
 	}
 }
 
@@ -99,7 +95,6 @@ func (s *DomainCertServiceImpl) Update(c *gin.Context, req *model.DomainCertUpda
 		result.Failed(c, 400, "域名不能为空")
 		return
 	}
-	// 如果域名变了，检查是否与其他记录冲突
 	if domain != cert.Domain {
 		existing, _ := s.dao.GetByDomain(domain)
 		if existing != nil && existing.ID != req.ID {
@@ -160,63 +155,9 @@ func (s *DomainCertServiceImpl) CheckAllCerts(c *gin.Context) {
 	result.Success(c, map[string]interface{}{"total": len(list), "results": results})
 }
 
-// fireIncident 触发告警、写入故障记录并发送webhook
-func (s *DomainCertServiceImpl) fireIncident(cert *model.DomainCert) {
-	now := time.Now()
-	level := "warning"
-	if cert.Status == 3 {
-		level = "critical"
-	}
-	title := fmt.Sprintf("域名证书告警: %s", cert.Domain)
-	desc := cert.ErrorMsg
-	if desc == "" {
-		desc = fmt.Sprintf("域名 %s 证书状态异常", cert.Domain)
-	}
-
-	incident := &model.MonitorIncident{
-		Title:       title,
-		Source:      "domain_cert",
-		SourceID:    cert.ID,
-		Level:       level,
-		Status:      "firing",
-		Description: desc,
-		AlertTime:   now.Format("2006-01-02 15:04:05"),
-	}
-	if err := s.incidentDao.Create(incident); err != nil {
-		fmt.Printf("[DomainCertAlert] 写入故障记录失败: %v\n", err)
-	}
-
-	// 发送webhook告警 - 匹配告警路由
-	alertMsg := model.PrometheusAlertMsg{
-		Type: "webhook",
-		Tpl:  "domain-cert-alert",
-	}
-	alertJSON := map[string]interface{}{
-		"receiver": "domain_cert_monitor",
-		"status":   "firing",
-		"alerts": []interface{}{
-			map[string]interface{}{
-				"status": "firing",
-				"labels": map[string]interface{}{
-					"alertname": "DomainCertExpiry",
-					"domain":    cert.Domain,
-					"level":     level,
-					"severity":  level,
-				},
-				"annotations": map[string]interface{}{
-					"summary":     title,
-					"description": desc,
-				},
-				"startsAt": now.Format(time.RFC3339),
-			},
-		},
-	}
-	go func() {
-		routerList, _, err := s.alertService.GetAllAlertRouter(&model.RouterQuery{})
-		if err == nil {
-			s.alertService.PrometheusAlertHandle(alertMsg, alertJSON, alertJSON, routerList)
-		}
-	}()
+// GetAllForEval 获取所有域名证书记录（供规则引擎使用）
+func (s *DomainCertServiceImpl) GetAllForEval() ([]model.DomainCert, error) {
+	return s.dao.GetAll()
 }
 
 func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
@@ -230,27 +171,18 @@ func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
 		&tls.Config{InsecureSkipVerify: true},
 	)
 	if err != nil {
-		oldStatus := cert.Status
 		cert.Status = 4
 		cert.ErrorMsg = fmt.Sprintf("连接失败: %v", err)
 		cert.RemainingDays = -1
-		// 状态从正常变为异常时触发告警
-		if oldStatus == 1 {
-			s.fireIncident(cert)
-		}
 		return
 	}
 	defer conn.Close()
 
 	state := conn.ConnectionState()
 	if len(state.PeerCertificates) == 0 {
-		oldStatus := cert.Status
 		cert.Status = 4
 		cert.ErrorMsg = "未获取到服务器证书"
 		cert.RemainingDays = -1
-		if oldStatus == 1 {
-			s.fireIncident(cert)
-		}
 		return
 	}
 
@@ -266,7 +198,6 @@ func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
 	remaining := peerCert.NotAfter.Sub(now)
 	remainingDays := int(math.Ceil(remaining.Hours() / 24))
 
-	oldStatus := cert.Status
 	if remainingDays < 0 {
 		cert.RemainingDays = 0
 		cert.Status = 3
@@ -279,24 +210,6 @@ func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
 		cert.RemainingDays = remainingDays
 		cert.Status = 1
 		cert.ErrorMsg = ""
-	}
-	// 状态从正常变为异常时触发告警
-	if oldStatus == 1 && cert.Status != 1 {
-		s.fireIncident(cert)
-	}
-	// 状态从异常恢复为正常时，将故障标记为已解决
-	if oldStatus != 1 && cert.Status == 1 {
-		// 查找并解决相关故障
-		go func() {
-			list, _, err := s.incidentDao.GetList(1, 100, "firing", "", "domain_cert")
-			if err == nil {
-				for _, inc := range list {
-					if inc.SourceID == cert.ID {
-						s.incidentDao.Resolve(inc.ID)
-					}
-				}
-			}
-		}()
 	}
 }
 

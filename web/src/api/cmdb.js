@@ -490,6 +490,15 @@ export default {
         })
     },
 
+    // 扫描主机node_exporter
+    scanNodeExporter(data) {
+        return request({
+            url: 'monitor/agent/scan-node-exporter',
+            method: 'post',
+            data
+        })
+    },
+
 
     // 获取主机远程目录列表
     getCmdbHostFiles(params) {

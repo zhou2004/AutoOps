@@ -6,19 +6,23 @@ import (
 
 // Agent Agent管理模型 (只支持Linux主机)
 type Agent struct {
-	ID              uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
-	HostID          uint       `gorm:"column:host_id;comment:'主机ID';NOT NULL;index" json:"hostId"`
-	HostName        string     `gorm:"column:host_name;varchar(128);comment:'主机名称'" json:"hostName"`
-	Version         string     `gorm:"column:version;varchar(32);comment:'Agent版本';default:'1.0.0'" json:"version"`
-	Status          int        `gorm:"column:status;comment:'状态:1->部署中,2->部署失败,3->运行中,4->已停止'" json:"status"`
-	InstallPath     string     `gorm:"column:install_path;varchar(256);comment:'安装路径'" json:"installPath"`
-	Port            int        `gorm:"column:port;comment:'监听端口';default:9100" json:"port"`
-	PID             int        `gorm:"column:pid;comment:'进程ID'" json:"pid"`
-	LastHeartbeat   util.HTime `gorm:"column:last_heartbeat;comment:'最后心跳时间'" json:"lastHeartbeat"`
-	UpdateTime      util.HTime `gorm:"column:update_time;comment:'更新时间'" json:"updateTime"`
-	CreateTime      util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`
-	ErrorMsg        string     `gorm:"column:error_msg;type:text;comment:'错误信息'" json:"errorMsg"`
-	InstallProgress int        `gorm:"column:install_progress;comment:'安装进度(0-100)';default:0" json:"installProgress"` // 安装进度
+	ID                uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
+	HostID            uint       `gorm:"column:host_id;comment:'主机ID';NOT NULL;index" json:"hostId"`
+	HostName          string     `gorm:"column:host_name;varchar(128);comment:'主机名称'" json:"hostName"`
+	Version           string     `gorm:"column:version;varchar(32);comment:'Agent版本';default:'1.0.0'" json:"version"`
+	Status            int        `gorm:"column:status;comment:'状态:1->部署中,2->部署失败,3->运行中,4->已停止'" json:"status"`
+	InstallPath       string     `gorm:"column:install_path;varchar(256);comment:'安装路径'" json:"installPath"`
+	Port              int        `gorm:"column:port;comment:'监听端口';default:9100" json:"port"`
+	PID               int        `gorm:"column:pid;comment:'进程ID'" json:"pid"`
+	LastHeartbeat     util.HTime `gorm:"column:last_heartbeat;comment:'最后心跳时间'" json:"lastHeartbeat"`
+	UpdateTime        util.HTime `gorm:"column:update_time;comment:'更新时间'" json:"updateTime"`
+	CreateTime        util.HTime `gorm:"column:create_time;comment:'创建时间';NOT NULL" json:"createTime"`
+	ErrorMsg          string     `gorm:"column:error_msg;type:text;comment:'错误信息'" json:"errorMsg"`
+	InstallProgress   int        `gorm:"column:install_progress;comment:'安装进度(0-100)';default:0" json:"installProgress"`
+	NodeExporterURL   string     `gorm:"column:node_exporter_url;type:varchar(512);default:'';comment:'node_exporter端点URL'" json:"nodeExporterUrl"`
+	NodeExporterStatus int       `gorm:"column:node_exporter_status;type:tinyint(1);default:0;comment:'node_exporter状态:0-未扫描,1-在线,2-离线,3-未安装'" json:"nodeExporterStatus"`
+	NodeExporterPort  int        `gorm:"column:node_exporter_port;type:int;default:9100;comment:'node_exporter端口'" json:"nodeExporterPort"`
+	NodeExporterScanTime string  `gorm:"column:node_exporter_scan_time;type:varchar(64);default:'';comment:'最近扫描时间'" json:"nodeExporterScanTime"`
 }
 
 func (Agent) TableName() string {
@@ -148,6 +152,23 @@ func (a *Agent) ToVO() *AgentVO {
 		InstallProgress:     a.InstallProgress,
 		InstallProgressText: a.GetInstallProgressText(),
 	}
+}
+
+// NodeExporterScanDto node_exporter扫描DTO
+type NodeExporterScanDto struct {
+	HostIDs []uint `json:"hostIds" binding:"required"` // 要扫描的主机ID列表
+	Port    int    `json:"port"`                        // 扫描端口，默认9100
+}
+
+// NodeExporterResult node_exporter扫描结果
+type NodeExporterResult struct {
+	HostID   uint   `json:"hostId"`
+	HostName string `json:"hostName"`
+	SSHIP    string `json:"sshIp"`
+	Port     int    `json:"port"`
+	URL      string `json:"url"`
+	Status   int    `json:"status"`   // 1-在线, 2-离线, 3-未安装
+	ErrorMsg string `json:"errorMsg"`
 }
 
 // AgentHeartbeatDto Agent心跳DTO (Linux主机专用)

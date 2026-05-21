@@ -1,3 +1,4 @@
+
 import request from '@/utils/request'
 
 // ---- 数据源 ----
@@ -103,6 +104,11 @@ export function getAlertRecords(params) {
 }
 export function cleanAlertRecords() {
     return request({ url: '/monitor/alert/records/clean', method: 'delete' })
+}
+
+// ---- Agent管理 ----
+export function scanNodeExporter(data) {
+    return request({ url: '/monitor/agent/scan-node-exporter', method: 'post', data })
 }
 
 // ---- 域名证书监控 ----

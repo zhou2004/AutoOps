@@ -53,6 +53,7 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	// Agent管理
 	monitorGroup.POST("/agent/deploy", agentController.DeployAgent)           // 部署agent到指定主机(支持单个或多个)
 	monitorGroup.DELETE("/agent/uninstall", agentController.UninstallAgent)   // 卸载指定主机的agent(支持单个或多个)
+	monitorGroup.POST("/agent/scan-node-exporter", agentController.ScanNodeExporter) // 扫描主机node_exporter
 	monitorGroup.GET("/agent/status/:id", agentController.GetAgentStatus)     // 根据主机id获取agent状态
 	monitorGroup.POST("/agent/restart/:id", agentController.RestartAgent)     // 重启agent
 	monitorGroup.GET("/agent/list", agentController.GetAgentList)             // 获取agent列表

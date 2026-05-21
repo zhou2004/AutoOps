@@ -166,50 +166,9 @@ func (s *APIEndpointServiceImpl) CheckAllEndpoints(c *gin.Context) {
 	result.Success(c, map[string]interface{}{"total": len(list)})
 }
 
-func (s *APIEndpointServiceImpl) fireIncident(ep *model.MonitorAPIEndpoint) {
-	now := time.Now()
-	level := "warning"
-	if ep.Status == 2 || ep.Status == 3 {
-		level = "critical"
-	}
-	title := fmt.Sprintf("API监控告警: %s", ep.Name)
-	desc := ep.ErrorMsg
-	if desc == "" {
-		desc = fmt.Sprintf("API端点 %s (%s) 状态异常", ep.Name, ep.URL)
-	}
-	incident := &model.MonitorIncident{
-		Title: title, Source: "api_endpoint", SourceID: ep.ID,
-		Level: level, Status: "firing", Description: desc,
-		AlertTime: now.Format("2006-01-02 15:04:05"),
-	}
-	if err := s.incidentDao.Create(incident); err != nil {
-		fmt.Printf("[APIAlert] 写入故障记录失败: %v\n", err)
-	}
-	// 发送webhook
-	alertMsg := model.PrometheusAlertMsg{Type: "webhook", Tpl: "api-endpoint-alert"}
-	alertJSON := map[string]interface{}{
-		"receiver": "api_endpoint_monitor", "status": "firing",
-		"alerts": []interface{}{
-			map[string]interface{}{
-				"status": "firing",
-				"labels": map[string]interface{}{
-					"alertname": "APIEndpointDown",
-					"name":      ep.Name, "url": ep.URL,
-					"level": level, "severity": level,
-				},
-				"annotations": map[string]interface{}{
-					"summary": title, "description": desc,
-				},
-				"startsAt": now.Format(time.RFC3339),
-			},
-		},
-	}
-	go func() {
-		routerList, _, err := s.alertService.GetAllAlertRouter(&model.RouterQuery{})
-		if err == nil {
-			s.alertService.PrometheusAlertHandle(alertMsg, alertJSON, alertJSON, routerList)
-		}
-	}()
+// GetAllForEval 获取所有API端点（供规则引擎使用）
+func (s *APIEndpointServiceImpl) GetAllForEval() ([]model.MonitorAPIEndpoint, error) {
+	return s.dao.GetAll()
 }
 
 func (s *APIEndpointServiceImpl) checkEndpointInternal(m *model.MonitorAPIEndpoint) {
@@ -227,21 +186,16 @@ func (s *APIEndpointServiceImpl) checkEndpointInternal(m *model.MonitorAPIEndpoi
 		req, err = http.NewRequest(m.Method, m.URL, bytes.NewBufferString(bodyStr))
 	}
 	if err != nil {
-		oldStatus := m.Status
 		m.Status = 4
 		m.ErrorMsg = fmt.Sprintf("请求构建失败: %v", err)
 		m.LastStatusCode = 0
 		m.LastResponseTime = 0
-		if oldStatus == 1 {
-			s.fireIncident(m)
-		}
 		return
 	}
 
 	// 设置请求头
 	if m.Headers != "" {
 		headerMap := make(map[string]string)
-		// 简单解析: {"key":"value","key2":"value2"}
 		content := m.Headers
 		content = strings.TrimSpace(content)
 		if strings.HasPrefix(content, "{") && strings.HasSuffix(content, "}") {
@@ -269,42 +223,27 @@ func (s *APIEndpointServiceImpl) checkEndpointInternal(m *model.MonitorAPIEndpoi
 	m.LastResponseTime = elapsed
 
 	if err != nil {
-		oldStatus := m.Status
 		m.Status = 4
 		m.LastStatusCode = 0
 		m.ErrorMsg = fmt.Sprintf("请求失败: %v", err)
-		if oldStatus == 1 {
-			s.fireIncident(m)
-		}
 		return
 	}
 	defer resp.Body.Close()
 
 	m.LastStatusCode = resp.StatusCode
 
-	// 检查超时 - 响应时间超过超时时间视为超时
 	if elapsed >= int64(m.Timeout)*1000 {
-		oldStatus := m.Status
 		m.Status = 3
 		m.ErrorMsg = fmt.Sprintf("响应超时: %dms > %ds", elapsed, m.Timeout)
-		if oldStatus == 1 {
-			s.fireIncident(m)
-		}
 		return
 	}
 
-	// 检查状态码
 	if resp.StatusCode != m.ExpectedCode {
-		oldStatus := m.Status
 		m.Status = 2
 		m.ErrorMsg = fmt.Sprintf("状态码异常: 期望%d, 实际%d", m.ExpectedCode, resp.StatusCode)
-		if oldStatus == 1 {
-			s.fireIncident(m)
-		}
 		return
 	}
 
-	// 检查响应体
 	if m.ExpectedBody != "" {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -313,34 +252,12 @@ func (s *APIEndpointServiceImpl) checkEndpointInternal(m *model.MonitorAPIEndpoi
 			return
 		}
 		if !strings.Contains(string(bodyBytes), m.ExpectedBody) {
-			oldStatus := m.Status
 			m.Status = 2
 			m.ErrorMsg = fmt.Sprintf("响应体不包含期望内容: %s", m.ExpectedBody)
-			if oldStatus == 1 {
-				s.fireIncident(m)
-			}
 			return
 		}
 	}
 
-	// 一切正常, 检查之前是否异常, 如果是则恢复
-	oldStatus := m.Status
-	if m.Status != 1 {
-		m.Status = 1
-		m.ErrorMsg = ""
-		// 解决相关故障
-		go func() {
-			list, _, err := s.incidentDao.GetList(1, 100, "firing", "", "api_endpoint")
-			if err == nil {
-				for _, inc := range list {
-					if inc.SourceID == m.ID {
-						s.incidentDao.Resolve(inc.ID)
-					}
-				}
-			}
-		}()
-	}
 	m.Status = 1
 	m.ErrorMsg = ""
-	_ = oldStatus
 }

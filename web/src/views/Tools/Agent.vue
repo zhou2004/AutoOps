@@ -60,6 +60,13 @@
           @click="handleDeployToHosts"
         >部署Agent</el-button>
         <el-button
+          type="primary"
+          plain
+          icon="Search"
+          size="small"
+          @click="handleScanNodeExporter"
+        >扫描NodeExporter</el-button>
+        <el-button
           type="danger"
           plain
           icon="Delete"
@@ -300,6 +307,30 @@
       v-model="showDeployHostDialog"
       @hosts-selected="handleHostsSelected"
     />
+
+    <!--选择主机扫描NodeExporter对话框-->
+    <SelectDeployHost
+      v-model="showScanHostDialog"
+      @hosts-selected="handleScanHostsSelected"
+    />
+
+    <!--NodeExporter扫描结果对话框-->
+    <el-dialog title="NodeExporter 扫描结果" v-model="scanResultVisible" width="650px">
+      <el-table :data="scanResults" border stripe size="small">
+        <el-table-column prop="hostName" label="主机名称" width="140" />
+        <el-table-column prop="sshIp" label="IP地址" width="140" />
+        <el-table-column prop="port" label="端口" width="70" />
+        <el-table-column label="状态" width="100">
+          <template #default="{row}">
+            <el-tag :type="getScanStatusType(row.status)" size="small" effect="dark">
+              {{ getScanStatusText(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="url" label="端点URL" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="errorMsg" label="错误信息" min-width="150" show-overflow-tooltip />
+      </el-table>
+    </el-dialog>
     </el-card>
   </div>
 </template>
@@ -330,9 +361,47 @@ const currentAgent = ref(null)
 const selectedAgents = ref([])
 const total = ref(0)
 const showDeployHostDialog = ref(false)
+const showScanHostDialog = ref(false)
+const scanResultVisible = ref(false)
+const scanResults = ref([])
 let pollingTimer = null
 let pollingCounter = 0
 const MAX_POLLING_COUNT = 5 // 最多轮询5次(15秒)
+
+const handleScanNodeExporter = () => {
+  showScanHostDialog.value = true
+}
+
+const handleScanHostsSelected = async (selectedHosts) => {
+  if (!selectedHosts || selectedHosts.length === 0) {
+    ElMessage.warning('请选择要扫描的主机')
+    return
+  }
+  showScanHostDialog.value = false
+  try {
+    const hostIds = selectedHosts.map(h => h.id)
+    const { data: res } = await cmdbAPI.scanNodeExporter({ hostIds, port: 9100 })
+    if (res.code === 200) {
+      scanResults.value = res.data.results || []
+      scanResultVisible.value = true
+      ElMessage.success(`扫描完成，共检测 ${res.data.total} 台主机`)
+      fetchAgents()
+    } else {
+      ElMessage.error(res.message || '扫描失败')
+    }
+  } catch (error) {
+    console.error('扫描NodeExporter失败:', error)
+    ElMessage.error('扫描失败: ' + (error.message || '未知错误'))
+  }
+}
+
+const getScanStatusType = (status) => {
+  return { 1: 'success', 2: 'danger', 3: 'warning' }[status] || 'info'
+}
+
+const getScanStatusText = (status) => {
+  return { 1: '在线', 2: '离线', 3: '未安装' }[status] || '未知'
+}
 
 const queryParams = reactive({
   page: 1,

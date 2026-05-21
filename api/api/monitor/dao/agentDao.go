@@ -17,11 +17,12 @@ type AgentDao interface {
 	Update(agent *model.Agent) error
 	UpdateStatus(id uint, status int, errorMsg string) error
 	UpdateHeartbeat(hostID uint, heartbeat *model.AgentHeartbeatDto) error
-	UpdateHeartbeatByIP(hostID uint, heartbeat *model.AgentHeartbeatDto) error // 通过IP更新心跳
+	UpdateHeartbeatByIP(hostID uint, heartbeat *model.AgentHeartbeatDto) error
 	UpdateByHostID(hostID uint, updates map[string]interface{}) error
-	UpdateInstallProgress(hostID uint, progress int) error // 新增：更新安装进度
+	UpdateInstallProgress(hostID uint, progress int) error
+	UpdateNodeExporterInfo(hostID uint, info *model.NodeExporterResult) error
 	Delete(id uint) error
-	DeleteByHostID(hostID uint) error // 通过主机ID删除Agent记录
+	DeleteByHostID(hostID uint) error
 	GetList(dto *model.AgentListDto) ([]model.Agent, int64, error)
 	GetAllRunning() ([]model.Agent, error)
 	GetOfflineAgents(duration time.Duration) ([]model.Agent, error)
@@ -103,6 +104,19 @@ func (d *AgentDaoImpl) UpdateHeartbeatByIP(hostID uint, heartbeat *model.AgentHe
 		"last_heartbeat": time.Now(),
 		"update_time":    time.Now(),
 		"status":         model.AgentStatusRunning,
+	}
+	return d.db.Model(&model.Agent{}).Where("host_id = ?", hostID).Updates(updates).Error
+}
+
+// UpdateNodeExporterInfo 更新node_exporter信息
+func (d *AgentDaoImpl) UpdateNodeExporterInfo(hostID uint, info *model.NodeExporterResult) error {
+	now := time.Now()
+	updates := map[string]interface{}{
+		"node_exporter_url":       info.URL,
+		"node_exporter_status":    info.Status,
+		"node_exporter_port":      info.Port,
+		"node_exporter_scan_time": now.Format("2006-01-02 15:04:05"),
+		"update_time":             now,
 	}
 	return d.db.Model(&model.Agent{}).Where("host_id = ?", hostID).Updates(updates).Error
 }

@@ -223,6 +223,25 @@ func (c *AgentController) GetAgentStatistics(ctx *gin.Context) {
 	c.agentService.GetAgentStatistics(ctx)
 }
 
+// ScanNodeExporter 扫描主机的node_exporter
+// @Summary 扫描主机的node_exporter
+// @Description 通过SSH检查主机上node_exporter进程、端口和HTTP端点
+// @Tags 监控
+// @Accept json
+// @Produce json
+// @Param request body model.NodeExporterScanDto true "扫描参数"
+// @Success 200 {object} result.Result
+// @Router /api/v1/monitor/agent/scan-node-exporter [post]
+// @Security ApiKeyAuth
+func (c *AgentController) ScanNodeExporter(ctx *gin.Context) {
+	var dto model.NodeExporterScanDto
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		result.Failed(ctx, http.StatusBadRequest, "参数错误："+err.Error())
+		return
+	}
+	c.agentService.ScanNodeExporter(ctx, &dto)
+}
+
 // DeleteAgent 删除agent数据
 // @Summary 删除agent数据
 // @Description 删除指定的agent数据，用于服务器离线无法正常卸载的情况
