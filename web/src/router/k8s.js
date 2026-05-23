@@ -82,6 +82,11 @@ const routes = [
     name: 'K8sCrd',
     component: () => import('@/views/K8s/k8s-crd.vue'),
     meta: { title: '自定义资源', icon: 'coin' }
+    },
+    {
+        path: '/k8s/permission',
+        component: () => import('@/views/K8s/k8s-permission.vue'),
+        meta: {sTitle: '容器管理', tTitle: '权限管理'}
     }
 ]
 

@@ -8,13 +8,15 @@
         class="host-table"
     >
       <el-table-column label="ID" prop="id" v-if="false" />
-      <el-table-column label="主机名称" width="180" show-overflow-tooltip>
+      <el-table-column label="主机名称" width="200" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="host-name-cell" @mouseenter="showCopyIcon($event, 'hostname')" @mouseleave="hideCopyIcon">
+            <!-- 操作系统图标 -->
             <img 
-              src="@/assets/image/linux.svg" 
-              alt="linux"
-              style="height: 20px; object-fit: contain; flex-shrink: 0;"
+              :src="getOSIcon(scope.row.os)" 
+              :alt="getOSName(scope.row.os)"
+              :title="getOSName(scope.row.os)"
+              class="os-icon"
             />
             <el-link type="primary" @click="$emit('show-detail', scope.row)">{{ scope.row.hostName }}</el-link>
             <el-icon 
@@ -63,57 +65,29 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="CPU使用率">
+    
+      <el-table-column label="操作系统" width="160" show-overflow-tooltip>
         <template v-slot="scope">
-          <el-progress 
-            :percentage="scope.row.cpuUsage || 0" 
-            :color="getUsageColor(scope.row.cpuUsage)"
-            :show-text="true"
-          />
+          <div class="os-cell">
+            <!-- 使用带颜色的图标，区分不同操作系统 -->
+            <div 
+              class="os-icon-wrapper"
+              :style="{ backgroundColor: getOSColor(scope.row.os) }"
+              :title="scope.row.os || '未知系统'"
+            >
+              <img 
+                :src="getOSIcon(scope.row.os)" 
+                :alt="getOSName(scope.row.os)"
+                class="os-icon-colored"
+              />
+            </div>
+            <span class="os-text" :title="scope.row.os || '未知系统'">
+              {{ getOSDetailName(scope.row.os) }}
+            </span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column label="内存使用率">
-        <template v-slot="scope">
-          <el-progress 
-            :percentage="scope.row.memoryUsage || 0" 
-            :color="getUsageColor(scope.row.memoryUsage)"
-            :show-text="true"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="磁盘使用率">
-        <template v-slot="scope">
-          <el-progress 
-            :percentage="scope.row.diskUsage || 0" 
-            :color="getUsageColor(scope.row.diskUsage)"
-            :show-text="true"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="进程" width="70" align="center">
-        <template v-slot="scope">
-          <el-tooltip class="item" effect="light" content="查看进程监控" placement="top">
-            <img
-              src="@/assets/image/进程.svg"
-              alt="进程"
-              style="width: 24px; height: 24px; cursor: pointer;"
-              @click="showProcessMonitor(scope.row)"
-            />
-          </el-tooltip>
-        </template>
-      </el-table-column>
-      <el-table-column label="端口" width="70" align="center">
-        <template v-slot="scope">
-          <el-tooltip class="item" effect="light" content="查看TCP端口监控" placement="top">
-            <img
-              src="@/assets/image/端口.svg"
-              alt="端口"
-              style="width: 24px; height: 24px; cursor: pointer;"
-              @click="showTcpPortMonitor(scope.row)"
-            />
-          </el-tooltip>
-        </template>
-      </el-table-column>
+      
       <el-table-column label="配置信息" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="config-cell">
@@ -122,7 +96,7 @@
               alt="配置"
               style="width: 16px; height: 16px; margin-right: 6px; flex-shrink: 0;"
             />
-            <span>{{ scope.row.cpu }}核{{ scope.row.memory }}G</span>
+            <span>{{ formatCPU(scope.row.cpu) }}核 {{ formatMemory(scope.row.memory) }}G</span>
           </div>
         </template>
       </el-table-column>
@@ -176,10 +150,21 @@
 
     
 
-      <el-table-column label="操作" fixed="right" width="280" min-width="280">
+      <el-table-column label="操作" fixed="right" width="320" min-width="320">
         <template v-slot="scope">
           <div class="table-operation">
             <el-button-group>
+              <el-tooltip class="item" effect="light" content="同步信息" placement="top-end">
+                <el-button
+                  type="warning"
+                  icon="Refresh"
+                  size="mini"
+                  circle
+                  plain
+                  v-authority="['cmdb:ecs:rsync']"
+                  @click="$emit('sync-host', scope.row)"
+                />
+              </el-tooltip>
               <el-tooltip class="item" effect="light" content="编辑" placement="top-end">
                 <el-button
                   type="primary"
@@ -235,17 +220,7 @@
                   @click="$emit('delete-host', scope.row)"
                 />
               </el-tooltip>
-              <el-tooltip class="item" effect="light" content="监控" placement="top-end">
-                <el-button
-                  type="info"
-                  icon="Monitor"
-                  size="mini"
-                  circle
-                  plain
-                  v-authority="['cmdb:ecs:monitor']"
-                  @click="showMonitor(scope.row)"
-                />
-              </el-tooltip>
+              
             </el-button-group>
           </div>
         </template>
@@ -365,6 +340,144 @@ export default {
       if (usage > 60) return '#E6A23C'
       return '#67C23A'
     },
+    
+    // 获取操作系统图标（返回SVG路径或require路径）
+    getOSIcon(os) {
+      // 统一返回linux.svg，通过getOSColor方法区分颜色
+      return require('@/assets/image/linux.svg')
+    },
+    
+    // 获取操作系统图标颜色（用于区分不同操作系统）
+    getOSColor(os) {
+      if (!os) return '#909399'
+      const osLower = os.toLowerCase()
+      if (osLower.includes('ubuntu')) return '#E95420'  // Ubuntu橙色
+      if (osLower.includes('debian')) return '#A80030'  // Debian红色
+      if (osLower.includes('centos')) return '#932279'  // CentOS紫色
+      if (osLower.includes('redhat') || osLower.includes('rhel')) return '#EE0000'  // RedHat红色
+      if (osLower.includes('fedora')) return '#294172'  // Fedora蓝色
+      if (osLower.includes('alpine')) return '#0D597F'  // Alpine深蓝色
+      if (osLower.includes('rocky')) return '#10BEF4'   // Rocky蓝色
+      if (osLower.includes('almalinux')) return '#262D37'  // AlmaLinux深灰色
+      if (osLower.includes('windows')) return '#0078D4'  // Windows蓝色
+      if (osLower.includes('suse') || osLower.includes('opensuse')) return '#0C322C'  // SUSE绿色
+      if (osLower.includes('arch')) return '#1793D1'  // Arch Linux蓝色
+      return '#777777'  // 默认灰色
+    },
+    
+    // 获取操作系统名称（简化显示）
+    getOSName(os) {
+      if (!os) return '未知系统'
+      const osLower = os.toLowerCase()
+      if (osLower.includes('centos')) return 'CentOS'
+      if (osLower.includes('ubuntu')) return 'Ubuntu'
+      if (osLower.includes('debian')) return 'Debian'
+      if (osLower.includes('redhat')) return 'RedHat'
+      if (osLower.includes('fedora')) return 'Fedora'
+      if (osLower.includes('alpine')) return 'Alpine'
+      if (osLower.includes('windows')) return 'Windows'
+      if (osLower.includes('rocky')) return 'Rocky Linux'
+      if (osLower.includes('almalinux')) return 'AlmaLinux'
+      return os
+    },
+    
+    // 获取操作系统详细名称（包含版本号）
+    getOSDetailName(os) {
+      if (!os) return '未知系统'
+      const osLower = os.toLowerCase()
+      
+      // Ubuntu版本提取
+      if (osLower.includes('ubuntu')) {
+        const versionMatch = os.match(/(\d+\.\d+)/)
+        return versionMatch ? `Ubuntu ${versionMatch[1]}` : 'Ubuntu'
+      }
+      
+      // CentOS版本提取
+      if (osLower.includes('centos')) {
+        const versionMatch = os.match(/(\d+)/)
+        return versionMatch ? `CentOS ${versionMatch[1]}` : 'CentOS'
+      }
+      
+      // Debian版本提取
+      if (osLower.includes('debian')) {
+        const versionMatch = os.match(/(\d+(\.\d+)?)/)
+        return versionMatch ? `Debian ${versionMatch[1]}` : 'Debian'
+      }
+      
+      // RedHat版本提取
+      if (osLower.includes('redhat') || osLower.includes('rhel')) {
+        const versionMatch = os.match(/(\d+(\.\d+)?)/)
+        return versionMatch ? `RedHat ${versionMatch[1]}` : 'RedHat'
+      }
+      
+      // Fedora版本提取
+      if (osLower.includes('fedora')) {
+        const versionMatch = os.match(/(\d+)/)
+        return versionMatch ? `Fedora ${versionMatch[1]}` : 'Fedora'
+      }
+      
+      // Alpine版本提取
+      if (osLower.includes('alpine')) {
+        const versionMatch = os.match(/(\d+(\.\d+)?)/)
+        return versionMatch ? `Alpine ${versionMatch[1]}` : 'Alpine'
+      }
+      
+      // Rocky Linux版本提取
+      if (osLower.includes('rocky')) {
+        const versionMatch = os.match(/(\d+(\.\d+)?)/)
+        return versionMatch ? `Rocky ${versionMatch[1]}` : 'Rocky Linux'
+      }
+      
+      // AlmaLinux版本提取
+      if (osLower.includes('almalinux')) {
+        const versionMatch = os.match(/(\d+(\.\d+)?)/)
+        return versionMatch ? `AlmaLinux ${versionMatch[1]}` : 'AlmaLinux'
+      }
+      
+      // Windows版本提取
+      if (osLower.includes('windows')) {
+        if (osLower.includes('server 2022') || osLower.includes('2022')) return 'Win Server 2022'
+        if (osLower.includes('server 2019') || osLower.includes('2019')) return 'Win Server 2019'
+        if (osLower.includes('server 2016') || osLower.includes('2016')) return 'Win Server 2016'
+        if (osLower.includes('10')) return 'Windows 10'
+        if (osLower.includes('11')) return 'Windows 11'
+        return 'Windows'
+      }
+      
+      return os
+    },
+    
+    // 格式化CPU显示
+    formatCPU(cpu) {
+      if (!cpu) return '-'
+      // 如果已经是数字直接返回
+      const num = parseInt(cpu)
+      if (!isNaN(num)) return num
+      // 否则尝试提取数字
+      const match = cpu.match(/(\d+)/)
+      return match ? match[1] : cpu
+    },
+    
+    // 格式化内存显示
+    formatMemory(memory) {
+      if (!memory) return '-'
+      const num = parseInt(memory)
+      if (!isNaN(num)) return num
+      const match = memory.match(/(\d+)/)
+      return match ? match[1] : memory
+    },
+    
+    // 获取操作系统标签类型
+    getOSTagType(os) {
+      if (!os) return 'info'
+      const osLower = os.toLowerCase()
+      if (osLower.includes('centos') || osLower.includes('redhat') || osLower.includes('fedora') || osLower.includes('rocky') || osLower.includes('almalinux')) return 'warning'
+      if (osLower.includes('ubuntu') || osLower.includes('debian') || osLower.includes('mint')) return 'success'
+      if (osLower.includes('windows')) return 'primary'
+      if (osLower.includes('alpine')) return 'info'
+      return 'info'
+    },
+    
     async fetchMonitorData() {
       if (!this.hostList || this.hostList.length === 0) return
 
@@ -666,6 +779,65 @@ export default {
   align-items: center;
   white-space: nowrap;
   overflow: hidden;
+}
+
+.os-cell {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  gap: 6px;
+}
+
+.os-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+/* 操作系统图标包装器 - 带背景色的圆形图标 */
+.os-icon-wrapper {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.os-icon-colored {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+/* 操作系统文本 - 与主机名称字体大小一致 */
+.os-text {
+  font-size: 14px;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* 配置信息样式优化 */
+.config-cell {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  gap: 4px;
+}
+
+.config-cell span {
+  font-weight: 500;
+  color: #303133;
+  font-size: 13px;
 }
 
 /* 确保所有表格单元格内容不换行 */

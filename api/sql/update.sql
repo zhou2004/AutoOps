@@ -60,6 +60,21 @@ CREATE TABLE IF NOT EXISTS `monitor_api_endpoint` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API端点监控表';
 
+-- K8s权限管理表
+CREATE TABLE IF NOT EXISTS `k8s_permission` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `user_id` int(10) unsigned NOT NULL COMMENT '用户ID(sys_admin.id)',
+    `cluster_id` int(10) unsigned NOT NULL COMMENT '集群ID(k8s_cluster.id)',
+    `namespace` varchar(255) NOT NULL COMMENT '命名空间名称',
+    `permission_type` varchar(64) DEFAULT 'readonly' COMMENT '权限类型: readonly/write/admin',
+    `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+    `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_user_cluster_ns` (`user_id`, `cluster_id`, `namespace`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_cluster_id` (`cluster_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s权限管理表';
+
 -- 故障记录表
 CREATE TABLE IF NOT EXISTS `monitor_incident` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',

@@ -107,6 +107,7 @@
           @show-upload="showUploadDialog"
           @execute-command="executeCommand"
           @delete-host="handleHostDelete"
+          @sync-host="handleHostSync"
         />
 
         <!-- 分页 -->
@@ -1297,16 +1298,24 @@ export default {
     },
 
     // 同步主机配置信息
-    async handleHostSync() {
+    async handleHostSync(host) {
       try {
-        // 检查是否有当前主机详情
-        if (!this.hostDetail || !this.hostDetail.id) {
+        // 支持两种调用方式：从详情抽屉（无参数）或从表格行（传入host对象）
+        let hostId = this.hostDetail?.id
+        let hostName = this.hostDetail?.hostName
+        
+        if (host && host.id) {
+          hostId = host.id
+          hostName = host.hostName
+        }
+        
+        if (!hostId) {
           this.$message.warning('请先选择要同步的主机')
           return
         }
         
         this.syncLoading = true
-        const { data: res } = await this.$api.syncHostConfig(this.hostDetail.id)
+        const { data: res } = await this.$api.syncHostConfig(hostId)
         
         if (res.code === 200) {
           this.$message.success(res.data?.message || '开始同步主机信息，请稍后查看结果')
@@ -1314,8 +1323,8 @@ export default {
           setTimeout(() => {
             this.getHostList()
             // 如果详情面板打开，也刷新详情信息
-            if (this.detailDrawer && this.hostDetail.id) {
-              this.showHostDetail({ id: this.hostDetail.id })
+            if (this.detailDrawer && hostId) {
+              this.showHostDetail({ id: hostId })
             }
           }, 3000)
         } else {

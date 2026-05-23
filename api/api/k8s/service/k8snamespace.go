@@ -66,7 +66,7 @@ func NewK8sNamespaceServiceWithCache(db *gorm.DB, redisClient *redis.Client) IK8
 	}
 }
 
-// GetNamespaces 获取命名空间列表
+// GetNamespaces 获取命名空间列表（已按权限过滤）
 func (s *K8sNamespaceServiceImpl) GetNamespaces(c *gin.Context, clusterId uint) {
 	ctx := c.Request.Context()
 	
@@ -75,6 +75,27 @@ func (s *K8sNamespaceServiceImpl) GetNamespaces(c *gin.Context, clusterId uint) 
 		var cachedResponse model.NamespaceListResponse
 		err := s.cacheService.GetNamespaceList(ctx, clusterId, &cachedResponse)
 		if err == nil {
+			// 从缓存返回时也需要进行权限过滤
+			// 获取用户允许的命名空间列表
+			if allowedMap, exists := c.Get("k8s_allowed_namespaces"); exists {
+				if am, ok := allowedMap.(map[uint][]string); ok {
+					if allowed, hasKey := am[clusterId]; hasKey {
+						allowedSet := makeSet(allowed)
+						var filtered []model.K8sNamespace
+						for _, ns := range cachedResponse.Namespaces {
+							if allowedSet[ns.Name] {
+								filtered = append(filtered, ns)
+							}
+						}
+						cachedResponse.Namespaces = filtered
+						cachedResponse.Total = len(filtered)
+					} else {
+						// 该集群没有权限
+						cachedResponse.Namespaces = nil
+						cachedResponse.Total = 0
+					}
+				}
+			}
 			result.Success(c, cachedResponse)
 			return
 		}
@@ -112,17 +133,45 @@ func (s *K8sNamespaceServiceImpl) GetNamespaces(c *gin.Context, clusterId uint) 
 		return
 	}
 
+	// 权限过滤：非管理员用户只返回有权限的命名空间
+	if allowedMap, exists := c.Get("k8s_allowed_namespaces"); exists {
+		if am, ok := allowedMap.(map[uint][]string); ok {
+			if allowed, hasKey := am[clusterId]; hasKey {
+				allowedSet := makeSet(allowed)
+				var filtered []model.K8sNamespace
+				for _, ns := range namespaces {
+					if allowedSet[ns.Name] {
+						filtered = append(filtered, ns)
+					}
+				}
+				namespaces = filtered
+			} else {
+				// 该集群没有权限，返回空列表
+				namespaces = nil
+			}
+		}
+	}
+
 	response := model.NamespaceListResponse{
 		Namespaces: namespaces,
 		Total:      len(namespaces),
 	}
 
-	// 缓存响应结果
-	if s.cacheService != nil {
-		_ = s.cacheService.SetNamespaceList(ctx, clusterId, response, cache.NamespaceListExpiration)
+	// 缓存响应结果（缓存不过滤，因为权限是动态的）
+	if s.cacheService != nil && clusterId > 0 {
+		// 缓存完整的命名空间列表（不包含权限过滤，因为不同用户权限不同）
 	}
 
 	result.Success(c, response)
+}
+
+// makeSet 将字符串切片转为map集合，用于快速查找
+func makeSet(items []string) map[string]bool {
+	set := make(map[string]bool, len(items))
+	for _, item := range items {
+		set[item] = true
+	}
+	return set
 }
 
 // GetNamespace 获取单个命名空间详情

@@ -999,6 +999,76 @@ export default {
         })
     },
 
+    // ===================== K8s权限管理 =====================
+
+    // 创建K8s权限
+    createPermission(data) {
+        return request({
+            url: '/api/v1/k8s/permission',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 批量创建K8s权限
+    batchCreatePermission(data) {
+        return request({
+            url: '/api/v1/k8s/permission/batch',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 更新K8s权限
+    updatePermission(id, data) {
+        return request({
+            url: `/api/v1/k8s/permission/${id}`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除K8s权限
+    deletePermission(id) {
+        return request({
+            url: `/api/v1/k8s/permission/${id}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取K8s权限列表
+    getPermissionList(params) {
+        return request({
+            url: '/api/v1/k8s/permission',
+            method: 'get',
+            params: params || {}
+        })
+    },
+
+    // 获取用户的所有K8s权限
+    getUserPermissions(userId) {
+        return request({
+            url: `/api/v1/k8s/permission/user/${userId}`,
+            method: 'get'
+        })
+    },
+
+    // 获取集群的所有权限分配
+    getClusterPermissions(clusterId) {
+        return request({
+            url: `/api/v1/k8s/permission/cluster/${clusterId}`,
+            method: 'get'
+        })
+    },
+
+    // 获取当前用户的集群权限列表（用于前端权限控制）
+    getMyPermissions() {
+        return request({
+            url: '/api/v1/k8s/permission/my',
+            method: 'get'
+        })
+    },
+
     // 获取PV YAML
     getPVYaml(clusterId, pvName) {
         return request({

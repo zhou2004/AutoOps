@@ -26,6 +26,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// GetUserAllowedClusterIDsFromContext 从上下文获取允许的集群ID列表
+func GetUserAllowedClusterIDsFromContext(c *gin.Context) []uint {
+	if v, exists := c.Get("k8s_allowed_cluster_ids"); exists {
+		if ids, ok := v.([]uint); ok {
+			return ids
+		}
+	}
+	return nil
+}
+
 // IKubeClusterService K8s集群服务接口
 type IKubeClusterService interface {
 	CreateCluster(c *gin.Context, req *model.CreateKubeClusterRequest)
@@ -111,12 +121,31 @@ func (s *KubeClusterServiceImpl) GetCluster(c *gin.Context, id uint) {
 	result.Success(c, response)
 }
 
-// GetClusterList 获取集群列表
+// GetClusterList 获取集群列表（已按权限过滤）
 func (s *KubeClusterServiceImpl) GetClusterList(c *gin.Context, page, size int) {
+	// 获取用户允许的集群ID列表（上下文中的FilterAllowedClusters中间件已设置）
+	allowedClusterIDs := GetUserAllowedClusterIDsFromContext(c)
+	
 	clusters, total, err := s.dao.List(page, size)
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, fmt.Sprintf("获取集群列表失败: %v", err))
 		return
+	}
+
+	// 如果有权限过滤，过滤集群列表
+	if allowedClusterIDs != nil {
+		allowedSet := make(map[uint]bool)
+		for _, id := range allowedClusterIDs {
+			allowedSet[id] = true
+		}
+		var filtered []model.KubeCluster
+		for _, cluster := range clusters {
+			if allowedSet[cluster.ID] {
+				filtered = append(filtered, cluster)
+			}
+		}
+		clusters = filtered
+		total = int64(len(filtered))
 	}
 
 	response := model.KubeClusterListResponse{
