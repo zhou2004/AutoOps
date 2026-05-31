@@ -419,10 +419,10 @@ onMounted(() => {
         <div class="card-header">
           <span class="title">K8s 集群管理</span>
           <div class="header-actions">
-            <el-button type="primary" :icon="Plus" v-authority="['cloud:k8s:register']" size="small" @click="handleRegister">
+            <el-button type="primary" :icon="Plus" size="small" @click="handleRegister">
               注册集群
             </el-button>
-            <el-button type="success" :icon="Plus" v-authority="['cloud:k8s:add']" size="small" @click="handleCreate">
+            <el-button type="success" :icon="Plus" size="small" @click="handleCreate">
               创建集群
             </el-button>
           </div>

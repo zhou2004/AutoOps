@@ -208,6 +208,30 @@ getClusterPermissions(clusterId)
 2. 未授权的 API 调用会返回 403 错误
 3. 命名空间列表会自动过滤，只显示有权限的命名空间
 
+## 迭代记录
+
+### 2026-05-27：Bugfix — RBAC-only 用户无法访问集群级接口
+
+**问题**: 仅有命名空间级别 RBAC 绑定（如 `namespace="fmusic"`）的用户在访问 `/pvs`、`/nodes`、`/storageclasses`、`/crds` 等集群级接口时返回 403。
+
+**根因**: `hasAnyClusterPermission()` 第3步使用 `hasRbacVerbPermission(userID, clusterID, "", verbs)` 只匹配空 namespace 的集群级规则键 `"36:"`，但命名空间级绑定生成的是 `"36:fmusic"`，导致不匹配。
+
+**修复**: 改为遍历 `getUserRbacBindings()` 直接检查 clusterID 匹配，不再要求 namespace 必须为空。
+
+**文件**: `api/middleware/k8sPermissionMiddleware.go`
+
+### 2026-05-27：Bugfix — 命名空间列表对 RBAC-only 用户返回空
+
+**问题**: RBAC-only 用户访问 `GET /namespaces` 返回空数组。
+
+**根因**: 命名空间过滤逻辑未处理 `allowedSet` 中的通配符 `*` 和 `""`。
+
+**修复**: 增加 `hasAll := allowedSet["*"] || allowedSet[""]` 判断。
+
+**文件**: `api/api/k8s/service/k8snamespace.go`
+
+---
+
 ## 权限类型说明
 
 | 类型 | 说明 | 操作范围 |

@@ -180,3 +180,16 @@ func (ctrl *K8sPermissionController) GetClusterPermissions(c *gin.Context) {
 	}
 	ctrl.service.GetClusterPermissions(c, uint(clusterID))
 }
+
+// GetMyPermissions 获取当前用户的所有权限
+// @Summary 获取当前用户的K8s权限
+// @Description 获取当前登录用户的所有K8s集群命名空间权限（含用户组继承）
+// @Tags K8s权限管理
+// @Accept json
+// @Produce json
+// @Success 200 {object} result.Result{data=[]service.MyPermissionItem} "查询成功"
+// @Router /api/v1/k8s/permission/my [get]
+// @Security ApiKeyAuth
+func (ctrl *K8sPermissionController) GetMyPermissions(c *gin.Context) {
+	ctrl.service.GetMyPermissions(c)
+}

@@ -1069,6 +1069,131 @@ export default {
         })
     },
 
+    // ===================== K8s用户组管理 =====================
+
+    // 创建用户组
+    createUserGroup(data) {
+        return request({
+            url: '/api/v1/k8s/user-group',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 更新用户组
+    updateUserGroup(id, data) {
+        return request({
+            url: `/api/v1/k8s/user-group/${id}`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除用户组
+    deleteUserGroup(id) {
+        return request({
+            url: `/api/v1/k8s/user-group/${id}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取用户组列表
+    getUserGroupList(params) {
+        return request({
+            url: '/api/v1/k8s/user-group',
+            method: 'get',
+            params: params || {}
+        })
+    },
+
+    // 获取组成员列表
+    getGroupMembers(id) {
+        return request({
+            url: `/api/v1/k8s/user-group/${id}/members`,
+            method: 'get'
+        })
+    },
+
+    // 批量添加组成员
+    addGroupMembers(data) {
+        return request({
+            url: '/api/v1/k8s/user-group/members',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 移除组成员
+    removeGroupMember(data) {
+        return request({
+            url: '/api/v1/k8s/user-group/member',
+            method: 'delete',
+            data: data
+        })
+    },
+
+    // 获取用户所属用户组
+    getUserGroups(userId) {
+        return request({
+            url: `/api/v1/k8s/user-group/user/${userId}`,
+            method: 'get'
+        })
+    },
+
+    // ===================== K8s用户组权限管理 =====================
+
+    // 创建用户组权限
+    createGroupPermission(data) {
+        return request({
+            url: '/api/v1/k8s/group-permission',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 批量创建用户组权限
+    batchCreateGroupPermission(data) {
+        return request({
+            url: '/api/v1/k8s/group-permission/batch',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 更新用户组权限
+    updateGroupPermission(id, data) {
+        return request({
+            url: `/api/v1/k8s/group-permission/${id}`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除用户组权限
+    deleteGroupPermission(id) {
+        return request({
+            url: `/api/v1/k8s/group-permission/${id}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取用户组权限列表
+    getGroupPermissionList(params) {
+        return request({
+            url: '/api/v1/k8s/group-permission',
+            method: 'get',
+            params: params || {}
+        })
+    },
+
+    // 获取指定用户组的所有权限
+    getGroupPermissions(groupId) {
+        return request({
+            url: `/api/v1/k8s/group-permission/group/${groupId}`,
+            method: 'get'
+        })
+    },
+
     // 获取PV YAML
     getPVYaml(clusterId, pvName) {
         return request({
@@ -1332,6 +1457,88 @@ export default {
             url: `/api/v1/k8s/cluster/${clusterId}/namespaces/${namespaceName}/crds/${crdName}/resources/${crName}/yaml`,
             method: 'put',
             data: { yaml: yamlContent }
+        })
+    },
+
+    // ===================== K8s RBAC 角色管理 =====================
+
+    // 创建RBAC角色
+    createRbacRole(data) {
+        return request({
+            url: '/api/v1/k8s/rbac/role',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 更新RBAC角色
+    updateRbacRole(id, data) {
+        return request({
+            url: `/api/v1/k8s/rbac/role/${id}`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除RBAC角色
+    deleteRbacRole(id) {
+        return request({
+            url: `/api/v1/k8s/rbac/role/${id}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取RBAC角色列表
+    getRbacRoleList(params) {
+        return request({
+            url: '/api/v1/k8s/rbac/role',
+            method: 'get',
+            params: params || {}
+        })
+    },
+
+    // ===================== K8s RBAC 绑定管理 =====================
+
+    // 创建RBAC绑定
+    createRbacBinding(data) {
+        return request({
+            url: '/api/v1/k8s/rbac/binding',
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 更新RBAC绑定
+    updateRbacBinding(id, data) {
+        return request({
+            url: `/api/v1/k8s/rbac/binding/${id}`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除RBAC绑定
+    deleteRbacBinding(id) {
+        return request({
+            url: `/api/v1/k8s/rbac/binding/${id}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取RBAC绑定列表
+    getRbacBindingList(params) {
+        return request({
+            url: '/api/v1/k8s/rbac/binding',
+            method: 'get',
+            params: params || {}
+        })
+    },
+
+    // 获取我的RBAC权限
+    getMyRbacPermissions() {
+        return request({
+            url: '/api/v1/k8s/rbac/my-permissions',
+            method: 'get'
         })
     }
 }

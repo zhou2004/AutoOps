@@ -40,6 +40,9 @@
           <el-button type="text" @click="toggleCollapse" class="collapse-btn">
             <el-icon size="24"><component :is="collapseBtnClass" /></el-icon>
           </el-button>
+          <el-button type="text" @click="refreshMenu" class="collapse-btn" style="margin-left:8px" title="刷新菜单">
+            <el-icon size="20"><Refresh /></el-icon>
+          </el-button>
           <HeadImage />
         </div>
         <div class="bread-btn">
@@ -72,6 +75,7 @@
 import storage from "@/utils/storage";
 import HeadImage   from "@/components/HeadImage.vue";
 import Tags from "@/components/Tags.vue";
+import systemApi from '@/api/system'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -105,78 +109,7 @@ export default {
         // 确保数据是数组格式
         if (Array.isArray(menuData)) {
           this.leftMenuList = menuData;
-
-          // 容器管理
-          const k8sMenu = this.leftMenuList.find(item => item.menuName === '容器管理')
-          if (k8sMenu && k8sMenu.menuSvoList) {
-            const crdExists = k8sMenu.menuSvoList.some(sub => sub.url === 'k8s/crd')
-            if (!crdExists) {
-              k8sMenu.menuSvoList.push({
-                id: 99999,
-                menuName: 'CRD管理',
-                url: 'k8s/crd',
-                icon: 'Setting'
-              })
-            }
-          }
-          
-          // 手动添加配置管理菜单到任务中心
-          const taskMenu = this.leftMenuList.find(item => item.menuName === '任务中心')
-          if (taskMenu && taskMenu.menuSvoList) {
-            const configExists = taskMenu.menuSvoList.some(sub => sub.url === 'task/config')
-            if (!configExists) {
-              taskMenu.menuSvoList.push({
-                id: 99999,
-                menuName: '配置管理',
-                url: 'task/config',
-                icon: 'Setting'
-              })
-            }
-          }
-
-          // 手动添加监控中心子菜单
-          const monitorMenu = this.leftMenuList.find(item => item.menuName === '监控中心')
-          if (monitorMenu) {
-            if (!monitorMenu.menuSvoList) {
-              monitorMenu.menuSvoList = []
-            }
-            const apiPointConfigExists = monitorMenu.menuSvoList.some(sub => sub.menuName === 'API监控')
-            if (!apiPointConfigExists) {
-              monitorMenu.menuSvoList.push({
-                id: 99998,
-                menuName: 'API监控',
-                url: 'monitor/api-endpoint',
-                icon: 'Monitor'
-              })
-            }
-            const alarmConfigExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警配置')
-            if (!alarmConfigExists) {
-              monitorMenu.menuSvoList.push({
-                id: 99998,
-                menuName: '告警配置',
-                url: 'monitor/alarm/rules',
-                icon: 'Setting'
-              })
-            }
-            const alarmNotifyExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警通知')
-            if (!alarmNotifyExists) {
-              monitorMenu.menuSvoList.push({
-                id: 99997,
-                menuName: '告警通知',
-                url: 'monitor/alarm/notify',
-                icon: 'Message'
-              })
-            }
-            const alarmDataSourceExists = monitorMenu.menuSvoList.some(sub => sub.menuName === '告警数据源')
-            if (!alarmDataSourceExists) {
-              monitorMenu.menuSvoList.push({
-                id: 99998,
-                menuName: '数据源',
-                url: 'monitor/datasource',
-                icon: 'Odometer'
-              })
-            }
-          }
+          this.supplementHardcodedMenus()
         } else if (menuData) {
           // 如果数据存在但不是数组，尝试解析
           console.warn('菜单数据格式异常，尝试修复:', menuData);
@@ -229,12 +162,105 @@ export default {
           })
         })
       })
+    },
+    // 刷新菜单 - 从后端重新获取并更新localStorage
+    async refreshMenu() {
+      try {
+        const res = await systemApi.querySysMenuVoList()
+        if (res.data && res.data.code === 200) {
+          const menuData = res.data.data
+          if (Array.isArray(menuData)) {
+            this.$store.commit('saveLeftMenuList', menuData)
+            this.leftMenuList = menuData
+            // 手动补充内嵌子菜单（同 initMenuData 逻辑）
+            this.supplementHardcodedMenus()
+            this.$message.success('菜单刷新成功')
+          } else {
+            this.$message.warning('菜单数据格式异常')
+          }
+        } else {
+          this.$message.error(res.data?.message || '获取菜单失败')
+        }
+      } catch (err) {
+        this.$message.error('刷新菜单失败: ' + (err.response?.data?.message || err.message))
+      }
+    },
+    // 补充固定子菜单（从 initMenuData 抽离公共逻辑）
+    supplementHardcodedMenus() {
+      if (!Array.isArray(this.leftMenuList)) return
+      // 资产管理 → 补充子菜单
+      const assetMenu = this.leftMenuList.find(item => item.menuName === '资产管理')
+      if (assetMenu) {  
+        if (!assetMenu.menuSvoList) assetMenu.menuSvoList = []
+        const assetSubs = [
+          { name: '网络设备', url: 'cmdb/network', icon: 'Connection' },
+          { name: '物理机管理', url: 'cmdb/physical', icon: 'Cpu' },
+        ]
+        assetSubs.forEach(sub => {
+          if (!assetMenu.menuSvoList.some(s => s.url === sub.url)) {
+            assetMenu.menuSvoList.push({ id: 99999, menuName: sub.name, url: sub.url, icon: sub.icon })
+          }
+        })
+      }
+
+      // 容器管理 → CRD管理
+      const k8sMenu = this.leftMenuList.find(item => item.menuName === '容器管理')
+      if (k8sMenu && k8sMenu.menuSvoList) {
+        if (!k8sMenu.menuSvoList.some(sub => sub.url === 'k8s/crd')) {
+          k8sMenu.menuSvoList.push({ id: 99999, menuName: 'CRD管理', url: 'k8s/crd', icon: 'Setting' })
+        }
+      }
+      // 任务中心 → 配置管理
+      const taskMenu = this.leftMenuList.find(item => item.menuName === '任务中心')
+      if (taskMenu && taskMenu.menuSvoList) {
+        if (!taskMenu.menuSvoList.some(sub => sub.url === 'task/config')) {
+          taskMenu.menuSvoList.push({ id: 99999, menuName: '配置管理', url: 'task/config', icon: 'Setting' })
+        }
+      }
+      // 监控中心 → 补充子菜单
+      const monitorMenu = this.leftMenuList.find(item => item.menuName === '监控中心')
+      if (monitorMenu) {
+        if (!monitorMenu.menuSvoList) monitorMenu.menuSvoList = []
+        const monitorSubs = [
+          { name: 'API监控', url: 'monitor/api-endpoint', icon: 'Monitor' },
+          { name: '告警配置', url: 'monitor/alarm/rules', icon: 'Setting' },
+          { name: '告警通知', url: 'monitor/alarm/notify', icon: 'Message' },
+          { name: '数据源', url: 'monitor/datasource', icon: 'Odometer' }
+        ]
+        monitorSubs.forEach(sub => {
+          if (!monitorMenu.menuSvoList.some(s => s.url === sub.url)) {
+            monitorMenu.menuSvoList.push({ id: 99998, menuName: sub.name, url: sub.url, icon: sub.icon })
+          }
+        })
+      }
+
+    // 系统管理 → 基础管理
+      const systemMenu = this.leftMenuList.find(item => item.menuName === '系统管理')
+      if (systemMenu) {
+        if (!systemMenu.menuSvoList) systemMenu.menuSvoList = []
+        const systemSubs = [
+          { name: '机房信息', url: 'system/machine', icon: 'OfficeBuilding' },
+          { name: '资产授权', url: 'system/asset-permission', icon: 'Lock' },
+          { name: '容器授权', url: 'system/k8s-permission', icon: 'Lock' }
+        ]
+        systemSubs.forEach(sub => {
+          if (!systemMenu.menuSvoList.some(s => s.url === sub.url)) {
+            systemMenu.menuSvoList.push({ id: 99997, menuName: sub.name, url: sub.url, icon: sub.icon })
+          }
+        })
+      }
+
+      this.$forceUpdate()
     }
   },
   mounted() {
     // 确保在mounted阶段重新获取菜单数据，解决浏览器兼容性问题
     this.initMenuData();
     this.removeFocusOutline();
+  },
+  // 组件激活时（使用 keep-alive）从后端刷新菜单
+  activated() {
+    this.refreshMenu();
   }
 }
 </script>

@@ -298,6 +298,15 @@ export function GetAnsibleTaskList(params) {
   })
 }
 
+// 多条件查询Ansible任务（支持 name, type, viewName, page, size）
+export function GetAnsibleTasksByQuery(params) {
+  return request({
+    url: 'task/ansible/query',
+    method: 'get',
+    params
+  })
+}
+
 export function CreateAnsibleTask(data) {
   return request({
     url: 'task/ansible',
@@ -655,5 +664,47 @@ export function ResumeScheduledTask(taskId) {
     headers: {
       'Accept': 'application/json'
     }
+  })
+}
+
+// ==================== Ansible视图管理 API ====================
+
+// 创建视图
+export function CreateAnsibleView(data) {
+  return request({
+    url: '/task/ansible/view',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+// 更新视图
+export function UpdateAnsibleView(id, data) {
+  return request({
+    url: `/task/ansible/view/${id}`,
+    method: 'put',
+    data,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+// 删除视图
+export function DeleteAnsibleView(id) {
+  return request({
+    url: `/task/ansible/view/${id}`,
+    method: 'delete'
+  })
+}
+
+// 获取所有视图
+export function GetAllAnsibleViews() {
+  return request({
+    url: '/task/ansible/view/all',
+    method: 'get'
   })
 }

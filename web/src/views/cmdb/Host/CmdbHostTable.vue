@@ -161,7 +161,6 @@
                   size="mini"
                   circle
                   plain
-                  v-authority="['cmdb:ecs:rsync']"
                   @click="$emit('sync-host', scope.row)"
                 />
               </el-tooltip>
@@ -172,7 +171,6 @@
                   size="mini"
                   circle
                   plain
-                  v-authority="['cmdb:ecs:edit']"
                   @click="$emit('edit-host', scope.row.id)"
                 />
               </el-tooltip>
@@ -183,7 +181,6 @@
                   size="mini"
                   circle
                   plain
-                   v-authority="['cmdb:ecs:upload']"
                   @click="$emit('show-upload', scope.row)"
                 />
               </el-tooltip>
@@ -194,7 +191,6 @@
                   size="mini"
                   circle
                   plain
-                  v-authority="['cmdb:ecs:terminal']"
                   @click="openTerminalWindow(scope.row)"
                 />
               </el-tooltip>
@@ -205,7 +201,6 @@
                   size="mini"
                   circle
                   plain
-                   v-authority="['cmdb:ecs:shell']"
                   @click="$emit('execute-command', scope.row)"
                 />
               </el-tooltip>
@@ -216,7 +211,6 @@
                   size="mini"
                   circle
                   plain
-                   v-authority="['cmdb:ecs:delete']"
                   @click="$emit('delete-host', scope.row)"
                 />
               </el-tooltip>

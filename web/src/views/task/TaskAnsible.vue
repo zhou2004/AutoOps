@@ -15,6 +15,7 @@
           <el-radio-button label="all">全部</el-radio-button>
           <el-radio-button label="name">按名称</el-radio-button>
           <el-radio-button label="type">按类型</el-radio-button>
+          <el-radio-button label="view">按视图</el-radio-button>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="任务名称" v-if="searchMode === 'name' || searchMode === 'all'">
@@ -24,7 +25,7 @@
           clearable
           v-model="queryParams.name"
           @keyup.enter="searchTasks"
-          :disabled="searchMode === 'type'"
+          :disabled="searchMode === 'type' || searchMode === 'view'"
         />
       </el-form-item>
       <el-form-item label="任务类型" style="width: 200px;" v-if="searchMode === 'type' || searchMode === 'all'">
@@ -34,10 +35,24 @@
           v-model="queryParams.type"
           @change="searchTasks"
           style="width: 100%"
-          :disabled="searchMode === 'name'"
+          :disabled="searchMode === 'name' || searchMode === 'view'"
         >
           <el-option label="手动任务" :value="1" />
           <el-option label="自动任务" :value="2" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="视图分组" v-if="searchMode === 'view' || searchMode === 'all'">
+        <el-select
+          size="small"
+          placeholder="选择视图分组（留空=全部）"
+          v-model="queryParams.viewName"
+          @change="searchTasks"
+          clearable
+          filterable
+          style="width: 180px"
+          :disabled="searchMode === 'name' || searchMode === 'type'"
+        >
+          <el-option v-for="v in viewList" :key="v.ID" :label="v.Name" :value="v.Name" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -57,6 +72,14 @@
           v-authority="['task:ansible:create']"
           @click="handleCreate"
         >新增Ansible任务</el-button>
+        <el-button
+          plain
+          type="primary"
+          :icon="Setting"
+          size="small"
+          @click="showViewManageDialog"
+          style="margin-left: 8px;"
+        >管理视图分组</el-button>
       </div>
     
       <!-- 列表区域 -->
@@ -451,6 +474,18 @@
 
         </template>
 
+        <el-form-item label="视图分组">
+          <el-select
+            v-model="currentTask.view_id"
+            placeholder="选择视图分组（可选）"
+            clearable
+            filterable
+            style="width: 100%"
+          >
+            <el-option v-for="v in viewList" :key="v.ID" :label="v.Name" :value="v.ID" />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="最大历史记录">
                 <el-input
                 type="number"
@@ -567,6 +602,61 @@
     <!-- Ansible任务流程组件 -->
     <AnsibleJobFlow ref="ansibleJobFlowRef" />
 
+    <!-- ==================== 视图分组管理对话框 ==================== -->
+    <el-dialog
+      title="管理视图分组"
+      v-model="viewDialogVisible"
+      width="500px"
+      class="modern-dialog"
+      :modal="false"
+      :append-to-body="true"
+    >
+      <div style="margin-bottom: 16px; display: flex; gap: 8px;">
+        <el-input
+          v-model="viewForm.name"
+          placeholder="输入新视图名称"
+          size="small"
+          clearable
+          @keyup.enter="handleCreateView"
+        />
+        <el-button type="primary" size="small" :icon="Plus" @click="handleCreateView">新增</el-button>
+      </div>
+      <el-table :data="viewList" v-loading="false" max-height="400">
+        <el-table-column prop="ID" label="ID" width="60" />
+        <el-table-column prop="Name" label="视图名称" min-width="200" />
+        <el-table-column prop="CreatedAt" label="创建时间" width="170" />
+        <el-table-column label="操作" width="120" align="center">
+          <template #default="{ row }">
+            <el-button type="warning" size="small" @click="handleEditView(row)">
+              <el-icon><Edit /></el-icon>
+            </el-button>
+            <el-button type="danger" size="small" @click="handleDeleteView(row)">
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <!-- ==================== 编辑视图对话框 ==================== -->
+    <el-dialog
+      title="编辑视图名称"
+      v-model="viewEditDialogVisible"
+      width="400px"
+      class="modern-dialog"
+      :modal="false"
+      :append-to-body="true"
+    >
+      <el-form>
+        <el-form-item label="视图名称">
+          <el-input v-model="viewForm.name" placeholder="请输入视图名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="viewEditDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleUpdateViewModal">确定</el-button>
+      </template>
+    </el-dialog>
 
   </div>
 </template>
@@ -574,8 +664,8 @@
 <script setup>
 import { ref, reactive, onMounted, shallowRef, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Connection, VideoPlay, Delete, Edit } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox, ElInput } from 'element-plus'
+import { Connection, VideoPlay, Delete, Edit, Plus, Setting } from '@element-plus/icons-vue'
 import {
   GetAnsibleTaskList,
   GetAnsibleConfigList,
@@ -585,7 +675,12 @@ import {
   StartAnsibleTask,
   DeleteAnsibleTask,
   GetAnsibleTasksByName,
-  GetAnsibleTasksByType
+  GetAnsibleTasksByType,
+  GetAnsibleTasksByQuery,
+  GetAllAnsibleViews,
+  CreateAnsibleView,
+  UpdateAnsibleView,
+  DeleteAnsibleView
 } from '@/api/task'
 import cmdbAPI from '@/api/cmdb'
 
@@ -617,7 +712,8 @@ const queryParams = reactive({
   page: 1,
   pageSize: 10,
   name: '',
-  type: null
+  type: null,
+  viewName: ''
 })
 
 const currentTask = ref({
@@ -651,6 +747,16 @@ const configOptions = reactive({
   cliArgs: []
 })
 
+// 视图相关
+const viewList = ref([])
+const viewDialogVisible = ref(false)
+const viewEditDialogVisible = ref(false)
+const isEditView = ref(false)
+const editViewId = ref(null)
+const viewForm = reactive({
+  name: ''
+})
+
 // 获取配置列表
 const fetchConfigs = async () => {
   try {
@@ -682,6 +788,102 @@ const fetchConfigs = async () => {
   } catch (error) {
     console.error('获取配置列表失败:', error)
   }
+}
+
+// 获取视图列表
+const fetchViewList = async () => {
+  try {
+    const res = await GetAllAnsibleViews()
+    if (res.data && res.data.code === 200) {
+      const data = res.data.data
+      viewList.value = data.list || data || []
+    }
+  } catch (error) {
+    console.error('获取视图列表失败:', error)
+  }
+}
+
+// 显示视图管理对话框
+const showViewManageDialog = () => {
+  viewForm.name = ''
+  isEditView.value = false
+  editViewId.value = null
+  fetchViewList()
+  viewDialogVisible.value = true
+}
+
+// 创建视图
+const handleCreateView = async () => {
+  if (!viewForm.name.trim()) {
+    ElMessage.warning('请输入视图名称')
+    return
+  }
+  try {
+    const res = await CreateAnsibleView({ name: viewForm.name.trim() })
+    if (res.data && res.data.code === 200) {
+      ElMessage.success('视图创建成功')
+      viewForm.name = ''
+      fetchViewList()
+    } else {
+      ElMessage.error(res.data?.message || '创建失败')
+    }
+  } catch (err) {
+    ElMessage.error('创建视图失败: ' + (err.response?.data?.message || err.message))
+  }
+}
+
+// 编辑视图（打开编辑对话框）
+const handleEditView = (row) => {
+  isEditView.value = true
+  editViewId.value = row.id
+  viewForm.name = row.name
+  viewEditDialogVisible.value = true
+}
+
+// 更新视图
+const handleUpdateViewModal = async () => {
+  if (!viewForm.name.trim()) {
+    ElMessage.warning('请输入视图名称')
+    return
+  }
+  try {
+    const res = await UpdateAnsibleView(editViewId.value, { name: viewForm.name.trim() })
+    if (res.data && res.data.code === 200) {
+      ElMessage.success('视图更新成功')
+      viewEditDialogVisible.value = false
+      fetchViewList()
+    } else {
+      ElMessage.error(res.data?.message || '更新失败')
+    }
+  } catch (err) {
+    ElMessage.error('更新视图失败: ' + (err.response?.data?.message || err.message))
+  }
+}
+
+// 删除视图
+const handleDeleteView = (row) => {
+  ElMessageBox.confirm(
+    `确定删除视图"${row.name}"吗？关联该视图的任务将会取消分组。`,
+    '确认删除',
+    {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await DeleteAnsibleView(row.ID)
+      if (res.data && res.data.code === 200) {
+        ElMessage.success('视图删除成功')
+        fetchViewList()
+        fetchTasks()
+      } else {
+        ElMessage.error(res.data?.message || '删除失败')
+      }
+    } catch (err) {
+      ElMessage.error('删除视图失败: ' + (err.response?.data?.message || err.message))
+    }
+  }).catch(() => {})
 }
 
 const taskRules = reactive({
@@ -752,35 +954,23 @@ const fetchTasks = async () => {
         page: queryParams.page,
         pageSize: queryParams.pageSize
       })
-    } else if (searchMode.value === 'all') {
-      // 全部搜索模式，根据具体有值的条件选择接口
-      if (queryParams.name && queryParams.name.trim()) {
-        console.log('全部模式-使用名称查询接口')
-        response = await GetAnsibleTasksByName({
-          name: queryParams.name,
-          page: queryParams.page,
-          pageSize: queryParams.pageSize
-        })
-      } else if (queryParams.type !== null && queryParams.type !== undefined) {
-        console.log('全部模式-使用类型查询接口')
-        response = await GetAnsibleTasksByType({
-          type: queryParams.type,
-          page: queryParams.page,
-          pageSize: queryParams.pageSize
-        })
-      } else {
-        console.log('全部模式-使用普通列表查询')
-        response = await GetAnsibleTaskList({
-          page: queryParams.page,
-          pageSize: queryParams.pageSize
-        })
-      }
-    } else {
-      // 默认情况，使用普通列表查询
-      console.log('默认-使用普通列表查询')
-      response = await GetAnsibleTaskList({
+    } else if (searchMode.value === 'view' && queryParams.viewName) {
+      // 视图搜索模式
+      console.log('使用视图查询接口')
+      response = await GetAnsibleTasksByQuery({
         page: queryParams.page,
-        pageSize: queryParams.pageSize
+        size: queryParams.pageSize,
+        viewName: queryParams.viewName
+      })
+    } else {
+      // 全部/默认模式，使用多条件查询接口（支持 name/type/viewName 联合筛选）
+      console.log('使用多条件查询接口')
+      response = await GetAnsibleTasksByQuery({
+        page: queryParams.page,
+        size: queryParams.pageSize,
+        name: queryParams.name || undefined,
+        type: queryParams.type || undefined,
+        viewName: queryParams.viewName || undefined
       })
     }
     
@@ -810,6 +1000,12 @@ const fetchTasks = async () => {
       console.log('解析后的taskList:', taskList)
       console.log('taskList类型:', typeof taskList, '是否为数组:', Array.isArray(taskList))
       
+      // 兼容不同格式的 total 字段
+      let totalCount = responseData.total
+      if (totalCount === undefined && responseData.data && responseData.data.total !== undefined) {
+        totalCount = responseData.data.total
+      }
+      
       // 确保taskList是数组后再进行map操作
       if (Array.isArray(taskList)) {
         // 将后端返回的大写字段名映射为小写
@@ -828,12 +1024,13 @@ const fetchTasks = async () => {
           totalDuration: item.TotalDuration,
           is_recurring: item.IsRecurring,
           cron_expr: item.CronExpr,
+          view_name: item.View ? item.View.name : (item.ViewName || ''),
           createdAt: formatTime(item.CreatedAt),
           updatedAt: formatTime(item.UpdatedAt),
           works: item.Works
         }))
         
-        total.value = responseData.total || taskList.length
+        total.value = totalCount || taskList.length
         console.log('处理后的任务列表:', tasks.value)
       } else {
         console.error('taskList不是数组:', taskList)
@@ -1043,7 +1240,7 @@ const handleSubmit = async () => {
         isRecurring: currentTask.value.is_recurring,
         maxHistoryKeep: parseInt(currentTask.value.max_history_keep) || 3,
         cronExpr: currentTask.value.cron_expr || '',
-        viewId: currentTask.value.view_id || 0,
+        viewId: currentTask.value.view_id || null,
         // Config Center fields
         inventoryConfigId: currentTask.value.inventory_config_id || 0,
         globalVarsConfigId: currentTask.value.global_vars_config_id || 0,
@@ -1217,6 +1414,7 @@ const resetQuery = () => {
   searchMode.value = 'all'
   queryParams.name = ''
   queryParams.type = null
+  queryParams.viewName = ''
   queryParams.page = 1
   fetchTasks()
 }
@@ -1228,8 +1426,13 @@ const handleSearchModeChange = (mode) => {
   // 根据搜索模式清空不相关的搜索条件
   if (mode === 'name') {
     queryParams.type = null
+    queryParams.viewName = ''
   } else if (mode === 'type') {
     queryParams.name = ''
+    queryParams.viewName = ''
+  } else if (mode === 'view') {
+    queryParams.name = ''
+    queryParams.type = null
   }
   
   // 重置到第一页并重新查询
@@ -1360,6 +1563,7 @@ const goToHistory = (row) => {
 onMounted(() => {
   fetchTasks()
   fetchConfigs()
+  fetchViewList()
 })
 </script>
 

@@ -1636,7 +1636,7 @@ const deleteWorkload = async (row) => {
             <el-button :icon="Monitor" type="success" size="small" @click="navigateToMonitoring">
               监控仪表板
             </el-button>
-            <el-button :icon="Plus" v-authority="['k8s:workload:add']" type="primary" size="small" @click="showCreatePodDialog">
+            <el-button :icon="Plus" type="primary" size="small" @click="showCreatePodDialog">
               创建工作负载
             </el-button>
           </el-form-item>
@@ -1823,7 +1823,6 @@ const deleteWorkload = async (row) => {
                     type="primary"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:expandable']"
                     :disabled="!canScale(row)"
                     @click="scaleWorkload(row)"
                   >
@@ -1836,7 +1835,6 @@ const deleteWorkload = async (row) => {
                     type="warning"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:restart']"
                     :disabled="!canRestart(row)"
                     @click="restartWorkload(row)"
                   >
@@ -1850,7 +1848,6 @@ const deleteWorkload = async (row) => {
                     :icon="Setting"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:resource']"
                     :disabled="!canUpdatePodConfig(row)"
                     @click="updatePodConfig(row)"
                   />
@@ -1862,7 +1859,6 @@ const deleteWorkload = async (row) => {
                     :icon="Monitor"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:dispatch']"
                     :disabled="!canUpdateScheduling(row)"
                     @click="updateScheduling(row)"
                   />
@@ -1874,7 +1870,6 @@ const deleteWorkload = async (row) => {
                     :icon="Document"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:edityaml']"
                     :disabled="!canEditYaml(row)"
                     @click="editWorkloadYaml(row)"
                   />
@@ -1886,7 +1881,6 @@ const deleteWorkload = async (row) => {
                     :icon="Delete"
                     size="small"
                     circle
-                    v-authority="['k8s:workload:delete']"
                     :disabled="!canDelete(row)"
                     @click="deleteWorkload(row)"
                   />

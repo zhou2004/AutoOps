@@ -2390,13 +2390,13 @@ const handleGoBack = () => {
               <el-table-column label="操作" min-width="380" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons-container">
-                    <el-button size="small" type="warning" :icon="Edit" v-authority="['k8s:workload:edityaml']" @click="handleEditYaml(row)">YAML编辑</el-button>
-                    <el-button size="small" type="primary" :icon="Document" v-authority="['k8s:workload:podlog']" @click="handleViewLogs(row)">日志</el-button>
-                    <el-button size="small" type="success" v-authority="['k8s:workload:terminal']"  @click="handleTerminal(row)">
+                    <el-button size="small" type="warning" :icon="Edit" @click="handleEditYaml(row)">YAML编辑</el-button>
+                    <el-button size="small" type="primary" :icon="Document" @click="handleViewLogs(row)">日志</el-button>
+                    <el-button size="small" type="success"  @click="handleTerminal(row)">
                       <img src="@/assets/image/终端.svg" alt="terminal" class="custom-icon" />
                       终端
                     </el-button>
-                    <el-button size="small" type="danger" :icon="Delete" v-authority="['k8s:workload:poddelete']" @click="handleDelete(row)">删除</el-button>
+                    <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
                   </div>
                 </template>
               </el-table-column>
@@ -2441,7 +2441,7 @@ const handleGoBack = () => {
               </el-table-column>
               <el-table-column label="操作" min-width="150" fixed="right">
                 <template #default="{ row }">
-                  <el-button size="small" v-authority="['k8s:workload:rollback_version']" type="primary" @click="handleRollback(row)">回滚到此版本</el-button>
+                  <el-button size="small" type="primary" @click="handleRollback(row)">回滚到此版本</el-button>
                 </template>
               </el-table-column>
             </el-table>

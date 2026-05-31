@@ -52,3 +52,23 @@ func (d *CmdbGroupDao) GetCmdbGroupList() []model.CmdbGroup {
 	d.db.Find(&list)
 	return list
 }
+
+// GetUserGroupIDs 获取用户所属的资产分组ID列表（通过 sys_admin_role）
+func (d *CmdbGroupDao) GetUserGroupIDs(userID uint) ([]uint, error) {
+	var ids []uint
+	err := d.db.Table("sys_admin_role").
+		Joins("JOIN sys_role ON sys_role.id = sys_admin_role.role_id").
+		Where("sys_admin_role.admin_id = ? AND sys_role.role_key = ?", userID, "admin").
+		Pluck("sys_role.id", &ids).Error
+	return ids, err
+}
+
+// IsAdmin 检查用户是否为管理员
+func (d *CmdbGroupDao) IsAdmin(userID uint) (bool, error) {
+	var count int64
+	err := d.db.Table("sys_admin_role").
+		Joins("JOIN sys_role ON sys_role.id = sys_admin_role.role_id").
+		Where("sys_admin_role.admin_id = ? AND sys_role.role_key = ?", userID, "admin").
+		Count(&count).Error
+	return count > 0, err
+}

@@ -7,14 +7,14 @@ export default {
         const { id, duration, start, end } = params
         let url = `monitor/hosts/${id}/all-metrics`
         const queryParams = {}
-        
+
         if (duration) {
             queryParams.duration = duration
         } else if (start && end) {
             queryParams.start = start
             queryParams.end = end
         }
-        
+
         return request({
             url,
             method: 'get',
@@ -49,7 +49,7 @@ export default {
     },    // 获取主机列表
     getHostList(params) {
         return request({
-            url: 'cmdb/host/list',
+            url: 'cmdb/hostlist',
             method: 'get',
             params
         })
@@ -122,7 +122,7 @@ export default {
             page: params.page || 1,
             pageSize: params.pageSize || 10
         }
-        
+
         // 添加搜索条件，确保参数名与后端API一致
         if (params.name) queryParams.name = params.name
         if (params.ip) queryParams.ip = params.ip
@@ -154,7 +154,7 @@ export default {
         return request({
             url: '/cmdb/hostbyname',
             method: 'get',
-            params: { 
+            params: {
                 name: hostName,
                 ...params
             }
@@ -164,7 +164,7 @@ export default {
         return request({
             url: 'cmdb/hostbyip',
             method: 'get',
-            params: { 
+            params: {
                 ip,
                 ...params
             }
@@ -174,7 +174,7 @@ export default {
         return request({
             url: 'cmdb/hostbystatus',
             method: 'get',
-            params: { 
+            params: {
                 status,
                 ...params
             }
@@ -204,7 +204,7 @@ export default {
             data: data
         })
     },
-    
+
     // 获取带主机列表的分组数据
     getGroupListWithHosts() {
         return request({
@@ -429,6 +429,103 @@ export default {
         })
     },
 
+    // ==================== 机房管理 ====================
+    getIdcList(params) {
+        return request({ url: 'cmdb/idc', method: 'get', params })
+    },
+    getIdcAll() {
+        return request({ url: 'cmdb/idc/all', method: 'get' })
+    },
+    createIdc(data) {
+        return request({ url: 'cmdb/idc', method: 'post', data })
+    },
+    updateIdc(id, data) {
+        return request({ url: `cmdb/idc/${id}`, method: 'put', data })
+    },
+    deleteIdc(id) {
+        return request({ url: `cmdb/idc/${id}`, method: 'delete' })
+    },
+
+    // ==================== 机柜管理 ====================
+    getCabinetList(params) {
+        return request({ url: 'cmdb/cabinet', method: 'get', params })
+    },
+    getCabinetByIdc(idcId) {
+        return request({ url: `cmdb/cabinet/idc/${idcId}`, method: 'get' })
+    },
+    createCabinet(data) {
+        return request({ url: 'cmdb/cabinet', method: 'post', data })
+    },
+    updateCabinet(id, data) {
+        return request({ url: `cmdb/cabinet/${id}`, method: 'put', data })
+    },
+    deleteCabinet(id) {
+        return request({ url: `cmdb/cabinet/${id}`, method: 'delete' })
+    },
+
+    // ==================== 物理机管理 ====================
+    getPhysicalMachineList(params) {
+        return request({ url: 'cmdb/physical', method: 'get', params })
+    },
+    getPhysicalMachineAll() {
+        return request({ url: 'cmdb/physical/all', method: 'get' })
+    },
+    getPhysicalMachineStats() {
+        return request({ url: 'cmdb/physical/stats', method: 'get' })
+    },
+    getPhysicalMachineById(id) {
+        return request({ url: `cmdb/physical/${id}`, method: 'get' })
+    },
+    createPhysicalMachine(data) {
+        return request({ url: 'cmdb/physical', method: 'post', data })
+    },
+    updatePhysicalMachine(id, data) {
+        return request({ url: `cmdb/physical/${id}`, method: 'put', data })
+    },
+    deletePhysicalMachine(id) {
+        return request({ url: `cmdb/physical/${id}`, method: 'delete' })
+    },
+
+    // ==================== 网络设备管理 ====================
+    getNetworkDeviceList(params) {
+        return request({ url: 'cmdb/network', method: 'get', params })
+    },
+    getNetworkDeviceAll() {
+        return request({ url: 'cmdb/network/all', method: 'get' })
+    },
+    getNetworkDeviceById(id) {
+        return request({ url: `cmdb/network/${id}`, method: 'get' })
+    },
+    createNetworkDevice(data) {
+        return request({ url: 'cmdb/network', method: 'post', data })
+    },
+    updateNetworkDevice(id, data) {
+        return request({ url: `cmdb/network/${id}`, method: 'put', data })
+    },
+    deleteNetworkDevice(id) {
+        return request({ url: `cmdb/network/${id}`, method: 'delete' })
+    },
+
+    // ==================== 资产授权管理 ====================
+    getAssetPermissionList(params) {
+        return request({ url: 'cmdb/permission', method: 'get', params })
+    },
+    getAssetPermissionById(id) {
+        return request({ url: `cmdb/permission/${id}`, method: 'get' })
+    },
+    getMyAssetPermissions() {
+        return request({ url: 'cmdb/permission/my', method: 'get' })
+    },
+    createAssetPermission(data) {
+        return request({ url: 'cmdb/permission', method: 'post', data })
+    },
+    updateAssetPermission(id, data) {
+        return request({ url: `cmdb/permission/${id}`, method: 'put', data })
+    },
+    deleteAssetPermission(id) {
+        return request({ url: `cmdb/permission/${id}`, method: 'delete' })
+    },
+
     // Agent管理
     // 部署agent到指定主机 (支持单个或批量)
     deployAgent(hostIds, version = '1.0.0') {
@@ -443,7 +540,7 @@ export default {
             }
         })
     },
-    
+
     // 卸载指定主机的agent (支持单个或批量)
     uninstallAgent(hostIds) {
         // 确保hostIds是数组格式
@@ -456,7 +553,7 @@ export default {
             }
         })
     },
-    
+
     // 根据主机id获取agent状态
     getAgentStatus(id) {
         return request({
@@ -464,7 +561,7 @@ export default {
             method: 'get'
         })
     },
-    
+
     // 重启agent
     restartAgent(id) {
         return request({
@@ -472,7 +569,7 @@ export default {
             method: 'post'
         })
     },
-    
+
     // 获取agent列表
     getAgentList(params) {
         return request({
@@ -527,5 +624,55 @@ export default {
             headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 60000
         })
+    },
+
+    // ==================== CMDB 用户组管理 ====================
+    getCmdbUserGroupList(params) {
+        return request({ url: 'cmdb/permission/user-group', method: 'get', params })
+    },
+    getCmdbUserGroupAll() {
+        return request({ url: 'cmdb/permission/user-group/all', method: 'get' })
+    },
+    createCmdbUserGroup(data) {
+        return request({ url: 'cmdb/permission/user-group', method: 'post', data })
+    },
+    updateCmdbUserGroup(id, data) {
+        return request({ url: `cmdb/permission/user-group/${id}`, method: 'put', data })
+    },
+    deleteCmdbUserGroup(id) {
+        return request({ url: `cmdb/permission/user-group/${id}`, method: 'delete' })
+    },
+    getCmdbUserGroupMembers(id) {
+        return request({ url: `cmdb/permission/user-group/${id}/members`, method: 'get' })
+    },
+    addCmdbUserGroupMembers(data) {
+        return request({ url: 'cmdb/permission/user-group/members', method: 'post', data })
+    },
+    removeCmdbUserGroupMember(data) {
+        return request({ url: 'cmdb/permission/user-group/member', method: 'delete', data })
+    },
+
+    // ==================== 凭据授权管理 ====================
+    getCredentialPermissionList(params) {
+        return request({ url: 'cmdb/permission/credential', method: 'get', params })
+    },
+    getCredentialPermissionById(id) {
+        return request({ url: `cmdb/permission/credential/${id}`, method: 'get' })
+    },
+    getMyCredentialPermissions() {
+        return request({ url: 'cmdb/permission/credential/my', method: 'get' })
+    },
+    createCredentialPermission(data) {
+        return request({ url: 'cmdb/permission/credential', method: 'post', data })
+    },
+    updateCredentialPermission(id, data) {
+        return request({ url: `cmdb/permission/credential/${id}`, method: 'put', data })
+    },
+    deleteCredentialPermission(id) {
+        return request({ url: `cmdb/permission/credential/${id}`, method: 'delete' })
+    },
+    // 凭据列表(从configcenter获取)
+    getCredentialList(params) {
+        return request({ url: 'config/ecsauthlist', method: 'get', params })
     }
 }

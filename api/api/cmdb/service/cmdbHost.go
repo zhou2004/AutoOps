@@ -13,6 +13,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// filterAllowedHosts 从上下文中获取允许的资产ID列表，过滤主机列表
+// 管理员不受限制（cmdb_allowed_asset_ids为空时返回全部）
+func filterAllowedHosts(c *gin.Context, hosts []model.CmdbHost) []model.CmdbHost {
+	allowedIDs, exists := c.Get("cmdb_allowed_asset_ids")
+	if !exists {
+		return hosts
+	}
+	idSet, ok := allowedIDs.(map[uint]bool)
+	if !ok || len(idSet) == 0 {
+		return hosts
+	}
+	var filtered []model.CmdbHost
+	for _, h := range hosts {
+		if idSet[h.ID] {
+			filtered = append(filtered, h)
+		}
+	}
+	return filtered
+}
+
 type CmdbHostServiceInterface interface {
 	GetCmdbHostList(c *gin.Context)                                                                           // 获取主机列表
 	GetCmdbHostListWithPage(c *gin.Context, page, pageSize int)                                               // 获取主机列表(分页)
@@ -162,9 +182,11 @@ func (s *CmdbHostServiceImpl) ImportHostsFromExcel(c *gin.Context, dto *model.Im
 
 // 获取主机列表(分页)
 func (s *CmdbHostServiceImpl) GetCmdbHostListWithPage(c *gin.Context, page, pageSize int) {
-	list, total := s.dao.GetCmdbHostListWithPage(page, pageSize)
+	list, _ := s.dao.GetCmdbHostListWithPage(page, pageSize)
+	// 过滤用户被允许的主机
+	filteredList := filterAllowedHosts(c, list)
 	var vos []model.CmdbHostVo
-	for _, host := range list {
+	for _, host := range filteredList {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
 		vos = append(vos, model.CmdbHostVo{
 			ID:          host.ID,
@@ -193,7 +215,7 @@ func (s *CmdbHostServiceImpl) GetCmdbHostListWithPage(c *gin.Context, page, page
 			UpdateTime:  host.UpdateTime,
 		})
 	}
-	result.SuccessWithPage(c, vos, total, page, pageSize)
+	result.SuccessWithPage(c, vos, int64(len(vos)), page, pageSize)
 }
 
 // 获取主机列表

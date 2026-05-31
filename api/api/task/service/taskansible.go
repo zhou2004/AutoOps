@@ -48,7 +48,7 @@ type ITaskAnsibleService interface {
 	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                // 获取历史任务日志
 	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)           // 获取历史任务日志(通过详细信息)
 	DeleteTaskHistory(c *gin.Context, historyID uint)                                    // 删除任务历史记录
-	ExecuteTask(taskID uint) error 														 // 执行任务
+	ExecuteTask(taskID uint) error                                                       // 执行任务
 }
 
 func NewTaskAnsibleService(db *gorm.DB) ITaskAnsibleService {
@@ -704,9 +704,11 @@ func (s *TaskAnsibleServiceImpl) GetTaskDetail(c *gin.Context, taskID uint) {
 		"GlobalVarsConfigID": task.GlobalVarsConfigID,
 		"ExtraVarsConfigID":  task.ExtraVarsConfigID,
 		"CliArgsConfigID":    task.CliArgsConfigID,
-		"IsRecurring":		  task.IsRecurring,
-		"CronExpr":			  task.CronExpr,
-		"MaxHistoryKeep":	  task.MaxHistoryKeep,
+		"IsRecurring":        task.IsRecurring,
+		"CronExpr":           task.CronExpr,
+		"ViewID":             task.ViewID,
+		"ViewId":             task.ViewID,
+		"MaxHistoryKeep":     task.MaxHistoryKeep,
 		"CreatedAt":          task.CreatedAt,
 		"UpdatedAt":          task.UpdatedAt,
 		"Works":              works,
@@ -1171,23 +1173,23 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 	allHostIDs := make([]uint, 0)
 
 	if req.UseConfig == 1 {
-        // 如果启用配置中心，检查相关配置是否存在
-    } else {
-        // 获取主机信息
-        var err error
-        hostInfos, err = s.GetHostSSHInfo(hostGroups)
-        if err != nil {
-            result.Failed(c, 500, err.Error())
-            return
-        }
-        for _, ids := range hostGroups {
-            for _, id := range ids {
-                if id > 0 { // 确保ID有效
-                    allHostIDs = append(allHostIDs, id)
-                }
-            }
-        }
-    }
+		// 如果启用配置中心，检查相关配置是否存在
+	} else {
+		// 获取主机信息
+		var err error
+		hostInfos, err = s.GetHostSSHInfo(hostGroups)
+		if err != nil {
+			result.Failed(c, 500, err.Error())
+			return
+		}
+		for _, ids := range hostGroups {
+			for _, id := range ids {
+				if id > 0 { // 确保ID有效
+					allHostIDs = append(allHostIDs, id)
+				}
+			}
+		}
+	}
 	// 创建任务记录
 	task := &taskmodel.TaskAnsible{
 		Name:               name,
@@ -1202,7 +1204,7 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 		GlobalVarsConfigID: req.GlobalVarsConfigID,
 		ExtraVarsConfigID:  req.ExtraVarsConfigID,
 		CliArgsConfigID:    req.CliArgsConfigID,
-		MaxHistoryKeep: 	req.MaxHistoryKeep,
+		MaxHistoryKeep:     req.MaxHistoryKeep,
 		CronExpr:           req.CronExpr,
 		IsRecurring:        req.IsRecurring,
 		ViewID:             req.ViewID,
@@ -1956,7 +1958,6 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 	if req.CliArgsConfigID != nil {
 		task.CliArgsConfigID = req.CliArgsConfigID
 	}
-	
 
 	// 更新变量信息
 	if req.ExtraVars != "" {
@@ -2008,10 +2009,8 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 		task.MaxHistoryKeep = req.MaxHistoryKeep
 	}
 
-	// 只有当 ViewID 传了值（不为nil）时才更新
-	if req.ViewID != nil {
-		task.ViewID = req.ViewID
-	}
+	// 更新 ViewID（允许置空）
+	task.ViewID = req.ViewID
 
 	task.UpdatedAt = time.Now()
 
@@ -2020,6 +2019,9 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 		result.Failed(c, 500, fmt.Sprintf("更新任务失败: %v", err))
 		return
 	}
+
+	// 8. 显式更新 view_id 字段（确保 GORM 正确处理 *uint 指针字段）
+	s.dao.DB.Model(&model.TaskAnsible{}).Where("id = ?", taskID).Update("view_id", req.ViewID)
 
 	// 触发任务配置变更钩子
 	if OnTaskConfigChange != nil {

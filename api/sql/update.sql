@@ -73,7 +73,72 @@ CREATE TABLE IF NOT EXISTS `k8s_permission` (
     UNIQUE KEY `idx_user_cluster_ns` (`user_id`, `cluster_id`, `namespace`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_cluster_id` (`cluster_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s权限管理表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s用户权限管理表';
+
+-- K8s用户组表
+CREATE TABLE IF NOT EXISTS `k8s_user_group` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `name` varchar(255) NOT NULL COMMENT '用户组名称',
+    `code` varchar(128) DEFAULT '' COMMENT '用户组编码(唯一标识)',
+    `description` varchar(512) DEFAULT '' COMMENT '描述',
+    `status` tinyint(1) DEFAULT 1 COMMENT '状态:1-启用,0-禁用',
+    `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+    `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_name` (`name`),
+    KEY `idx_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s用户组表';
+
+-- K8s用户组成员关系表（多对多）
+CREATE TABLE IF NOT EXISTS `k8s_user_group_member` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `group_id` int(10) unsigned NOT NULL COMMENT '用户组ID(k8s_user_group.id)',
+    `user_id` int(10) unsigned NOT NULL COMMENT '用户ID(sys_admin.id)',
+    `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_group_user` (`group_id`, `user_id`),
+    KEY `idx_group_id` (`group_id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s用户组成员关系表';
+
+-- K8s用户组权限表
+CREATE TABLE IF NOT EXISTS `k8s_group_permission` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `group_id` int(10) unsigned NOT NULL COMMENT '用户组ID(k8s_user_group.id)',
+    `cluster_id` int(10) unsigned NOT NULL COMMENT '集群ID(k8s_cluster.id)',
+    `namespace` varchar(255) NOT NULL COMMENT '命名空间名称',
+    `permission_type` varchar(64) DEFAULT 'readonly' COMMENT '权限类型: readonly/write/admin',
+    `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+    `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_group_cluster_ns` (`group_id`, `cluster_id`, `namespace`),
+    KEY `idx_group_id` (`group_id`),
+    KEY `idx_cluster_id` (`cluster_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='K8s用户组权限表';
+
+CREATE TABLE IF NOT EXISTS `k8s_rbac_role` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `cluster_id` int(10) unsigned NOT NULL,
+    `namespace` varchar(255) DEFAULT '',
+    `name` varchar(255) NOT NULL,
+    `rules` json NOT NULL,
+    `created_at` datetime(3) NOT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `k8s_rbac_binding` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `cluster_id` int(10) unsigned NOT NULL,
+    `namespace` varchar(255) DEFAULT '',
+    `role_id` int(10) unsigned NOT NULL,
+    `subject_type` varchar(32) NOT NULL,
+    `subject_id` int(10) unsigned NOT NULL,
+    `created_at` datetime(3) NOT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- 故障记录表
 CREATE TABLE IF NOT EXISTS `monitor_incident` (

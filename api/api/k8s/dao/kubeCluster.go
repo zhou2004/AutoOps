@@ -2,6 +2,7 @@ package dao
 
 import (
 	"dodevops-api/api/k8s/model"
+
 	"gorm.io/gorm"
 )
 
@@ -84,4 +85,11 @@ func (d *KubeClusterDao) GetClusterCountByStatus(status int) (int64, error) {
 	var count int64
 	err := d.DB.Model(&model.KubeCluster{}).Where("status = ?", status).Count(&count).Error
 	return count, err
+}
+
+// GetAll 获取所有集群
+func (d *KubeClusterDao) GetAll() ([]model.KubeCluster, error) {
+	var clusters []model.KubeCluster
+	err := d.DB.Model(&model.KubeCluster{}).Order("id ASC").Find(&clusters).Error
+	return clusters, err
 }

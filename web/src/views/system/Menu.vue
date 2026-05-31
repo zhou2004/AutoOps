@@ -533,7 +533,7 @@ export default {
         try {
           const { data: res } = await this.$api.addMenu(submitData);
           if (res.code === 200) {
-            this.$message.success("新增菜单成功")
+            this.$message.success("新增菜单成功，请点击顶部导航栏刷新按钮更新侧边栏")
             this.addMenuDialogVisible = false
             await this.getMenuList()
             await this.getMenuVoList()
@@ -578,7 +578,7 @@ export default {
         } else {
           this.editMenuDialogVisible = false
           await this.getMenuList()
-          this.$message.success("修改菜单成功")
+          this.$message.success("修改菜单成功，请点击顶部导航栏刷新按钮更新侧边栏")
         }
       })
     },
@@ -623,7 +623,7 @@ export default {
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success('删除成功，请点击顶部导航栏刷新按钮更新侧边栏')
         await this.getMenuList()
       }
     },

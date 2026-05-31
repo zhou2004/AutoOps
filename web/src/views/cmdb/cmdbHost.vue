@@ -76,7 +76,6 @@
                     type="success"
                     size="small"
                     style="margin-right: 10px"
-                    v-authority="['cmdb:ecs:add']"
                     @click.stop="handleCreateClick">
                     <el-icon><Plus /></el-icon>
                     <span style="margin-left: 4px">新建</span>
@@ -257,7 +256,6 @@
           size="mini" 
           icon="Refresh"
           :loading="syncLoading"
-          v-authority="['cmdb:ecs:rsync']"
           @click="handleHostSync"
         >
           {{ syncLoading ? '同步中...' : '同步' }}

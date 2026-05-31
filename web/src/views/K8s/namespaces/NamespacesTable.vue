@@ -105,7 +105,6 @@
                 :icon="View"
                 size="small"
                 circle
-                v-authority="['k8s:namespace:details']"
                 @click="viewNamespaceDetail(row)"
               />
             </el-tooltip>
@@ -116,7 +115,6 @@
                 :icon="Monitor"
                 size="small"
                 circle
-                v-authority="['k8s:namespace:setup']"
                 @click="manageResourceQuotas(row)"
               />
             </el-tooltip>
@@ -127,7 +125,6 @@
                 :icon="Setting"
                 size="small"
                 circle
-                v-authority="['k8s:namespace:restriction']"
                 @click="manageLimitRanges(row)"
               />
             </el-tooltip>
@@ -138,7 +135,6 @@
                 :icon="Delete"
                 size="small"
                 circle
-                v-authority="['k8s:namespace:delete']"
                 :disabled="isSystemNamespace(row.name)"
                 @click="deleteNamespace(row)"
               />

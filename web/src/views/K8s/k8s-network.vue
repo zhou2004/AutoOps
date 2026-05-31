@@ -981,7 +981,6 @@ onMounted(async () => {
               type="primary"
               :icon="Plus"
               size="small"
-              v-authority="['k8s:network:addservice']"
               @click="handleCreateService"
             >
               创建 Service
@@ -991,7 +990,6 @@ onMounted(async () => {
               type="primary"
               :icon="Plus"
               size="small"
-              v-authority="['k8s:network:addingress']"
               @click="handleCreateIngress"
             >
               创建 Ingress
@@ -1093,7 +1091,6 @@ onMounted(async () => {
                         :icon="Edit"
                         size="small"
                         circle
-                        v-authority="['k8s:network:editservice']"
                         @click="handleEditService(row)"
                       />
                     </el-tooltip>
@@ -1104,7 +1101,6 @@ onMounted(async () => {
                         :icon="Document"
                         size="small"
                         circle
-                        v-authority="['k8s:network:edit_service_yaml']"
                         @click="handleEditServiceYaml(row)"
                       />
                     </el-tooltip>
@@ -1115,7 +1111,6 @@ onMounted(async () => {
                         :icon="Monitor"
                         size="small"
                         circle
-                        v-authority="['k8s:network:service_event']"
                         @click="handleViewServiceEvents(row)"
                       />
                     </el-tooltip>
@@ -1126,7 +1121,6 @@ onMounted(async () => {
                         :icon="Delete"
                         size="small"
                         circle
-                        v-authority="['k8s:network:deleteservice']"
                         @click="handleDeleteService(row)"
                       />
                     </el-tooltip>
@@ -1271,7 +1265,6 @@ onMounted(async () => {
                         :icon="Edit"
                         size="small"
                         circle
-                        v-authority="['k8s:network:editingress']"
                         @click="handleEditIngress(row)"
                       />
                     </el-tooltip>
@@ -1282,7 +1275,6 @@ onMounted(async () => {
                         :icon="Document"
                         size="small"
                         circle
-                        v-authority="['k8s:network:edit_ingress_yaml']"
                         @click="handleEditIngressYaml(row)"
                       />
                     </el-tooltip>
@@ -1303,7 +1295,6 @@ onMounted(async () => {
                         :icon="Delete"
                         size="small"
                         circle
-                        v-authority="['k8s:network:delete_ingress']"
                         @click="handleDeleteIngress(row)"
                       />
                     </el-tooltip>

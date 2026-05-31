@@ -84,6 +84,14 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.GET("/config/ansible/:id", middleware.AuthMiddleware(), configAnsibleCtrl.Get)
 	router.GET("/config/ansible", middleware.AuthMiddleware(), configAnsibleCtrl.List)
 
+	// Ansible视图管理路由
+	taskAnsibleViewCtrl := controller.NewTaskAnsibleViewController(service.NewTaskAnsibleViewService(common.GetDB()))
+	router.POST("/task/ansible/view", middleware.AuthMiddleware(), taskAnsibleViewCtrl.Create)
+	router.PUT("/task/ansible/view/:id", middleware.AuthMiddleware(), taskAnsibleViewCtrl.Update)
+	router.DELETE("/task/ansible/view/:id", middleware.AuthMiddleware(), taskAnsibleViewCtrl.Delete)
+	router.GET("/task/ansible/view/all", middleware.AuthMiddleware(), taskAnsibleViewCtrl.GetAll)
+	router.GET("/task/ansible/view", middleware.AuthMiddleware(), taskAnsibleViewCtrl.List)
+
 }
 
 // RegisterWebSocketRoutes 注册WebSocket路由（不需要中间件认证）

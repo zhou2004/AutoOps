@@ -874,7 +874,7 @@ onMounted(async () => {
             <el-button :icon="Refresh" size="small" @click="resetQuery">
               重置
             </el-button>
-            <el-button type="success" :icon="Plus" v-authority="['k8s:namespace:add']" size="small" @click="showCreateNamespaceDialog">
+            <el-button type="success" :icon="Plus" size="small" @click="showCreateNamespaceDialog">
               创建命名空间
             </el-button>
           </el-form-item>
@@ -975,7 +975,7 @@ onMounted(async () => {
         <div class="quota-list-section">
           <div class="section-header">
             <h4>当前资源配额</h4>
-            <el-button type="primary" size="small" :icon="Plus" v-authority="['k8s:namespace:setupadd']" @click="showCreateQuotaDialog">添加配额</el-button>
+            <el-button type="primary" size="small" :icon="Plus" @click="showCreateQuotaDialog">添加配额</el-button>
           </div>
           
           <el-table :data="resourceQuotas" size="small" style="width: 100%">
@@ -1024,7 +1024,7 @@ onMounted(async () => {
         <div class="limit-range-list-section">
           <div class="section-header">
             <h4>当前资源限制</h4>
-            <el-button type="primary" size="small" :icon="Plus" v-authority="['k8s:namespace:restrictionadd']" @click="showCreateLimitRangeDialog">添加限制</el-button>
+            <el-button type="primary" size="small" :icon="Plus" @click="showCreateLimitRangeDialog">添加限制</el-button>
           </div>
           
           <el-table :data="limitRanges" size="small" style="width: 100%">

@@ -10,8 +10,125 @@ type K8sPermissionDao struct {
 	db *gorm.DB
 }
 
+type K8sGroupPermissionDao struct {
+	db *gorm.DB
+}
+
 func NewK8sPermissionDao(db *gorm.DB) *K8sPermissionDao {
 	return &K8sPermissionDao{db: db}
+}
+
+func NewK8sGroupPermissionDao(db *gorm.DB) *K8sGroupPermissionDao {
+	return &K8sGroupPermissionDao{db: db}
+}
+
+// ======================= 用户组权限 DAO =======================
+
+// Create 创建用户组权限
+func (d *K8sGroupPermissionDao) Create(perm *model.K8sGroupPermission) error {
+	return d.db.Create(perm).Error
+}
+
+// BatchCreate 批量创建用户组权限
+func (d *K8sGroupPermissionDao) BatchCreate(perms []model.K8sGroupPermission) error {
+	return d.db.CreateInBatches(perms, 100).Error
+}
+
+// Update 更新用户组权限
+func (d *K8sGroupPermissionDao) Update(id uint, permType string) error {
+	return d.db.Model(&model.K8sGroupPermission{}).Where("id = ?", id).Update("permission_type", permType).Error
+}
+
+// Delete 删除用户组权限
+func (d *K8sGroupPermissionDao) Delete(id uint) error {
+	return d.db.Delete(&model.K8sGroupPermission{}, id).Error
+}
+
+// GetByID 获取用户组权限
+func (d *K8sGroupPermissionDao) GetByID(id uint) (*model.K8sGroupPermission, error) {
+	var perm model.K8sGroupPermission
+	err := d.db.First(&perm, id).Error
+	return &perm, err
+}
+
+// GetByGroup 获取用户组的所有权限
+func (d *K8sGroupPermissionDao) GetByGroup(groupID uint) ([]model.K8sGroupPermissionVo, error) {
+	var vos []model.K8sGroupPermissionVo
+	err := d.db.Table("k8s_group_permission gp").
+		Select("gp.id, gp.group_id, gp.cluster_id, gp.namespace, gp.permission_type, gp.created_at, gp.updated_at, ug.name as group_name, kc.name as cluster_name").
+		Joins("LEFT JOIN k8s_user_group ug ON ug.id = gp.group_id").
+		Joins("LEFT JOIN k8s_cluster kc ON kc.id = gp.cluster_id").
+		Where("gp.group_id = ?", groupID).
+		Order("gp.id DESC").
+		Scan(&vos).Error
+	return vos, err
+}
+
+// CheckGroupPermission 检查用户组在指定集群命名空间的权限
+func (d *K8sGroupPermissionDao) CheckGroupPermission(groupID, clusterID uint, namespace string) (*model.K8sGroupPermission, error) {
+	var perm model.K8sGroupPermission
+	err := d.db.Where("group_id = ? AND cluster_id = ? AND namespace = ?", groupID, clusterID, namespace).First(&perm).Error
+	if err != nil {
+		return nil, err
+	}
+	return &perm, nil
+}
+
+// GetGroupAllowedNamespaces 获取用户组允许访问的命名空间（按集群分组）
+func (d *K8sGroupPermissionDao) GetGroupAllowedNamespaces(groupIDs []uint) (map[uint][]string, error) {
+	var perms []model.K8sGroupPermission
+	err := d.db.Where("group_id IN ?", groupIDs).Find(&perms).Error
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[uint][]string)
+	for _, p := range perms {
+		result[p.ClusterID] = append(result[p.ClusterID], p.Namespace)
+	}
+	return result, nil
+}
+
+// GetGroupAllowedClusterIDs 获取用户组有权限的集群ID
+func (d *K8sGroupPermissionDao) GetGroupAllowedClusterIDs(groupIDs []uint) ([]uint, error) {
+	var ids []uint
+	err := d.db.Model(&model.K8sGroupPermission{}).
+		Select("DISTINCT cluster_id").
+		Where("group_id IN ?", groupIDs).
+		Pluck("cluster_id", &ids).Error
+	return ids, err
+}
+
+// GetGroupPermissionList 分页查询用户组权限列表
+func (d *K8sGroupPermissionDao) GetGroupPermissionList(query model.GroupPermissionQuery) ([]model.K8sGroupPermissionVo, int64, error) {
+	var total int64
+	var vos []model.K8sGroupPermissionVo
+	db := d.db.Table("k8s_group_permission gp").
+		Select("gp.id, gp.group_id, gp.cluster_id, gp.namespace, gp.permission_type, gp.created_at, gp.updated_at, ug.name as group_name, kc.name as cluster_name").
+		Joins("LEFT JOIN k8s_user_group ug ON ug.id = gp.group_id").
+		Joins("LEFT JOIN k8s_cluster kc ON kc.id = gp.cluster_id")
+
+	if query.GroupID > 0 {
+		db = db.Where("gp.group_id = ?", query.GroupID)
+	}
+	if query.ClusterID > 0 {
+		db = db.Where("gp.cluster_id = ?", query.ClusterID)
+	}
+	if query.Namespace != "" {
+		db = db.Where("gp.namespace LIKE ?", "%"+query.Namespace+"%")
+	}
+
+	db.Count(&total)
+	page := query.Page
+	if page <= 0 {
+		page = 1
+	}
+	size := query.Size
+	if size <= 0 {
+		size = 10
+	}
+	offset := (page - 1) * size
+	err := db.Order("gp.id DESC").Offset(offset).Limit(size).Scan(&vos).Error
+	return vos, total, err
 }
 
 // Create 创建权限记录

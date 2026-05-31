@@ -4,7 +4,7 @@
  * @author xiaoRui
  *
  */
-import { Message } from 'element-plus'
+import { ElMessage } from "element-plus"
 import axios from 'axios'
 import router from "@/router/router"
 import storage from "./storage"
@@ -33,7 +33,7 @@ function handleTokenExpired(msg = 'Token已过期，正在跳转登录页...') {
     storage.clearAll()
 
     // 2. 显示提示
-    Message({ message: msg, type: 'warning', duration: 2000 })
+    ElMessage({ message: msg, type: 'warning', duration: 2000 })
 
     // 3. 跳转到登录页
     router.push('/login')
@@ -104,12 +104,12 @@ service.interceptors.response.use((res) => {
         // 其他HTTP错误
         if (!isRedirectingToLogin) {
             const errorMsg = data?.message || `请求失败(${status})`
-            Message.error(errorMsg)
+            ElMessage.error(errorMsg)
         }
     } else if (error.request && !isRedirectingToLogin) {
-        Message.error('网络连接失败，请检查网络设置')
+        ElMessage.error('网络连接失败，请检查网络设置')
     } else if (!isRedirectingToLogin && error.message) {
-        Message.error(error.message)
+        ElMessage.error(error.message)
     }
 
     return Promise.reject(error)

@@ -73,3 +73,69 @@ type K8sPermissionBatchCreateRequest struct {
 type K8sPermissionDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
 }
+
+// ======================= 用户组权限模型 =======================
+
+// K8sGroupPermission K8s用户组权限表
+type K8sGroupPermission struct {
+	ID             uint      `gorm:"primaryKey;comment:'主键ID'" json:"id"`
+	GroupID        uint      `gorm:"not null;uniqueIndex:idx_group_cluster_ns;comment:'用户组ID(k8s_user_group.id)'" json:"groupId"`
+	ClusterID      uint      `gorm:"not null;uniqueIndex:idx_group_cluster_ns;comment:'集群ID(k8s_cluster.id)'" json:"clusterId"`
+	Namespace      string    `gorm:"size:255;not null;uniqueIndex:idx_group_cluster_ns;comment:'命名空间名称'" json:"namespace"`
+	PermissionType string    `gorm:"size:64;default:'readonly';comment:'权限类型: readonly/write/admin'" json:"permissionType"`
+	CreatedAt      time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+}
+
+func (K8sGroupPermission) TableName() string {
+	return "k8s_group_permission"
+}
+
+// CreateGroupPermissionRequest 创建用户组权限请求
+type CreateGroupPermissionRequest struct {
+	GroupID        uint   `json:"groupId" binding:"required"`
+	ClusterID      uint   `json:"clusterId" binding:"required"`
+	Namespace      string `json:"namespace" binding:"required"`
+	PermissionType string `json:"permissionType" binding:"required,oneof=readonly write admin"`
+}
+
+// UpdateGroupPermissionRequest 更新用户组权限请求
+type UpdateGroupPermissionRequest struct {
+	PermissionType string `json:"permissionType" binding:"required,oneof=readonly write admin"`
+}
+
+// BatchCreateGroupPermissionRequest 批量创建用户组权限请求
+type BatchCreateGroupPermissionRequest struct {
+	GroupID        uint     `json:"groupId" binding:"required"`
+	ClusterID      uint     `json:"clusterId" binding:"required"`
+	Namespaces     []string `json:"namespaces" binding:"required"`
+	PermissionType string   `json:"permissionType" binding:"required,oneof=readonly write admin"`
+}
+
+// K8sGroupPermissionVo 用户组权限视图
+type K8sGroupPermissionVo struct {
+	ID             uint      `json:"id"`
+	GroupID        uint      `json:"groupId"`
+	GroupName      string    `json:"groupName"`
+	ClusterID      uint      `json:"clusterId"`
+	ClusterName    string    `json:"clusterName"`
+	Namespace      string    `json:"namespace"`
+	PermissionType string    `json:"permissionType"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
+// GroupPermissionQuery 用户组权限查询参数
+type GroupPermissionQuery struct {
+	GroupID   uint   `form:"groupId"`
+	ClusterID uint   `form:"clusterId"`
+	Namespace string `form:"namespace"`
+	Page      int    `form:"page"`
+	Size      int    `form:"size"`
+}
+
+// GroupPermissionListResponse 用户组权限列表响应
+type GroupPermissionListResponse struct {
+	List  []K8sGroupPermissionVo `json:"list"`
+	Total int64                  `json:"total"`
+}

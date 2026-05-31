@@ -27,12 +27,12 @@ func NewCmdbHostDao() CmdbHostDao {
 func (d *CmdbHostDao) GetCmdbHostListWithPage(page, pageSize int) ([]model.CmdbHost, int64) {
 	var list []model.CmdbHost
 	var total int64
-	
+
 	// 使用预加载Group信息并优化查询
 	db := d.db.Preload("Group")
 	db.Model(&model.CmdbHost{}).Count(&total)
 	db.Offset((page - 1) * pageSize).Limit(pageSize).Find(&list)
-	
+
 	return list, total
 }
 
@@ -76,7 +76,17 @@ func (d *CmdbHostDao) CreateCmdbHost(host *model.CmdbHost) error {
 	return d.db.Create(host).Error
 }
 
-// 更新主机
+// GetListByIDs 根据ID列表获取主机
+func (d *CmdbHostDao) GetListByIDs(ids []uint) ([]model.CmdbHost, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var list []model.CmdbHost
+	err := d.db.Where("id IN ?", ids).Preload("Group").Find(&list).Error
+	return list, err
+}
+
+// UpdateCmdbHost 更新主机
 func (d *CmdbHostDao) UpdateCmdbHost(id uint, host *model.CmdbHost) error {
 	return d.db.Model(&model.CmdbHost{}).Where("id = ?", id).Updates(host).Error
 }
@@ -135,17 +145,17 @@ func (d *CmdbHostDao) GetCmdbHostsByGroupId(groupId uint) []model.CmdbHost {
 func (d *CmdbHostDao) GetCmdbHostsByGroupIdWithPage(groupId uint, page, pageSize int) ([]model.CmdbHost, int64) {
 	var list []model.CmdbHost
 	var count int64
-	
+
 	// 获取当前分组及所有子分组的ID
 	groupIds := d.getAllChildGroupIds(groupId)
-	
+
 	// 计算总数
 	d.db.Model(&model.CmdbHost{}).Where("group_id IN ?", groupIds).Count(&count)
-	
+
 	// 分页查询
 	offset := (page - 1) * pageSize
 	d.db.Preload("Group").Where("group_id IN ?", groupIds).Offset(offset).Limit(pageSize).Find(&list)
-	
+
 	return list, count
 }
 
