@@ -579,12 +579,15 @@ export function GetAnsibleTaskDetail(id) {
 }
 
 // 启动Ansible任务
-export function StartAnsibleTaskFlow(id) {
+export function StartAnsibleTaskFlow(id, surveyVars = null) {
+  const data = surveyVars ? { survey_vars: surveyVars } : {}
   return request({
     url: `task/ansible/${id}/start`,
     method: 'post',
+    data: data,
     headers: {
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     }
   })
 }

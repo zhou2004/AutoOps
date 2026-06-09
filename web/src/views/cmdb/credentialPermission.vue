@@ -183,10 +183,5 @@ export default {
 </script>
 
 <style scoped>
-.credential-permission { padding: 20px; min-height: 100vh; background: #f0f2f5; }
-.main-card { border-radius: 12px; }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.card-header .title { font-size: 18px; font-weight: 600; color: #303133; }
-.action-section { margin-bottom: 16px; }
-.pagination-section { display: flex; justify-content: center; margin-top: 20px; }
+.credential-permission :deep(.el-card__body) { padding: 20px; }
 </style>

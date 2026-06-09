@@ -1,9 +1,9 @@
 <template>
-  <el-container class="home-container">
+  <el-container class="home-container" :data-theme="currentTheme">
     <el-aside :width="isCollapse ? '64px' : '200px'">
       <div class="logo">
         <img src="../assets/image/DevOps平台.svg" class="siderbar-logo">
-        <h2 v-show="!isCollapse">devops系统</h2>
+        <h2 v-show="!isCollapse">{{ currentTheme === 'dark' ? 'AutoOps' : 'devops系统' }}</h2>
       </div>
       <el-menu background-color="transparent" text-color="rgba(255,255,255,0.9)" active-text-color="#ffffff" router :default-active="$route.path"
                :collapse="isCollapse" :collapse-transition="false" class="modern-menu">
@@ -43,27 +43,49 @@
           <el-button type="text" @click="refreshMenu" class="collapse-btn" style="margin-left:8px" title="刷新菜单">
             <el-icon size="20"><Refresh /></el-icon>
           </el-button>
-          <HeadImage />
         </div>
         <div class="bread-btn">
           <!-- 面包屑 -->
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/dashboard' }">仪表盘</el-breadcrumb-item>
-
-            <!-- 显示二级标题 -->
-            <el-breadcrumb-item v-if="$route.meta && $route.meta.sTitle">
-              {{ $route.meta.sTitle }}
-            </el-breadcrumb-item>
-
-            <!-- 显示三级标题 -->
-            <el-breadcrumb-item v-if="$route.meta && $route.meta.tTitle">
-              {{ $route.meta.tTitle }}
-            </el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta && $route.meta.sTitle">{{ $route.meta.sTitle }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta && $route.meta.tTitle">{{ $route.meta.tTitle }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
-        <HeadImage />
+        <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+          <!-- 主题选择器 -->
+          <el-dropdown trigger="click" @command="handleThemeChange">
+            <span style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary)">
+              <el-icon size="16"><Setting /></el-icon>
+              <span>{{ currentTheme === 'light' ? '经典白' : '深邃黑' }}</span>
+              <el-icon><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="light">
+                  <span :style="{ display:'inline-block', width:12, height:12, borderRadius:'50%', background:'#1677ff', marginRight:8 }"></span>
+                  经典白
+                  <el-tag v-if="currentTheme==='light'" size="mini" type="primary" style="margin-left:8px">当前</el-tag>
+                </el-dropdown-item>
+                <el-dropdown-item command="dark">
+                  <span :style="{ display:'inline-block', width:12, height:12, borderRadius:'50%', background:'#1e2937', marginRight:8 }"></span>
+                  深邃黑
+                  <el-tag v-if="currentTheme==='dark'" size="mini" type="primary" style="margin-left:8px">当前</el-tag>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <HeadImage />
+        </div>
       </el-header>
-      <Tags />
+      <div class="tags-bar">
+        <el-tag v-for="(item, index) in tags" :key="item.path"
+          :effect="item.title === ($route.meta?.tTitle || '仪表盘') ? 'dark' : 'plain'"
+          size="small" closable :disable-transitions="false"
+          @click="goTo(item.path)" @close="closeTag(index)">
+          {{ item.title }}
+        </el-tag>
+      </div>
       <el-main><router-view /></el-main>
     </el-container>
   </el-container>
@@ -74,19 +96,22 @@
 
 import storage from "@/utils/storage";
 import HeadImage   from "@/components/HeadImage.vue";
-import Tags from "@/components/Tags.vue";
 import systemApi from '@/api/system'
+import { initTheme, setTheme } from '@/utils/theme'
+import { ArrowDown, Setting, Refresh, Fold, Expand } from '@element-plus/icons-vue'
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: "Home",
-  components: { HeadImage, Tags },
+  components: { HeadImage },
   data() {
     return {
-      leftMenuList: null, // 初始化为null，在mounted中设置
+      currentTheme: localStorage.getItem('app-theme') || 'light',
+      leftMenuList: null,
       activePath: '',
       collapseBtnClass: "Fold",
       isCollapse: false,
+      tags: [{ path: "/dashboard", title: "仪表盘" }],
     }
   },
   computed: {
@@ -100,6 +125,12 @@ export default {
     }
   },
   methods: {
+    handleThemeChange(key) {
+      this.currentTheme = key
+      setTheme(key)
+    },
+    goTo(path) { this.$router.push(path) },
+    closeTag(i) { if (i > 0) this.tags.splice(i, 1) },
     // 初始化菜单数据
     initMenuData() {
       try {
@@ -251,6 +282,18 @@ export default {
       }
 
       this.$forceUpdate()
+    }
+  },
+  watch: {
+    $route: {
+      immediate: true,
+      handler(val) {
+        if (val.path && val.meta?.tTitle) {
+          if (!this.tags.find(t => t.path === val.path)) {
+            this.tags.push({ title: val.meta.tTitle, path: val.path })
+          }
+        }
+      }
     }
   },
   mounted() {

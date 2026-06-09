@@ -271,11 +271,12 @@ func (c *TaskAnsibleController) DeleteTask(ctx *gin.Context) {
 
 // StartTask 启动Ansible任务
 // @Summary 启动Ansible任务
-// @Description 启动指定的Ansible任务
+// @Description 启动指定的Ansible任务，支持传入调查参数(survey_vars)临时覆盖全局变量和扩展参数
 // @Tags 任务作业
 // @Accept json
 // @Produce json
 // @Param id path int true "任务ID"
+// @Param request body service.StartJobRequest false "启动任务参数(可选)，survey_vars用于临时覆盖变量"
 // @Success 200 {object} result.Result
 // @Router /api/v1/task/ansible/{id}/start [post]
 // @Security ApiKeyAuth
@@ -286,7 +287,17 @@ func (c *TaskAnsibleController) StartTask(ctx *gin.Context) {
 		return
 	}
 
-	c.service.StartJob(ctx, uint(id))
+	// 解析可选的调查参数(survey_vars)，允许请求体为空
+	var surveyVars map[string]string
+	bodyBytes, err := io.ReadAll(ctx.Request.Body)
+	if err == nil && len(bodyBytes) > 0 {
+		var req service.StartJobRequest
+		if json.Unmarshal(bodyBytes, &req) == nil && req.SurveyVars != nil {
+			surveyVars = req.SurveyVars
+		}
+	}
+
+	c.service.StartJob(ctx, uint(id), surveyVars)
 }
 
 // GetJobLog 获取任务日志(SSE实现)

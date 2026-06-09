@@ -350,7 +350,7 @@
                 v-model="currentTask.extra_vars"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入JSON或YAML格式的额外变量'
+                placeholder='请输入YAML格式的额外变量，如: version: "1.0"\nname: mysql-test'
               />
             </el-form-item>
             <el-form-item label="命令行参数">
@@ -461,7 +461,7 @@
                 v-model="currentTask.extra_vars"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入JSON或YAML格式的额外变量'
+                placeholder='请输入YAML格式的额外变量，如: version: "1.0"\nname: mysql-test'
                 />
             </el-form-item>
             <el-form-item label="命令行参数">
@@ -1095,6 +1095,14 @@ const handleEdit = async (row) => {
      if (res && res.data && res.data.code === 200) {
         const data = res.data.data.task_info
         console.log('获取的任务详情:', data)
+        // 从 Works 提取 PlaybookPaths（Git 任务使用）
+        let playbookPaths = []
+        if (data.Type === 2 && data.Works && Array.isArray(data.Works)) {
+          playbookPaths = data.Works.map(w => w.EntryFileName || '').filter(p => p)
+        } else if (data.PlaybookPaths) {
+          playbookPaths = typeof data.PlaybookPaths === 'string' ? JSON.parse(data.PlaybookPaths) : data.PlaybookPaths
+        }
+
         currentTask.value = {
             name: data.Name,
             description: data.Description,
@@ -1114,8 +1122,7 @@ const handleEdit = async (row) => {
             max_history_keep: data.MaxHistoryKeep || 3,
             is_recurring: data.IsRecurring || 0,
             cron_expr: data.CronExpr || '',
-            // Handle playbook_paths parsing if it's a string
-            playbook_paths: data.PlaybookPaths ? (typeof data.PlaybookPaths === 'string' ? JSON.parse(data.PlaybookPaths) : data.PlaybookPaths) : [],
+            playbook_paths: playbookPaths,
             view_id: data.ViewId || null
         }
         formVisible.value = true
@@ -1253,7 +1260,8 @@ const handleSubmit = async () => {
         hostGroups: hostGroupsData,
         // Git/Auto fields (PlaybookPaths is array)
         gitRepo: currentTask.value.gitRepo || '',
-        playbookPaths: playbookPathsData
+        // 编辑模式下确保发送 playbookPaths，即使为空也要覆盖
+        playbookPaths: currentTask.value.type === 2 ? playbookPathsData : []
       }
 
       response = await UpdateAnsibleTask(updateData)

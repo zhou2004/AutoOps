@@ -62,6 +62,33 @@
         </div>
       </div>
     </div>
+    <!-- 调查参数(Survey)对话框 -->
+    <el-dialog
+      title="调查参数 (Survey Variables)"
+      v-model="surveyDialogVisible"
+      width="500px"
+      :modal="true"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      class="modern-dialog"
+    >
+      <div style="margin-bottom: 12px; color: #909399; font-size: 13px;">
+        添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。
+      </div>
+      <div v-for="(item, index) in surveyVars" :key="index" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+        <el-input v-model="item.key" placeholder="变量名" size="small" style="width: 180px;" />
+        <el-input v-model="item.value" placeholder="变量值" size="small" style="width: 180px;" />
+        <el-button type="danger" icon="Delete" size="small" circle @click="removeSurveyVar(index)" />
+      </div>
+      <div style="margin-top: 8px;">
+        <el-button type="primary" icon="Plus" size="small" @click="addSurveyVar">添加变量</el-button>
+      </div>
+      <template #footer>
+        <el-button @click="surveyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmSurveyVars" :loading="starting">确认并启动</el-button>
+      </template>
+    </el-dialog>
+
     <div style="position: fixed; z-index: 9999;">
       <ansible-log-dialog 
         ref="ansibleLogDialog"
@@ -74,7 +101,7 @@
 
 <script>
 import { GetAnsibleTaskLog, StartAnsibleTaskFlow, GetAnsibleTaskDetail, GetAnsibleHistoryDetail } from '@/api/task'
-import { VideoPlay, Refresh } from '@element-plus/icons-vue'
+import { VideoPlay, Refresh, Delete, Plus } from '@element-plus/icons-vue'
 import AnsibleLogDialog from '@/views/task/Job/AnsibleLogDialog.vue'
 
 export default {
@@ -83,7 +110,9 @@ export default {
   },
   data() {
     return {
-      starting: false
+      starting: false,
+      surveyDialogVisible: false,
+      surveyVars: []
     }
   },
   props: {
@@ -174,22 +203,49 @@ export default {
     getStepClass(step) {
       return `status-${step.status}`;
     },
-    async startAnsibleTask() {
+    // 添加调查参数行
+    addSurveyVar() {
+      this.surveyVars.push({ key: '', value: '' });
+    },
+    // 移除调查参数行
+    removeSurveyVar(index) {
+      this.surveyVars.splice(index, 1);
+    },
+    // 显示调查参数对话框
+    startAnsibleTask() {
       if (this.historyMode) {
         this.$message.warning('历史记录模式下无法启动任务');
         return;
       }
+      if (!this.taskId) {
+        this.$message.error('Ansible任务ID未定义');
+        return;
+      }
+      // 重置调查参数
+      this.surveyVars = [];
+      this.surveyDialogVisible = true;
+    },
+    // 确认调查参数并启动任务
+    async confirmSurveyVars() {
       this.starting = true;
       try {
         console.log('Starting Ansible task with taskId:', this.taskId);
         
-        if (!this.taskId) {
-          throw new Error('Ansible任务ID未定义');
+        // 构建 survey_vars map（过滤空值）
+        const surveyVarsMap = {};
+        for (const item of this.surveyVars) {
+          const key = (item.key || '').trim();
+          if (key) {
+            surveyVarsMap[key] = item.value || '';
+          }
         }
         
-        console.log('Using Ansible task ID:', this.taskId);
+        console.log('Survey vars:', surveyVarsMap);
         
-        await StartAnsibleTaskFlow(this.taskId);
+        const varsToSend = Object.keys(surveyVarsMap).length > 0 ? surveyVarsMap : null;
+        await StartAnsibleTaskFlow(this.taskId, varsToSend);
+        
+        this.surveyDialogVisible = false;
         this.$message.success('Ansible任务已启动');
         this.$emit('refresh');
       } catch (error) {

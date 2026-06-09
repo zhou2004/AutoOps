@@ -25,14 +25,15 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"gorm.io/gorm"
+
+	"gopkg.in/yaml.v3"
 )
 
-// ITaskAnsibleService 定义Ansible任务服务接口
 type ITaskAnsibleService interface {
 	CreateTask(c *gin.Context, req *CreateTaskRequest)                                   // 创建任务
 	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                             // 创建K8s任务
 	List(c *gin.Context, page, size int)                                                 // 获取任务列表
-	StartJob(c *gin.Context, taskID uint)                                                // 启动任务
+	StartJob(c *gin.Context, taskID uint, surveyVars map[string]string)                  // 启动任务
 	StopJob(c *gin.Context, taskID, workID uint)                                         // 停止任务
 	GetJobLog(c *gin.Context, taskID, workID uint)                                       // 实时获取任务日志(SSE)
 	GetJobStatus(c *gin.Context, taskID, workID uint)                                    // 获取任务状态
@@ -48,7 +49,7 @@ type ITaskAnsibleService interface {
 	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                // 获取历史任务日志
 	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)           // 获取历史任务日志(通过详细信息)
 	DeleteTaskHistory(c *gin.Context, historyID uint)                                    // 删除任务历史记录
-	ExecuteTask(taskID uint) error                                                       // 执行任务
+	ExecuteTask(taskID uint, surveyVars map[string]string) error                         // 执行任务
 }
 
 func NewTaskAnsibleService(db *gorm.DB) ITaskAnsibleService {
@@ -103,6 +104,11 @@ type UpdateTaskRequest struct {
 	CronExpr           string            `json:"cronExpr"`
 	IsRecurring        *int              `json:"isRecurring"`
 	ViewID             *uint             `json:"viewId"`
+}
+
+// StartJobRequest 启动任务请求参数
+type StartJobRequest struct {
+	SurveyVars map[string]string `json:"survey_vars"` // 调查参数，启动时可临时添加，会覆盖全局变量和扩展参数
 }
 
 // CreateK8sTaskRequest 创建K8s任务请求参数
@@ -685,6 +691,16 @@ func (s *TaskAnsibleServiceImpl) GetTaskDetail(c *gin.Context, taskID uint) {
 	var variables map[string]string
 	json.Unmarshal([]byte(task.GlobalVars), &variables)
 
+	// 从 Works 提取 PlaybookPaths（用于 Git 任务编辑时回显）
+	var playbookPaths []string
+	if task.Type == 2 {
+		for _, w := range task.Works {
+			if w.EntryFileName != "" {
+				playbookPaths = append(playbookPaths, w.EntryFileName)
+			}
+		}
+	}
+
 	// 构建完整的任务信息
 	taskInfo := gin.H{
 		"ID":                 task.ID,
@@ -696,6 +712,7 @@ func (s *TaskAnsibleServiceImpl) GetTaskDetail(c *gin.Context, taskID uint) {
 		"GlobalVars":         variables,
 		"ExtraVars":          task.ExtraVars,
 		"CliArgs":            task.CliArgs,
+		"PlaybookPaths":      playbookPaths,
 		"Status":             task.Status,
 		"TaskCount":          task.TaskCount,
 		"TotalDuration":      task.TotalDuration,
@@ -735,8 +752,8 @@ func (s *TaskAnsibleServiceImpl) GetTasks(c *gin.Context, name string, taskType 
 }
 
 // StartJob 启动任务
-func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
-	if err := s.ExecuteTask(taskID); err != nil {
+func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint, surveyVars map[string]string) {
+	if err := s.ExecuteTask(taskID, surveyVars); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -744,7 +761,7 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint) {
 }
 
 // ExecuteTask 执行任务
-func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
+func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]string) error {
 	// 1. 获取任务详情（包含子任务）
 	task, err := s.dao.GetTaskDetail(taskID)
 	if err != nil {
@@ -762,7 +779,7 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
 	}
 
 	// 3. 异步执行Ansible任务
-	go func() {
+	go func(sv map[string]string) {
 		defer func() {
 			if r := recover(); r != nil {
 				errMsg := fmt.Sprintf("任务执行异常: %v", r)
@@ -942,9 +959,35 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
 					cmdArgs = append(cmdArgs, "--extra-vars", "@"+varsFile)
 				}
 
-				// 添加ExtraVars参数
+				// 添加ExtraVars参数 - 保存为YAML文件并使用@file语法
 				if extraVars != "" {
-					cmdArgs = append(cmdArgs, "--extra-vars", extraVars)
+					extraVarsFile := "vars/extra.yml"
+					absExtraVarsPath := filepath.Join(absTaskDir, extraVarsFile)
+					if err := os.MkdirAll(filepath.Dir(absExtraVarsPath), 0755); err == nil {
+						extraVarsYAML := ensureYAMLFormat(extraVars)
+						os.WriteFile(absExtraVarsPath, []byte(extraVarsYAML), 0644)
+						cmdArgs = append(cmdArgs, "--extra-vars", "@"+extraVarsFile)
+					}
+				}
+
+				// 添加调查参数(Survey Vars)- 以最高优先级覆盖全局变量和扩展参数
+				if len(sv) > 0 {
+					surveyVarsFile := "vars/survey.yml"
+					absSurveyVarsPath := filepath.Join(absTaskDir, surveyVarsFile)
+					var surveyContent strings.Builder
+					for k, v := range sv {
+						// YAML 格式：直接 key: value（值带空格或特殊字符时加引号）
+						needsQuote := strings.ContainsAny(v, " :#{}[]&*!|>'\"\n") || v == ""
+						if needsQuote {
+							surveyContent.WriteString(fmt.Sprintf("%s: \"%s\"\n", k, v))
+						} else {
+							surveyContent.WriteString(fmt.Sprintf("%s: %s\n", k, v))
+						}
+					}
+					if err := os.MkdirAll(filepath.Dir(absSurveyVarsPath), 0755); err == nil {
+						os.WriteFile(absSurveyVarsPath, []byte(surveyContent.String()), 0644)
+						cmdArgs = append(cmdArgs, "--extra-vars", "@"+surveyVarsFile)
+					}
 				}
 
 				// 添加CliArgs参数
@@ -974,7 +1017,13 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
 			logFile.WriteString(fmt.Sprintf("工作目录: %s\n", absTaskDir))
 			logFile.WriteString(fmt.Sprintf("Inventory: %s\n", inventoryPath))
 			if extraVars != "" {
-				logFile.WriteString(fmt.Sprintf("Extra Variables: %s\n", extraVars))
+				logFile.WriteString(fmt.Sprintf("Extra Variables:\n%s\n", extraVars))
+			}
+			if len(sv) > 0 {
+				logFile.WriteString(fmt.Sprintf("Survey Variables:\n"))
+				for k, v := range sv {
+					logFile.WriteString(fmt.Sprintf("  %s: %s\n", k, v))
+				}
 			}
 			logFile.WriteString("==========================================\n")
 			logFile.Sync() // 立即刷新到磁盘
@@ -1109,7 +1158,7 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint) error {
 			}
 			// --- 历史记录保存结束 ---
 		}
-	}()
+	}(surveyVars)
 
 	return nil
 }
@@ -1319,6 +1368,30 @@ func isZipFile(content []byte) bool {
 func toJSON(v interface{}) string {
 	b, _ := json.Marshal(v)
 	return string(b)
+}
+
+// ensureYAMLFormat 将内容转为 YAML 格式
+// 如果内容是 JSON 格式，自动转换为 YAML；如果已经是 YAML，原样返回
+func ensureYAMLFormat(content string) string {
+	trimmed := strings.TrimSpace(content)
+	if trimmed == "" {
+		return content
+	}
+
+	// 尝试解析为 JSON (必须是 {} 或 [] 开头)
+	if strings.HasPrefix(trimmed, "{") || strings.HasPrefix(trimmed, "[") {
+		var data interface{}
+		if err := json.Unmarshal([]byte(trimmed), &data); err == nil {
+			// JSON 解析成功，转为 YAML
+			yamlBytes, err := yaml.Marshal(data)
+			if err == nil {
+				return string(yamlBytes)
+			}
+		}
+	}
+
+	// 不是 JSON 或解析失败，假设已经是 YAML，原样返回
+	return content
 }
 
 // handleManualTask 处理手动创建的任务(Type=1)
@@ -1992,6 +2065,62 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 	// 6. 更新GlobalVars
 	if len(req.Variables) > 0 {
 		task.GlobalVars = toJSON(req.Variables)
+	}
+
+	// 6.5 处理 PlaybookPaths 更新 (仅 Git 任务 Type=2)
+	// 使用 req.PlaybookPaths != nil 区分"显式传空数组"和"未传该字段"
+	if task.Type == 2 && req.PlaybookPaths != nil {
+		workDir, _ := os.Getwd()
+		if strings.Contains(workDir, "/task/") {
+			workDir = strings.Split(workDir, "/task/")[0]
+		}
+		projectDir := filepath.Join(workDir, fmt.Sprintf("task/%d/%s", taskID, task.Name))
+
+		// 验证playbook路径
+		var validPaths []string
+		for _, p := range req.PlaybookPaths {
+			p = strings.TrimSpace(p)
+			if p == "" {
+				continue
+			}
+			clean := filepath.Clean(p)
+			if strings.HasPrefix(clean, "..") || filepath.IsAbs(clean) {
+				result.Failed(c, 400, fmt.Sprintf("非法playbook路径: %s", p))
+				return
+			}
+			fullPath := filepath.Join(projectDir, clean)
+			ext := strings.ToLower(filepath.Ext(fullPath))
+			if ext != ".yml" && ext != ".yaml" {
+				result.Failed(c, 400, fmt.Sprintf("playbook必须是yml/yaml文件: %s", p))
+				return
+			}
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				result.Failed(c, 400, fmt.Sprintf("playbook文件不存在: %s", p))
+				return
+			}
+			validPaths = append(validPaths, clean)
+		}
+
+		// 先删除旧的子任务
+		s.dao.DB.Where("task_id = ?", taskID).Delete(&model.TaskAnsibleWork{})
+		// 创建新的子任务
+		for _, fileName := range validPaths {
+			subTask := &taskmodel.TaskAnsibleWork{
+				TaskID:        taskID,
+				EntryFileName: fileName,
+				EntryFilePath: filepath.Join(projectDir, fileName),
+				Status:        1,
+			}
+			if err := s.dao.DB.Create(subTask).Error; err != nil {
+				result.Failed(c, 500, fmt.Sprintf("创建子任务失败: %v", err))
+				return
+			}
+		}
+		// 更新任务数量
+		task.TaskCount = len(validPaths)
+		s.dao.DB.Model(&model.TaskAnsible{}).Where("id = ?", taskID).Update("task_count", len(validPaths))
+		// 重要: 清空 Works 防止后续 Save 时 GORM 把内存中旧的 Works 重新写入 DB
+		task.Works = nil
 	}
 
 	// Update New fields (支持增量更新)

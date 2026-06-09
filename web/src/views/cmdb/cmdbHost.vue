@@ -1521,174 +1521,27 @@ export default {
 </script>
 
 <style scoped>
-/* 🎨 现代化科技感设计风格 - 仿照cmdbDB.vue */
-
-.cmdb-host-management {
-  padding: 20px;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.host-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+.cmdb-host-management :deep(.el-card__body) { padding: 20px; }
 
 .host-management-container {
   display: flex;
   height: calc(100vh - 180px);
 }
 
-.group-tree-section {
-  width: 250px;
-  margin-right: 20px;
-}
-
 .host-table-section {
   flex: 1;
   overflow-x: auto;
   overflow-y: visible;
-  min-width: 0; /* 允许flex容器压缩 */
+  min-width: 0;
 }
 
-/* 🔍 搜索区域样式 */
-.search-section {
-  margin-bottom: 20px;
-  padding: 20px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
-}
+.action-section { margin-top: 15px; margin-bottom: 20px; padding-left: 0; }
+.pagination-section { text-align: right; margin-top: 20px; }
+.font-weight-bold { font-weight: bold; }
+.table-operation { display: flex; justify-content: space-around; }
+.search-section .el-form-item { margin-bottom: 0; margin-right: 16px; }
 
-/* 🎯 操作按钮区域 */
-.action-section {
-  margin-top: 15px;
-  margin-bottom: 20px;
-  padding-left: 0;
-}
-
-.table-section {
-  margin-bottom: 15px;
-}
-
-.pagination-section {
-  text-align: right;
-  margin-top: 20px;
-}
-
-.font-weight-bold {
-  font-weight: bold;
-}
-
-.table-operation {
-  display: flex;
-  justify-content: space-around;
-}
-
-/* 完全移除表单分割线 */
-.el-dialog .el-form-item {
-  border-bottom: none !important;
-  margin-bottom: 12px;
-  padding-bottom: 0;
-}
-
-/* 移除行和列之间的分割线 */
-.el-row {
-  border-bottom: none !important;
-}
-
-.el-col {
-  border-right: none !important;
-  padding-right: 0 !important;
-  margin-right: 0 !important;
-}
-
-/* 移除最后一个列的右边距 */
-.el-col:last-child {
-  padding-right: 0 !important;
-  margin-right: 0 !important;
-}
-
-/* 🎨 按钮样式优化 */
-.el-button {
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* 📝 输入框和选择器样式 */
-.el-input :deep(.el-input__wrapper),
-.el-select :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  border-radius: 8px;
-  box-shadow: none;
-  transition: all 0.3s ease;
-}
-
-.el-input :deep(.el-input__wrapper):hover,
-.el-select :deep(.el-input__wrapper):hover {
-  border-color: #c0c4cc;
-}
-
-.el-input :deep(.el-input__wrapper.is-focus),
-.el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 1);
-}
-
-.el-input :deep(.el-input__inner),
-.el-select :deep(.el-input__inner) {
-  background: transparent;
-  border: none;
-  color: #2c3e50;
-}
-
-/* 🔧 表单项样式 */
-.search-section .el-form-item {
-  margin-bottom: 0;
-  margin-right: 16px;
-}
-
-.search-section .el-form-item__label {
-  color: #606266;
-  font-weight: 500;
-}
-
-/* 🖥️ 终端按钮渐变蓝色样式 */
-.terminal-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.terminal-btn:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-/* 🎯 抽屉内容区域样式 - 减少顶部间距 */
-.el-drawer :deep(.el-drawer__body) {
-  padding-top: 10px;
-}
-
-/* 🎯 仪表盘样式 */
-.dashboard-section {
-  margin: 0;
-  padding: 0;
-}
-
+/* 仪表盘样式 */
 .gauge-container {
   display: flex;
   justify-content: space-around;
@@ -1702,4 +1555,5 @@ export default {
   height: 180px;
   min-width: 0;
 }
+
 </style>

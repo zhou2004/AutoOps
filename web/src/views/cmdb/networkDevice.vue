@@ -284,10 +284,5 @@ export default {
 </script>
 
 <style scoped>
-.network-device-management { padding: 20px; min-height: 100vh; background: #f0f2f5; }
-.main-card { border-radius: 12px; }
-.card-header .title { font-size: 18px; font-weight: 600; color: #303133; }
-.search-section { background: #f5f7fa; padding: 16px 20px; border-radius: 8px; margin-bottom: 16px; }
-.action-section { margin-bottom: 16px; }
-.pagination-section { display: flex; justify-content: center; margin-top: 20px; }
+.network-device-management :deep(.el-card__body) { padding: 20px; }
 </style>
