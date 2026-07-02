@@ -118,7 +118,7 @@ import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import k8sApi from '@/api/k8s'
-import storage from '@/utils/storage'
+import { getToken } from '@/utils/auth'
 import PodFileManager from './PodFileManager.vue'
 
 const route = useRoute()
@@ -305,14 +305,14 @@ const connect = async () => {
   connecting.value = true
   
   try {
-    const token = storage.getItem('token')
+    const token = getToken()
     if (!token) {
       ElMessage.error('未找到token，请先登录')
       return
     }
 
     const getWsBaseUrl = () => {
-      const baseUrl = (process.env.VUE_APP_API_BASE_URL || '').replace(/\/$/, '')
+      const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
       if (baseUrl.startsWith('http')) {
         return baseUrl.replace(/^http/, 'ws')
       }
@@ -527,8 +527,13 @@ const goBack = () => {
 }
 
 onMounted(() => {
-  initTerminal()
-  getContainers()
+  try {
+    initTerminal()
+    getContainers()
+  } catch (e) {
+    console.error('K8S终端初始化失败:', e)
+    ElMessage.error('终端初始化失败: ' + (e.message || '未知错误'))
+  }
 })
 
 onUnmounted(() => {
@@ -544,7 +549,7 @@ onUnmounted(() => {
 .terminal-container {
   height: 100vh;
   padding: 20px;
-  background: #f5f5f5;
+  background: var(--bg-page);
 }
 
 .terminal-header {
@@ -560,7 +565,7 @@ onUnmounted(() => {
 }
 
 .terminal-icon {
-  color: #409eff;
+  color: var(--primary);
 }
 
 .terminal-controls {
@@ -591,14 +596,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
-  border: 2px dashed #dcdfe6;
-  border-radius: 4px;
+  background: var(--bg-card-alt);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
 }
 
 .placeholder-content {
   text-align: center;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .placeholder-icon {
@@ -609,7 +614,7 @@ onUnmounted(() => {
 .placeholder-text h3 {
   margin: 0 0 8px 0;
   font-size: 18px;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .placeholder-text p {
@@ -617,7 +622,7 @@ onUnmounted(() => {
 }
 
 .placeholder-text .tip {
-  color: #f56c6c;
+  color: var(--danger);
   font-weight: bold;
 }
 </style>

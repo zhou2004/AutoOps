@@ -262,7 +262,7 @@ const handleProgressClose = () => {
 }
 
 :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: #fff;
   padding: 20px;
   border-radius: 12px 12px 0 0;
@@ -274,7 +274,7 @@ const handleProgressClose = () => {
 }
 
 :deep(.el-form-item__label) {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -288,7 +288,7 @@ const handleProgressClose = () => {
 }
 
 .el-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 

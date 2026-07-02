@@ -219,7 +219,7 @@ watch(() => props.clusterId, (newClusterId) => {
 }
 .namespace-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 .namespace-status-tag {
   margin-left: 8px;

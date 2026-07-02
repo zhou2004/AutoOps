@@ -19,14 +19,14 @@
               <el-select v-model="activeDataSourceId" placeholder="选择数据源" style="width: 100%;" class="ds-select" @change="handleDataSourceChange">
                 <template #prefix>
                   <el-icon v-if="!activeDataSourceId"><Monitor /></el-icon>
-                  <img v-else :src="getDataSourceIcon(activeDataSourceId)" class="ds-icon-small" />
+                  <el-icon v-else><component :is="getDataSourceIcon(activeDataSourceId)" /></el-icon>
                 </template>
                 <el-option v-for="ds in dataSources" :key="ds.id || ds.ID" :label="ds.name" :value="ds.id || ds.ID" class="ds-option">
                   <div class="ds-option-content">
-                    <img :src="getDsTypeIcon(ds.type)" class="ds-icon" />
+                    <el-icon><component :is="getDsTypeIcon(ds.type)" /></el-icon>
                     <span class="ds-name">{{ ds.name }}</span>
                     <el-tag size="small" type="info" class="ds-deploy-tag" v-if="ds.deployMethod">
-                      <img :src="getDeployIcon(ds.deployMethod)" class="deploy-icon" v-if="getDeployIcon(ds.deployMethod)" />
+                      <el-icon size="14" v-if="getDeployIcon(ds.deployMethod)"><component :is="getDeployIcon(ds.deployMethod)" /></el-icon>
                       {{ ds.deployMethod }}
                     </el-tag>
                   </div>
@@ -46,7 +46,7 @@
             v-loading="loadingGroups"
           >
             <el-menu-item index="all">
-              <img src="https://img.icons8.com/3d-fluency/94/layers.png" class="group-colored-icon" />
+              <el-icon class="group-colored-icon" size="20"><Grid /></el-icon>
               <template #title>
                 <div class="menu-item-content">
                   <span class="group-name">全部规则</span>
@@ -54,12 +54,12 @@
               </template>
             </el-menu-item>
             <el-menu-item v-for="g in filteredGroupList" :key="g.ID || g.id" :index="(g.ID || g.id) + ''">
-              <img src="https://img.icons8.com/3d-fluency/94/folder-invoices.png" class="group-colored-icon" />
+              <el-icon class="group-colored-icon" size="20"><Folder /></el-icon>
               <template #title>
                 <div class="menu-item-content">
                   <span class="group-name" :title="g.group_name">
                     {{ g.group_name }}
-                    <el-tag v-if="getClusterLabel(g.labels)" size="small" type="info" class="cluster-tag" disable-transitions>{{ getClusterLabel(g.labels) }}</el-tag>
+                    <el-tag v-if="getClusterLabel(g.labels)" size="small" class="cluster-tag" disable-transitions>{{ getClusterLabel(g.labels) }}</el-tag>
                   </span>
                   <div class="group-actions">
                     <el-button link type="primary" icon="EditPen" @click.stop="openGroupDialog(g)"></el-button>
@@ -134,7 +134,7 @@
             border 
             stripe 
             style="width: 100%"
-            :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }"
+            :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }"
           >
             <el-table-column prop="alert" label="告警名称 (Alert)" min-width="150" show-overflow-tooltip />
             <el-table-column v-if="activeGroupId === 'all'" label="所属群组" min-width="140" show-overflow-tooltip>
@@ -220,7 +220,7 @@
               <el-select v-model="groupForm.data_source_id" placeholder="请选择数据源" style="width: 100%" :disabled="!!groupForm.id">
                 <el-option v-for="ds in dataSources" :key="ds.id || ds.ID" :label="ds.name" :value="ds.id || ds.ID">
                   <div class="ds-option-content" style="margin-left: 0;">
-                    <img :src="getDsTypeIcon(ds.type)" class="ds-icon" />
+                    <el-icon><component :is="getDsTypeIcon(ds.type)" /></el-icon>
                     <span>{{ ds.name }}</span>
                   </div>
                 </el-option>
@@ -351,7 +351,7 @@
         <el-button type="primary" size="small" icon="Plus" @click="openStyleForm()">新增分类</el-button>
       </div>
       <el-table :data="styleList" border size="small"
-        :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }">
+        :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
         <el-table-column prop="name" label="分类名称" width="120" />
         <el-table-column prop="description" label="描述" min-width="150" />
         <el-table-column prop="CreatedAt" label="创建时间" width="160" align="center">
@@ -391,7 +391,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 import {
   getDataSources,
   getAlertGroupList,
@@ -881,16 +881,16 @@ const getDataSourceIcon = (id) => {
 
 const getDsTypeIcon = (type) => {
   const t = (type || '').toLowerCase()
-  if (t.includes('prometheus')) return 'https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg'
-  if (t.includes('Zabbix')) return 'https://upload.wikimedia.org/wikipedia/commons/3/33/Zabbix_logo.svg'
-  if (t.includes('Loki')) return 'https://upload.wikimedia.org/wikipedia/commons/6/60/Grafana_logo.svg'
-  return 'https://cdn-icons-png.flaticon.com/512/3168/3168610.png' // default database/monitor
+  if (t.includes('prometheus')) return 'Monitor'
+  if (t.includes('zabbix')) return 'Odometer'
+  if (t.includes('loki')) return 'DataLine'
+  return 'Coin'
 }
 
 const getDeployIcon = (method) => {
   const m = (method || '').toLowerCase()
-  if (m.includes('Docker')) return 'https://upload.wikimedia.org/wikipedia/commons/4/4e/Docker_%28container_engine%29_logo.svg'
-  if (m.includes('kubenetes') || m.includes('Kubernetes')) return 'https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg'
+  if (m.includes('docker')) return 'Coin'
+  if (m.includes('kubernetes') || m.includes('kubenetes')) return 'Cpu'
   return ''
 }
 
@@ -919,11 +919,11 @@ const getGroupName = (id) => {
 .alarm-rules-management {
   padding: 20px;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .modern-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -955,8 +955,8 @@ const getGroupName = (id) => {
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -966,6 +966,30 @@ const getGroupName = (id) => {
 
 .transparent-bg {
   background-color: transparent !important;
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: var(--text-primary);
+  --el-menu-hover-text-color: var(--text-primary);
+  --el-menu-hover-bg-color: var(--bg-card-alt);
+  --el-menu-active-color: var(--primary);
+  --el-menu-item-bg-color: transparent;
+}
+
+.transparent-bg :deep(.el-menu-item) {
+  color: var(--text-primary) !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease;
+  padding-right: 8px !important;
+}
+
+.transparent-bg :deep(.el-menu-item:hover) {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+  color: var(--primary) !important;
+}
+
+.transparent-bg :deep(.el-menu-item.is-active) {
+  color: var(--primary) !important;
+  background-color: var(--bg-card-alt) !important;
+  font-weight: 600;
 }
 
 .group-menu {
@@ -976,9 +1000,11 @@ const getGroupName = (id) => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  min-width: 0;
 }
 .group-name {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -995,7 +1021,10 @@ const getGroupName = (id) => {
 .group-actions {
   display: none;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-left: 8px;
 }
 .el-menu-item:hover .group-actions {
   display: flex !important;
@@ -1016,7 +1045,7 @@ const getGroupName = (id) => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1063,7 +1092,7 @@ const getGroupName = (id) => {
 
 /* 按钮美化 */
 :deep(.el-button--primary) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   border: none;
   border-radius: 8px;
   transition: all 0.3s ease;
@@ -1108,7 +1137,7 @@ const getGroupName = (id) => {
 
 /* 对话框美化 */
 :deep(.modern-dialog .el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1123,7 +1152,7 @@ const getGroupName = (id) => {
 }
 
 :deep(.modern-dialog .el-dialog__title) {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 18px;
 }
@@ -1172,7 +1201,7 @@ const getGroupName = (id) => {
 }
 
 .promql-input :deep(textarea):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
@@ -1228,7 +1257,7 @@ const getGroupName = (id) => {
 
 .ds-name {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 14px;
   flex: 1;
 }

@@ -254,13 +254,13 @@ watch(() => props.visible, (newVisible) => {
 /* 编辑对话框样式 */
 .edit-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .edit-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -294,7 +294,7 @@ watch(() => props.visible, (newVisible) => {
 
 .edit-dialog .el-form-item__label {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .edit-dialog .el-input :deep(.el-input__wrapper) {
@@ -307,7 +307,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .edit-dialog .el-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -321,7 +321,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .edit-dialog .el-textarea :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -337,24 +337,24 @@ watch(() => props.visible, (newVisible) => {
 
 /* 只读输入框样式 */
 .edit-dialog .el-input.is-disabled :deep(.el-input__wrapper) {
-  background-color: #f5f7fa;
-  border-color: #e4e7ed;
-  color: #909399;
+  background-color: var(--bg-card-alt);
+  border-color: var(--border);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 .edit-dialog .el-input.is-disabled :deep(.el-input__inner) {
-  color: #909399;
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 .edit-dialog .el-input[readonly] :deep(.el-input__wrapper) {
-  background-color: #f5f7fa;
-  border-color: #e4e7ed;
+  background-color: var(--bg-card-alt);
+  border-color: var(--border);
 }
 
 .edit-dialog .el-input[readonly] :deep(.el-input__inner) {
-  color: #909399;
+  color: var(--text-secondary);
   cursor: default;
 }
 
@@ -378,7 +378,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .dialog-footer .el-button--primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   border: none;
 }
 

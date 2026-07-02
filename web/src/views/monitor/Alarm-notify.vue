@@ -4,7 +4,7 @@
       <!-- 左侧：菜单导航 -->
       <div class="sidebar-section">
         <div class="sidebar-header">
-          <img src="https://img.icons8.com/3d-fluency/94/bell.png" class="header-icon" />
+          <el-icon class="header-icon" size="28"><Bell /></el-icon>
           <span class="header-title">通知配置</span>
         </div>
 
@@ -14,15 +14,15 @@
           class="group-menu transparent-bg"
         >
           <el-menu-item index="templates">
-            <img src="https://img.icons8.com/3d-fluency/94/document.png" class="menu-colored-icon" />
+            <el-icon class="menu-colored-icon" size="20"><Document /></el-icon>
             <template #title><span class="menu-name">告警模版</span></template>
           </el-menu-item>
           <el-menu-item index="routers">
-            <img src="https://img.icons8.com/3d-fluency/94/network-cable.png" class="menu-colored-icon" />
+            <el-icon class="menu-colored-icon" size="20"><Connection /></el-icon>
             <template #title><span class="menu-name">告警路由</span></template>
           </el-menu-item>
           <el-menu-item index="records">
-            <img src="https://img.icons8.com/3d-fluency/94/clock.png" class="menu-colored-icon" />
+            <el-icon class="menu-colored-icon" size="20"><Timer /></el-icon>
             <template #title><span class="menu-name">通知历史</span></template>
           </el-menu-item>
         </el-menu>
@@ -117,7 +117,7 @@
 
           <!-- 模版管理 -->
           <div v-if="activeTab === 'templates'">
-            <el-table :data="templateList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }">
+            <el-table :data="templateList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
               <el-table-column prop="Tplname" label="模版名称" min-width="150" />
               <el-table-column prop="Tpltype" label="类型" width="120" align="center">
                 <template #default="{ row }">
@@ -153,7 +153,7 @@
 
           <!-- 路由管理 -->
           <div v-if="activeTab === 'routers'">
-            <el-table :data="routerList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }">
+            <el-table :data="routerList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
               <el-table-column prop="Name" label="路由名称" min-width="150" />
               <el-table-column label="匹配规则 (Rules)" min-width="250" show-overflow-tooltip>
                 <template #default="{ row }">
@@ -201,8 +201,9 @@
           </div>
 
           <!-- 告警历史 -->
-          <div v-if="activeTab === 'records'">
-            <el-table :data="recordList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }">
+          <div v-if="activeTab === 'records'" class="records-section">
+            <div class="records-table-wrap">
+            <el-table :data="recordList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
               <el-table-column prop="Alertname" label="告警名称" min-width="150" show-overflow-tooltip />
               <el-table-column prop="Instance" label="故障实例" min-width="150" show-overflow-tooltip />
               <el-table-column label="级别" width="80" align="center">
@@ -231,6 +232,7 @@
                 </template>
               </el-table-column>
             </el-table>
+            </div>
             <div class="pagination-section">
               <el-pagination
                 background
@@ -682,25 +684,24 @@ const formatDate = (dateStr) => {
 .alarm-notify-management {
   padding: 20px;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .integrated-layout {
   display: flex;
   height: calc(100vh - 160px);
   min-height: 600px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
 .sidebar-section {
   width: 250px;
-  background: rgba(102, 126, 234, 0.03);
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--bg-card-alt);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
 }
@@ -710,7 +711,7 @@ const formatDate = (dateStr) => {
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid var(--border);
 }
 
 .main-section {
@@ -725,8 +726,8 @@ const formatDate = (dateStr) => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card-alt);
 }
 
 .content-body {
@@ -735,13 +736,15 @@ const formatDate = (dateStr) => {
   overflow-y: auto;
 }
 
+.records-table-wrap {
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+}
+
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -756,6 +759,29 @@ const formatDate = (dateStr) => {
 .transparent-bg {
   background-color: transparent !important;
   border-right: none;
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: var(--text-primary);
+  --el-menu-hover-text-color: var(--text-primary);
+  --el-menu-hover-bg-color: var(--bg-card-alt);
+  --el-menu-active-color: var(--primary);
+  --el-menu-item-bg-color: transparent;
+}
+
+.transparent-bg :deep(.el-menu-item) {
+  color: var(--text-primary) !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease;
+}
+
+.transparent-bg :deep(.el-menu-item:hover) {
+  background-color: rgba(102, 126, 234, 0.1) !important;
+  color: var(--primary) !important;
+}
+
+.transparent-bg :deep(.el-menu-item.is-active) {
+  color: var(--primary) !important;
+  background-color: var(--bg-card-alt) !important;
+  font-weight: 600;
 }
 
 .menu-colored-icon {
@@ -773,15 +799,15 @@ const formatDate = (dateStr) => {
 
 .menu-name {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* 按钮 & 表格 */
 :deep(.el-table) {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
   margin-top: 10px;
 }
 :deep(.el-table__header th) { border: none; }
@@ -830,29 +856,28 @@ const formatDate = (dateStr) => {
 
 /* 弹窗及表单 */
 :deep(.modern-dialog .el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 :deep(.modern-dialog .el-dialog__header) {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  background: var(--bg-card-alt);
   padding: 20px 24px 16px;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  border-bottom: 1px solid var(--border);
 }
-:deep(.modern-dialog .el-dialog__title) { color: #2c3e50; font-weight: 600; }
-:deep(.modern-dialog .el-dialog__footer) { background: rgba(248, 249, 250, 0.8); border-radius: 0 0 16px 16px; }
+:deep(.modern-dialog .el-dialog__title) { color: var(--text-primary); font-weight: 600; }
+:deep(.modern-dialog .el-dialog__footer) { background: var(--bg-card-alt); border-radius: 0 0 var(--radius) var(--radius); }
 
 .form-section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #5a6fd8;
+  color: var(--primary);
   margin: 10px 0 20px 0;
   display: flex;
   align-items: center;
   gap: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  border-bottom: 1px solid var(--border);
 }
 
 /* 代码编辑器外观 */

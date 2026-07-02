@@ -120,15 +120,14 @@ const getServiceIcon = (serviceId) => {
     const fileName = fileNameMap[key]
 
     if (fileName) {
-      // 使用 require 动态加载图标
-      return require(`@/assets/image/${fileName}.svg`)
+      return new URL(`/src/assets/image/${fileName}.svg`, import.meta.url).href
     }
   } catch (error) {
     console.warn(`加载图标失败: ${serviceId}`, error)
   }
 
   // 返回默认图标
-  return require('@/assets/image/云主机服务器.svg')
+  return new URL('/src/assets/image/云主机服务器.svg', import.meta.url).href
 }
 
 // 过滤服务
@@ -190,11 +189,11 @@ onMounted(() => {
 .service-market {
   padding: 20px;
   height: 80vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .market-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -213,8 +212,8 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -239,7 +238,7 @@ onMounted(() => {
 
 .inner-tabs :deep(.el-tabs__item) {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .inner-tabs :deep(.el-tabs__item.is-active) {
@@ -294,7 +293,7 @@ onMounted(() => {
   margin: 8px 0;
   font-size: 15px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .description {

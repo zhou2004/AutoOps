@@ -134,6 +134,16 @@
             </template>
           </el-table-column>
         </el-table>
+      <div class="pagination-section">
+        <el-pagination
+          @size-change="s=>{queryParams.size=s;getList()}"
+          @current-change="p=>{queryParams.page=p;getList()}"
+          :current-page="queryParams.page"
+          :page-sizes="[10,20,50,100]"
+          :page-size="queryParams.size"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total" />
+      </div>
       </div>
     
     <!--新增/编辑对话框-->
@@ -211,10 +221,10 @@
           </el-col>
         </el-row>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="dialogVisible = false">取 消</el-button>
-      </span>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">确定</el-button>
+      </template>
     </el-dialog>
     </el-card>
   </div>
@@ -237,8 +247,11 @@ export default {
     return {
       queryParams: {
         name: '',
-        type: undefined
+        type: undefined,
+        page: 1,
+        size: 10
       },
+      total: 0,
       dbTypeOptions: [
         { label: 'MySQL', value: 1 },
         { label: 'PostgreSQL', value: 2 },
@@ -270,16 +283,17 @@ export default {
     }
   },
     methods: {
+      getAssetUrl(path) { return new URL(path.replace('@/', '/src/'), import.meta.url).href; },
       // 获取数据库图标
       getDbIcon(type) {
         const iconMap = {
-          1: require('@/assets/image/mysql.svg'),          // MySQL
-          2: require('@/assets/image/PostgreSQL.svg'),        // PostgreSQL 
-          3: require('@/assets/image/redis.svg'),          // Redis
-          4: require('@/assets/image/mongodb.svg'),        // MongoDB
-          5: require('@/assets/image/Elasticsearch.svg')   // Elasticsearch
+          1: this.getAssetUrl('@/assets/image/mysql.svg'),
+          2: this.getAssetUrl('@/assets/image/PostgreSQL.svg'),
+          3: this.getAssetUrl('@/assets/image/redis.svg'),
+          4: this.getAssetUrl('@/assets/image/mongodb.svg'),
+          5: this.getAssetUrl('@/assets/image/Elasticsearch.svg')
         }
-        return iconMap[type] || require('@/assets/image/mysql.svg')
+        return iconMap[type] || this.getAssetUrl('@/assets/image/mysql.svg')
       },
       
       // 获取数据库名称
@@ -547,5 +561,16 @@ export default {
 </script>
 
 <style scoped>
-.cmdb-db-management :deep(.el-card__body) { padding: 20px; }
+.cmdb-db-management { padding: 20px; min-height: 100vh; background: var(--bg-page); }
+.db-card { border-radius: var(--radius-lg); }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-header .title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
+.search-section { background: var(--bg-card-alt); padding: 16px 20px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border-light); }
+.action-section { margin-bottom: 16px; }
+.table-section { margin-bottom: 16px; }
+.db-name-container { display: flex; align-items: center; gap: 8px; }
+.db-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
+.db-name-link { font-weight: 600; color: var(--primary); }
+.operation-buttons { display: flex; gap: 8px; justify-content: center; }
+.pagination-section { display: flex; justify-content: center; margin-top: 20px; }
 </style>

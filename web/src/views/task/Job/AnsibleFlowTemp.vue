@@ -72,7 +72,7 @@
       :close-on-click-modal="false"
       class="modern-dialog"
     >
-      <div style="margin-bottom: 12px; color: #909399; font-size: 13px;">
+      <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">
         添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。
       </div>
       <div v-for="(item, index) in surveyVars" :key="index" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
@@ -386,8 +386,7 @@ export default {
             stepData: step
           });
           
-          // 由于SSE不可用，优先使用定时刷新模式
-          console.log('SSE不可用，优先尝试定时刷新模式');
+          // 使用 SSE 实时日志流
           
           const workId = step.work_id || step.workid;
           console.log('使用的workId:', workId, '来源:', step.work_id ? 'work_id' : 'workid');
@@ -625,11 +624,12 @@ div.ansible-flow-container {
   width: 240px;
   min-height: 120px;
   border-radius: 8px;
-  background: linear-gradient(to bottom right, #E6522C 0%, #FFE0B2 100%) !important;
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+  background: var(--bg-card);
+  border-left: 4px solid #E6522C;
+  box-shadow: var(--shadow-card);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: #333;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   transform: translateZ(0);
   will-change: transform, box-shadow;
   overflow: hidden;
@@ -637,26 +637,25 @@ div.ansible-flow-container {
 }
 
 .flow-card.status-completed {
-  background: linear-gradient(to bottom right, #4CAF50 0%, #C8E6C9 100%) !important;
+  border-left-color: #4CAF50;
 }
 
 .flow-card.status-active {
-  background: linear-gradient(to bottom right, #2196F3 0%, #BBDEFB 100%) !important;
+  border-left-color: #2196F3;
 }
 
 .flow-card.status-pending {
-  background: linear-gradient(to bottom right, #FF9800 0%, #FFE0B2 100%) !important;
+  border-left-color: #FF9800;
 }
 
 .flow-card.status-error {
-  background: linear-gradient(to bottom right, #F44336 0%, #FFCDD2 100%) !important;
+  border-left-color: #F44336;
 }
 
 .flow-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 10;
-  filter: brightness(1.05);
 }
 
 .status-text {
@@ -693,7 +692,7 @@ div.ansible-flow-container {
   align-items: center;
   margin: 0 0 10px;
   font-size: 16px;
-  color: #1A237E;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -704,13 +703,13 @@ div.ansible-flow-container {
 .card-content {
   margin: 0 0 10px;
   font-size: 14px;
-  color: #333;
+  color: var(--text-regular);
 }
 
 .card-duration {
   margin: 5px 0;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .card-buttons {
@@ -728,14 +727,14 @@ div.ansible-flow-container {
   height: 28px;
   padding: 4px;
   border-radius: 4px;
-  background: rgba(255,255,255,0.9);
-  border: none;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s;
   margin-left: 4px;
 }
 
 .btn-icon:hover {
-  background: #e4e7ed;
+  background: var(--border);
 }
 </style>

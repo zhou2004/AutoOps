@@ -110,7 +110,7 @@ export default {
     handleDetail(r) { this.detail = r; this.detailVisible = true },
     levelLabel(l) { return { critical: '严重', warning: '警告', info: '信息' }[l] || l },
     levelType(l) { return { critical: 'danger', warning: 'warning', info: 'info' }[l] || 'info' },
-    levelColor(l) { return { critical: '#f56c6c', warning: '#e6a23c', info: '#909399' }[l] || '#409eff' },
+    levelColor(l) { return { critical: '#f56c6c', warning: '#e6a23c', info: 'var(--text-secondary)' }[l] || '#409eff' },
     levelPercent(v) { const t = Object.values(this.stats.byLevel).reduce((a, b) => a + b, 0); return t ? Math.round(v / t * 100) : 0 },
     sourceLabel(s) { return { domain_cert: '域名证书', api_endpoint: 'API监控', prometheus: 'Prometheus' }[s] || s },
     sourcePercent(v) { const t = Object.values(this.stats.bySource).reduce((a, b) => a + b, 0); return t ? Math.round(v / t * 100) : 0 }
@@ -119,22 +119,22 @@ export default {
 }
 </script>
 <style scoped>
-.incident-page { padding: 20px; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.incident-page { padding: 20px; min-height: 100vh; background: var(--bg-page); }
 .stats-grid { margin-bottom: 0; }
 .stat-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 30px 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-.stat-num { font-size: 48px; font-weight: 700; color: #2c3e50; }
-.stat-label { font-size: 14px; color: #909399; margin-top: 8px; }
+.stat-num { font-size: 48px; font-weight: 700; color: var(--text-primary); }
+.stat-label { font-size: 14px; color: var(--text-secondary); margin-top: 8px; }
 .stat-firing { border-left: 5px solid #f56c6c; }
 .stat-resolved { border-left: 5px solid #67c23a; }
 .stat-24h { border-left: 5px solid #e6a23c; }
 .stat-today { border-left: 5px solid #409eff; }
 .stat-card-sub { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); min-height: 150px; }
-.sub-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 16px; }
+.sub-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
 .level-item, .source-item { margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
 .level-tag, .source-tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; min-width: 50px; text-align: center; }
 .level-critical { background: #fef0f0; color: #f56c6c; }
 .level-warning { background: #fdf6ec; color: #e6a23c; }
-.level-info { background: #f4f4f5; color: #909399; }
+.level-info { background: #f4f4f5; color: var(--text-secondary); }
 .source-tag { background: #ecf5ff; color: #409eff; }
 .level-item .el-progress, .source-item .el-progress { flex: 1; }
 .empty-hint { color: #c0c4cc; text-align: center; padding: 30px 0; }

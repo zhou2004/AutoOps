@@ -232,11 +232,11 @@ export default {
 .dblog-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .dblog-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -252,8 +252,8 @@ export default {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -272,7 +272,7 @@ export default {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -296,19 +296,19 @@ export default {
 }
 
 .dblog-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .dblog-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .dblog-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -372,7 +372,7 @@ export default {
 .el-input :deep(.el-input__inner):focus,
 .el-select :deep(.el-input__inner):focus,
 .el-date-picker :deep(.el-input__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 

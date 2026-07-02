@@ -213,12 +213,12 @@ export default {
 .personal-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .profile-card,
 .detail-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -234,8 +234,8 @@ export default {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
    background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -265,12 +265,12 @@ export default {
 }
 
 .profile-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
 .profile-value {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
   padding: 4px 8px;
   background: rgba(103, 126, 234, 0.1);
@@ -297,18 +297,18 @@ export default {
 }
 
 .personal-tabs :deep(.el-tabs__item) {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   font-size: 16px;
   transition: all 0.3s ease;
 }
 
 .personal-tabs :deep(.el-tabs__item:hover) {
-  color: #667eea;
+  color: var(--primary);
 }
 
 .personal-tabs :deep(.el-tabs__item.is-active) {
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -327,7 +327,7 @@ export default {
 }
 
 .edit-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -355,7 +355,7 @@ export default {
 }
 
 .avatar-uploader:hover {
-  border-color: #667eea;
+  border-color: var(--primary);
   background: rgba(103, 126, 234, 0.1);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(103, 126, 234, 0.2);
@@ -385,11 +385,11 @@ export default {
   border: 1px solid rgba(103, 126, 234, 0.2);
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.8);
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .el-input :deep(.el-input__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }

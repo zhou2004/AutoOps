@@ -19,7 +19,7 @@ import {
   SuccessFilled,
   WarningFilled,
   Close,
-  Rocket
+  Promotion as Rocket
 } from '@element-plus/icons-vue'
 import appApi from '@/api/app'
 import cmdbApi from '@/api/cmdb'
@@ -1499,12 +1499,12 @@ onMounted(() => {
 .application-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 /* 主卡片样式 */
 .main-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -1520,8 +1520,8 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -1578,7 +1578,7 @@ onMounted(() => {
 }
 
 .search-form :deep(.el-form-item__label) {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1590,7 +1590,7 @@ onMounted(() => {
 
 .resource-count {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1607,12 +1607,12 @@ onMounted(() => {
 }
 
 .app-table :deep(.el-table__header) {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border: none;
 }
 
 .app-table :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .app-table :deep(.el-table__border) {
@@ -1681,12 +1681,12 @@ onMounted(() => {
 /* 对话框样式 */
 .compact-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .compact-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -1749,13 +1749,13 @@ onMounted(() => {
 
 .detail-label {
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
   min-width: 80px;
   flex-shrink: 0;
 }
 
 .detail-value {
-  color: #303133;
+  color: var(--text-primary);
   word-break: break-all;
   flex: 1;
 }
@@ -1794,7 +1794,7 @@ onMounted(() => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -1803,7 +1803,7 @@ onMounted(() => {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .el-textarea :deep(.el-textarea__inner) {
@@ -1813,7 +1813,7 @@ onMounted(() => {
 }
 
 .el-textarea :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -1940,7 +1940,7 @@ onMounted(() => {
 .jenkins-env-dialog .section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .jenkins-env-dialog .add-btn {
@@ -1961,7 +1961,7 @@ onMounted(() => {
 
 .jenkins-env-dialog .env-table :deep(.el-table__header th) {
   background: transparent;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   border: none;
 }
@@ -1987,7 +1987,7 @@ onMounted(() => {
 .jenkins-env-dialog .server-id,
 .jenkins-env-dialog .job-name,
 .jenkins-env-dialog .create-time {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 13px;
 }
 

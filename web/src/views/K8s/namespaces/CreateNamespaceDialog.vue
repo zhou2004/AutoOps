@@ -212,12 +212,12 @@ defineExpose({
 /* 对话框样式 */
 .create-namespace-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .create-namespace-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -253,7 +253,7 @@ defineExpose({
 }
 
 .create-namespace-dialog :deep(.el-divider__text) {
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -295,7 +295,7 @@ defineExpose({
 }
 
 .el-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }

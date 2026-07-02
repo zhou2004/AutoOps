@@ -55,7 +55,7 @@
 
                   <div class="rule-content" style="padding: 15px; background: #fafafa; border: 1px solid #EBEEF5; border-radius: 4px;">
                     <!-- 1. 选择作用域 (集群 + Namespace多选) -->
-                    <el-form :inline="true" size="default" style="background: #fff; padding: 15px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+                    <el-form :inline="true" size="default" style="background: var(--bg-card); padding: 15px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
                       <el-form-item label="目标集群" style="margin-bottom: 0;">
                         <el-select v-model="rule.clusterId" placeholder="请选择集群" @change="() => rule.namespaces = []" style="width: 220px;">
                           <el-option v-for="c in k8sClustersData" :key="c.id" :label="c.name" :value="c.id" />
@@ -71,7 +71,7 @@
                     <!-- 2. 操作权限矩阵 -->
                     <div style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                       <div>
-                        <span style="font-size: 14px; color: #606266; font-weight: bold; margin-right: 15px;">配置权限矩阵：</span>
+                        <span style="font-size: 14px; color: var(--text-regular); font-weight: bold; margin-right: 15px;">配置权限矩阵：</span>
                         <el-radio-group v-model="rule.presetStrategy" size="small" @change="(val) => handlePresetChange(val, rule)">
                           <el-radio-button label="empty">清空权限</el-radio-button>
                           <el-radio-button label="readonly">全部只读 (Get/List/Watch)</el-radio-button>
@@ -409,7 +409,7 @@ const savePermissions = () => {
   margin-top: 20px;
 }
 .rbac-matrix-table :deep(th) {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 .verb-header {
   display: flex;
@@ -420,12 +420,12 @@ const savePermissions = () => {
 }
 .resource-label {
   font-weight: bold;
-  color: #303133;
+  color: var(--text-primary);
 }
 .section-header {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
   margin-bottom: 15px;
   padding-left: 10px;
   border-left: 4px solid #409EFF;

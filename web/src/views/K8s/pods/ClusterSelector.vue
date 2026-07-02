@@ -116,7 +116,7 @@ onMounted(() => {
 }
 .cluster-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 .cluster-status-tag {
   margin-left: 8px;

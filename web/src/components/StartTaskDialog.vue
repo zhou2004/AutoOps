@@ -139,7 +139,7 @@ const handleClose = () => {
 }
 
 .task-info {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
   padding: 15px;
   border-radius: 6px;
   margin-top: 15px;
@@ -149,7 +149,7 @@ const handleClose = () => {
 .task-info p {
   margin: 5px 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .dialog-footer {

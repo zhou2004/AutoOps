@@ -354,8 +354,8 @@ DELETE FROM \`表名\` WHERE \`id\` IN (1, 2, 3, 4, 5);`)
 </script>
 
 <style scoped>
-.db-details-container { padding: 20px; }
-.card-header { font-size: 18px; font-weight: bold; color: var(--text-primary); }
+.db-details-container { padding: 20px; min-height: 100vh; background: var(--bg-page); }
+.card-header { font-size: 18px; font-weight: bold; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; }
 .sql-execute-container { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .sql-form-container { padding: 10px; }
 .result-container { padding: 10px; min-height: 300px; max-height: 500px; overflow: auto; background-color: #1a1a2e; border-radius: 4px; color: #00ff88; font-family: monospace; }

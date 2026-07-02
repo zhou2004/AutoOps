@@ -473,8 +473,8 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #fff;
-  border-radius: 6px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -483,34 +483,34 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #ebeef5;
+  background-color: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
 }
 
 .breadcrumb-container {
   display: flex;
   align-items: center;
   flex: 1;
-  background-color: #fff;
+  background-color: var(--bg-card);
   padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   margin-right: 16px;
 }
 
 .home-icon {
   font-size: 16px;
-  color: #909399;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .home-icon:hover {
-  color: #409eff;
+  color: var(--primary);
 }
 
 .breadcrumb-container.is-root .home-icon {
-  color: #409eff;
+  color: var(--primary);
 }
 
 .toolbar-actions {
@@ -528,14 +528,14 @@ onMounted(() => {
   cursor: pointer;
 }
 .breadcrumb-item:hover :deep(.el-breadcrumb__inner) {
-  color: #409eff;
+  color: var(--primary);
   text-decoration: underline;
 }
 
 /* Table styling */
 .custom-file-table {
-  --el-table-header-bg-color: #f5f7fa;
-  --el-table-header-text-color: #606266;
+  --el-table-header-bg-color: var(--bg-card-alt);
+  --el-table-header-text-color: var(--text-regular);
 }
 
 .file-name-cell {
@@ -543,7 +543,7 @@ onMounted(() => {
 }
 
 .file-name-cell:hover .file-name-text {
-  color: #409eff;
+  color: var(--primary);
 }
 
 .file-icon {
@@ -553,17 +553,17 @@ onMounted(() => {
 
 .file-name-text {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .file-name-text.is-directory {
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .file-size-text, .file-time-text {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -585,7 +585,7 @@ onMounted(() => {
 }
 
 :deep(.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell) {
-  background-color: #fafbfc;
+  background-color: var(--bg-card-alt);
 }
 
 .beautiful-editor-dialog :deep(.el-dialog__body) {
@@ -594,7 +594,7 @@ onMounted(() => {
 
 .editor-container {
   border: 1px solid #3d424b;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
   background-color: #282c34;

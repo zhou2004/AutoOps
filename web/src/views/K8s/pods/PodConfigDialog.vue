@@ -193,7 +193,7 @@ const removeEnvVar = (index) => {
 
 <style scoped>
 .resource-config {
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 16px;
   background-color: #fafafa;
@@ -201,7 +201,7 @@ const removeEnvVar = (index) => {
 
 .resource-section h5 {
   margin: 0 0 12px 0;
-  color: #303133;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -213,9 +213,9 @@ const removeEnvVar = (index) => {
 
 .env-var-item {
   padding: 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .dialog-footer {
@@ -225,12 +225,12 @@ const removeEnvVar = (index) => {
 /* 对话框样式 */
 .pod-config-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .pod-config-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;

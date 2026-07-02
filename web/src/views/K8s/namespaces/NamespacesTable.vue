@@ -2,7 +2,7 @@
   <!-- 命名空间列表表格 -->
   <div class="table-section">
     <el-table
-      :data="tableData"
+      :data="paginatedTableData"
       v-loading="loading"
       stripe
       style="width: 100%"
@@ -11,7 +11,7 @@
       <el-table-column prop="name" label="命名空间名称" min-width="180">
         <template #default="{ row }">
           <div class="namespace-name-container">
-            <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+            <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
             <el-button
               type="primary"
               link
@@ -53,7 +53,7 @@
                 @click="viewNamespaceLabels(row)"
                 class="label-icon-button"
               >
-                <img src="@/assets/image/标签.svg" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
@@ -143,10 +143,23 @@
         </template>
       </el-table-column>
     </el-table>
+      <div class="pagination-section">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :background="true"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, watch } from 'vue'
 import {
   View,
   Delete,
@@ -174,6 +187,21 @@ const emit = defineEmits([
   'manageLimitRanges',
   'deleteNamespace'
 ])
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
+
+const paginatedTableData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return (props.tableData || []).slice(start, start + pageSize.value)
+})
+
+watch(() => props.tableData, () => { total.value = (props.tableData || []).length; currentPage.value = 1 }, { immediate: true })
+
+const handleSizeChange = (val) => { pageSize.value = val; currentPage.value = 1 }
+const handleCurrentChange = (val) => { currentPage.value = val }
 
 // 获取状态标签样式
 const getStatusTag = (status) => {
@@ -248,38 +276,19 @@ const deleteNamespace = (row) => {
   margin-top: 20px;
 }
 
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .namespace-table {
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.namespace-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.namespace-table :deep(.el-table__header th) {
-  background: transparent !important;
-  color: #2c3e50 !important;
-  font-weight: 700 !important;
-  border-bottom: none;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-.namespace-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
-  font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .namespace-table :deep(.el-table__row) {
   transition: all 0.3s ease;
-}
-
-.namespace-table :deep(.el-table__row:hover) {
-  background-color: rgba(103, 126, 234, 0.05) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .namespace-name-container {
@@ -297,14 +306,12 @@ const deleteNamespace = (row) => {
 
 .namespace-name-link {
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
-  transition: all 0.3s ease;
 }
 
 .namespace-name-link:hover {
-  color: #764ba2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: var(--primary-dark);
 }
 
 .resource-stats {
@@ -321,13 +328,13 @@ const deleteNamespace = (row) => {
 
 .resource-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   min-width: 50px;
 }
 
 .resource-value {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -363,13 +370,13 @@ const deleteNamespace = (row) => {
 .label-icon-button {
   background: transparent;
   border: none;
-  color: #606266;
+  color: var(--text-regular);
   transition: all 0.3s ease;
 }
 
 .label-icon-button:hover {
   background: transparent;
-  color: #409eff;
+  color: var(--primary);
   transform: scale(1.1);
 }
 

@@ -30,35 +30,35 @@
 
       <div class="config-tabs">
         <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-          <el-tab-pane label="主机清单 (Inventory)" name="inventory">
+          <el-tab-pane label="主机清单" name="inventory">
             <template #label>
               <span class="custom-tab-label">
                 <el-icon><List /></el-icon>
-                <span>主机清单 (Inventory)</span>
+                <span>主机清单</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="全局变量 (Global Vars)" name="globalVars">
+          <el-tab-pane label="全局变量" name="globalVars">
             <template #label>
               <span class="custom-tab-label">
                 <el-icon><Operation /></el-icon>
-                <span>全局变量 (Global Vars)</span>
+                <span>全局变量</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="扩展变量 (Extra Vars)" name="extraVars">
+          <el-tab-pane label="扩展变量" name="extraVars">
              <template #label>
               <span class="custom-tab-label">
                 <el-icon><TopRight /></el-icon>
-                <span>扩展变量 (Extra Vars)</span>
+                <span>扩展变量</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="命令行参数 (CLI Args)" name="cliArgs">
+          <el-tab-pane label="命令行参数" name="cliArgs">
              <template #label>
               <span class="custom-tab-label">
                 <el-icon><Terminal /></el-icon>
-                <span>命令行参数 (CLI Args)</span>
+                <span>命令行参数</span>
               </span>
             </template>
           </el-tab-pane>
@@ -70,7 +70,7 @@
           </div>
 
           <div class="resource-table">
-            <el-table :data="configList" style="width: 100%" :header-cell-style="{ background: '#f8f9fa' }">
+            <el-table :data="configList" style="width: 100%" class="config-table">
               <el-table-column prop="Name" label="名称" min-width="150" sortable>
                 <template #default="{ row }">
                    <span class="name-text">{{ row.Name }}</span>
@@ -140,6 +140,7 @@
             :rows="10"
             placeholder="请输入配置内容"
             class="code-editor"
+            @keydown="handleEditorKeydown"
           />
         </el-form-item>
 
@@ -204,7 +205,7 @@ import {
   List,
   Operation,
   TopRight,
-  Terminal
+  Monitor as Terminal
 } from '@element-plus/icons-vue'
 import {
   GetAnsibleConfigList,
@@ -478,11 +479,27 @@ const getTypeName = (type) => {
 const getContentTypeTip = () => {
   const type = getTypeFromTab(activeTab.value)
   switch(type) {
-    case CONFIG_TYPES.INVENTORY: return '支持INI格式或JSON/YAML格式的主机清单配置'
-    case CONFIG_TYPES.GLOBAL_VARS: return '支持JSON或Key=Value格式'
-    case CONFIG_TYPES.EXTRA_VARS: return '支持JSON或Key=Value格式，优先级最高'
-    case CONFIG_TYPES.CLI_ARGS: return '请输入合法的ansible-playbook命令行参数'
+    case CONFIG_TYPES.INVENTORY: return '支持INI格式格式的主机清单配置'
+    case CONFIG_TYPES.GLOBAL_VARS: return '支持JSON格式'
+    case CONFIG_TYPES.EXTRA_VARS: return '支持YAML格式'
+    case CONFIG_TYPES.CLI_ARGS: return '标准ansible-playbook命令行参数'
     default: return ''
+  }
+}
+
+// Tab 键缩进支持
+const handleEditorKeydown = (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault()
+    const textarea = e.target
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const indent = '    ' // 4 spaces
+    const before = currentConfig.content.substring(0, start)
+    const after = currentConfig.content.substring(end)
+    currentConfig.content = before + indent + after
+    // 恢复光标位置
+    textarea.setSelectionRange(start + indent.length, start + indent.length)
   }
 }
 
@@ -495,15 +512,14 @@ onMounted(() => {
 .ansible-config-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .config-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
   min-height: 80vh;
 }
 
@@ -515,20 +531,33 @@ onMounted(() => {
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.header-actions .el-button {
+  transition: all 0.25s ease;
+}
+
+.header-actions .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .search-section {
   margin-bottom: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form {
@@ -541,20 +570,37 @@ onMounted(() => {
     gap: 6px;
 }
 
+.config-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px;
+  background: var(--border-light);
+}
+
+.config-tabs :deep(.el-tabs__active-bar) {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark, #667eea));
+}
+
 .config-tabs :deep(.el-tabs__item) {
   font-size: 15px;
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
+  transition: color 0.25s ease;
+  padding: 0 20px;
+}
+
+.config-tabs :deep(.el-tabs__item:hover) {
+  color: var(--primary);
 }
 
 .config-tabs :deep(.el-tabs__item.is-active) {
-  color: #667eea;
+  color: var(--primary);
   font-weight: 600;
 }
 
 .content-header {
   margin: 10px 0;
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -562,21 +608,63 @@ onMounted(() => {
     margin-top: 10px;
 }
 
+/* 表格 */
+.config-table :deep(.el-table__header th) {
+  background: var(--bg-card-alt);
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--border);
+}
+
+.config-table :deep(.el-table__body tr:hover > td) {
+  background-color: var(--bg-card-alt) !important;
+}
+
 .name-text {
     font-weight: 600;
-    color: #409EFF;
+    color: var(--primary);
+    transition: color 0.2s ease;
+    cursor: default;
+}
+
+.name-text:hover {
+    color: var(--primary-dark);
+}
+
+/* 操作按钮 */
+.operation-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.operation-buttons .el-button {
+  transition: all 0.25s ease;
+}
+
+.operation-buttons .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .content-preview {
-    font-family: monospace;
-    color: #606266;
-    background: #f4f4f5;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+    font-family: 'Fira Code', 'Cascadia Code', 'Menlo', 'Monaco', monospace;
+    font-size: 13px;
+    color: var(--text-regular);
+    background: var(--bg-card-alt);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.6;
+    transition: all 0.2s ease;
+}
+
+.content-preview:hover {
+    border-left-color: var(--primary-dark);
+    background: linear-gradient(135deg, rgba(var(--primary-rgb, 102, 126, 234), 0.05) 0%, var(--bg-card-alt) 100%);
 }
 
 .pagination-container {
@@ -587,19 +675,20 @@ onMounted(() => {
 
 /* Dialog Styles */
 :deep(.modern-dialog) {
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
 :deep(.modern-dialog .el-dialog__header) {
   margin: 0;
   padding: 20px;
-  border-bottom: 1px solid #ebeef5;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card-alt);
 }
 
 :deep(.modern-dialog .el-dialog__body) {
     padding: 24px;
+    background: var(--bg-card);
 }
 
 .label-with-tip {
@@ -611,32 +700,61 @@ onMounted(() => {
 
 .tip-text {
     font-size: 12px;
-    color: #909399;
+    color: var(--text-secondary);
     font-weight: normal;
 }
 
 .code-editor :deep(.el-textarea__inner) {
-    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-    background-color: #f8f9fa;
-    color: #333;
-    line-height: 1.5;
+    font-family: 'Fira Code', 'Cascadia Code', 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    background-color: var(--bg-card-alt);
+    color: var(--text-primary);
+    line-height: 1.8;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: all 0.3s ease;
+}
+
+.code-editor :deep(.el-textarea__inner):focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 102, 126, 234), 0.12);
+}
+
+.code-editor :deep(.el-textarea__inner)::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
 }
 
 /* View Dialog */
+:deep(.detail-dialog .el-dialog__header) {
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-content {
+  padding: 4px 0;
+}
+
 .detail-item {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     display: flex;
+    align-items: flex-start;
 }
 
 .detail-item .label {
-    width: 80px;
+    width: 72px;
     font-weight: 600;
-    color: #606266;
+    color: var(--text-secondary);
     flex-shrink: 0;
+    font-size: 14px;
+    padding-top: 2px;
 }
 
 .detail-item .value {
-    color: #303133;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
 }
 
 .code-block {
@@ -645,17 +763,22 @@ onMounted(() => {
 
 .code-block .label {
     margin-bottom: 8px;
+    color: var(--text-primary);
 }
 
 .code-content {
-    background: #282c34;
-    color: #abb2bf;
-    padding: 12px;
-    border-radius: 6px;
+    background: var(--bg-card-alt);
+    color: var(--text-primary);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
     overflow-x: auto;
-    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 1.5;
+    font-family: 'Fira Code', 'Cascadia Code', 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
     margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 </style>

@@ -8,12 +8,12 @@ import {
   Monitor,
   View,
   Edit,
-  Terminal,
+  Monitor as Terminal,
   Document,
   More,
   ArrowLeft,
   Delete,
-  Copy,
+  DocumentCopy as Copy,
   ArrowUp,
   ArrowDown
 } from '@element-plus/icons-vue'
@@ -1395,7 +1395,7 @@ const handleRefreshLogs = async () => {
       currentLogs.value = '# 日志参数错误\n# Invalid log parameters'
     } else {
       ElMessage.error('获取日志失败: ' + (error.message || '网络连接异常'))
-      currentLogs.value = '# 日志获取失败\n# Failed to retrieve logs\n# Error: ' + (error.message || 'Network error')
+      currentLogs.value = '# 日志获取失败\n# Failed to retrieve logs\n# Error: ' + (error.message || 'Connection as Network error')
     }
   } finally {
     logsLoading.value = false
@@ -2296,7 +2296,7 @@ const handleGoBack = () => {
                         type="text"
                         size="small"
                         @click="toggleLabelsExpanded"
-                        style="margin-left: 8px; color: #409eff;"
+                        style="margin-left: 8px; color: var(--primary);"
                       >
                         {{ labelsExpanded ? '折叠' : `展开 (+${hiddenLabelsCount})` }}
                       </el-button>
@@ -2340,7 +2340,7 @@ const handleGoBack = () => {
               <el-table-column prop="name" label="Pod名称" min-width="200">
                 <template #default="{ row }">
                   <div class="pod-name-container">
-                    <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" width="16" height="16" />
+                    <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" width="16" height="16" />
                     <span class="pod-name">{{ row.name }}</span>
                   </div>
                 </template>
@@ -2393,7 +2393,7 @@ const handleGoBack = () => {
                     <el-button size="small" type="warning" :icon="Edit" @click="handleEditYaml(row)">YAML编辑</el-button>
                     <el-button size="small" type="primary" :icon="Document" @click="handleViewLogs(row)">日志</el-button>
                     <el-button size="small" type="success"  @click="handleTerminal(row)">
-                      <img src="@/assets/image/终端.svg" alt="terminal" class="custom-icon" />
+                      <img :src="$getAssetUrl('@/assets/image/终端.svg')" alt="terminal" class="custom-icon" />
                       终端
                     </el-button>
                     <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
@@ -2647,21 +2647,22 @@ const handleGoBack = () => {
       </template>
     </el-dialog>
 
-    <!-- 终端对话框 -->
+    <!-- 终端 — 跳转到专用终端页面 -->
     <el-dialog
       v-model="dialogStates.terminalVisible"
-      :title="`终端 - ${selectedContainer?.name || ''}`"
-      width="80%"
+      title="终端"
+      width="500px"
       class="terminal-dialog"
     >
       <div class="terminal-container">
-        <div class="terminal-content">
-          <div class="terminal-header">终端连接功能开发中...</div>
-          <div class="terminal-body">
-            <p>即将支持Web终端连接功能</p>
-          </div>
-        </div>
+        <p>点击确认将跳转到容器终端页面</p>
       </div>
+      <template #footer>
+        <el-button @click="dialogStates.terminalVisible = false">取消</el-button>
+        <el-button type="primary" @click="dialogStates.terminalVisible = false; handleTerminal(selectedContainer)">
+          前往终端
+        </el-button>
+      </template>
     </el-dialog>
 
     <!-- 监控弹框 -->
@@ -2833,15 +2834,14 @@ const handleGoBack = () => {
 .k8s-pod-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .pod-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -2859,11 +2859,7 @@ const handleGoBack = () => {
 .page-title {
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -2877,14 +2873,15 @@ const handleGoBack = () => {
 
 .info-card {
   height: 100%;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .info-card :deep(.el-card__header) {
-  background: rgba(103, 126, 234, 0.05);
-  border-bottom: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
   font-weight: 600;
   padding: 12px 16px;
+  color: var(--text-primary);
 }
 
 .tabs-section {
@@ -2904,7 +2901,7 @@ const handleGoBack = () => {
 }
 
 .pod-name-container:hover {
-  color: #409eff;
+  color: var(--primary);
   transform: translateY(-1px);
 }
 
@@ -2927,7 +2924,7 @@ const handleGoBack = () => {
 }
 
 .image-link {
-  color: #409eff;
+  color: var(--primary);
   padding: 0;
   font-size: 12px;
   text-decoration: none;
@@ -2938,8 +2935,8 @@ const handleGoBack = () => {
 }
 
 .logs-dialog .logs-container {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background-color: #000;
   color: #fff;
   height: 400px;
@@ -2956,8 +2953,8 @@ const handleGoBack = () => {
 
 .yaml-search-toolbar {
   padding: 12px;
-  border-bottom: 1px solid #ebeef5;
-  background-color: #fafafa;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-card-alt);
   margin-bottom: 16px;
 }
 
@@ -2980,19 +2977,19 @@ const handleGoBack = () => {
 }
 
 .yaml-dialog .yaml-container {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .yaml-editor :deep(.el-textarea__inner) {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  background-color: #f8f9fa;
+  background-color: var(--bg-card-alt);
 }
 
 .terminal-dialog .terminal-container {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   background-color: #000;
   color: #fff;
   height: 400px;
@@ -3022,11 +3019,11 @@ const handleGoBack = () => {
 }
 
 :deep(.el-card) {
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 :deep(.el-table) {
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 /* 日志标签页样式 */
@@ -3035,10 +3032,10 @@ const handleGoBack = () => {
 }
 
 .logs-controls {
-  background-color: #f8f9fa;
+  background-color: var(--bg-card-alt);
   padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .logs-actions {
@@ -3050,8 +3047,8 @@ const handleGoBack = () => {
 }
 
 .logs-display {
-  border: 1px solid #dcdfe6;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   background-color: #000;
   height: 680px;
   overflow: hidden;
@@ -3063,7 +3060,7 @@ const handleGoBack = () => {
   color: #00ff00;
   background-color: #000;
   height: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .logs-content-display {
@@ -3077,7 +3074,7 @@ const handleGoBack = () => {
   padding: 12px 16px;
   background-color: #1a1a1a;
   border-bottom: 1px solid #333;
-  border-radius: 8px 8px 0 0;
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .container-name {
@@ -3103,7 +3100,7 @@ const handleGoBack = () => {
   word-break: break-all;
   height: calc(500px - 48px);
   overflow-y: auto;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 
 .logs-empty {
@@ -3112,13 +3109,13 @@ const handleGoBack = () => {
   color: #00ff00;
   background-color: #000;
   height: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .image-info {
   font-family: 'Courier New', Monaco, monospace;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 镜像单元格样式 */
@@ -3153,6 +3150,10 @@ const handleGoBack = () => {
   height: 16px;
   margin-right: 4px;
   vertical-align: middle;
+}
+
+/* 暗色模式下反转深色图标 */
+html.dark .custom-icon {
   filter: brightness(0) invert(1);
 }
 
@@ -3188,20 +3189,20 @@ const handleGoBack = () => {
 .metric-title {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .metric-value {
   font-size: 16px;
   font-weight: bold;
-  color: #409EFF;
+  color: var(--primary);
 }
 
 .metric-details {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 8px;
 }
 
@@ -3220,13 +3221,13 @@ const handleGoBack = () => {
 
 .network-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .network-value {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 容器监控表格样式 */
@@ -3238,7 +3239,7 @@ const handleGoBack = () => {
 
 .metric-text {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
   margin-bottom: 2px;
 }刚才修改
 

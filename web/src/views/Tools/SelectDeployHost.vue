@@ -7,7 +7,7 @@
   >
     <div style="display: flex; height: 400px">
       <!-- 左侧分组树 -->
-      <div style="width: 250px; border-right: 1px solid #ebeef5; padding-right: 10px; overflow-y: auto">
+      <div style="width: 250px; border-right: 1px solid var(--border); padding-right: 10px; overflow-y: auto">
         <div style="margin-bottom: 10px">
           <el-button 
             type="primary" 
@@ -145,7 +145,7 @@
     </div>
     <template #footer>
       <div style="display: flex; justify-content: space-between; align-items: center">
-        <div style="color: #606266; font-size: 14px">
+        <div style="color: var(--text-regular); font-size: 14px">
           <span v-if="tempSelectedHosts.length > 0">
             已选择 {{ tempSelectedHosts.length }} 台主机
           </span>
@@ -426,7 +426,7 @@ onMounted(() => {
 }
 
 .el-tree-node__content:hover {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .el-tree-node.is-current > .el-tree-node__content {

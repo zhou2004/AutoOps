@@ -730,11 +730,12 @@ div.flow-container {
   width: 240px;
   min-height: 110px;
   border-radius: 8px;
-  background: linear-gradient(to bottom right, #1E88E5 0%, #B3E5FC 100%) !important;
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+  background: var(--bg-card);
+  border-left: 4px solid #1E88E5;
+  box-shadow: var(--shadow-card);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  color: #333;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   transform: translateZ(0);
   will-change: transform, box-shadow;
   overflow: hidden;
@@ -742,19 +743,19 @@ div.flow-container {
 }
 
 .flow-card.status-completed {
-  background: linear-gradient(to bottom right, #4CAF50 0%, #C8E6C9 100%) !important;
+  border-left-color: #4CAF50;
 }
 
 .flow-card.status-active {
-  background: linear-gradient(to bottom right, #2196F3 0%, #BBDEFB 100%) !important;
+  border-left-color: #2196F3;
 }
 
 .flow-card.status-pending {
-  background: linear-gradient(to bottom right, #FF9800 0%, #FFE0B2 100%) !important;
+  border-left-color: #FF9800;
 }
 
 .flow-card.status-error {
-  background: linear-gradient(to bottom right, #F44336 0%, #FFCDD2 100%) !important;
+  border-left-color: #F44336;
 }
 
 .flow-card::before {
@@ -764,27 +765,14 @@ div.flow-container {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(30, 136, 229, 0.8) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb, 102, 126, 234), 0.05) 0%, transparent 50%);
   z-index: -1;
 }
 
 .flow-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 10;
-  filter: brightness(1.05);
-}
-
-.flow-card.status-completed:hover {
-  background: linear-gradient(to bottom right, #388E3C 0%, #A5D6A7 100%) !important;
-}
-
-.flow-card.status-active:hover {
-  background: linear-gradient(to bottom right, #1976D2 0%, #90CAF9 100%) !important;
-}
-
-.flow-card.status-pending:hover {
-  background: linear-gradient(to bottom right, #F57C00 0%, #FFCC80 100%) !important;
 }
 
 .status-text {
@@ -821,7 +809,7 @@ div.flow-container {
   align-items: center;
   margin: 0 0 10px;
   font-size: 16px;
-  color: #1A237E;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -832,7 +820,7 @@ div.flow-container {
 .card-content {
   margin: 0;
   font-size: 14px;
-  color: #333;
+  color: var(--text-regular);
 }
 
 .card-buttons {
@@ -850,27 +838,27 @@ div.flow-container {
   height: 28px;
   padding: 4px;
   border-radius: 4px;
-  background: rgba(255,255,255,0.9);
-  border: none;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s;
   margin-left: 4px;
 }
 
 .btn-icon:hover {
-  background: #e4e7ed;
+  background: var(--border);
 }
 
 /* 启动按钮已启动状态样式 */
 .started-button {
-  background-color: #909399 !important;
-  border-color: #909399 !important;
+  background-color: var(--text-secondary) !important;
+  border-color: var(--text-secondary) !important;
   cursor: not-allowed !important;
 }
 
 .started-button:hover {
-  background-color: #909399 !important;
-  border-color: #909399 !important;
+  background-color: var(--text-secondary) !important;
+  border-color: var(--text-secondary) !important;
 }
 
 </style>

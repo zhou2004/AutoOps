@@ -191,7 +191,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Server, FolderOpened } from '@element-plus/icons-vue'
+import { Monitor as Server, FolderOpened } from '@element-plus/icons-vue'
 import {
   GetAnsibleTaskById,
   StartAnsibleTask,
@@ -490,7 +490,7 @@ watch(() => visible.value, (newVisible) => {
 
 .task-header h3 {
   margin: 0;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .task-meta {
@@ -517,7 +517,7 @@ watch(() => visible.value, (newVisible) => {
 }
 
 .host-group {
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 15px;
   background: #fafafa;
@@ -529,7 +529,7 @@ watch(() => visible.value, (newVisible) => {
   gap: 10px;
   margin-bottom: 10px;
   font-weight: 500;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .group-name {
@@ -558,7 +558,7 @@ watch(() => visible.value, (newVisible) => {
 
 .step-pending {
   background: #f4f4f5;
-  border-left: 4px solid #909399;
+  border-left: 4px solid var(--text-secondary);
 }
 
 .step-running {
@@ -610,7 +610,7 @@ watch(() => visible.value, (newVisible) => {
 }
 
 .step-pending .step-number {
-  background: #909399;
+  background: var(--text-secondary);
 }
 
 .step-info {
@@ -619,13 +619,13 @@ watch(() => visible.value, (newVisible) => {
 
 .step-info h4 {
   margin: 0 0 5px 0;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
 .step-info p {
   margin: 0 0 10px 0;
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
 }
 
@@ -633,7 +633,7 @@ watch(() => visible.value, (newVisible) => {
   display: flex;
   gap: 15px;
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .step-status {
@@ -657,7 +657,7 @@ watch(() => visible.value, (newVisible) => {
 .connector-line {
   width: 2px;
   height: 15px;
-  background: #dcdfe6;
+  background: var(--border);
   transition: background 0.3s ease;
 }
 
@@ -672,7 +672,7 @@ watch(() => visible.value, (newVisible) => {
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 6px solid #dcdfe6;
+  border-top: 6px solid var(--border);
   transition: border-top-color 0.3s ease;
 }
 
@@ -685,11 +685,11 @@ watch(() => visible.value, (newVisible) => {
   align-items: center;
   gap: 10px;
   font-family: 'Courier New', monospace;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .variables-content {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border: 1px solid #e9ecef;
   border-radius: 4px;
   padding: 15px;

@@ -135,7 +135,7 @@
 <script setup>
 import { ref, reactive, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { View, Search, Copy } from '@element-plus/icons-vue'
+import { View, Search, DocumentCopy as Copy } from '@element-plus/icons-vue'
 import k8sApi from '@/api/k8s'
 import CodeEditor from '@/components/CodeEditor.vue'
 
@@ -439,7 +439,7 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border-radius: 6px;
   border: 1px solid #e9ecef;
 }
@@ -456,7 +456,7 @@ defineExpose({
 }
 
 .yaml-editor-container {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -481,13 +481,13 @@ defineExpose({
 }
 
 .options-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
 }
 
 .options-card .el-card__header {
   padding: 12px 16px;
   background: #fafafa;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--border);
 }
 
 .dialog-footer {

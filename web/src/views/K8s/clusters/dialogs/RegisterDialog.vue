@@ -185,13 +185,13 @@ watch(() => props.visible, (newVisible) => {
 /* 注册对话框样式 */
 .register-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .register-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -225,7 +225,7 @@ watch(() => props.visible, (newVisible) => {
 
 .register-dialog .el-form-item__label {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .register-dialog .el-input :deep(.el-input__wrapper) {
@@ -238,7 +238,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .register-dialog .el-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -252,7 +252,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .register-dialog .el-textarea :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -276,7 +276,7 @@ watch(() => props.visible, (newVisible) => {
 }
 
 .dialog-footer .el-button--primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   border: none;
 }
 

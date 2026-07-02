@@ -717,7 +717,7 @@ export default {
 /* 主容器 - 渐变背景 */
 .modern-admin-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   padding: 20px;
   position: relative;
 }
@@ -726,15 +726,15 @@ export default {
 .main-title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
    background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* 毛玻璃卡片基础样式 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -787,11 +787,11 @@ export default {
 }
 
 .section-title {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
    background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -807,13 +807,13 @@ export default {
 }
 
 .tree-node {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
   transition: color 0.3s ease;
 }
 
 .tree-node:hover {
-  color: #667eea;
+  color: var(--primary);
 }
 
 .font-weight-bold {
@@ -844,7 +844,7 @@ export default {
 }
 
 .modern-form .el-form-item__label {
-  color: #606266 !important;
+  color: var(--text-regular) !important;
   font-weight: 500;
 }
 
@@ -874,7 +874,7 @@ export default {
 }
 
 .secondary-btn {
-  background: linear-gradient(45deg, #909399, #B1B3B8);
+  background: linear-gradient(45deg, var(--text-secondary), #B1B3B8);
   color: white;
 }
 
@@ -905,7 +905,7 @@ export default {
 
 .modern-input :deep(.el-input__wrapper.is-focus),
 .modern-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -914,7 +914,7 @@ export default {
 .modern-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .modern-input :deep(.el-input__inner::placeholder),
@@ -923,7 +923,7 @@ export default {
 }
 
 .modern-select :deep(.el-select-dropdown) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -967,12 +967,12 @@ export default {
 }
 
 .modern-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .modern-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
@@ -981,7 +981,7 @@ export default {
 }
 
 .modern-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -998,7 +998,7 @@ export default {
 
 .modern-table :deep(.el-table__row td) {
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
   padding: 8px 12px !important;
   height: 40px;
 }
@@ -1035,7 +1035,7 @@ export default {
 }
 
 .modern-text {
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* 操作按钮 */
@@ -1090,7 +1090,7 @@ export default {
 
 /* 对话框样式 */
 .modern-dialog :deep(.el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1098,7 +1098,7 @@ export default {
 }
 
 .modern-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   border-radius: 16px 16px 0 0;
   padding: 16px 20px;
 }
@@ -1119,7 +1119,7 @@ export default {
 }
 
 .modern-dialog-form .el-form-item__label {
-  color: #606266 !important;
+  color: var(--text-regular) !important;
   font-weight: 500;
 }
 
@@ -1169,7 +1169,7 @@ export default {
 }
 
 .modern-dialog-form .modern-radio :deep(.el-radio__label) {
-  color: #606266 !important;
+  color: var(--text-regular) !important;
 }
 
 .modern-dialog-form .modern-radio :deep(.el-radio__input.is-checked .el-radio__inner) {
@@ -1198,7 +1198,7 @@ export default {
 .modern-treeselect :deep(.vue-treeselect__placeholder),
 .modern-treeselect :deep(.vue-treeselect__single-value),
 .modern-treeselect :deep(.vue-treeselect__option) {
-  color: #606266 !important;
+  color: var(--text-regular) !important;
 }
 
 .dialog-footer {

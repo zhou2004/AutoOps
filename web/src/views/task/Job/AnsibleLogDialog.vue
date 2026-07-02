@@ -40,7 +40,7 @@
           📊 日志行数: {{ logs.length }} 行 
           <span v-if="isCompleted" style="color: #67c23a;">| ✅ 任务已完成</span>
           <span v-else-if="wsConnected" style="color: #409eff;">| 🔄 任务运行中</span>
-          <span v-else style="color: #909399;">| 空闲</span>
+          <span v-else style="color: var(--text-secondary);">| 空闲</span>
         </div>
         
         <div 
@@ -53,7 +53,7 @@
             <el-icon class="is-loading"><Loading /></el-icon>
             <div class="loading-text">
               <div>加载历史日志中...</div>
-              <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
                 后端可能需要2-3分钟处理时间，请耐心等待
               </div>
             </div>
@@ -594,7 +594,7 @@ defineExpose({
   align-items: center;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--border);
 }
 
 .log-content-wrapper {
@@ -605,7 +605,7 @@ defineExpose({
 }
 
 .log-stats {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   padding: 5px 10px;
   margin-bottom: 10px;
   font-size: 11px;
@@ -616,7 +616,7 @@ defineExpose({
 .log-content {
   flex: 1;
   overflow: auto;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 6px;
   background: #1e1e1e;
   color: #d4d4d4;
@@ -633,7 +633,7 @@ defineExpose({
   height: 100%;
   flex-direction: column;
   gap: 10px;
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -660,7 +660,7 @@ defineExpose({
 .line-number {
   width: 60px;
   text-align: right;
-  color: #606266;
+  color: var(--text-regular);
   margin-right: 15px;
   font-size: 12px;
   flex-shrink: 0;

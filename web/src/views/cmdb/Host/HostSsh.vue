@@ -3,9 +3,9 @@
     <div class="ssh-layout">
       <div class="tree-section">
         <el-card shadow="never" style="height: 100%; border: none;">
-          <div slot="header">
+          <template #header>
             <h3>资产分组</h3>
-          </div>
+          </template>
           <el-input
             v-model="groupSearchText"
             placeholder="搜索分组"
@@ -52,7 +52,7 @@
 
       <div class="terminal-section">
         <el-card shadow="never" style="height: 100%;">
-          <div slot="header">
+          <template #header>
             <h3>SSH终端连接</h3>
             <div class="terminal-actions" v-if="currentHost">
               <el-button size="mini" @click="connectTerminal" :disabled="isConnecting || !currentHost">
@@ -62,7 +62,7 @@
                 断开
               </el-button>
             </div>
-          </div>
+          </template>
           <div class="terminal-content">
             <div class="host-info" v-if="currentHost">
               <el-descriptions :column="1" border>
@@ -85,7 +85,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { AttachAddon } from '@xterm/addon-attach'
 import 'xterm/css/xterm.css'
-import storage from '@/utils/storage'
+import { getToken } from '@/utils/auth'
 
 export default {
   data() {
@@ -185,11 +185,11 @@ export default {
 
       this.isConnecting = true
       try {
-          const token = storage.getItem('token')
+          const token = getToken()
   
 
         const getWsBaseUrl = () => {
-          const baseUrl = (process.env.VUE_APP_API_BASE_URL || '').replace(/\/$/, '')
+          const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
           if (baseUrl.startsWith('http')) {
             return baseUrl.replace(/^http/, 'ws')
           }
@@ -217,7 +217,7 @@ export default {
         this.socket.onopen = () => {
           clearTimeout(timeout)
           // Send authentication information
-          const token = storage.getItem('token')
+          const token = getToken()
           if (token) {
             this.socket.send(JSON.stringify({
               type: 'auth',

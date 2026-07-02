@@ -7,7 +7,7 @@
           <div class="card-header">
             <div class="node-info-header">
               <div class="node-icon">
-                <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+                <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
                 <div class="pulse-ring"></div>
               </div>
               <div class="node-details">
@@ -29,7 +29,7 @@
             <!-- CPU 使用率 -->
             <div class="metric-item">
               <div class="metric-header">
-                <img src="@/assets/image/cpu.svg" alt="CPU" class="metric-icon" />
+                <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="metric-icon" />
                 <span class="metric-label">CPU使用率</span>
                 <span class="metric-value">{{ getCpuUsageRate(nodeMetrics[node.name]) }}%</span>
               </div>
@@ -51,7 +51,7 @@
             <!-- 内存使用率 -->
             <div class="metric-item">
               <div class="metric-header">
-                <img src="@/assets/image/内存.svg" alt="Memory" class="metric-icon" />
+                <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon" />
                 <span class="metric-label">内存使用率</span>
                 <span class="metric-value">{{ getMemoryUsageRate(nodeMetrics[node.name]) }}%</span>
               </div>
@@ -136,13 +136,13 @@
           <el-col :span="12">
             <div class="resource-card">
               <div class="card-header-detail">
-                <img src="@/assets/image/cpu.svg" alt="Resource" class="header-icon" />
+                <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="Resource" class="header-icon" />
                 <h3>资源使用情况</h3>
               </div>
               <div class="resource-metrics">
                 <div class="metric-row-detail">
                   <div class="metric-info">
-                    <img src="@/assets/image/cpu.svg" alt="CPU" class="metric-icon-detail" />
+                    <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="metric-icon-detail" />
                     <span class="metric-name">CPU:</span>
                     <span class="metric-percentage">{{ getCpuUsageRate(selectedNodeMetrics) }}%</span>
                   </div>
@@ -162,7 +162,7 @@
                 </div>
                 <div class="metric-row-detail">
                   <div class="metric-info">
-                    <img src="@/assets/image/内存.svg" alt="Memory" class="metric-icon-detail" />
+                    <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon-detail" />
                     <span class="metric-name">内存:</span>
                     <span class="metric-percentage">{{ getMemoryUsageRate(selectedNodeMetrics) }}%</span>
                   </div>
@@ -698,7 +698,7 @@ defineExpose({
 <style scoped>
 .nodes-monitoring {
   padding: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   min-height: 100vh;
   padding: 20px;
   border-radius: 16px;
@@ -706,7 +706,7 @@ defineExpose({
 
 /* 节点卡片 */
 .node-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 24px;
@@ -967,7 +967,7 @@ defineExpose({
 }
 
 .pods-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .time-icon {
@@ -977,7 +977,7 @@ defineExpose({
 .icon-dot {
   width: 8px;
   height: 8px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 50%;
   animation: iconDot 1.5s infinite;
 }
@@ -985,7 +985,7 @@ defineExpose({
 .icon-pulse {
   width: 10px;
   height: 10px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 50%;
   animation: iconPulse 2s infinite;
 }
@@ -1138,7 +1138,7 @@ defineExpose({
 /* 对话框样式 */
 .node-detail-dialog :deep(.el-dialog) {
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   max-height: 90vh;
@@ -1273,7 +1273,7 @@ defineExpose({
 .pod-icon {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -1283,7 +1283,7 @@ defineExpose({
 .icon-pod {
   width: 12px;
   height: 12px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 2px;
   position: relative;
 }
@@ -1367,7 +1367,7 @@ defineExpose({
 .namespace-tag {
   padding: 2px 8px;
   background: rgba(103, 126, 234, 0.1);
-  color: #667eea;
+  color: var(--primary);
   border-radius: 12px;
   font-size: 11px;
   border: 1px solid rgba(103, 126, 234, 0.2);

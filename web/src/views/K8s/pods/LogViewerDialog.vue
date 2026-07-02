@@ -50,7 +50,7 @@
           <el-empty description="请选择容器查看日志" />
         </div>
         <div v-else class="logs-content-display">
-          <div class="logs-header" style="margin-bottom: 8px; font-size: 13px; color: #909399;">
+          <div class="logs-header" style="margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">
             <span class="container-name">{{ selectedContainer }}</span> 
             <span class="logs-info" style="margin-left: 10px;">
               最近 {{ logTailLines || 1000 }} 行 
@@ -81,7 +81,7 @@ import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import k8sApi from '@/api/k8s'
-import storage from '@/utils/storage'
+import { getToken } from '@/utils/auth'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -120,7 +120,13 @@ const parsedContainers = computed(() => {
 })
 
 const initTerminal = () => {
-  if (terminal) return
+  // 如果 terminal 已存在且未被销毁，跳过初始化
+  if (terminal && !terminal._core._isDisposed) return
+  // 如果 terminal 已销毁，清理引用
+  if (terminal && terminal._core._isDisposed) {
+    terminal = null
+    fitAddon = null
+  }
   
   terminal = new XTerm({
     cursorBlink: false,
@@ -196,7 +202,7 @@ const startFollow = () => {
     tailLines: logTailLines.value,
     previous: showPreviousLogs.value,
     follow: followLogs.value,
-    token: storage.getItem('token')
+    token: getToken()
   }
   
   const wsUrl = k8sApi.getPodLogsWsUrl(
@@ -213,7 +219,7 @@ const startFollow = () => {
     ws.onopen = () => {
       if (wsInstance.value !== ws) return
       logsLoading.value = false
-      if (terminal) {
+      if (terminal && !terminal._core._isDisposed) {
         terminal.clear()
         terminal.writeln(`\x1B[1;32m✓ 成功连接到 ${selectedContainer.value} 日志服务...\x1B[0m\n`)
       }
@@ -223,20 +229,20 @@ const startFollow = () => {
     ws.onmessage = (event) => {
       if (wsInstance.value !== ws) return
       currentLogs.value += event.data
-      if (terminal) terminal.write(event.data)
+      if (terminal && !terminal._core._isDisposed) terminal.write(event.data)
     }
     
     ws.onerror = (err) => {
       if (wsInstance.value !== ws) return
       console.error('实时日志WS出错', err)
-      if (terminal) terminal.writeln('\n\x1B[1;31m❌ 连接发生错误或中断\x1B[0m')
+      if (terminal && !terminal._core._isDisposed) terminal.writeln('\n\x1B[1;31m❌ 连接发生错误或中断\x1B[0m')
       logsLoading.value = false
     }
     
     ws.onclose = () => {
       if (wsInstance.value !== ws) return
       console.log('实时日志连接关闭')
-      if (terminal) {
+      if (terminal && !terminal._core._isDisposed) {
         if (followLogs.value) {
           terminal.writeln('\n\x1B[1;33m🔌 连接已结束\x1B[0m')
         } else {
@@ -248,7 +254,7 @@ const startFollow = () => {
     }
   } catch (error) {
     console.error('建连失败', error)
-    if (terminal) terminal.writeln('\n\x1B[1;31m❌ 建连失败\x1B[0m')
+    if (terminal && !terminal._core._isDisposed) terminal.writeln('\n\x1B[1;31m❌ 建连失败\x1B[0m')
     logsLoading.value = false
   }
 }
@@ -326,7 +332,7 @@ onBeforeUnmount(() => {
   padding: 10px 20px;
 }
 .logs-editor-container {
-  border: 1px solid #e4e7ed; /* 采用 AnsibleLogDialog 类似的浅色外边框统一风格 */
+  border: 1px solid var(--border); /* 采用 AnsibleLogDialog 类似的浅色外边框统一风格 */
   border-radius: 6px;
   overflow: hidden;
   height: 600px; /* 提升高度对齐 AnsibleLogDialog 的高度 */

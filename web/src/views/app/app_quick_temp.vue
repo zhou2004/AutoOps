@@ -131,13 +131,13 @@
 
           <el-tooltip effect="dark" content="查看日志" placement="top">
             <button @click.stop="showTaskDetail(task)" class="btn-icon">
-              <img src="@/assets/image/日志.svg" width="20" height="20" alt="日志" />
+              <img :src="$getAssetUrl('@/assets/image/日志.svg')" width="20" height="20" alt="日志" />
             </button>
           </el-tooltip>
           <el-tooltip effect="dark" content="停止任务" placement="top">
             <button v-authority="['app:quick-release:jobstop']" @click.stop="handleStopTask(task)" class="btn-icon stop-btn">
               <img
-                src="@/assets/image/停止.svg"
+                :src="$getAssetUrl('@/assets/image/停止.svg')"
                 width="20"
                 height="20"
                 alt="停止" />
@@ -891,14 +891,14 @@ window.addEventListener('resize', () => {
 .quick-deployment-container {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -926,7 +926,7 @@ window.addEventListener('resize', () => {
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 12px 0;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -939,7 +939,7 @@ window.addEventListener('resize', () => {
 }
 
 .meta-text {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
 }
 
@@ -1012,7 +1012,7 @@ window.addEventListener('resize', () => {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
@@ -1201,7 +1201,7 @@ window.addEventListener('resize', () => {
 }
 
 .deployment-card.task-pending {
-  border-left: 4px solid #909399;
+  border-left: 4px solid var(--text-secondary);
 }
 
 @keyframes pulse {
@@ -1228,7 +1228,7 @@ window.addEventListener('resize', () => {
 }
 
 .status-icon.pending {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 @keyframes spin {
@@ -1260,7 +1260,7 @@ window.addEventListener('resize', () => {
 }
 
 .status-text.status-pending {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .card-title {
@@ -1270,7 +1270,7 @@ window.addEventListener('resize', () => {
   font-size: 18px;
   font-weight: 600;
   margin: 20px 0 12px 0;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .title-icon {
@@ -1284,7 +1284,7 @@ window.addEventListener('resize', () => {
 .task-info {
   margin: 6px 0;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .task-timing {
@@ -1334,14 +1334,14 @@ window.addEventListener('resize', () => {
 
 .log-section h4 {
   margin: 0;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
 .log-container {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: #fafafa;
 }
@@ -1361,7 +1361,7 @@ window.addEventListener('resize', () => {
 .log-info {
   padding: 8px 12px;
   background: #f5f5f5;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--border);
   font-size: 11px;
   color: #666;
 }
@@ -1374,7 +1374,7 @@ window.addEventListener('resize', () => {
 
 /* 现代对话框样式 */
 .modern-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   padding: 20px 24px;
 }
@@ -1478,12 +1478,12 @@ window.addEventListener('resize', () => {
 .mode-title {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .mode-desc {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
@@ -1493,6 +1493,6 @@ window.addEventListener('resize', () => {
 }
 
 .execution-mode-item:hover .mode-option {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 </style>

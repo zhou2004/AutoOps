@@ -127,5 +127,8 @@ export default {
 </script>
 
 <style scoped>
-.my-assets :deep(.el-card__body) { padding: 20px; }
+.my-assets { padding: 20px; min-height: 100vh; background: var(--bg-page); }
+.main-card { border-radius: var(--radius-lg); }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-header .title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
 </style>

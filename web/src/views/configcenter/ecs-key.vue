@@ -33,7 +33,7 @@
       <el-table-column label="凭据名称" prop="name">
         <template v-slot="scope">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/凭据.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/凭据.svg')" style="width: 16px; height: 16px"/>
             <span>{{ scope.row.name }}</span>
           </div>
         </template>
@@ -41,7 +41,7 @@
       <el-table-column label="用户名" prop="username" v-if="authList.some(item => item.type === 1)">
         <template v-slot="scope">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/ren.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/ren.svg')" style="width: 16px; height: 16px"/>
             <span>{{ scope.row.username }}</span>
           </div>
         </template>
@@ -49,7 +49,7 @@
       <el-table-column label="端口" prop="port" width="100">
         <template v-slot="scope">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/端口.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/端口.svg')" style="width: 16px; height: 16px"/>
             <span>{{ scope.row.port }}</span>
           </div>
         </template>
@@ -58,7 +58,7 @@
         <template v-slot="scope">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
-              :src="scope.row.type === 1 ? require('@/assets/image/密码.svg') : require('@/assets/image/密钥.svg')" 
+              :src="scope.row.type === 1 ? getAssetUrl('@/assets/image/密码.svg') : getAssetUrl('@/assets/image/密钥.svg')" 
               style="width: 16px; height: 16px"
             />
             <el-tag :type="scope.row.type === 1 ? 'success' : (scope.row.type === 2 ? 'warning' : 'info')">
@@ -142,7 +142,7 @@
                   <li>将公钥添加到目标主机: <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">echo "公钥内容" >> /root/.ssh/authorized_keys</code></li>
                 
                 </ol>
-                <p style="margin: 12px 0 0 0; color: #909399; font-size: 13px;">
+                <p style="margin: 12px 0 0 0; color: var(--text-secondary); font-size: 13px;">
                   💡 提示:公钥认证无需存储密码或密钥，系统会自动使用DevOps服务器的私钥进行认证。
                 </p>
               </div>
@@ -169,7 +169,7 @@
                   <li>复制目标主机的私钥内容到下方文本框</li>
                   <li>私钥格式应包含完整的BEGIN和END标记</li>
                 </ol>
-                <p style="margin: 12px 0 0 0; color: #909399; font-size: 13px;">
+                <p style="margin: 12px 0 0 0; color: var(--text-secondary); font-size: 13px;">
                   💡 提示：密钥认证需要预先在目标主机配置公钥，然后上传对应的私钥内容。
                 </p>
               </div>
@@ -280,6 +280,9 @@ export default {
     }
   },
   methods: {
+    getAssetUrl(path) {
+      return new URL(path.replace('@/', '/src/'), import.meta.url).href;
+    },
     // 获取凭据列表
     async getList() {
       this.loading = true
@@ -441,11 +444,11 @@ export default {
 .ecs-key-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .ecs-key-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -461,8 +464,8 @@ export default {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -481,7 +484,7 @@ export default {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -506,19 +509,19 @@ export default {
 }
 
 .ecs-key-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .ecs-key-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .ecs-key-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -578,7 +581,7 @@ export default {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .el-input :deep(.el-input__wrapper):hover,
@@ -588,7 +591,7 @@ export default {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }

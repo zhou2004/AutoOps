@@ -137,26 +137,26 @@ defineExpose({
 .flow-container {
   min-height: 400px;
   padding: 20px;
-  background: #e8e8e8;
-  border-radius: 6px;
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
 }
 
 :deep(.task-flow-dialog) {
-  background: #e6e6e6;
+  background: var(--bg-card);
 }
 
 :deep(.task-flow-dialog .el-dialog__header) {
-  background: #e6e6e6;
-  border-bottom: 1px solid #d9d9d9;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
 }
 
 :deep(.task-flow-dialog .el-dialog__body) {
   padding: 20px;
-  background: #e6e6e6;
+  background: var(--bg-card-alt);
 }
 
 :deep(.task-flow-dialog .el-dialog__footer) {
-  background: #e6e6e6;
-  border-top: 1px solid #d9d9d9;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
 }
 </style>

@@ -38,7 +38,7 @@
         v-loading="loading"
         border
         stripe
-        :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: '#2c3e50', fontWeight: '600' }"
+        :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }"
       >
         <el-table-column prop="name" label="数据源名称" min-width="150" />
         <el-table-column prop="type" label="类型" width="140" align="left">
@@ -287,11 +287,11 @@ const formatDate = (dateStr) => {
 .datasource-management {
   padding: 20px;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .modern-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -308,8 +308,8 @@ const formatDate = (dateStr) => {
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -332,7 +332,7 @@ const formatDate = (dateStr) => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -371,7 +371,7 @@ const formatDate = (dateStr) => {
 
 /* 对话框美化 */
 :deep(.modern-dialog .el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -385,7 +385,7 @@ const formatDate = (dateStr) => {
   border-bottom: 1px solid rgba(102, 126, 234, 0.2);
 }
 
-:deep(.modern-dialog .el-dialog__title) { color: #2c3e50; font-weight: 600; font-size: 18px; }
+:deep(.modern-dialog .el-dialog__title) { color: var(--text-primary); font-weight: 600; font-size: 18px; }
 :deep(.modern-dialog .el-dialog__body) { padding: 24px; }
 :deep(.modern-dialog .el-dialog__footer) {
   padding: 16px 24px 24px;

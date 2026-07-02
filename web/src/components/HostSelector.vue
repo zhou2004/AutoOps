@@ -7,7 +7,7 @@
   >
     <div style="display: flex; height: 500px">
       <!-- 左侧分组树 -->
-      <div style="width: 250px; border-right: 1px solid #ebeef5; padding-right: 10px; overflow-y: auto">
+      <div style="width: 250px; border-right: 1px solid var(--border); padding-right: 10px; overflow-y: auto">
         <div class="group-header">
           <el-button 
             type="primary" 
@@ -116,7 +116,7 @@
           >
             <template #default="{row}">
               <div class="host-cell" v-if="row.publicIp">
-                <el-icon class="public-ip-icon"><Globe /></el-icon>
+                <el-icon class="public-ip-icon"><Connection /></el-icon>
                 <span>{{ row.publicIp }}</span>
               </div>
               <span v-else class="text-muted">-</span>
@@ -193,8 +193,7 @@ import {
   FolderOpened, 
   Folder, 
   Monitor, 
-  Connection, 
-  Globe 
+  Connection
 } from '@element-plus/icons-vue'
 import cmdbApi from '@/api/cmdb'
 
@@ -452,7 +451,7 @@ onMounted(() => {
 }
 
 .host-count {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
   margin-left: 5px;
 }
@@ -463,7 +462,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 10px;
   padding: 8px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border);
 }
 
 .selection-info {
@@ -471,7 +470,7 @@ onMounted(() => {
 }
 
 .text-muted {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .table-actions {
@@ -512,7 +511,7 @@ onMounted(() => {
 .footer-info {
   flex: 1;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .footer-actions {
@@ -529,14 +528,14 @@ onMounted(() => {
 }
 
 :deep(.el-table__header) {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--bg-card-alt) 0%, #c3cfe2 100%);
 }
 
 :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 600;
-  border-bottom: 2px solid #e4e7ed;
+  border-bottom: 2px solid var(--border);
 }
 
 :deep(.el-table__row:hover) {

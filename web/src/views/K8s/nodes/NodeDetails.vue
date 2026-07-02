@@ -44,7 +44,7 @@
               <el-card class="overview-card cpu-card">
                 <div class="card-content">
                   <div class="card-icon cpu-icon">
-                    <img src="@/assets/image/cpu.svg" alt="CPU" class="svg-icon" />
+                    <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="svg-icon" />
                   </div>
                   <div class="card-info">
                     <div class="card-value" :class="getCpuUsageClass()">{{ cpuUsageRate }}%</div>
@@ -64,11 +64,11 @@
               <el-card class="overview-card memory-card">
                 <div class="card-content">
                   <div class="card-icon memory-icon">
-                    <img src="@/assets/image/内存.svg" alt="内存" class="svg-icon" />
+                    <img :src="$getAssetUrl('@/assets/image/Memory.svg')" alt="Memory" class="svg-icon" />
                   </div>
                   <div class="card-info">
                     <div class="card-value" :class="getMemoryUsageClass()">{{ memoryUsageRate }}%</div>
-                    <div class="card-label">内存使用率</div>
+                    <div class="card-label">Memory使用率</div>
                     <div class="card-sub">{{ formatMemory(nodeData.resources?.memory?.capacity) }}</div>
                     <el-progress 
                       :percentage="memoryUsageRate" 
@@ -177,7 +177,7 @@
         <!-- 网络信息 -->
         <div class="info-card">
           <div class="card-header">
-            <el-icon><Network /></el-icon>
+            <el-icon><Connection as Network /></el-icon>
             <h3>网络信息</h3>
           </div>
           <div class="card-content">
@@ -210,7 +210,7 @@
             <div class="resource-grid">
               <div class="resource-item advanced-resource">
                 <div class="resource-icon cpu-resource">
-                  <img src="@/assets/image/cpu.svg" alt="CPU" class="svg-icon-small" />
+                  <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="svg-icon-small" />
                 </div>
                 <div class="resource-info">
                   <div class="resource-header">
@@ -245,11 +245,11 @@
               
               <div class="resource-item advanced-resource">
                 <div class="resource-icon memory-resource">
-                  <img src="@/assets/image/内存.svg" alt="内存" class="svg-icon-small" />
+                  <img :src="$getAssetUrl('@/assets/image/Memory.svg')" alt="Memory" class="svg-icon-small" />
                 </div>
                 <div class="resource-info">
                   <div class="resource-header">
-                    <span class="resource-name">内存存储</span>
+                    <span class="resource-name">Memory存储</span>
                     <span class="resource-usage" :class="getMemoryUsageClass()">{{ memoryUsageRate }}%</span>
                   </div>
                   <div class="resource-details">
@@ -387,7 +387,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="cpuUsage" label="CPU使用" width="120" />
-              <el-table-column prop="memUsage" label="内存使用" width="120" />
+              <el-table-column prop="memUsage" label="Memory使用" width="120" />
               <el-table-column label="重启次数" width="100">
                 <template #default="scope">
                   {{ scope.row.restarts || 0 }}
@@ -454,7 +454,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, InfoFilled, Monitor, Network, FolderOpened, Setting, Box, CpuFill, MemoryStick, Grid, Files, CircleCheck, Warning, Timer } from '@element-plus/icons-vue'
+import { ArrowLeft, InfoFilled, Monitor, Connection as Network, FolderOpened, Setting, Box, Cpu, Memory, Grid, Files, CircleCheck, Warning, Timer } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
 
@@ -707,7 +707,7 @@ const getCpuUsed = () => {
   return used.toFixed(2)
 }
 
-// 获取内存已使用量
+// 获取Memory已使用量
 const getMemoryUsed = () => {
   const capacity = nodeData.value?.resources?.memory?.capacity || 0
   const allocatable = nodeData.value?.resources?.memory?.allocatable || 0
@@ -732,7 +732,7 @@ const getCpuUsageClass = () => {
   return 'usage-normal'
 }
 
-// 获取内存使用率样式类
+// 获取Memory使用率样式类
 const getMemoryUsageClass = () => {
   const usage = memoryUsageRate.value
   if (usage >= 80) return 'usage-high'
@@ -753,20 +753,9 @@ onMounted(() => {
 <style scoped>
 .node-details-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   padding: 20px;
   position: relative;
-}
-
-.node-details-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
-  pointer-events: none;
 }
 
 .node-details-header {
@@ -775,33 +764,30 @@ onMounted(() => {
   gap: 16px;
   margin-bottom: 24px;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   position: relative;
   z-index: 1;
 }
 
 .back-btn {
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  color: #667eea;
-  backdrop-filter: blur(5px);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--primary);
   transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  background: var(--primary-light);
+  border-color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .page-title {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 24px;
   font-weight: 600;
   margin: 0;
@@ -821,12 +807,10 @@ onMounted(() => {
 }
 
 .overview-card {
-  border-radius: 16px;
-  border: none;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--bg-card);
   position: relative;
   overflow: hidden;
 }
@@ -845,7 +829,7 @@ onMounted(() => {
 .overview-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
 }
 
 .overview-card:hover .card-icon {
@@ -888,7 +872,7 @@ onMounted(() => {
 }
 
 .status-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .cpu-icon {
@@ -913,21 +897,21 @@ onMounted(() => {
 .overview-card .card-value {
   font-size: 32px;
   font-weight: 800;
-  color: #2c3e50;
+  color: var(--text-primary);
   line-height: 1;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .overview-card .card-label {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 600;
   margin: 8px 0 4px 0;
 }
 
 .overview-card .card-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
@@ -1068,7 +1052,7 @@ onMounted(() => {
 .status-text {
   font-size: 12px;
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .resource-grid {
@@ -1097,7 +1081,7 @@ onMounted(() => {
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   transition: width 0.3s ease;
 }
 
@@ -1154,7 +1138,7 @@ onMounted(() => {
 .advanced-resource .resource-name {
   font-size: 16px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .advanced-resource .resource-usage {
@@ -1163,7 +1147,7 @@ onMounted(() => {
   padding: 4px 12px;
   border-radius: 20px;
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  color: var(--primary);
 }
 
 .resource-details {
@@ -1181,13 +1165,13 @@ onMounted(() => {
 
 .detail-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .detail-value {
   font-size: 14px;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -1225,7 +1209,7 @@ onMounted(() => {
   justify-content: space-between;
   margin-top: 8px;
   font-size: 10px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .info-card {
@@ -1241,7 +1225,7 @@ onMounted(() => {
 .info-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
 }
 
 .full-width {
@@ -1258,7 +1242,7 @@ onMounted(() => {
 }
 
 .card-header h3 {
-  color: #2c3e50;
+  color: var(--text-primary);
   margin: 0;
   font-size: 18px;
   font-weight: 600;
@@ -1283,13 +1267,13 @@ onMounted(() => {
 }
 
 .label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   min-width: 120px;
 }
 
 .value {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   text-align: right;
   word-break: break-all;
@@ -1315,13 +1299,13 @@ onMounted(() => {
 }
 
 .resource-name {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 16px;
 }
 
 .resource-usage {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 18px;
 }
@@ -1331,7 +1315,7 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .labels-container {
@@ -1343,7 +1327,7 @@ onMounted(() => {
 .label-tag {
   background: rgba(102, 126, 234, 0.1);
   border: 1px solid rgba(102, 126, 234, 0.3);
-  color: #667eea;
+  color: var(--primary);
 }
 
 .annotations-container {
@@ -1356,31 +1340,31 @@ onMounted(() => {
   padding: 12px;
   background: #f8f9fc;
   border-radius: 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
 }
 
 .annotation-key {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 12px;
   margin-bottom: 4px;
   word-break: break-all;
 }
 
 .annotation-value {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
   word-break: break-all;
 }
 
 .no-data, .no-data-container {
   text-align: center;
-  color: #909399;
+  color: var(--text-secondary);
   padding: 40px;
 }
 
 :deep(.el-table) {
   background: transparent;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1390,26 +1374,26 @@ onMounted(() => {
 }
 
 :deep(.el-table td) {
-  border-bottom: 1px solid #e4e7ed;
-  color: #2c3e50;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 :deep(.el-table th) {
-  border-bottom: 1px solid #e4e7ed;
-  color: #2c3e50 !important;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary) !important;
   background: #f8f9fc;
 }
 
 :deep(.el-table--border) {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
 }
 
 :deep(.el-table--border td) {
-  border-right: 1px solid #e4e7ed;
+  border-right: 1px solid var(--border);
 }
 
 :deep(.el-table--border th) {
-  border-right: 1px solid #e4e7ed;
+  border-right: 1px solid var(--border);
 }
 
 :deep(.el-table__row:hover) {
@@ -1421,7 +1405,7 @@ onMounted(() => {
 }
 
 :deep(.el-empty__description p) {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {

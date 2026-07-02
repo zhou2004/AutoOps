@@ -88,6 +88,45 @@ const filteredStorageClassList = computed(() => {
   )
 })
 
+// 分页
+const pvcCurrentPage = ref(1)
+const pvcPageSize = ref(20)
+const pvcTotal = ref(0)
+const pvCurrentPage = ref(1)
+const pvPageSize = ref(20)
+const pvTotal = ref(0)
+const scCurrentPage = ref(1)
+const scPageSize = ref(20)
+const scTotal = ref(0)
+
+const paginatedPVCList = computed(() => {
+  const start = (pvcCurrentPage.value - 1) * pvcPageSize.value
+  const end = start + pvcPageSize.value
+  return filteredPVCList.value.slice(start, end)
+})
+const paginatedPVList = computed(() => {
+  const start = (pvCurrentPage.value - 1) * pvPageSize.value
+  const end = start + pvPageSize.value
+  return filteredPVList.value.slice(start, end)
+})
+const paginatedStorageClassList = computed(() => {
+  const start = (scCurrentPage.value - 1) * scPageSize.value
+  const end = start + scPageSize.value
+  return filteredStorageClassList.value.slice(start, end)
+})
+
+watch(filteredPVCList, () => { pvcTotal.value = filteredPVCList.value.length })
+watch(filteredPVList, () => { pvTotal.value = filteredPVList.value.length })
+watch(filteredStorageClassList, () => { scTotal.value = filteredStorageClassList.value.length })
+watch(searchKeyword, () => { pvcCurrentPage.value = 1; pvCurrentPage.value = 1; scCurrentPage.value = 1 })
+
+const handlePvcSizeChange = (val) => { pvcPageSize.value = val; pvcCurrentPage.value = 1 }
+const handlePvcCurrentChange = (val) => { pvcCurrentPage.value = val }
+const handlePvSizeChange = (val) => { pvPageSize.value = val; pvCurrentPage.value = 1 }
+const handlePvCurrentChange = (val) => { pvCurrentPage.value = val }
+const handleScSizeChange = (val) => { scPageSize.value = val; scCurrentPage.value = 1 }
+const handleScCurrentChange = (val) => { scCurrentPage.value = val }
+
 // 处理集群选择变化
 const handleClusterChange = (clusterId) => {
   selectedClusterId.value = clusterId
@@ -811,14 +850,14 @@ onMounted(async () => {
         <el-tab-pane label="PVC" name="pvc">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ filteredPVCList.length }} 个 PVC</span>
+              <span class="resource-count">共 {{ pvcTotal }} 个 PVC</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreatePVC">
                 创建 PVC
               </el-button>
             </div>
 
             <el-table
-              :data="filteredPVCList"
+              :data="paginatedPVCList"
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
@@ -903,6 +942,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="pvcCurrentPage"
+                v-model:page-size="pvcPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pvcTotal"
+                @size-change="handlePvcSizeChange"
+                @current-change="handlePvcCurrentChange"
+              />
+            </div>
           </div>
         </el-tab-pane>
 
@@ -910,14 +961,14 @@ onMounted(async () => {
         <el-tab-pane label="PV" name="pv">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ filteredPVList.length }} 个 PV</span>
+              <span class="resource-count">共 {{ pvTotal }} 个 PV</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreatePV">
                 创建 PV
               </el-button>
             </div>
 
             <el-table
-              :data="filteredPVList"
+              :data="paginatedPVList"
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
@@ -1008,6 +1059,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="pvCurrentPage"
+                v-model:page-size="pvPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="pvTotal"
+                @size-change="handlePvSizeChange"
+                @current-change="handlePvCurrentChange"
+              />
+            </div>
           </div>
         </el-tab-pane>
 
@@ -1015,14 +1078,14 @@ onMounted(async () => {
         <el-tab-pane label="StorageClass" name="storageclass">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ filteredStorageClassList.length }} 个 StorageClass</span>
+              <span class="resource-count">共 {{ scTotal }} 个 StorageClass</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreateStorageClass">
                 创建 StorageClass
               </el-button>
             </div>
 
             <el-table
-              :data="filteredStorageClassList"
+              :data="paginatedStorageClassList"
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
@@ -1097,6 +1160,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="scCurrentPage"
+                v-model:page-size="scPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="scTotal"
+                @size-change="handleScSizeChange"
+                @current-change="handleScCurrentChange"
+              />
+            </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -1318,15 +1393,14 @@ onMounted(async () => {
 .k8s-storage-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .storage-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -1338,10 +1412,7 @@ onMounted(async () => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -1390,7 +1461,7 @@ onMounted(async () => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -1399,7 +1470,7 @@ onMounted(async () => {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* 标签样式 */
@@ -1419,7 +1490,7 @@ onMounted(async () => {
 
 .storage-tabs :deep(.el-tabs__item) {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .storage-tabs :deep(.el-tabs__item.is-active) {
@@ -1441,7 +1512,7 @@ onMounted(async () => {
 
 .resource-count {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1450,12 +1521,18 @@ onMounted(async () => {
   overflow: hidden;
 }
 
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .resource-table :deep(.el-table__header) {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
 }
 
 .resource-table :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .resource-name {
@@ -1499,32 +1576,24 @@ onMounted(async () => {
 
 /* 对话框样式 - 与k8s-clusters.vue保持一致 */
 .detail-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .detail-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .detail-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .detail-dialog :deep(.el-dialog__body) {
   padding: 24px;
-}
-
-/* 加载动画样式 */
-.el-loading-mask {
-  background-color: rgba(103, 126, 234, 0.1);
-  backdrop-filter: blur(4px);
 }
 
 .detail-content {
@@ -1538,25 +1607,25 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .detail-label {
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
   min-width: 80px;
 }
 
 .detail-value {
-  color: #303133;
+  color: var(--text-primary);
   word-break: break-all;
 }
 
 .storage-source {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   padding: 8px 12px;
-  border-radius: 6px;
-  border-left: 3px solid #409eff;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -1566,7 +1635,7 @@ onMounted(async () => {
 }
 
 .storage-source small {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 /* 响应式设计 */

@@ -6,7 +6,7 @@
   >
     <div style="display: flex; height: 500px">
       <!-- 左侧分组树 -->
-      <div style="width: 250px; border-right: 1px solid #ebeef5; padding-right: 10px; overflow-y: auto">
+      <div style="width: 250px; border-right: 1px solid var(--border); padding-right: 10px; overflow-y: auto">
         <el-tree
           :data="groupsWithHosts"
           :props="{

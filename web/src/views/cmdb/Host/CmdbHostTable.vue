@@ -33,12 +33,8 @@
         <template v-slot="scope">
           <div class="ip-cell" @mouseenter="showCopyIcon($event, 'ip')" @mouseleave="hideCopyIcon">
             <div v-if="scope.row.publicIp" class="ip-row public-ip">
-              <img 
-                src="@/assets/image/公.svg" 
-                alt="公网"
-                class="ip-icon"
-              />
-              <span>{{ scope.row.publicIp || '无公网IP' }}</span>
+              <el-icon class="ip-icon" color="#67C23A"><Connection /></el-icon>
+              <span>{{ scope.row.publicIp }}</span>
               <el-icon 
                 class="copy-icon" 
                 @click="copyToClipboard(scope.row.publicIp, '公网IP', $event)"
@@ -48,12 +44,8 @@
               </el-icon>
             </div>
             <div v-if="scope.row.privateIp" class="ip-row private-ip">
-              <img 
-                src="@/assets/image/内.svg" 
-                alt="内网"
-                class="ip-icon"
-              />
-              <span>{{ scope.row.privateIp || '无内网IP' }}</span>
+              <el-icon class="ip-icon" color="#409EFF"><Link /></el-icon>
+              <span>{{ scope.row.privateIp }}</span>
               <el-icon 
                 class="copy-icon" 
                 @click="copyToClipboard(scope.row.privateIp, '内网IP', $event)"
@@ -88,15 +80,11 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="配置信息" show-overflow-tooltip>
+      <el-table-column label="配置信息" width="150" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="config-cell">
-            <img 
-              src="@/assets/image/配置.svg" 
-              alt="配置"
-              style="width: 16px; height: 16px; margin-right: 6px; flex-shrink: 0;"
-            />
-            <span>{{ formatCPU(scope.row.cpu) }}核 {{ formatMemory(scope.row.memory) }}G</span>
+            <el-icon :size="16" color="var(--text-secondary)"><Cpu /></el-icon>
+            <span class="config-text">{{ formatCPU(scope.row.cpu) }}核 {{ formatMemory(scope.row.memory) }}G</span>
           </div>
         </template>
       </el-table-column>
@@ -104,7 +92,7 @@
         <template v-slot="scope">
           <div class="status-cell">
             <img 
-              :src="scope.row.isAlive ? require('@/assets/image/主机在线.svg') : require('@/assets/image/主机离线.svg')" 
+              :src="scope.row.isAlive ? getAssetUrl('@/assets/image/主机在线.svg') : getAssetUrl('@/assets/image/主机离线.svg')" 
               :alt="scope.row.isAlive ? '在线' : '离线'"
               style="width: 16px; height: 16px; margin-right: 6px; flex-shrink: 0;"
             />
@@ -129,15 +117,15 @@
               <span>自建</span>
             </template>
             <template v-else-if="scope.row.vendor == 2">
-              <img src="@/assets/image/aliyun.png" style="width: 18px; height: 18px"/>
+              <img :src="$getAssetUrl('@/assets/image/aliyun.png')" style="width: 18px; height: 18px"/>
               <span>阿里</span>
             </template>
             <template v-else-if="scope.row.vendor == 3">
-              <img src="@/assets/image/tengxun.png" style="width: 18px; height: 18px"/>
+              <img :src="$getAssetUrl('@/assets/image/tengxun.png')" style="width: 18px; height: 18px"/>
               <span>腾讯</span>
             </template>
             <template v-else-if="scope.row.vendor == 4">
-              <img src="@/assets/image/baidu.svg" style="width: 18px; height: 18px"/>
+              <img :src="$getAssetUrl('@/assets/image/baidu.svg')" style="width: 18px; height: 18px"/>
               <span>百度</span>
             </template>
             <template v-else>
@@ -148,74 +136,27 @@
       </el-table-column>
 
 
-    
-
-      <el-table-column label="操作" fixed="right" width="320" min-width="320">
+      <el-table-column label="操作" fixed="right" width="210">
         <template v-slot="scope">
           <div class="table-operation">
-            <el-button-group>
-              <el-tooltip class="item" effect="light" content="同步信息" placement="top-end">
-                <el-button
-                  type="warning"
-                  icon="Refresh"
-                  size="mini"
-                  circle
-                  plain
-                  @click="$emit('sync-host', scope.row)"
-                />
-              </el-tooltip>
-              <el-tooltip class="item" effect="light" content="编辑" placement="top-end">
-                <el-button
-                  type="primary"
-                  icon="Edit"
-                  size="mini"
-                  circle
-                  plain
-                  @click="$emit('edit-host', scope.row.id)"
-                />
-              </el-tooltip>
-              <el-tooltip class="item" effect="light" content="文件上传" placement="top-end">
-                <el-button
-                  type="primary"
-                  icon="Upload"
-                  size="mini"
-                  circle
-                  plain
-                  @click="$emit('show-upload', scope.row)"
-                />
-              </el-tooltip>
-              <el-tooltip class="item" effect="light" content="终端" placement="top-end">
-                <el-button
-                  type="info"
-                  icon="Monitor"
-                  size="mini"
-                  circle
-                  plain
-                  @click="openTerminalWindow(scope.row)"
-                />
-              </el-tooltip>
-              <el-tooltip class="item" effect="light" content="执行命令" placement="top-end">
-                <el-button
-                  type="success"
-                  icon="Position"
-                  size="mini"
-                  circle
-                  plain
-                  @click="$emit('execute-command', scope.row)"
-                />
-              </el-tooltip>
-              <el-tooltip class="item" effect="light" content="删除" placement="top-end">
-                <el-button
-                  type="danger"
-                  icon="Delete"
-                  size="mini"
-                  circle
-                  plain
-                  @click="$emit('delete-host', scope.row)"
-                />
-              </el-tooltip>
-              
-            </el-button-group>
+            <el-tooltip content="同步信息" placement="top">
+              <el-button type="warning" :icon="Refresh" size="small" circle @click="$emit('sync-host', scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="编辑" placement="top">
+              <el-button type="primary" :icon="Edit" size="small" circle @click="$emit('edit-host', scope.row.id)" />
+            </el-tooltip>
+            <el-tooltip content="文件上传" placement="top">
+              <el-button type="success" :icon="Upload" size="small" circle @click="$emit('show-upload', scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="终端" placement="top">
+              <el-button :icon="Monitor" size="small" circle @click="openTerminalWindow(scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="执行命令" placement="top">
+              <el-button type="info" :icon="Operation" size="small" circle @click="$emit('execute-command', scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button type="danger" :icon="Delete" size="small" circle @click="$emit('delete-host', scope.row)" />
+            </el-tooltip>
           </div>
         </template>
       </el-table-column>
@@ -248,9 +189,14 @@
 import MonitorDialog from './MonitorDialog.vue'
 import ProcessMonitorDialog from './ProcessMonitorDialog.vue'
 import TcpPortMonitorDialog from './TcpPortMonitorDialog.vue'
+import { Refresh, Edit, Upload, Monitor, Delete, DocumentCopy, Connection, Link, Cpu, Operation, OfficeBuilding } from '@element-plus/icons-vue'
 
 export default {
   name: 'CmdbHostTable',
+  // setup() 中暴露图标引用，使模板 :icon="Xxx" 能够正常解析
+  setup() {
+    return { Refresh, Edit, Upload, Monitor, Delete, DocumentCopy, Connection, Link, Cpu, Operation, OfficeBuilding }
+  },
   components: {
     MonitorDialog,
     ProcessMonitorDialog,
@@ -312,6 +258,9 @@ export default {
     }
   },
   methods: {
+    getAssetUrl(path) {
+      return new URL(path.replace('@/', '/src/'), import.meta.url).href;
+    },
     getStatusText(status) {
       const statusMap = {
         1: '认证成功',
@@ -329,7 +278,7 @@ export default {
       return typeMap[status] || 'info'
     },
     getUsageColor(usage) {
-      if (!usage) return '#909399'
+      if (!usage) return 'var(--text-secondary)'
       if (usage > 80) return '#F56C6C'
       if (usage > 60) return '#E6A23C'
       return '#67C23A'
@@ -338,12 +287,12 @@ export default {
     // 获取操作系统图标（返回SVG路径或require路径）
     getOSIcon(os) {
       // 统一返回linux.svg，通过getOSColor方法区分颜色
-      return require('@/assets/image/linux.svg')
+      return new URL('@/assets/image/linux.svg', import.meta.url).href
     },
     
     // 获取操作系统图标颜色（用于区分不同操作系统）
     getOSColor(os) {
-      if (!os) return '#909399'
+      if (!os) return 'var(--text-secondary)'
       const osLower = os.toLowerCase()
       if (osLower.includes('ubuntu')) return '#E95420'  // Ubuntu橙色
       if (osLower.includes('debian')) return '#A80030'  // Debian红色
@@ -620,36 +569,29 @@ export default {
 </script>
 
 <style scoped>
-/* 🎨 现代化科技感表格样式 */
+/* 📊 表格样式 — 支持亮色/暗色切换 */
 
 .table-section {
   margin-bottom: 15px;
   width: 100%;
 }
 
-/* 📊 表格样式 */
 .host-table {
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.host-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,.06));
 }
 
 .host-table :deep(.el-table__header th) {
-  background: transparent !important;
-  color: #2c3e50 !important;
+  background: var(--bg-hover, var(--bg-card-alt)) !important;
+  color: var(--text-primary, #1d2129) !important;
   font-weight: 700 !important;
   border-bottom: none;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .host-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary, #1d2129) !important;
   font-weight: 700 !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .host-table :deep(.el-table__row) {
@@ -657,227 +599,93 @@ export default {
 }
 
 .host-table :deep(.el-table__row:hover) {
-  background-color: rgba(103, 126, 234, 0.05) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-hover, var(--bg-card-alt)) !important;
 }
 
-/* 🎯 操作按钮样式 */
+/* 🎯 操作按钮样式 — 紧凑布局 */
 .table-operation {
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   white-space: nowrap;
-  min-width: 280px;
 }
 
 .table-operation .el-button {
   transition: all 0.3s ease;
+  padding: 4px !important;
+  margin: 0 !important;
+  min-width: unset;
+  width: 28px;
+  height: 28px;
 }
 
 .table-operation .el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 操作栏按钮组不换行 */
-.el-button-group {
-  white-space: nowrap;
+.table-operation .el-button .el-icon {
+  font-size: 14px;
 }
 
-/* 🏷️ 标签样式优化 */
-.el-tag {
-  font-weight: 500;
-  border-radius: 8px;
-  border: none;
-}
+.el-button-group { white-space: nowrap; }
 
-/* 📊 进度条样式 */
-.el-progress {
-  margin: 2px 0;
-}
+/* 🏷️ 标签 */
+.el-tag { font-weight: 500; border-radius: 8px; border: none; }
+.el-progress { margin: 2px 0; }
 
-/* 🔗 链接样式 */
-.el-link {
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
+/* 🔗 链接 */
+.el-link { font-weight: 600; transition: all 0.3s ease; }
 
-.el-link:hover {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 🔧 表格单元格样式 - 防止换行 */
-.host-name-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  position: relative;
-}
-
-.ip-cell {
-  white-space: nowrap;
-  overflow: hidden;
-}
+/* 🔧 表格单元格 — 防止换行 */
+.host-name-cell { display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; position: relative; }
+.ip-cell { white-space: nowrap; overflow: hidden; }
 
 .ip-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-  font-size: 12px;
-  line-height: 1.2;
-  position: relative;
+  display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; font-size: 12px; line-height: 1.2; position: relative;
 }
+.ip-row.public-ip { color: var(--primary, #1677ff); margin-bottom: 2px; }
+.ip-row.private-ip { color: var(--success, #52c41a); }
+.ip-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.ip-row.public-ip {
-  color: #409EFF;
-  margin-bottom: 2px;
-}
+.vendor-cell { display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; }
+.vendor-cell span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.config-cell { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.config-cell .config-text { font-weight: 500; color: var(--text-primary, #1d2129); font-size: 13px; white-space: nowrap; }
+.status-cell { display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+.os-cell { display: flex; align-items: center; white-space: nowrap; overflow: hidden; gap: 6px; }
 
-.ip-row.private-ip {
-  color: #67C23A;
-}
+.os-icon { width: 18px; height: 18px; flex-shrink: 0; object-fit: contain; }
 
-.ip-row span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vendor-cell {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.vendor-cell span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.config-cell {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.status-cell {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.os-cell {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  gap: 6px;
-}
-
-.os-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  object-fit: contain;
-}
-
-/* 操作系统图标包装器 - 带背景色的圆形图标 */
 .os-icon-wrapper {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 2px;
+  width: 20px; height: 20px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 2px;
 }
 
-.os-icon-colored {
-  width: 16px;
-  height: 16px;
-  filter: brightness(0) invert(1);
-}
+.os-icon-colored { width: 16px; height: 16px; filter: brightness(0) invert(1); }
 
-/* 操作系统文本 - 与主机名称字体大小一致 */
 .os-text {
-  font-size: 14px;
-  color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 120px;
+  font-size: 14px; color: var(--text-primary, #1d2129);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
 }
 
-/* 配置信息样式优化 */
-.config-cell {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  gap: 4px;
-}
 
-.config-cell span {
-  font-weight: 500;
-  color: #303133;
-  font-size: 13px;
-}
 
-/* 确保所有表格单元格内容不换行 */
-.host-table :deep(.el-table__cell) {
-  white-space: nowrap;
-  overflow: hidden;
-}
+.host-table :deep(.el-table__cell) { white-space: nowrap; overflow: hidden; }
+.host-table :deep(.cell) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.host-table :deep(.cell) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 📋 复制图标样式 */
+/* 📋 复制图标 */
 .copy-icon {
-  opacity: 0;
-  transition: all 0.3s ease;
-  font-size: 14px !important;
-  padding: 2px;
-  border-radius: 4px;
+  opacity: 0; transition: all 0.3s ease;
+  font-size: 14px !important; padding: 2px; border-radius: 4px;
 }
+.copy-icon:hover { background-color: var(--bg-hover, var(--bg-card-alt)); transform: scale(1.1); }
+.host-name-cell:hover .copy-icon, .ip-row:hover .copy-icon { opacity: 1; display: inline-block !important; }
+.copy-icon.copied { color: var(--success, #52c41a) !important; transform: scale(1.2); }
 
-.copy-icon:hover {
-  background-color: rgba(64, 158, 255, 0.1);
-  transform: scale(1.1);
-}
-
-/* 鼠标悬停时显示复制图标 */
-.host-name-cell:hover .copy-icon,
-.ip-row:hover .copy-icon {
-  opacity: 1;
-  display: inline-block !important;
-}
-
-/* 复制成功动画效果 */
-.copy-icon.copied {
-  color: #67C23A !important;
-  transform: scale(1.2);
-}
-
-/* IP图标样式 */
-.ip-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  object-fit: contain;
-}
+/* IP图标 */
+.ip-icon { width: 16px; height: 16px; flex-shrink: 0; object-fit: contain; }
 </style>

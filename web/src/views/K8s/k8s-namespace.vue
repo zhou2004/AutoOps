@@ -1248,15 +1248,14 @@ export { getProgressColor }
 .k8s-namespace-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .namespace-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -1268,11 +1267,7 @@ export { getProgressColor }
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -1284,9 +1279,9 @@ export { getProgressColor }
 .search-section {
   margin-bottom: 24px;
   padding: 20px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form .el-form-item {
@@ -1295,7 +1290,7 @@ export { getProgressColor }
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1305,9 +1300,7 @@ export { getProgressColor }
 .limit-range-dialog :deep(.el-dialog),
 .create-quota-dialog :deep(.el-dialog),
 .create-limit-range-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .namespace-detail-dialog :deep(.el-dialog__header),
@@ -1315,10 +1308,10 @@ export { getProgressColor }
 .limit-range-dialog :deep(.el-dialog__header),
 .create-quota-dialog :deep(.el-dialog__header),
 .create-limit-range-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
@@ -1328,7 +1321,7 @@ export { getProgressColor }
 .limit-range-dialog :deep(.el-dialog__title),
 .create-quota-dialog :deep(.el-dialog__title),
 .create-limit-range-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -1353,11 +1346,11 @@ export { getProgressColor }
 
 .labels-section h4 {
   margin: 0 0 16px 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 16px;
   padding-bottom: 8px;
-  border-bottom: 2px solid #e4e7ed;
+  border-bottom: 2px solid var(--border);
 }
 
 .labels-list {
@@ -1397,7 +1390,7 @@ export { getProgressColor }
 .no-labels {
   text-align: center;
   padding: 40px 20px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .section-header {
@@ -1409,7 +1402,7 @@ export { getProgressColor }
 
 .section-header h4 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 16px;
 }
@@ -1435,7 +1428,7 @@ export { getProgressColor }
 
 .cluster-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .cluster-status-tag {
@@ -1447,57 +1440,49 @@ export { getProgressColor }
 }
 
 .header-actions .el-select .el-input__wrapper {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(103, 126, 234, 0.3);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
 }
 
 .header-actions .el-select .el-input__wrapper.is-focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
 }
 
 /* 通用元素样式 */
 .el-tag {
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
 }
 
 .el-button {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .el-input :deep(.el-input__wrapper),
 .el-select :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   box-shadow: none;
-  transition: all 0.3s ease;
 }
 
 .el-input :deep(.el-input__wrapper):hover,
 .el-select :deep(.el-input__wrapper):hover {
-  border-color: #c0c4cc;
+  border-color: var(--primary);
 }
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+  background: var(--bg-card);
 }
 
 .el-loading-mask {
-  background-color: rgba(103, 126, 234, 0.1);
-  backdrop-filter: blur(4px);
+  background-color: transparent;
 }
 
 /* ResourceQuota和LimitRange操作按钮样式 */
@@ -1528,9 +1513,9 @@ export { getProgressColor }
 .form-hint {
   margin-top: 4px;
   padding: 4px 8px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 4px;
-  border-left: 3px solid rgba(103, 126, 234, 0.3);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary);
 }
 
 .form-hint .el-text {
@@ -1538,10 +1523,7 @@ export { getProgressColor }
 }
 
 .create-namespace-dialog :deep(.el-divider__text) {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--primary);
   font-weight: 600;
 }
 

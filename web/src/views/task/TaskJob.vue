@@ -81,13 +81,13 @@
           border
           stripe
           style="width: 100%"
-          :header-cell-style="{ background: '#eef1f6', color: '#606266' }"
+
         >
           <el-table-column prop="name" label="任务名称" >
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
-                  src="@/assets/image/renwu.svg" 
+                  :src="$getAssetUrl('@/assets/image/renwu.svg')" 
                   alt="任务"
                   style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -125,7 +125,7 @@
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img
-                  src="@/assets/image/shijian.svg"
+                  :src="$getAssetUrl('@/assets/image/shijian.svg')"
                   alt="时间"
                   style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -137,7 +137,7 @@
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img
-                  src="@/assets/image/统计管理.svg"
+                  :src="$getAssetUrl('@/assets/image/统计管理.svg')"
                   alt="次数"
                   style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -162,7 +162,7 @@
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;" v-if="row.type === 2 && row.nextRunTime">
                 <img
-                  src="@/assets/image/dingshirenwu.svg"
+                  :src="$getAssetUrl('@/assets/image/dingshirenwu.svg')"
                   alt="定时"
                   style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -266,13 +266,13 @@
               style="margin-left: 10px"
             >添加模板</el-button>
           </div>
-          <div v-if="selectedTemplates.length > 0" style="border: 1px solid #ebeef5; border-radius: 4px; padding: 10px; background: #f5f7fa">
-            <div style="color: #606266; margin-bottom: 8px">已选择模板:</div>
+          <div v-if="selectedTemplates.length > 0" style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
+            <div style="color: var(--text-regular); margin-bottom: 8px">已选择模板:</div>
             <div style="display: flex; flex-direction: column; gap: 8px">
               <div
                 v-for="templateId in selectedTemplates"
                 :key="templateId"
-                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: white; border-radius: 4px"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px"
               >
                 <span>{{ getTemplateName(templateId) }}</span>
                 <el-button
@@ -326,13 +326,13 @@
           style="margin-left: 10px"
         >添加主机</el-button>
           </div>
-          <div v-if="selectedHosts.length > 0" style="border: 1px solid #ebeef5; border-radius: 4px; padding: 10px; background: #f5f7fa">
-            <div style="color: #606266; margin-bottom: 8px">已选择主机:</div>
+          <div v-if="selectedHosts.length > 0" style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
+            <div style="color: var(--text-regular); margin-bottom: 8px">已选择主机:</div>
             <div style="display: flex; flex-direction: column; gap: 8px">
               <div
                 v-for="host in selectedHosts"
                 :key="host.id"
-                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: white; border-radius: 4px"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px"
               >
                 <span>{{ host.name }} ({{ host.ip }})</span>
                 <el-button
@@ -694,11 +694,11 @@ const getStatusText = (status) => {
 
 const getTypeIcon = (type) => {
   switch(type) {
-    case 1: return require('@/assets/image/putongrenwu.svg')        // 普通任务
-    case 2: return require('@/assets/image/dingshirenwu.svg')    // 定时任务
-    case 3: return require('@/assets/image/ansible.svg')    // Ansible任务
-    case 4: return require('@/assets/image/renwu.svg')      // 工作作业
-    default: return require('@/assets/image/普通.svg')
+    case 1: return new URL('@/assets/image/putongrenwu.svg', import.meta.url).href
+    case 2: return new URL('@/assets/image/dingshirenwu.svg', import.meta.url).href
+    case 3: return new URL('@/assets/image/ansible.svg', import.meta.url).href
+    case 4: return new URL('@/assets/image/renwu.svg', import.meta.url).href
+    default: return new URL('@/assets/image/普通.svg', import.meta.url).href
   }
 }
 
@@ -883,15 +883,14 @@ onMounted(async () => {
 .taskjob-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .taskjob-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -903,18 +902,15 @@ onMounted(async () => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .search-section {
   margin-bottom: 16px;
   padding: 16px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form .el-form-item {
@@ -923,7 +919,7 @@ onMounted(async () => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -941,86 +937,14 @@ onMounted(async () => {
   margin-top: 20px;
 }
 
-:deep(.el-table) {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.el-table__header) {
-  background: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table__header th) {
-  background: rgba(102, 126, 234, 0.1) !important;
-  color: #2c3e50 !important;
-  font-weight: 600;
-  border: none;
-}
-
-:deep(.el-table__body tr:hover > td) {
-  background-color: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table td) {
-  border: none;
-}
-
-:deep(.el-table::before) {
-  display: none;
-}
-
-:deep(.el-table--border::after) {
-  display: none;
-}
-
 .operation-buttons {
   display: flex;
   gap: 8px;
   justify-content: center;
 }
 
-.operation-buttons .el-button {
-  transition: all 0.3s ease;
-}
-
-.operation-buttons .el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-:deep(.modern-btn) {
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.modern-btn:hover) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-:deep(.primary-btn) {
-  background: linear-gradient(45deg, #409EFF, #66B3FF);
-  color: white;
-}
-
-:deep(.reset-btn) {
-  background: linear-gradient(45deg, #E6A23C, #EEBE77);
-  color: white;
-}
-
-:deep(.success-btn) {
-  background: linear-gradient(45deg, #67C23A, #85CE61);
-  color: white;
-}
-
 .type-normal {
-  color: #409EFF;
+  color: var(--primary);
   font-weight: 500;
 }
 
@@ -1035,12 +959,12 @@ onMounted(async () => {
 }
 
 .type-job {
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .status-waiting {
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -1060,7 +984,7 @@ onMounted(async () => {
 }
 
 .status-paused {
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 

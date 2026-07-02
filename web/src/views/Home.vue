@@ -2,7 +2,7 @@
   <el-container class="home-container" :data-theme="currentTheme">
     <el-aside :width="isCollapse ? '64px' : '200px'">
       <div class="logo">
-        <img src="../assets/image/DevOps平台.svg" class="siderbar-logo">
+        <img :src="$getAssetUrl('@/assets/image/DevOps平台.svg')" class="siderbar-logo">
         <h2 v-show="!isCollapse">{{ currentTheme === 'dark' ? 'AutoOps' : 'devops系统' }}</h2>
       </div>
       <el-menu background-color="transparent" text-color="rgba(255,255,255,0.9)" active-text-color="#ffffff" router :default-active="$route.path"
@@ -516,7 +516,7 @@ export default {
         padding: 8px;
         border-radius: 8px;
         transition: all 0.3s ease;
-        color: #667eea;
+        color: var(--primary);
         
         &:hover {
           background: rgba(102, 126, 234, 0.1);
@@ -534,7 +534,7 @@ export default {
       .el-breadcrumb {
         .el-breadcrumb__item {
           .el-breadcrumb__inner {
-            color: #667eea;
+            color: var(--primary);
             font-weight: 500;
             transition: all 0.3s ease;
             

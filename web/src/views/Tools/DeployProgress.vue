@@ -111,10 +111,10 @@ const statusColor = computed(() => {
   const colors = {
     0: '#409eff', // 部署中
     1: '#67c23a', // 运行中
-    2: '#909399', // 已停止
+    2: 'var(--text-secondary)', // 已停止
     3: '#f56c6c'  // 部署失败
   }
-  return colors[deployInfo.value.status] || '#909399'
+  return colors[deployInfo.value.status] || 'var(--text-secondary)'
 })
 
 // 状态标签类型
@@ -255,7 +255,7 @@ onUnmounted(() => {
   margin: 0 0 10px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .host-info, .install-dir {
@@ -265,7 +265,7 @@ onUnmounted(() => {
 }
 
 .deploy-log {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -275,8 +275,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-bottom: 1px solid #dcdfe6;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
 }
 
 .log-header h4 {
@@ -306,7 +306,7 @@ onUnmounted(() => {
 }
 
 :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: #fff;
   padding: 20px;
   border-radius: 12px 12px 0 0;

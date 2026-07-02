@@ -7,7 +7,7 @@
           <div class="card-header">
             <div class="namespace-info-header">
               <div class="namespace-icon">
-                <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+                <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
                 <div class="pulse-ring"></div>
               </div>
               <div class="namespace-details">
@@ -29,7 +29,7 @@
             <!-- CPU 使用率 -->
             <div class="metric-item">
               <div class="metric-header">
-                <img src="@/assets/image/cpu.svg" alt="CPU" class="metric-icon" />
+                <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="metric-icon" />
                 <span class="metric-label">CPU使用率</span>
                 <span class="metric-value">{{ getNamespaceCpuUsageRate(namespaceMetrics[namespace.name]) }}%</span>
               </div>
@@ -51,7 +51,7 @@
             <!-- 内存使用率 -->
             <div class="metric-item">
               <div class="metric-header">
-                <img src="@/assets/image/内存.svg" alt="Memory" class="metric-icon" />
+                <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon" />
                 <span class="metric-label">内存使用率</span>
                 <span class="metric-value">{{ getNamespaceMemoryUsageRate(namespaceMetrics[namespace.name]) }}%</span>
               </div>
@@ -610,7 +610,7 @@ onMounted(() => {
 <style scoped>
 .namespaces-monitoring {
   padding: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   min-height: 100vh;
   padding: 12px;
   border-radius: 16px;
@@ -618,7 +618,7 @@ onMounted(() => {
 
 /* 命名空间卡片 */
 .namespace-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 18px;
@@ -723,7 +723,7 @@ onMounted(() => {
 }
 
 .namespace-name {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 12px;
   font-weight: 500;
   text-align: right;
@@ -859,7 +859,7 @@ onMounted(() => {
 }
 
 .pods-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .services-icon {
@@ -869,7 +869,7 @@ onMounted(() => {
 .icon-dot, .icon-pulse {
   width: 12px;
   height: 12px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 50%;
   position: relative;
 }
@@ -1010,7 +1010,7 @@ onMounted(() => {
 
 /* 对话框样式 */
 .namespace-detail-dialog :deep(.el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1058,7 +1058,7 @@ onMounted(() => {
 }
 
 .section-icon {
-  color: #667eea;
+  color: var(--primary);
   margin-right: 6px;
   width: 16px;
   height: 16px;

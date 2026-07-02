@@ -79,7 +79,7 @@ const dialogVisible = computed({
 
 // 计算高亮后的凭证内容
 const highlightedCredential = computed(() => {
-  if (!props.credential.content) return '<span style="color: #909399; font-style: italic;">暂无凭证内容</span>'
+  if (!props.credential.content) return '<span style="color: var(--text-secondary); font-style: italic;">暂无凭证内容</span>'
   return highlight(props.credential.content, 'yaml')
 })
 
@@ -171,12 +171,12 @@ watch(() => props.credential, (newCredential) => {
 /* 凭证查看对话框样式 */
 .credential-view-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .credential-view-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
@@ -215,7 +215,7 @@ watch(() => props.credential, (newCredential) => {
   justify-content: flex-start;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border);
 }
 
 .credential-header .el-button {
@@ -233,7 +233,7 @@ watch(() => props.credential, (newCredential) => {
   position: relative;
   max-height: 400px;
   overflow: auto;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: #fafafa;
 }
@@ -263,7 +263,7 @@ watch(() => props.credential, (newCredential) => {
   justify-content: flex-start;
   align-items: center;
   padding: 12px 0;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 

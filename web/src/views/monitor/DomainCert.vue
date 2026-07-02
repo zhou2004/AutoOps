@@ -197,17 +197,17 @@ export default {
 }
 </script>
 <style scoped>
-.domain-cert-monitor { padding: 20px; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.domain-cert-monitor { padding: 20px; min-height: 100vh; background: var(--bg-page); }
 .domain-cert-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
-.title { font-size: 20px; font-weight: 600; color: #2c3e50; background: linear-gradient(45deg,#667eea,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.title { font-size: 20px; font-weight: 600; color: var(--text-primary); background: linear-gradient(45deg,#667eea,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .search-section { margin-bottom: 24px; padding: 20px; background: rgba(103,126,234,0.05); border-radius: 12px; border: 1px solid rgba(103,126,234,0.1); }
 .action-section { margin-bottom: 24px; padding: 12px 0; }
 .action-section .el-button { margin-right: 12px; }
 .table-section { margin-bottom: 24px; }
 .domain-cert-table { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .domain-cert-table :deep(.el-table__header) { background: linear-gradient(135deg,#667eea,#764ba2); }
-.domain-cert-table :deep(.el-table__header th) { background: transparent !important; color: #2c3e50 !important; font-weight: 700 !important; }
+.domain-cert-table :deep(.el-table__header th) { background: transparent !important; color: var(--text-primary) !important; font-weight: 700 !important; }
 .pagination-section { display: flex; justify-content: center; padding: 20px 0; }
 .cert-detail { padding: 10px; }
 .el-button { border-radius: 8px; transition: all .3s ease; }

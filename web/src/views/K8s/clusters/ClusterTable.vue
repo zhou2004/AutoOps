@@ -62,7 +62,7 @@
         <el-table-column prop="clusterName" label="集群名称" min-width="180">
           <template #default="{ row }">
             <div class="cluster-name-container">
-              <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+              <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
               <el-button
                 type="primary"
                 link
@@ -87,7 +87,7 @@
         <el-table-column prop="version" label="集群版本" min-width="140">
           <template #default="{ row }">
             <div class="version-container">
-            <img src="@/assets/image/k8s-io.svg" alt="k8s-io" class="k8s-io-icon" />
+            <img :src="$getAssetUrl('@/assets/image/k8s-io.svg')" alt="k8s-io" class="k8s-io-icon" />
             <span class="version-text">{{ row.version }}</span>
               
             </div>
@@ -397,7 +397,7 @@ const handleSync = async (row) => {
     // 检查错误信息是否包含超时相关内容
     const errorMessage = error.message || error.toString()
     const isNetworkTimeout = errorMessage.includes('timeout') || 
-                            errorMessage.includes('Network Error') ||
+                            errorMessage.includes('Connection as Network Error') ||
                             errorMessage.includes('ERR_NETWORK')
     
     if (isNetworkTimeout) {
@@ -512,7 +512,7 @@ onMounted(() => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -527,19 +527,19 @@ onMounted(() => {
 }
 
 .cluster-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .cluster-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .cluster-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -575,7 +575,7 @@ onMounted(() => {
 }
 
 .version-text {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -588,7 +588,7 @@ onMounted(() => {
 
 .cluster-name-link {
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary);
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -664,7 +664,7 @@ onMounted(() => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -673,7 +673,7 @@ onMounted(() => {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .el-loading-mask {
@@ -687,7 +687,7 @@ onMounted(() => {
 }
 
 .description-text {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 13px;
   line-height: 1.4;
   display: inline-block;

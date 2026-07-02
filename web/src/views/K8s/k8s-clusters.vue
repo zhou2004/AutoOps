@@ -735,15 +735,14 @@ onMounted(() => {
 .k8s-cluster-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .cluster-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -755,10 +754,7 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-   background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -770,25 +766,23 @@ onMounted(() => {
 .register-dialog :deep(.el-dialog),
 .edit-dialog :deep(.el-dialog),
 .create-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .register-dialog :deep(.el-dialog__header),
 .edit-dialog :deep(.el-dialog__header),
 .create-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .register-dialog :deep(.el-dialog__title),
 .edit-dialog :deep(.el-dialog__title),
 .create-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -811,74 +805,65 @@ onMounted(() => {
 }
 
 .el-button {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .el-input :deep(.el-input__wrapper),
 .el-select :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   box-shadow: none;
   transition: all 0.3s ease;
 }
 
 .el-input :deep(.el-input__wrapper):hover,
 .el-select :deep(.el-input__wrapper):hover {
-  border-color: #c0c4cc;
+  border-color: var(--primary);
 }
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+  background: var(--bg-card);
 }
 
 .el-input :deep(.el-input__inner),
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-regular);
 }
 
 .el-textarea :deep(.el-textarea__inner) {
-  border-radius: 8px;
-  border: 1px solid rgba(103, 126, 234, 0.2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
 }
 
 .el-textarea :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
 }
 
-.el-loading-mask {
-  background-color: rgba(103, 126, 234, 0.1);
-  backdrop-filter: blur(4px);
-}
+
 
 .host-selection-container {
   width: 100%;
 }
 
 .selected-hosts {
-  background: rgba(103, 126, 234, 0.05);
+  background: var(--bg-card-alt);
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(103, 126, 234, 0.2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .hosts-info {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   margin-bottom: 8px;
 }
 
@@ -889,13 +874,13 @@ onMounted(() => {
 }
 
 .no-hosts {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 13px;
   font-style: italic;
   padding: 8px 12px;
-  background: #f5f7fa;
-  border-radius: 6px;
-  border: 1px dashed #dcdfe6;
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
 }
 
 .el-tag {
@@ -939,7 +924,7 @@ onMounted(() => {
 
 .mode-tip, .auto-deploy-tip {
   font-size: 10px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-top: 2px;
   line-height: 1.2;
 }
@@ -957,7 +942,7 @@ onMounted(() => {
 
 .node-section {
   flex: 1;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;
   background: #fafafa;
@@ -972,7 +957,7 @@ onMounted(() => {
 
 .node-count {
   font-size: 11px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1000,7 +985,7 @@ onMounted(() => {
 
 .etcd-tip {
   font-size: 10px;
-  color: #909399;
+  color: var(--text-secondary);
   text-align: center;
   margin-top: 4px;
   font-style: italic;
@@ -1030,7 +1015,7 @@ onMounted(() => {
 .plugin-label {
   font-size: 13px;
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -1154,7 +1139,7 @@ onMounted(() => {
 
 .private-registry-config .el-input :deep(.el-input-group__prepend) {
   background: rgba(103, 126, 234, 0.1);
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   font-size: 12px;
   border-color: rgba(103, 126, 234, 0.2);

@@ -12,7 +12,7 @@
             :disabled="!canScale"
             @click="scaleWorkload"
           >
-            <img src="@/assets/image/伸缩.svg" alt="伸缩" width="14" height="14" style="filter: brightness(0) invert(1);" />
+            <img :src="$getAssetUrl('@/assets/image/伸缩.svg')" alt="伸缩" width="14" height="14" style="filter: brightness(0) invert(1);" />
           </el-button>
         </el-tooltip>
         
@@ -527,7 +527,7 @@ defineExpose({
 
 .pod-stats {
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border-radius: 6px;
   margin-bottom: 16px;
 }
@@ -539,7 +539,7 @@ defineExpose({
 
 .log-controls {
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border-radius: 6px;
   margin-bottom: 16px;
 }
@@ -564,13 +564,13 @@ defineExpose({
 
 .yaml-controls {
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border-radius: 6px;
   margin-bottom: 16px;
 }
 
 .yaml-content {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -603,8 +603,8 @@ defineExpose({
 .button-row .el-button.is-disabled {
   cursor: not-allowed;
   opacity: 0.5;
-  background-color: #f5f7fa !important;
-  border-color: #e4e7ed !important;
+  background-color: var(--bg-card-alt) !important;
+  border-color: var(--border) !important;
   color: #c0c4cc !important;
 }
 

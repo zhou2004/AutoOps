@@ -277,7 +277,7 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border-radius: 8px;
 }
 
@@ -331,7 +331,7 @@ defineExpose({
 .copy-btn {
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
   box-shadow: 0 2px 8px rgba(168, 237, 234, 0.3);
   transition: all 0.3s ease;
 }
@@ -355,7 +355,7 @@ defineExpose({
 }
 
 .yaml-editor-container {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -376,12 +376,12 @@ defineExpose({
 /* 创建Pod对话框样式 */
 .create-pod-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .create-pod-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;

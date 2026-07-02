@@ -90,13 +90,13 @@
       border
       stripe
       style="width: 100%"
-      :header-cell-style="{ background: '#eef1f6', color: '#606266' }"
+
     >
       <el-table-column prop="name" label="任务名称" width="200">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
-              src="@/assets/image/ansible.svg" 
+              :src="$getAssetUrl('@/assets/image/ansible.svg')" 
               alt="ansible"
               style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0;"
             />
@@ -123,7 +123,7 @@
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
-              src="@/assets/image/zhuangtai.svg" 
+              :src="$getAssetUrl('@/assets/image/zhuangtai.svg')" 
               alt="状态"
               style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
             />
@@ -142,7 +142,7 @@
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
-              src="@/assets/image/定时关闭.svg" 
+              :src="$getAssetUrl('@/assets/image/定时关闭.svg')" 
               alt="时间"
               style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
             />
@@ -169,7 +169,7 @@
       <el-table-column prop="cron_expr" label="Cron表达式" width="150">
         <template #default="{ row }">
            <el-tag v-if="row.cron_expr" size="small" type="info">{{ row.cron_expr }}</el-tag>
-           <span v-else style="color: #909399;">-</span>
+           <span v-else style="color: var(--text-secondary);">-</span>
         </template>
       </el-table-column>
       <el-table-column prop="is_recurring" label="定时开关" width="100" align="center">
@@ -316,12 +316,12 @@
               >添加主机分组</el-button>
             </div>
             <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
-                 style="border: 1px solid #ebeef5; border-radius: 4px; padding: 10px; background: #f5f7fa">
-              <div style="color: #606266; margin-bottom: 8px">已配置分组:</div>
+                 style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
+              <div style="color: var(--text-regular); margin-bottom: 8px">已配置分组:</div>
               <div
                 v-for="(hosts, groupName) in currentTask.hostGroups"
                 :key="groupName"
-                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: white; border-radius: 4px; margin-bottom: 5px"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px; margin-bottom: 5px"
               >
                 <span>{{ groupName }} ({{ hosts.length }}台主机)</span>
                 <el-button
@@ -406,12 +406,12 @@
               >添加主机分组</el-button>
             </div>
             <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
-                 style="border: 1px solid #ebeef5; border-radius: 4px; padding: 10px; background: #f5f7fa">
-              <div style="color: #606266; margin-bottom: 8px">已配置分组:</div>
+                 style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
+              <div style="color: var(--text-regular); margin-bottom: 8px">已配置分组:</div>
               <div
                 v-for="(hosts, groupName) in currentTask.hostGroups"
                 :key="groupName"
-                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: white; border-radius: 4px; margin-bottom: 5px"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px; margin-bottom: 5px"
               >
                 <span>{{ groupName }} ({{ hosts.length }}台主机)</span>
                 <el-button
@@ -428,7 +428,7 @@
 
           <el-form-item label="Git仓库地址" prop="gitRepo">
             <el-input v-model="currentTask.gitRepo" placeholder="请输入Git仓库地址" />
-            <div style="margin-top: 4px; color: #909399; font-size: 12px;">
+            <div style="margin-top: 4px; color: var(--text-secondary); font-size: 12px;">
               <span>示例: git@gitee.com:zhang_fan1024/ansible-playbook.git</span>
             </div>
           </el-form-item>
@@ -537,14 +537,14 @@
       
       <!-- 已配置的分组列表 -->
       <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
-           style="border: 1px solid #ebeef5; border-radius: 4px; padding: 15px; background: #f5f7fa">
-        <div style="color: #606266; margin-bottom: 10px; font-weight: 500">已配置分组:</div>
+           style="border: 1px solid var(--border); border-radius: 4px; padding: 15px; background: var(--bg-card-alt)">
+        <div style="color: var(--text-regular); margin-bottom: 10px; font-weight: 500">已配置分组:</div>
         <div
           v-for="(hosts, groupName) in currentTask.hostGroups"
           :key="groupName"
           style="margin-bottom: 12px"
         >
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 4px; border: 1px solid #e4e7ed">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border)">
             <div>
               <el-tag type="primary" style="margin-right: 8px">{{ groupName }}</el-tag>
               <span style="color: #666">{{ hosts.length }}台主机</span>
@@ -1489,10 +1489,10 @@ const getStatusText = (status) => {
 
 const getTaskTypeIcon = (type) => {
   switch(type) {
-    case 1: return require('@/assets/image/shoudong.svg')        // 手动任务
-    case 2: return require('@/assets/image/zidong.svg')    // 自动任务
-    case 3: return require('@/assets/image/k8s.svg')
-    default: return require('@/assets/image/ren.svg')
+    case 1: return new URL('@/assets/image/shoudong.svg', import.meta.url).href
+    case 2: return new URL('@/assets/image/zidong.svg', import.meta.url).href
+    case 3: return new URL('@/assets/image/k8s.svg', import.meta.url).href
+    default: return new URL('@/assets/image/ren.svg', import.meta.url).href
   }
 }
 
@@ -1579,15 +1579,14 @@ onMounted(() => {
 .taskansible-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .taskansible-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -1599,32 +1598,31 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .search-section {
-  margin-bottom: 16px;
-  padding: 16px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form .el-form-item {
   margin-bottom: 0;
-  margin-right: 16px;
+  margin-right: 20px;
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
 .action-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
 }
 
 .table-section {
@@ -1634,41 +1632,9 @@ onMounted(() => {
 .pagination-section {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
-}
-
-:deep(.el-table) {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.el-table__header) {
-  background: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table__header th) {
-  background: rgba(102, 126, 234, 0.1) !important;
-  color: #2c3e50 !important;
-  font-weight: 600;
-  border: none;
-}
-
-:deep(.el-table__body tr:hover > td) {
-  background-color: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table td) {
-  border: none;
-}
-
-:deep(.el-table::before) {
-  display: none;
-}
-
-:deep(.el-table--border::after) {
-  display: none;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
 }
 
 .operation-buttons {
@@ -1677,193 +1643,48 @@ onMounted(() => {
   justify-content: center;
 }
 
-.operation-buttons .el-button {
-  transition: all 0.3s ease;
-}
-
-.operation-buttons .el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-:deep(.el-button--primary) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button--primary:hover) {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-:deep(.el-button--primary:active) {
-  transform: translateY(0);
-}
-
-:deep(.el-button--warning) {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button--warning:hover) {
-  background: linear-gradient(135deg, #e67e22, #d35400);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
-}
-
-:deep(.el-button--warning:active) {
-  transform: translateY(0);
-}
-
-:deep(.el-button--success) {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-button--success:hover) {
-  background: linear-gradient(135deg, #2ecc71, #16a085);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
-}
-
-:deep(.el-button--success:active) {
-  transform: translateY(0);
-}
-
-:deep(.el-form-item__label) {
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-:deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-:deep(.el-input__wrapper:hover) {
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-}
-
-:deep(.el-select .el-input.is-focus .el-input__wrapper) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-}
-
-:deep(.el-pagination) {
-  --el-pagination-bg-color: transparent;
-}
-
-:deep(.el-pager li) {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 6px;
-  margin: 0 2px;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-}
-
-:deep(.el-pager li:hover) {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-:deep(.el-pager li.is-active) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-}
-
-/* 对话框样式 */
-:deep(.modern-dialog .el-dialog) {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-}
-
-:deep(.modern-dialog .el-dialog__header) {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-radius: 16px 16px 0 0;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-}
-
-:deep(.modern-dialog .el-dialog__title) {
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 18px;
-}
-
-:deep(.modern-dialog .el-dialog__body) {
-  padding: 24px;
-}
-
-:deep(.modern-dialog .el-dialog__footer) {
-  padding: 16px 24px 24px;
-  background: rgba(248, 249, 250, 0.8);
-  border-radius: 0 0 16px 16px;
-}
-
 .mb8 {
   margin-bottom: 8px;
 }
 
 .type-manual {
-  color: #409EFF;
+  color: var(--primary);
   font-weight: 500;
 }
 
 .type-auto {
-  color: #67C23A;
+  color: var(--success);
   font-weight: 500;
 }
 
 .status-waiting {
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .status-running {
-  color: #E6A23C;
+  color: var(--warning);
   font-weight: 500;
 }
 
 .status-success {
-  color: #67C23A;
+  color: var(--success);
   font-weight: 500;
 }
 
 .status-error {
-  color: #F56C6C;
+  color: var(--danger);
   font-weight: 500;
 }
 
 .task-name-link {
-  color: #667eea;
+  color: var(--primary);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
 }
 
 .task-name-link:hover {
-  color: #764ba2;
+  color: var(--primary-dark);
   text-decoration: underline;
 }
 </style>

@@ -463,11 +463,11 @@ export default {
 <style lang="less" scoped>
 .post-management {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   padding: 20px;
   
   .main-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -493,8 +493,8 @@ export default {
     border-bottom: 1px solid rgba(103, 126, 234, 0.1);
     
     .gradient-title {
-      color: #2c3e50;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: var(--text-primary);
+      color: var(--text-primary);
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -527,7 +527,7 @@ export default {
       }
       
       :deep(.el-form-item__label) {
-        color: #606266;
+        color: var(--text-regular);
         font-weight: 500;
       }
 
@@ -632,7 +632,7 @@ export default {
     }
 
     :deep(.el-input__wrapper.is-focus) {
-      border-color: #667eea;
+      border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
       background: rgba(255, 255, 255, 1);
     }
@@ -640,7 +640,7 @@ export default {
     :deep(.el-input__inner) {
       background: transparent;
       border: none;
-      color: #2c3e50;
+      color: var(--text-primary);
 
       &::placeholder {
         color: rgba(44, 62, 80, 0.6);
@@ -663,7 +663,7 @@ export default {
     }
 
     :deep(.el-input__wrapper.is-focus) {
-      border-color: #667eea;
+      border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
       background: rgba(255, 255, 255, 1);
     }
@@ -671,7 +671,7 @@ export default {
     :deep(.el-input__inner) {
       background: transparent;
       border: none;
-      color: #2c3e50;
+      color: var(--text-primary);
 
       &::placeholder {
         color: rgba(44, 62, 80, 0.6);
@@ -679,7 +679,7 @@ export default {
     }
     
     :deep(.el-input__suffix-inner) {
-      color: #606266;
+      color: var(--text-regular);
     }
   }
 
@@ -700,7 +700,7 @@ export default {
     }
 
     :deep(.el-input__wrapper.is-focus) {
-      border-color: #667eea;
+      border-color: var(--primary);
       box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
       background: rgba(255, 255, 255, 1);
     }
@@ -708,7 +708,7 @@ export default {
     :deep(.el-input__inner) {
       background: transparent;
       border: none;
-      color: #2c3e50;
+      color: var(--text-primary);
 
       &::placeholder {
         color: rgba(44, 62, 80, 0.6);
@@ -716,7 +716,7 @@ export default {
     }
     
     :deep(.el-input__suffix-inner) {
-      color: #606266;
+      color: var(--text-regular);
     }
   }
 
@@ -734,14 +734,14 @@ export default {
       }
       
       th {
-        background: linear-gradient(135deg, #667eea, #764ba2) !important;
+        background: var(--bg-card-alt) !important;
         border-bottom: none;
-        color: #2c3e50 !important;
+        color: var(--text-primary) !important;
         font-weight: 700 !important;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
         
         .cell {
-          color: #2c3e50 !important;
+          color: var(--text-primary) !important;
           font-weight: 700 !important;
           text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
         }
@@ -750,7 +750,7 @@ export default {
       td {
         background: rgba(255, 255, 255, 0.05) !important;
         border-bottom: 1px solid rgba(103, 126, 234, 0.1);
-        color: #2c3e50;
+        color: var(--text-primary);
       }
       
       .el-table__row {
@@ -811,7 +811,7 @@ export default {
     }
     
     &.edit-btn {
-      color: #667eea;
+      color: var(--primary);
       background: rgba(102, 126, 234, 0.1);
       border-color: rgba(102, 126, 234, 0.2);
       
@@ -893,7 +893,7 @@ export default {
       }
       
       &.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--bg-page);
         color: #ffffff;
         border-color: transparent;
       }
@@ -903,28 +903,28 @@ export default {
   // 现代化对话框样式
   .modern-dialog {
     :deep(.el-dialog) {
-      background: #ffffff;
+      background: var(--bg-card);
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       
       .el-dialog__header {
-        background: #ffffff;
+        background: var(--bg-card);
         border-bottom: 1px solid #f0f0f0;
         padding: 16px 20px;
         
         .el-dialog__title {
-          color: #303133;
+          color: var(--text-primary);
           font-weight: 600;
           font-size: 16px;
         }
         
         .el-dialog__headerbtn {
           .el-dialog__close {
-            color: #909399;
+            color: var(--text-secondary);
             font-size: 16px;
             
             &:hover {
-              color: #303133;
+              color: var(--text-primary);
             }
           }
         }
@@ -943,14 +943,14 @@ export default {
 
   .dialog-form {
     :deep(.el-form-item__label) {
-      color: #606266;
+      color: var(--text-regular);
       font-weight: 500;
     }
     
     :deep(.el-form-item__content) {
       .el-input__wrapper {
-        background: #ffffff;
-        border: 1px solid #dcdfe6;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
         border-radius: 4px;
         box-shadow: none;
         
@@ -967,7 +967,7 @@ export default {
       .el-input__inner {
         background: transparent;
         border: none;
-        color: #606266;
+        color: var(--text-regular);
         
         &::placeholder {
           color: #c0c4cc;
@@ -987,12 +987,12 @@ export default {
       }
       
       .el-radio__input.is-checked .el-radio__inner {
-        background-color: #667eea;
-        border-color: #667eea;
+        background-color: var(--primary);
+        border-color: var(--primary);
       }
       
       &:hover .el-radio__inner {
-        border-color: #667eea;
+        border-color: var(--primary);
       }
     }
   }

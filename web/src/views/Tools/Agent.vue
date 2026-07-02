@@ -91,7 +91,7 @@
       <el-table-column prop="hostName" label="主机名称" width="150">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/主机在线.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/主机在线.svg')" style="width: 16px; height: 16px"/>
             <span>{{ row.hostName }}</span>
           </div>
         </template>
@@ -99,7 +99,7 @@
       <el-table-column prop="sshIp" label="IP地址" width="140">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/ip.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/ip.svg')" style="width: 16px; height: 16px"/>
             <span>{{ row.sshIp }}</span>
           </div>
         </template>
@@ -107,7 +107,7 @@
       <el-table-column prop="version" label="版本" width="120">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/版本.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/版本.svg')" style="width: 16px; height: 16px"/>
             <span>{{ row.version }}</span>
           </div>
         </template>
@@ -123,7 +123,7 @@
       <el-table-column prop="port" label="监听端口" width="100">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="@/assets/image/端口.svg" style="width: 16px; height: 16px"/>
+            <img :src="$getAssetUrl('@/assets/image/端口.svg')" style="width: 16px; height: 16px"/>
             <span>{{ row.port }}</span>
           </div>
         </template>
@@ -205,7 +205,7 @@
               v-authority="['ops:agent:delete']"
               @click="handleUninstall(row)"
             >
-              <img src="@/assets/image/卸载.svg" style="width: 16px; height: 16px"/>
+              <img :src="$getAssetUrl('@/assets/image/卸载.svg')" style="width: 16px; height: 16px"/>
             </el-button>
           </el-tooltip>
 
@@ -807,11 +807,11 @@ onUnmounted(() => {
 .agent-management {
   padding: 20px;
   height: 80vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .agent-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -830,8 +830,8 @@ onUnmounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -850,7 +850,7 @@ onUnmounted(() => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -877,19 +877,19 @@ onUnmounted(() => {
 }
 
 .agent-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .agent-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .agent-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -911,7 +911,7 @@ onUnmounted(() => {
 }
 
 .text-muted {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .status-deploying {
@@ -974,7 +974,7 @@ onUnmounted(() => {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .el-input :deep(.el-input__wrapper):hover,
@@ -984,7 +984,7 @@ onUnmounted(() => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }

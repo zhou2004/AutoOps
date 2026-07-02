@@ -15,7 +15,7 @@ import k8sApi from '@/api/k8s'
 import PodYamlDialog from './pods/PodYamlDialog.vue'
 import ClusterSelector from './pods/ClusterSelector.vue'
 import NamespaceSelector from './pods/NamespaceSelector.vue'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 
 // 基础状态
 const loading = ref(false)
@@ -154,14 +154,28 @@ const loadCrList = async () => {
           total.value = 0
       }
     } else {
-      crList.value = []
-      total.value = 0
-      ElMessage.error(resData.message || `获取 ${selectedCrdName.value} 资源失败`)
+      // 如果后端返回资源不存在的错误（CRD类型在集群中不存在），视为空列表而非错误
+      const errMsg = resData.message || ''
+      if (errMsg.includes('not found') || errMsg.includes('could not find the requested resource') || errMsg.includes('does not exist')) {
+        crList.value = []
+        total.value = 0
+        console.warn('CRD 资源不存在或为空:', selectedCrdName.value, errMsg)
+      } else {
+        crList.value = []
+        total.value = 0
+        ElMessage.error(errMsg || `获取 ${selectedCrdName.value} 资源失败`)
+      }
     }
   } catch (err) {
     crList.value = []
     total.value = 0
-    console.error('获取 CR 失败:', err)
+    const errMsg = err?.response?.data?.message || err?.message || ''
+    // 如果是资源不存在错误，不弹错误提示
+    if (errMsg.includes('not found') || errMsg.includes('could not find the requested resource') || errMsg.includes('does not exist')) {
+      console.warn('CRD 资源不存在或为空:', selectedCrdName.value, errMsg)
+    } else {
+      console.error('获取 CR 失败:', err)
+    }
   } finally {
     loading.value = false
   }
@@ -680,15 +694,14 @@ watch(selectedCrdName, (val) => {
 .k8s-crd-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .config-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -700,10 +713,7 @@ watch(selectedCrdName, (val) => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -714,9 +724,9 @@ watch(selectedCrdName, (val) => {
 .search-section {
   margin-bottom: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form {
@@ -733,33 +743,25 @@ watch(selectedCrdName, (val) => {
 
 .resource-count {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
 .resource-table {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-}
-
-.resource-table :deep(.el-table__header) {
-  background: #f8f9fa;
-}
-
-.resource-table :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
 }
 
 .resource-name {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .resource-icon {
-  color: #409EFF;
+  color: var(--primary);
   font-size: 16px;
 }
 
@@ -776,7 +778,7 @@ watch(selectedCrdName, (val) => {
 }
 
 .no-labels {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
   font-style: italic;
 }
@@ -787,37 +789,9 @@ watch(selectedCrdName, (val) => {
   justify-content: center;
 }
 
-/* 按钮及输入框统同样式对齐 k8s-config */
-.el-button {
-  border-radius: 8px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.el-input :deep(.el-input__wrapper),
-.el-select :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  border-radius: 8px;
-  box-shadow: none;
-  transition: all 0.3s ease;
-}
-
-.el-input :deep(.el-input__wrapper.is-focus),
-.el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 1);
-}
-
 .el-tag {
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
 }
 

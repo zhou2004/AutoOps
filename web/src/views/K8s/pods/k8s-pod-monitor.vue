@@ -323,7 +323,7 @@ defineExpose({
 .metric-title {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .metric-value {
@@ -373,7 +373,7 @@ defineExpose({
 
 .metric-text {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
   margin-bottom: 2px;
 }
 

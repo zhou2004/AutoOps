@@ -109,7 +109,7 @@ export default {
 }
 </script>
 <style scoped>
-.api-monitor { padding: 20px; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.api-monitor { padding: 20px; min-height: 100vh; background: var(--bg-page); }
 .api-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .title { font-size: 20px; font-weight: 600; background: linear-gradient(45deg,#667eea,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }

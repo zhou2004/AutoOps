@@ -16,9 +16,9 @@
       <div v-show="active == 1">
         <el-form-item prop="cloud" label-width="0px" style="margin-left: 25%">
           <el-radio-group v-model="form.cloud">
-            <el-radio label="aliyun"><img src="@/assets/image/aliyun.png" style="width: 60px; height: 60px; vertical-align: middle"></el-radio>
-            <el-radio label="tencent"><img src="@/assets/image/tengxun.png" style="width: 60px; height: 60px; vertical-align: middle"></el-radio>
-            <el-radio label="baidu"><img src="@/assets/image/baidu.svg" style="width: 50px; height: 50px; vertical-align: middle"></el-radio>
+            <el-radio label="aliyun"><img :src="$getAssetUrl('@/assets/image/aliyun.png')" style="width: 60px; height: 60px; vertical-align: middle"></el-radio>
+            <el-radio label="tencent"><img :src="$getAssetUrl('@/assets/image/tengxun.png')" style="width: 60px; height: 60px; vertical-align: middle"></el-radio>
+            <el-radio label="baidu"><img :src="$getAssetUrl('@/assets/image/baidu.svg')" style="width: 50px; height: 50px; vertical-align: middle"></el-radio>
           </el-radio-group>
         </el-form-item>
       </div>

@@ -212,4 +212,3 @@ function onNodeClick(node) {
   cursor: pointer;
 }
 </style>
-</template>

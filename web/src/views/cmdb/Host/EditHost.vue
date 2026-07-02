@@ -92,19 +92,19 @@
               </el-option>
               <el-option :value="2" :label="'阿里云'">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <img src="@/assets/image/aliyun.png" style="width: 18px; height: 18px"/>
+                  <img :src="$getAssetUrl('@/assets/image/aliyun.png')" style="width: 18px; height: 18px"/>
                   <span>阿里云</span>
                 </div>
               </el-option>
               <el-option :value="3" :label="'腾讯云'">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <img src="@/assets/image/tengxun.png" style="width: 18px; height: 18px"/>
+                  <img :src="$getAssetUrl('@/assets/image/tengxun.png')" style="width: 18px; height: 18px"/>
                   <span>腾讯云</span>
                 </div>
               </el-option>
               <el-option :value="4" :label="'百度云'">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <img src="@/assets/image/baidu.svg" style="width: 18px; height: 18px"/>
+                  <img :src="$getAssetUrl('@/assets/image/baidu.svg')" style="width: 18px; height: 18px"/>
                   <span>百度云</span>
                 </div>
               </el-option>

@@ -15,7 +15,7 @@
       <el-table-column prop="name" label="Pod名称" min-width="200">
         <template #default="{ row }">
           <div class="pod-name-container">
-            <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+            <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
             <span class="pod-name">{{ row.name }}</span>
           </div>
         </template>
@@ -119,7 +119,7 @@
                 v-authority="['k8s:workload:restart']"
                 @click="$emit('rebuild-pod', row)"
               >
-                <img src="@/assets/image/重构.svg" alt="重构" width="14" height="14" style="filter: brightness(0) invert(1);" />
+                <img :src="$getAssetUrl('@/assets/image/重构.svg')" alt="重构" width="14" height="14" style="filter: brightness(0) invert(1);" />
               </el-button>
             </el-tooltip>
 
@@ -130,7 +130,7 @@
                 circle
                 @click="$emit('view-events', row)"
               >
-                <img src="@/assets/image/事件.svg" alt="事件" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/事件.svg')" alt="事件" width="14" height="14" />
               </el-button>
             </el-tooltip>
           </div>
@@ -249,7 +249,7 @@ const getPodStatusText = (status) => {
 
 .pod-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .ip-info {
@@ -308,7 +308,7 @@ const getPodStatusText = (status) => {
 
 .running-time {
   font-size: 11px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .operation-buttons {
@@ -320,12 +320,12 @@ const getPodStatusText = (status) => {
 /* 对话框样式 */
 .pod-list-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .pod-list-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;

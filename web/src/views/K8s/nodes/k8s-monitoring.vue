@@ -189,7 +189,7 @@ onMounted(async () => {
 <style scoped>
 .k8s-monitoring-dashboard {
   padding: 24px;
-  background: #f5f5f5;
+  background: var(--bg-page);
   min-height: 100vh;
 }
 
@@ -198,22 +198,24 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  background: white;
+  background: var(--bg-card);
   padding: 20px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .header-title h2 {
   margin: 0 0 4px 0;
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .header-desc {
   margin: 0;
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
 }
 

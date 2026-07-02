@@ -259,7 +259,7 @@ defineExpose({
   width: 100%;
   overflow: hidden;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--border);
 }
 
 .code-editor__textarea,

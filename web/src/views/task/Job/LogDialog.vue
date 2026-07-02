@@ -58,7 +58,7 @@ export default {
 
 <style scoped>
 .log-dialog .dialog-container {
-  background: #fff;
+  background: var(--bg-card);
   color: #fff;
   width: 80%;
   max-width: 1200px;
@@ -123,7 +123,7 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
+  background: var(--bg-card);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }

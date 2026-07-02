@@ -331,14 +331,14 @@ export default {
 </script>
 
 <style scoped>
-.physical-machine-management { padding: 20px; min-height: 100vh; }
-.main-card { border-radius: 12px; }
+.physical-machine-management { padding: 20px; min-height: 100vh; background: var(--bg-page); }
+.main-card { border-radius: var(--radius-lg); }
 .card-header .title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
 .stat-row { margin-bottom: 16px; }
 .stat-card { text-align: center; border-radius: 8px; background: var(--bg-card); }
 .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); }
 .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-.search-section { background: var(--bg-card-alt); padding: 16px 20px; border-radius: 8px; margin-bottom: 16px; }
+.search-section { background: var(--bg-card-alt); padding: 16px 20px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border-light); }
 .action-section { margin-bottom: 16px; }
 .pagination-section { display: flex; justify-content: center; margin-top: 20px; }
 </style>

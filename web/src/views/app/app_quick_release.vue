@@ -95,7 +95,7 @@
           <el-table-column prop="title" label="发布标题" show-overflow-tooltip>
             <template #default="{ row }">
               <div class="table-cell-with-icon">
-                <img src="@/assets/image/renwu.svg" width="16" height="16" alt="任务" />
+                <img :src="$getAssetUrl('@/assets/image/renwu.svg')" width="16" height="16" alt="任务" />
                 <span>{{ row.title }}</span>
               </div>
             </template>
@@ -110,7 +110,7 @@
                     class="service-item">
                     <span class="service-name">{{ task.app_name }}</span>
                     <div class="environment-wrapper">
-                      <img src="@/assets/image/环境.svg" width="12" height="12" alt="环境" />
+                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" alt="环境" />
                       <span class="environment-tag" :class="getEnvironmentClass(task.environment)">
                         {{ task.environment }}
                       </span>
@@ -124,7 +124,7 @@
                     class="service-item">
                     <span class="service-name">{{ app.app_name || `服务${app.app_id}` }}</span>
                     <div class="environment-wrapper" v-if="app.environment">
-                      <img src="@/assets/image/环境.svg" width="12" height="12" alt="环境" />
+                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" alt="环境" />
                       <span class="environment-tag" :class="getEnvironmentClass(app.environment)">
                         {{ app.environment }}
                       </span>
@@ -145,7 +145,7 @@
           <el-table-column prop="duration" label="耗时">
             <template #default="{ row }">
               <div class="table-cell-with-icon">
-                <img src="@/assets/image/shijian.svg" width="16" height="16" alt="时间" />
+                <img :src="$getAssetUrl('@/assets/image/shijian.svg')" width="16" height="16" alt="时间" />
                 <span>{{ formatDuration(row.duration) }}</span>
               </div>
             </template>
@@ -1183,11 +1183,11 @@ onMounted(() => {
 .quick-release-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -1208,7 +1208,7 @@ onMounted(() => {
   font-size: 24px;
   font-weight: 700;
   margin: 0;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -1248,18 +1248,18 @@ onMounted(() => {
 }
 
 .modern-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .modern-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
 }
 
 .id-badge {
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -1301,7 +1301,7 @@ onMounted(() => {
 }
 
 .app-count {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
 }
 
@@ -1314,7 +1314,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: #fafafa;
   margin-bottom: 8px;
@@ -1355,7 +1355,7 @@ onMounted(() => {
 /* 左侧业务树 */
 .tree-section {
   width: 280px;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--border);
   padding-right: 16px;
 }
 
@@ -1365,7 +1365,7 @@ onMounted(() => {
 
 .tree-header h4 {
   margin: 0;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
@@ -1395,7 +1395,7 @@ onMounted(() => {
 
 .services-header h4 {
   margin: 0;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
@@ -1430,13 +1430,13 @@ onMounted(() => {
 }
 
 .no-service {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
   font-style: italic;
 }
 
 .no-env {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
   font-style: italic;
 }
@@ -1478,16 +1478,16 @@ onMounted(() => {
 
 .app-name {
   font-weight: 500;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .app-reason {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .modern-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   padding: 20px 24px;
 }
@@ -1533,7 +1533,7 @@ onMounted(() => {
 
 .service-name {
   font-weight: 500;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 13px;
 }
 
@@ -1562,7 +1562,7 @@ onMounted(() => {
 }
 
 .env-staging {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .env-prod {
@@ -1604,14 +1604,14 @@ onMounted(() => {
 .jenkins-params-dialog .param-description {
   display: block;
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-top: 6px;
   line-height: 1.4;
 }
 
 .jenkins-params-dialog :deep(.el-form-item__label) {
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .jenkins-params-dialog :deep(.el-switch) {

@@ -6,7 +6,7 @@
     <el-dropdown trigger="click" @command="handleCommand">
       <!-- 头像 -->
       <img
-          :src="sysAdmin.icon || require('./../assets/image/touxiang.jpg')"
+          :src="sysAdmin.icon || touxiangImg"
           alt="头像"
           class="user-avatar"
           @error="useDefaultAvatar"
@@ -25,6 +25,7 @@
 
 <script>
 import storage from '@/utils/storage';
+import touxiangImg from './../assets/image/touxiang.jpg';
 
 export default {
   name: "HeadImage",
@@ -36,7 +37,7 @@ export default {
   methods: {
     // 图片加载失败时使用默认头像
     useDefaultAvatar(e) {
-      e.target.src = require('./../assets/image/touxiang.jpg');
+      e.target.src = touxiangImg;
     },
     // 菜单点击事件
     handleCommand(command) {

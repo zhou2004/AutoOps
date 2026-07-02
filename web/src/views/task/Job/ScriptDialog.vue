@@ -82,7 +82,7 @@ export default {
   transform: translate(-50%, -50%);
   width: 80%;
   max-width: 800px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(29, 23, 23, 0.94);
 }

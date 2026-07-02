@@ -4,7 +4,7 @@
     <div class="pod-info-card">
       <div class="pod-header">
         <div class="pod-basic-info">
-          <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+          <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
           <div class="workload-info">
             <div 
               class="workload-name clickable-name" 
@@ -32,7 +32,7 @@
                 class="label-icon-button"
                 title="查看标签"
               >
-                <img src="@/assets/image/标签.svg" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
@@ -399,16 +399,16 @@ const viewAllImages = () => {
 
 <style scoped>
 .pod-info-card {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
-  background: white;
+  background: var(--bg-card);
 }
 
 .pod-header {
   padding: 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
 }
 
 .pod-basic-info {
@@ -432,12 +432,12 @@ const viewAllImages = () => {
 .workload-name {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .clickable-name {
   cursor: pointer;
-  color: #409eff;
+  color: var(--primary);
 }
 
 .clickable-name:hover {
@@ -446,7 +446,7 @@ const viewAllImages = () => {
 
 .workload-type-label {
   font-size: 12px;
-  color: #f39c12;
+  color: var(--warning);
   font-weight: 500;
 }
 
@@ -472,7 +472,7 @@ const viewAllImages = () => {
 }
 
 .label-icon-button:hover {
-  background: rgba(64, 158, 255, 0.1);
+  background: var(--primary-light);
 }
 
 .pod-status-section {
@@ -504,13 +504,13 @@ const viewAllImages = () => {
 
 .pod-status-text {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
-.replica-ready { color: #67c23a; }
-.replica-partial { color: #e6a23c; }
-.replica-failed { color: #f56c6c; }
-.replica-stopped { color: #909399; }
+.replica-ready { color: var(--success); }
+.replica-partial { color: var(--warning); }
+.replica-failed { color: var(--danger); }
+.replica-stopped { color: var(--text-secondary); }
 
 .images-section {
   display: flex;
@@ -530,28 +530,28 @@ const viewAllImages = () => {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background: #f0f9ff;
-  border: 1px solid #3b82f6;
-  border-radius: 4px;
+  background: var(--primary-light);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
   max-width: 200px;
 }
 
 .image-tag-wrapper:hover {
-  background: #dbeafe;
+  background: rgba(22, 119, 255, 0.15);
   transform: translateY(-1px);
 }
 
 .copy-icon {
   width: 12px;
   height: 12px;
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .full-image-name {
   font-size: 11px;
-  color: #1e40af;
+  color: var(--primary-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -559,7 +559,7 @@ const viewAllImages = () => {
 
 .more-images-btn {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .status-section {
@@ -580,11 +580,11 @@ const viewAllImages = () => {
 }
 
 .update-label {
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 .update-value {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -609,7 +609,7 @@ const viewAllImages = () => {
 
 .labels-section h4 {
   margin: 0 0 12px 0;
-  color: #303133;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -655,7 +655,7 @@ const viewAllImages = () => {
 }
 
 .image-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
 }
 
 .image-info {
@@ -679,7 +679,7 @@ const viewAllImages = () => {
   gap: 8px;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-light);
 }
 
 .no-images {

@@ -51,7 +51,7 @@
           border
           stripe
           style="width: 100%"
-          :header-cell-style="{ background: '#eef1f6', color: '#606266' }"
+
         >
           <el-table-column prop="ID" label="执行ID" width="100" align="center">
             <template #default="{ row }">
@@ -63,7 +63,7 @@
             <template #default="{ row }">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                  <img 
-                  src="@/assets/image/zhuangtai.svg" 
+                  :src="$getAssetUrl('@/assets/image/zhuangtai.svg')" 
                   alt="状态"
                   style="width: 16px; height: 16px;"
                 />
@@ -78,7 +78,7 @@
             <template #default="{ row }">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                  <img 
-                  src="@/assets/image/ren.svg" 
+                  :src="$getAssetUrl('@/assets/image/ren.svg')" 
                   alt="用户"
                   style="width: 16px; height: 16px;"
                 />
@@ -104,7 +104,7 @@
             <template #default="{row}">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <img 
-                  src="@/assets/image/定时关闭.svg" 
+                  :src="$getAssetUrl('@/assets/image/定时关闭.svg')" 
                   alt="时间"
                   style="width: 16px; height: 16px;"
                 />
@@ -382,15 +382,15 @@ onMounted(() => {
 .task-history-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .task-history-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -407,19 +407,16 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
   margin-left: 10px;
 }
 
 .search-section {
   margin-bottom: 16px;
   padding: 16px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .search-form .el-form-item {
@@ -428,7 +425,7 @@ onMounted(() => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -444,10 +441,10 @@ onMounted(() => {
 
 /* 统一表格样式 */
 :deep(.el-table) {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
 :deep(.el-table__header) {
@@ -456,7 +453,7 @@ onMounted(() => {
 
 :deep(.el-table__header th) {
   background: rgba(102, 126, 234, 0.1) !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 600;
   border: none;
 }
@@ -494,7 +491,7 @@ onMounted(() => {
 }
 
 :deep(.el-button--primary) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--primary);
   border: none;
   border-radius: 8px;
   font-weight: 500;
@@ -502,7 +499,7 @@ onMounted(() => {
 }
 
 :deep(.el-button--primary:hover) {
-  background: linear-gradient(135deg, #5a6fd8, #6a4190);
+  background: var(--primary-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
@@ -512,7 +509,7 @@ onMounted(() => {
 }
 
 :deep(.el-button--warning) {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
+  background: var(--warning);
   border: none;
   border-radius: 8px;
   font-weight: 500;
@@ -521,7 +518,7 @@ onMounted(() => {
 }
 
 :deep(.el-button--warning:hover) {
-  background: linear-gradient(135deg, #e67e22, #d35400);
+  background: var(--warning-dark, #e67e22);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
 }
@@ -532,29 +529,29 @@ onMounted(() => {
 
 /* 输入框样式 */
 :deep(.el-form-item__label) {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 :deep(.el-input__wrapper:hover) {
-  border-color: rgba(102, 126, 234, 0.5);
+  border-color: var(--primary);
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
 :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
 :deep(.el-select .el-input.is-focus .el-input__wrapper) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
@@ -563,25 +560,25 @@ onMounted(() => {
 }
 
 :deep(.el-pager li) {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--bg-card);
   border-radius: 6px;
   margin: 0 2px;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid var(--border);
 }
 
 :deep(.el-pager li:hover) {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--bg-card-alt);
 }
 
 :deep(.el-pager li.is-active) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--primary);
   color: white;
 }
 
 .id-tag {
-  color: #909399; 
+  color: var(--text-secondary); 
   font-family: monospace; 
-  background: #f4f4f5; 
+  background: var(--bg-card-alt); 
   padding: 2px 6px; 
   border-radius: 4px;
 }
@@ -592,11 +589,11 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .status-waiting {
-  color: #909399;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -612,23 +609,23 @@ onMounted(() => {
 
 
 :deep(.ansible-flow-dialog) {
-  background: #e6e6e6;
+  background: var(--bg-card);
 }
 
 :deep(.ansible-flow-dialog .el-dialog__header) {
-  background: #e6e6e6;
-  border-bottom: 1px solid #d9d9d9;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
 }
 
 :deep(.ansible-flow-dialog .el-dialog__body) {
   padding: 20px;
-  background: #e6e6e6;
+  background: var(--bg-card-alt);
 }
 
 .flow-container {
   min-height: 400px;
   padding: 20px;
-  background: #e8e8e8;
-  border-radius: 6px;
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
 }
 </style>

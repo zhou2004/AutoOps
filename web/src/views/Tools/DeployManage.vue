@@ -246,7 +246,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { getDeployList, deleteDeploy } from '@/api/tool'
 import { ElMessage } from 'element-plus'
 import {
-  DataBase,
+  DataBoard as DataBase,
   Operation,
   Monitor,
   CircleCheck,
@@ -295,7 +295,7 @@ const getServiceColor = (serviceName) => {
   } else if (name.includes('grafana') || name.includes('prometheus')) {
     return '#e6a23c'
   }
-  return '#909399'
+  return 'var(--text-secondary)'
 }
 
 // 状态类型映射
@@ -429,11 +429,11 @@ onUnmounted(() => {
 .deploy-manage {
   padding: 20px;
   height: 80vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .manage-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -452,8 +452,8 @@ onUnmounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -472,7 +472,7 @@ onUnmounted(() => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -489,19 +489,19 @@ onUnmounted(() => {
 }
 
 .deploy-table :deep(.el-table__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .deploy-table :deep(.el-table__header th) {
   background: transparent !important;
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   border-bottom: none;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .deploy-table :deep(.el-table__header th .cell) {
-  color: #2c3e50 !important;
+  color: var(--text-primary) !important;
   font-weight: 700 !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
@@ -555,7 +555,7 @@ onUnmounted(() => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }

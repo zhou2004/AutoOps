@@ -193,7 +193,7 @@ const formatTimestamp = (timestamp) => {
 
 .event-reason {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .event-message {
@@ -217,12 +217,12 @@ const formatTimestamp = (timestamp) => {
 /* 对话框样式 */
 .pod-events-dialog :deep(.el-dialog) {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
 }
 
 .pod-events-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
   color: white;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;

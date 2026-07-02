@@ -30,7 +30,7 @@
               <el-option :value="1">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <img 
-                    src="@/assets/image/shell.svg" 
+                    :src="$getAssetUrl('@/assets/image/shell.svg')" 
                     alt="Shell"
                     style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
                   />
@@ -40,7 +40,7 @@
               <el-option :value="2">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <img 
-                    src="@/assets/image/Python.svg" 
+                    :src="$getAssetUrl('@/assets/image/Python.svg')" 
                     alt="Python"
                     style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
                   />
@@ -50,7 +50,7 @@
               <el-option :value="3">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <img 
-                    src="@/assets/image/ansible.svg" 
+                    :src="$getAssetUrl('@/assets/image/ansible.svg')" 
                     alt="Ansible"
                     style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
                   />
@@ -94,13 +94,13 @@
           border 
           stripe 
           style="width: 100%"
-          :header-cell-style="{ background: '#eef1f6', color: '#606266' }"
+
         >
           <el-table-column prop="name" label="模板名称" width="270">
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
-                  src="@/assets/image/moban.svg" 
+                  :src="$getAssetUrl('@/assets/image/moban.svg')" 
                   alt="模板"
                   style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -139,7 +139,7 @@
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
-                  src="@/assets/image/ren.svg" 
+                  :src="$getAssetUrl('@/assets/image/ren.svg')" 
                   alt="创建人"
                   style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -218,7 +218,7 @@
             <el-option :value="1">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
-                  src="@/assets/image/shell.svg" 
+                  :src="$getAssetUrl('@/assets/image/shell.svg')" 
                   alt="Shell"
                   style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -228,7 +228,7 @@
             <el-option :value="2">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
-                  src="@/assets/image/Python.svg" 
+                  :src="$getAssetUrl('@/assets/image/Python.svg')" 
                   alt="Python"
                   style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
                 />
@@ -522,10 +522,10 @@ const getLanguage = (type) => {
 
 const getTypeIcon = (type) => {
   switch(type) {
-    case 1: return require('@/assets/image/shell.svg')
-    case 2: return require('@/assets/image/Python.svg')
-    case 3: return require('@/assets/image/ansible.svg')
-    default: return require('@/assets/image/shell.svg')
+    case 1: return new URL('@/assets/image/shell.svg', import.meta.url).href
+    case 2: return new URL('@/assets/image/Python.svg', import.meta.url).href
+    case 3: return new URL('@/assets/image/ansible.svg', import.meta.url).href
+    default: return new URL('@/assets/image/shell.svg', import.meta.url).href
   }
 }
 
@@ -547,15 +547,14 @@ onMounted(() => {
 .tasktemplate-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .tasktemplate-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -567,18 +566,15 @@ onMounted(() => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .search-section {
   margin-bottom: 16px;
   padding: 16px;
-  background: rgba(103, 126, 234, 0.05);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form .el-form-item {
@@ -587,7 +583,7 @@ onMounted(() => {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -605,96 +601,24 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-:deep(.el-table) {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.el-table__header) {
-  background: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table__header th) {
-  background: rgba(102, 126, 234, 0.1) !important;
-  color: #2c3e50 !important;
-  font-weight: 600;
-  border: none;
-}
-
-:deep(.el-table__body tr:hover > td) {
-  background-color: rgba(102, 126, 234, 0.1) !important;
-}
-
-:deep(.el-table td) {
-  border: none;
-}
-
-:deep(.el-table::before) {
-  display: none;
-}
-
-:deep(.el-table--border::after) {
-  display: none;
-}
-
 .operation-buttons {
   display: flex;
   gap: 8px;
   justify-content: center;
 }
 
-.operation-buttons .el-button {
-  transition: all 0.3s ease;
-}
-
-.operation-buttons .el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
 .type-shell {
-  color: #67C23A;
+  color: var(--success);
   font-weight: 500;
 }
 
 .type-python {
-  color: #409EFF;
+  color: var(--primary);
   font-weight: 500;
 }
 
 .type-ansible {
-  color: #E6A23C;
+  color: var(--warning);
   font-weight: 500;
-}
-
-:deep(.modern-btn) {
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-:deep(.modern-btn:hover) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-:deep(.primary-btn) {
-  background: linear-gradient(45deg, #409EFF, #66B3FF);
-  color: white;
-}
-
-:deep(.reset-btn) {
-  background: linear-gradient(45deg, #E6A23C, #EEBE77);
-  color: white;
-}
-
-:deep(.success-btn) {
-  background: linear-gradient(45deg, #67C23A, #85CE61);
-  color: white;
 }
 </style>

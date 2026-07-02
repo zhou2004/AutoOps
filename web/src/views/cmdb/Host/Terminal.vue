@@ -34,7 +34,7 @@
 import "xterm/css/xterm.css";
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import storage from '@/utils/storage'
+import { getToken } from '@/utils/auth'
 
 export default {
   mounted() {
@@ -231,9 +231,9 @@ export default {
       
       this.isConnecting = true;
       try {
-        const token = storage.getItem('token');
+        const token = getToken();
         const getWsBaseUrl = () => {
-          const baseUrl = (process.env.VUE_APP_API_BASE_URL || '').replace(/\/$/, '')
+          const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
           if (baseUrl.startsWith('http')) {
             return baseUrl.replace(/^http/, 'ws')
           }

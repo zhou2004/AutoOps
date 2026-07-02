@@ -154,6 +154,34 @@ const filteredIngressList = computed(() => {
   )
 })
 
+// 分页
+const svcCurrentPage = ref(1)
+const svcPageSize = ref(20)
+const svcTotal = ref(0)
+const ingCurrentPage = ref(1)
+const ingPageSize = ref(20)
+const ingTotal = ref(0)
+
+const paginatedServiceList = computed(() => {
+  const start = (svcCurrentPage.value - 1) * svcPageSize.value
+  const end = start + svcPageSize.value
+  return filteredServiceList.value.slice(start, end)
+})
+const paginatedIngressList = computed(() => {
+  const start = (ingCurrentPage.value - 1) * ingPageSize.value
+  const end = start + ingPageSize.value
+  return filteredIngressList.value.slice(start, end)
+})
+
+watch(filteredServiceList, () => { svcTotal.value = filteredServiceList.value.length })
+watch(filteredIngressList, () => { ingTotal.value = filteredIngressList.value.length })
+watch(searchKeyword, () => { svcCurrentPage.value = 1; ingCurrentPage.value = 1 })
+
+const handleSvcSizeChange = (val) => { svcPageSize.value = val; svcCurrentPage.value = 1 }
+const handleSvcCurrentChange = (val) => { svcCurrentPage.value = val }
+const handleIngSizeChange = (val) => { ingPageSize.value = val; ingCurrentPage.value = 1 }
+const handleIngCurrentChange = (val) => { ingCurrentPage.value = val }
+
 // 处理集群选择变化
 const handleClusterChange = (clusterId) => {
   selectedClusterId.value = clusterId
@@ -1004,7 +1032,7 @@ onMounted(async () => {
         <div v-if="activeTab === 'service'" class="tab-content">
 
           <el-table
-            :data="filteredServiceList"
+            :data="paginatedServiceList"
             v-loading="serviceLoading"
             element-loading-text="加载中..."
             class="resource-table"
@@ -1128,13 +1156,25 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="svcCurrentPage"
+                v-model:page-size="svcPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="svcTotal"
+                @size-change="handleSvcSizeChange"
+                @current-change="handleSvcCurrentChange"
+              />
+            </div>
         </div>
 
         <!-- Ingress 表格 -->
         <div v-if="activeTab === 'ingress'" class="tab-content">
 
           <el-table
-            :data="filteredIngressList"
+            :data="paginatedIngressList"
             v-loading="ingressLoading"
             element-loading-text="加载中..."
             class="resource-table"
@@ -1302,6 +1342,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="ingCurrentPage"
+                v-model:page-size="ingPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="ingTotal"
+                @size-change="handleIngSizeChange"
+                @current-change="handleIngCurrentChange"
+              />
+            </div>
         </div>
       </div>
     </el-card>
@@ -2132,15 +2184,14 @@ onMounted(async () => {
 .k8s-network-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .network-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -2152,10 +2203,7 @@ onMounted(async () => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -2195,7 +2243,13 @@ onMounted(async () => {
 
 .network-tabs :deep(.el-tabs__item) {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .network-tabs :deep(.el-tabs__item.is-active) {
@@ -2218,7 +2272,7 @@ onMounted(async () => {
 
 .cluster-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .cluster-status {
@@ -2227,7 +2281,7 @@ onMounted(async () => {
 
 .namespace-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .namespace-status-tag {
@@ -2246,11 +2300,11 @@ onMounted(async () => {
 }
 
 .selector-section .el-select :deep(.el-input__wrapper):hover {
-  border-color: #667eea;
+  border-color: var(--primary);
 }
 
 .selector-section .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -2275,7 +2329,7 @@ onMounted(async () => {
 
 .resource-table :deep(.el-table__header th) {
   background: rgba(103, 126, 234, 0.1);
-  color: #2c3e50;
+  color: var(--text-primary);
   font-weight: 600;
   border: none;
 }
@@ -2295,12 +2349,12 @@ onMounted(async () => {
 }
 
 .resource-icon {
-  color: #667eea;
+  color: var(--primary);
   font-size: 16px;
 }
 
 .resource-name-link {
-  color: #667eea;
+  color: var(--primary);
   cursor: pointer;
   font-weight: 500;
   font-size: 14px;
@@ -2317,7 +2371,7 @@ onMounted(async () => {
 }
 
 .copy-button {
-  color: #909399;
+  color: var(--text-secondary);
   padding: 2px 4px;
   margin-left: 4px;
   opacity: 0;
@@ -2408,8 +2462,8 @@ onMounted(async () => {
 .operation-buttons .el-button.is-disabled {
   cursor: not-allowed;
   opacity: 0.5;
-  background-color: #f5f7fa !important;
-  border-color: #e4e7ed !important;
+  background-color: var(--bg-card-alt) !important;
+  border-color: var(--border) !important;
   color: #c0c4cc !important;
 }
 
@@ -2441,21 +2495,19 @@ onMounted(async () => {
 
 /* 详情对话框样式 */
 .detail-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .detail-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .detail-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -2465,21 +2517,19 @@ onMounted(async () => {
 
 /* YAML 对话框样式 */
 .yaml-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .yaml-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .yaml-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -2488,30 +2538,28 @@ onMounted(async () => {
 }
 
 .yaml-content .el-textarea :deep(.el-textarea__inner) {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-family: 'Courier New', 'Consolas', monospace;
   line-height: 1.4;
 }
 
 /* 事件对话框样式 */
 .events-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .events-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .events-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -2522,23 +2570,21 @@ onMounted(async () => {
 /* 对话框样式 */
 .create-dialog :deep(.el-dialog),
 .edit-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .create-dialog :deep(.el-dialog__header),
 .edit-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .create-dialog :deep(.el-dialog__title),
 .edit-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -2578,24 +2624,24 @@ onMounted(async () => {
 
 .option-desc {
   font-size: 11px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-left: 8px;
 }
 
 /* 端口配置样式 */
 .ports-config {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 12px;
-  background: rgba(249, 250, 251, 0.5);
+  background: var(--bg-card-alt);
 }
 
 .port-item {
   margin-bottom: 8px;
   padding: 8px;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
 }
 
 .port-fields {
@@ -2606,18 +2652,18 @@ onMounted(async () => {
 
 /* 规则配置样式 */
 .rules-config {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   padding: 12px;
-  background: rgba(249, 250, 251, 0.5);
+  background: var(--bg-card-alt);
 }
 
 .rule-item {
   margin-bottom: 16px;
   padding: 12px;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
 }
 
 .rule-header {
@@ -2626,7 +2672,7 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .paths-config {
@@ -2687,7 +2733,7 @@ onMounted(async () => {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -2699,7 +2745,7 @@ onMounted(async () => {
 }
 
 .el-textarea :deep(.el-textarea__inner):focus {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
 }
 
@@ -2809,21 +2855,19 @@ onMounted(async () => {
 
 /* 测试对话框样式 */
 .test-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .test-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .test-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -2842,7 +2886,7 @@ onMounted(async () => {
   padding: 20px;
   background: rgba(249, 250, 251, 0.5);
   border-radius: 12px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
 }
 
 .result-message {
@@ -2870,7 +2914,7 @@ onMounted(async () => {
 .pods-tested h4 {
   margin-bottom: 12px;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .response-headers,
@@ -2879,7 +2923,7 @@ onMounted(async () => {
 }
 
 .code-block {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
   border: 1px solid #e9ecef;
   border-radius: 8px;
   padding: 12px;

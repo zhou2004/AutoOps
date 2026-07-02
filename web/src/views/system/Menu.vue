@@ -75,7 +75,7 @@
         :default-expand-all="isExpandAll"
         :tree-props="{ children: 'children' }"
         class="modern-table"
-        :header-cell-style="{ background: 'transparent', color: '#2c3e50', fontWeight: '600' }"
+        :header-cell-style="{ background: 'transparent', color: 'var(--text-primary)', fontWeight: '600' }"
         :row-style="{ background: 'rgba(255, 255, 255, 0.05)' }"
         stripe>
         <el-table-column prop="menuName" label="菜单名称" min-width="150">
@@ -638,7 +638,7 @@ export default {
 <style lang="less" scoped>
 .modern-menu-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   
@@ -669,8 +669,8 @@ export default {
     border-bottom: 1px solid rgba(103, 126, 234, 0.1);
     
     .gradient-title {
-      color: #2c3e50;
-      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: var(--text-primary);
+      color: var(--text-primary);
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -704,7 +704,7 @@ export default {
       }
       
       :deep(.el-form-item__label) {
-        color: #606266;
+        color: var(--text-regular);
         font-weight: 500;
       }
 
@@ -848,7 +848,7 @@ export default {
 }
 
 .secondary-btn {
-  background: linear-gradient(45deg, #909399, #B1B3B8);
+  background: linear-gradient(45deg, var(--text-secondary), #B1B3B8);
   color: white;
 }
 
@@ -867,7 +867,7 @@ export default {
   }
 
   :deep(.el-input__wrapper.is-focus) {
-    border-color: #667eea;
+    border-color: var(--primary);
     box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
     background: rgba(255, 255, 255, 1);
   }
@@ -875,7 +875,7 @@ export default {
   :deep(.el-input__inner) {
     background: transparent;
     border: none;
-    color: #2c3e50;
+    color: var(--text-primary);
 
     &::placeholder {
       color: rgba(44, 62, 80, 0.6);
@@ -898,7 +898,7 @@ export default {
   }
 
   :deep(.el-select__wrapper.is-focus) {
-    border-color: #667eea;
+    border-color: var(--primary);
     box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
     background: rgba(255, 255, 255, 1);
   }
@@ -906,7 +906,7 @@ export default {
   :deep(.el-input__inner) {
     background: transparent;
     border: none;
-    color: #2c3e50;
+    color: var(--text-primary);
   }
 
   :deep(.el-input__inner::placeholder) {
@@ -914,7 +914,7 @@ export default {
   }
 
   :deep(.el-input__suffix-inner) {
-    color: #606266;
+    color: var(--text-regular);
   }
 }
 
@@ -965,16 +965,16 @@ export default {
     }
     
     th {
-      background: linear-gradient(135deg, #667eea, #764ba2) !important;
+      background: var(--bg-card-alt) !important;
       border-bottom: none;
-      color: #2c3e50 !important;
+      color: var(--text-primary) !important;
       font-weight: 700 !important;
       padding: 8px 12px !important;
       height: 40px;
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
       
       .cell {
-        color: #2c3e50 !important;
+        color: var(--text-primary) !important;
         font-weight: 700 !important;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
       }
@@ -983,7 +983,7 @@ export default {
     td {
       background: rgba(255, 255, 255, 0.05) !important;
       border-bottom: 1px solid rgba(103, 126, 234, 0.1);
-      color: #2c3e50;
+      color: var(--text-primary);
       padding: 8px 12px !important;
       height: 40px;
     }
@@ -1005,7 +1005,7 @@ export default {
   
   .menu-name {
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--text-primary);
   }
   
   .icon-wrapper {
@@ -1089,27 +1089,27 @@ export default {
 // 现代化对话框
 :deep(.modern-dialog) {
   .el-dialog {
-    background: #ffffff;
+    background: var(--bg-card);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     
     .el-dialog__header {
-      background: #ffffff;
+      background: var(--bg-card);
       border-bottom: 1px solid #f0f0f0;
       padding: 16px 20px;
       
       .el-dialog__title {
-        color: #303133;
+        color: var(--text-primary);
         font-weight: 600;
         font-size: 16px;
       }
       
       .el-dialog__close {
-        color: #909399;
+        color: var(--text-secondary);
         font-size: 16px;
         
         &:hover {
-          color: #303133;
+          color: var(--text-primary);
         }
       }
     }
@@ -1129,14 +1129,14 @@ export default {
 .dialog-content {
   .modern-form {
     :deep(.el-form-item__label) {
-      color: #606266;
+      color: var(--text-regular);
       font-weight: 500;
     }
     
     :deep(.el-form-item__content) {
       .el-input__wrapper {
-        background: #ffffff;
-        border: 1px solid #dcdfe6;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
         border-radius: 4px;
         
         &:hover, &.is-focus {
@@ -1145,7 +1145,7 @@ export default {
         }
         
         .el-input__inner {
-          color: #606266;
+          color: var(--text-regular);
           
           &::placeholder {
             color: #c0c4cc;
@@ -1154,8 +1154,8 @@ export default {
       }
       
       .el-select__wrapper {
-        background: #ffffff;
-        border: 1px solid #dcdfe6;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
         border-radius: 4px;
         
         &:hover, &.is-focus {
@@ -1164,7 +1164,7 @@ export default {
         }
         
         .el-select__selected-item {
-          color: #606266;
+          color: var(--text-regular);
         }
         
         .el-select__placeholder {
@@ -1174,8 +1174,8 @@ export default {
       
       .el-input-number {
         .el-input__wrapper {
-          background: #ffffff;
-          border: 1px solid #dcdfe6;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
           border-radius: 4px;
           
           &:hover, &.is-focus {
@@ -1184,14 +1184,14 @@ export default {
           }
           
           .el-input__inner {
-            color: #606266;
+            color: var(--text-regular);
           }
         }
         
         .el-input-number__increase, .el-input-number__decrease {
-          background: #f5f7fa;
-          border-color: #dcdfe6;
-          color: #606266;
+          background: var(--bg-card-alt);
+          border-color: var(--border);
+          color: var(--text-regular);
           
           &:hover {
             background: #409eff;
@@ -1218,8 +1218,8 @@ export default {
     &.modern-radio {
       .el-radio__input {
         .el-radio__inner {
-          background: #ffffff;
-          border: 1px solid #dcdfe6;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
           
           &:hover {
             border-color: #409eff;
@@ -1235,7 +1235,7 @@ export default {
       }
       
       .el-radio__label {
-        color: #606266;
+        color: var(--text-regular);
         font-weight: 500;
       }
     }
@@ -1245,8 +1245,8 @@ export default {
 // Treeselect 组件样式
 .modern-treeselect {
   :deep(.vue-treeselect__control) {
-    background: #ffffff;
-    border: 1px solid #dcdfe6;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 4px;
     
     &:hover, &.vue-treeselect--focused {
@@ -1255,7 +1255,7 @@ export default {
     }
     
     .vue-treeselect__single-value {
-      color: #606266;
+      color: var(--text-regular);
     }
     
     .vue-treeselect__placeholder {
@@ -1264,15 +1264,15 @@ export default {
   }
   
   :deep(.vue-treeselect__menu) {
-    background: #ffffff;
-    border: 1px solid #dcdfe6;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 4px;
     
     .vue-treeselect__option {
-      color: #606266;
+      color: var(--text-regular);
       
       &:hover {
-        background: #f5f7fa;
+        background: var(--bg-card-alt);
       }
       
       &.vue-treeselect__option--selected {

@@ -2,7 +2,7 @@
   <!-- 节点列表表格 -->
   <div class="table-section">
     <el-table
-      :data="tableData"
+      :data="paginatedTableData"
       v-loading="loading"
       stripe
       style="width: 100%"
@@ -11,7 +11,7 @@
       <el-table-column prop="nodeName" label="节点名称" min-width="180">
         <template #default="{ row }">
           <div class="node-name-container">
-            <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+            <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
             <el-button
               type="primary"
               link
@@ -65,7 +65,7 @@
                 @click="viewNodeLabels(row)"
                 class="label-icon-button"
               >
-                <img src="@/assets/image/标签.svg" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
@@ -184,10 +184,23 @@
         </template>
       </el-table-column>
     </el-table>
+      <div class="pagination-section">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :background="true"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   CircleCheck, 
@@ -214,6 +227,21 @@ const props = defineProps({
     required: true
   }
 })
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
+
+const paginatedTableData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return (props.tableData || []).slice(start, start + pageSize.value)
+})
+
+watch(() => props.tableData, () => { total.value = (props.tableData || []).length; currentPage.value = 1 }, { immediate: true })
+
+const handleSizeChange = (val) => { pageSize.value = val; currentPage.value = 1 }
+const handleCurrentChange = (val) => { currentPage.value = val }
 
 // Emits
 const emit = defineEmits([
@@ -317,7 +345,11 @@ const drainNode = (row) => {
 }
 </script>
 
-<style scoped>
+<style scoped>.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
 .table-section {
   margin-top: 20px;
 }
@@ -353,7 +385,7 @@ const drainNode = (row) => {
 .version-text {
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .label-container,
@@ -401,13 +433,13 @@ const drainNode = (row) => {
 }
 
 .resource-label {
-  color: #909399;
+  color: var(--text-secondary);
   margin-right: 8px;
 }
 
 .resource-value {
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .operation-buttons {

@@ -411,7 +411,7 @@
           <el-select v-model="formData.namespace" placeholder="选择命名空间" filterable allow-create default-first-option style="width: 100%">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
         </el-form-item>
         <el-form-item label="权限类型" prop="permissionType">
           <el-select v-model="formData.permissionType" placeholder="选择权限类型" style="width: 100%">
@@ -444,7 +444,7 @@
           <el-select v-model="batchFormData.namespaces" multiple filterable allow-create default-first-option placeholder="选择或输入命名空间" style="width: 100%">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
         </el-form-item>
         <el-form-item label="权限类型" prop="permissionType">
           <el-select v-model="batchFormData.permissionType" placeholder="选择权限类型" style="width: 100%">
@@ -586,7 +586,7 @@
           <el-select v-model="groupPermForm.namespace" placeholder="选择命名空间" filterable allow-create default-first-option style="width: 100%">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
         </el-form-item>
         <el-form-item label="权限类型" prop="permissionType">
           <el-select v-model="groupPermForm.permissionType" placeholder="选择权限类型" style="width: 100%">
@@ -614,7 +614,7 @@
           <el-select v-model="groupPermBatchForm.namespaces" multiple filterable allow-create default-first-option placeholder="选择或输入命名空间" style="width: 100%">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
         </el-form-item>
         <el-form-item label="权限类型" prop="permissionType">
           <el-select v-model="groupPermBatchForm.permissionType" placeholder="选择权限类型" style="width: 100%">
@@ -642,7 +642,7 @@
           <el-select v-model="rbacRoleForm.namespace" placeholder="留空=集群级别" filterable allow-create clearable default-first-option style="width:100%">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color:#909399;font-size:12px;margin-top:2px">留空 = ClusterRole（集群级别），选择或输入 = Role（命名空间级别）</div>
+          <div style="color:var(--text-secondary);font-size:12px;margin-top:2px">留空 = ClusterRole（集群级别），选择或输入 = Role（命名空间级别）</div>
         </el-form-item>
         <el-form-item label="角色名称" prop="name">
           <el-input v-model="rbacRoleForm.name" placeholder="例如: pod-reader, deployment-admin" />
@@ -721,7 +721,7 @@
           <el-select v-model="rbacBindingForm.namespace" placeholder="留空=集群级别绑定" filterable allow-create clearable default-first-option style="width: 100%" @change="updateRbacRoleOptions">
             <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
           </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 2px;">选择命名空间(选填)，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;">选择命名空间(选填)，也可手动输入</div>
         </el-form-item>
         <el-form-item label="角色" prop="roleId">
           <el-select v-model="rbacBindingForm.roleId" placeholder="选择RBAC角色" filterable style="width:100%">
@@ -1903,7 +1903,7 @@ export default {
 <style scoped>
 .k8s-permission {
   padding: 20px;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 8px;
   min-height: calc(100vh - 120px);
 }
@@ -1913,13 +1913,13 @@ export default {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border);
 }
 .page-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 .header-actions {
   display: flex;
@@ -1927,7 +1927,7 @@ export default {
   margin-bottom: 16px;
 }
 .search-area {
-  background: #f5f7fa;
+  background: var(--bg-card-alt);
   padding: 16px 20px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -1947,9 +1947,9 @@ export default {
   overflow: hidden;
 }
 .el-table th.el-table__cell {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
 }
 .operation-buttons {
   display: flex;
@@ -1966,7 +1966,7 @@ export default {
   margin: 1px;
 }
 .rbac-rule-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 14px;
   margin-bottom: 12px;

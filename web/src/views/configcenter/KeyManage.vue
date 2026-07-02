@@ -435,6 +435,7 @@ export default {
     }
   },
   methods: {
+    getAssetUrl(path) { return new URL(path.replace('@/', '/src/'), import.meta.url).href; },
     // 获取密钥列表
     async getList() {
       this.loading = true
@@ -608,13 +609,13 @@ export default {
     // 获取云厂商图标
     getKeyTypeIcon(keyType) {
       const iconMap = {
-        1: require('@/assets/image/aliyun.png'),      // 阿里云
-        2: require('@/assets/image/tengxun.png'),     // 腾讯云
-        3: require('@/assets/image/baidu.svg'),       // 百度云
-        4: require('@/assets/image/huaweiyun.svg'),   // 华为云
-        5: require('@/assets/image/aws.svg')          // AWS云
+        1: getAssetUrl('@/assets/image/aliyun.png'),      // 阿里云
+        2: getAssetUrl('@/assets/image/tengxun.png'),     // 腾讯云
+        3: getAssetUrl('@/assets/image/baidu.svg'),       // 百度云
+        4: getAssetUrl('@/assets/image/huaweiyun.svg'),   // 华为云
+        5: getAssetUrl('@/assets/image/aws.svg')          // AWS云
       }
-      return iconMap[keyType] || require('@/assets/image/版本.svg')
+      return iconMap[keyType] || getAssetUrl('@/assets/image/版本.svg')
     },
     
     // 密钥掩码显示
@@ -914,11 +915,11 @@ export default {
 .key-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .key-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -934,8 +935,8 @@ export default {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: var(--text-primary);
+  color: var(--text-primary);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -958,7 +959,7 @@ export default {
 }
 
 .search-form .el-form-item__label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -991,7 +992,7 @@ export default {
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
   background: rgba(255, 255, 255, 1);
 }
@@ -1000,7 +1001,7 @@ export default {
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 /* 标签样式 */
@@ -1020,7 +1021,7 @@ export default {
 
 .config-tabs :deep(.el-tabs__item) {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .config-tabs :deep(.el-tabs__item.is-active) {
@@ -1042,7 +1043,7 @@ export default {
 
 .resource-count {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1052,11 +1053,11 @@ export default {
 }
 
 .resource-table :deep(.el-table__header) {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
 }
 
 .resource-table :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .resource-name {
@@ -1087,18 +1088,18 @@ export default {
 }
 
 .key-value {
-  color: #606266;
+  color: var(--text-regular);
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: 13px;
 }
 
 .time-text {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .remark-text {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 13px;
 }
 
@@ -1126,7 +1127,7 @@ export default {
 }
 
 .cron-text {
-  background: #f5f7fa;
+  background: var(--bg-card-alt);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
@@ -1217,7 +1218,7 @@ export default {
 }
 
 .cron-template-item strong {
-  color: #667eea;
+  color: var(--primary);
   display: block;
   margin-bottom: 2px;
 }
@@ -1267,7 +1268,7 @@ export default {
 
 .log-label {
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
   min-width: 100px;
 }
 
@@ -1284,19 +1285,19 @@ export default {
 
 .log-title {
   font-weight: 600;
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
 }
 
 .log-text {
-  background: #f5f7fa;
+  background: var(--bg-card-alt);
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #e9ecef;
   font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
-  color: #2c3e50;
+  color: var(--text-primary);
   max-height: 400px;
   overflow-y: auto;
   white-space: pre-wrap;

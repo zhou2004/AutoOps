@@ -647,11 +647,11 @@ export default {
         
         // 根据查询条件选择API调用
         if (hostName && !ip && !status) {
-          response = await this.$api.GetCmdbHostsByHostNameLike(hostName, baseParams)
+          response = await this.$api.getCmdbHostsByHostNameLike(hostName, baseParams)
         } else if (ip && !hostName && !status) {
-          response = await this.$api.GetCmdbHostsByIP(ip, baseParams)
+          response = await this.$api.getCmdbHostsByIP(ip, baseParams)
         } else if (status && !hostName && !ip) {
-          response = await this.$api.GetCmdbHostsByStatus(status, baseParams)
+          response = await this.$api.getCmdbHostsByStatus(status, baseParams)
         } else {
           response = await this.$api.getCmdbHostList(baseParams)
         }
@@ -683,7 +683,7 @@ export default {
 
         // 处理响应数据 - 适配不同API返回格式
         if (Array.isArray(res.data)) {
-          // 直接返回数组的情况（如GetCmdbHostsByIP）
+          // 直接返回数组的情况（如getCmdbHostsByIP）
           this.hostList = res.data
           this.total = res.data.length
         } else if (res.data?.list) {
@@ -1536,7 +1536,8 @@ export default {
 }
 
 .action-section { margin-top: 15px; margin-bottom: 20px; padding-left: 0; }
-.pagination-section { text-align: right; margin-top: 20px; }
+.pagination-section { text-align: center; margin-top: 20px; }
+.pagination-section .el-pagination { justify-content: center; }
 .font-weight-bold { font-weight: bold; }
 .table-operation { display: flex; justify-content: space-around; }
 .search-section .el-form-item { margin-bottom: 0; margin-right: 16px; }

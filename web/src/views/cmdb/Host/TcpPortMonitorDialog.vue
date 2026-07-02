@@ -390,7 +390,7 @@ export default {
     },
 
     getUsageColor(usage) {
-      if (!usage) return '#909399'
+      if (!usage) return 'var(--text-secondary)'
       if (usage > 80) return '#F56C6C'
       if (usage > 60) return '#E6A23C'
       return '#67C23A'
@@ -568,7 +568,7 @@ export default {
 }
 
 .text-muted {
-  color: #909399;
+  color: var(--text-secondary);
   font-style: italic;
   font-size: 12px;
 }

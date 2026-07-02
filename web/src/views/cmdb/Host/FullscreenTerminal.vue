@@ -21,7 +21,7 @@
           <div v-for="item in fileList" :key="item.name" class="file-item" @dblclick="handleFileClick(item)">
             <div class="file-info">
               <el-icon class="file-icon" v-if="item.isDir"><Folder color="#e6a23c" /></el-icon>
-              <el-icon class="file-icon" v-else><Document color="#909399" /></el-icon>
+              <el-icon class="file-icon" v-else><Document color="var(--text-secondary)" /></el-icon>
               <span class="file-name" :title="item.name">{{ item.name }}</span>
             </div>
             
@@ -55,7 +55,7 @@
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import 'xterm/css/xterm.css'
-import storage from '@/utils/storage'
+import { getToken } from '@/utils/auth'
 import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -325,9 +325,9 @@ export default {
         return
       }
 
-      const token = storage.getItem('token')
+      const token = getToken()
       const getWsBaseUrl = () => {
-        const baseUrl = (process.env.VUE_APP_API_BASE_URL || '').replace(/\/$/, '')
+        const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
         if (baseUrl.startsWith('http')) {
           return baseUrl.replace(/^http/, 'ws')
         }
@@ -506,9 +506,13 @@ export default {
 
 .file-ops {
   display: flex;
-  gap: 10px;
-  opacity: 0;
+  gap: 8px;
+  opacity: 0.6;
   transition: opacity 0.2s;
+}
+
+.file-item:hover .file-ops {
+  opacity: 1;
 }
 
 .file-ops .el-icon {
@@ -538,30 +542,30 @@ export default {
   visibility: visible;
 }
 
-/* 侧边栏开关按钮 */
+/* 侧边栏开关按钮 — 始终半透明可见 */
 .fm-toggle {
   position: absolute;
   top: 15px;
   left: 15px;
   z-index: 10;
-  color: #999;
+  color: #ccc;
   cursor: pointer;
-  background: rgba(40, 40, 40, 0.8);
+  background: rgba(40, 40, 40, 0.7);
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #444;
+  border: 1px solid #555;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s;
-  opacity: 0;
-  visibility: hidden;
+  opacity: 0.6;
 }
 
 .fm-toggle:hover {
   color: #fff;
   background: rgba(60, 60, 60, 0.9);
-  border-color: #666;
+  border-color: #888;
+  opacity: 1;
 }
 
 /* 终端容器 */

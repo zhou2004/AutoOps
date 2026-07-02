@@ -13,7 +13,7 @@
         </el-button>
         <div class="cluster-info">
           <h1 class="cluster-title">
-            <img src="@/assets/image/k8s.svg" alt="k8s" class="k8s-icon" />
+            <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
             {{ clusterDetails.clusterName || '集群详情' }}
           </h1>
           <div class="cluster-meta">
@@ -78,7 +78,7 @@
             <el-card class="overview-card cpu-card">
               <div class="card-content">
                 <div class="card-icon">
-                  <img src="@/assets/image/cpu.svg" alt="CPU" class="svg-icon" />
+                  <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="svg-icon" />
                 </div>
                 <div class="card-info">
                   <div class="card-value" :class="getCpuUsageClass()">{{ clusterDetails.monitoring?.cpu?.usagePercent || 0 }}%</div>
@@ -92,11 +92,11 @@
             <el-card class="overview-card memory-card">
               <div class="card-content">
                 <div class="card-icon">
-                  <img src="@/assets/image/内存.svg" alt="内存" class="svg-icon" />
+                  <img :src="$getAssetUrl('@/assets/image/Memory.svg')" alt="Memory" class="svg-icon" />
                 </div>
                 <div class="card-info">
                   <div class="card-value" :class="getMemoryUsageClass()">{{ clusterDetails.monitoring?.memory?.usagePercent || 0 }}%</div>
-                  <div class="card-label">内存使用率</div>
+                  <div class="card-label">Memory使用率</div>
                   <div class="card-sub">{{ clusterDetails.monitoring?.memory?.availableMi || 0 }}Mi可用 / {{ clusterDetails.monitoring?.memory?.totalMi || 0 }}Mi总量</div>
                 </div>
               </div>
@@ -150,7 +150,7 @@
             <el-card class="info-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Network /></el-icon>
+                  <el-icon><Connection as Network /></el-icon>
                   <span>网络配置</span>
                 </div>
               </template>
@@ -447,10 +447,10 @@ import {
   Refresh,
   Monitor,
   Box,
-  CpuFill,
-  MemoryStick,
+  Cpu,
+  Memory,
   InfoFilled,
-  Network,
+  Connection as Network,
   FolderOpened,
   Setting,
   Grid,
@@ -459,7 +459,6 @@ import {
   Timer,
   CircleCheck,
   Warning,
-  Cpu,
   DocumentCopy
 } from '@element-plus/icons-vue'
 import k8sApi from '@/api/k8s'
@@ -633,7 +632,7 @@ const fetchClusterDetails = async () => {
           clusterDetails.monitoring.cpu.usagePercent = cpuUsage
         }
         
-        // 内存信息
+        // Memory信息
         if (data.monitoring.memory) {
           const totalMi = parseFloat(data.monitoring.memory.total?.replace(' Mi', '')) || 0
           const availableMi = parseFloat(data.monitoring.memory.available?.replace(' Mi', '')) || 0
@@ -642,7 +641,7 @@ const fetchClusterDetails = async () => {
           clusterDetails.monitoring.memory.totalMi = totalMi
           clusterDetails.monitoring.memory.availableMi = availableMi
           
-          // 计算内存使用率：如果API提供了usageRate使用API值，否则计算 (total - available) / total * 100
+          // 计算Memory使用率：如果API提供了usageRate使用API值，否则计算 (total - available) / total * 100
           let memoryUsage = data.monitoring.memory.usageRate || 0
           if (memoryUsage === 0 && totalMi > 0 && availableMi > 0) {
             memoryUsage = Math.round(((totalMi - availableMi) / totalMi) * 100)
@@ -794,7 +793,7 @@ const getCpuUsageClass = () => {
   return 'usage-normal'
 }
 
-// 获取内存使用率样式类
+// 获取Memory使用率样式类
 const getMemoryUsageClass = () => {
   const usage = clusterDetails.monitoring?.memory?.usagePercent || 0
   if (usage >= 80) return 'usage-high'
@@ -817,7 +816,7 @@ onMounted(() => {
 .k8s-cluster-details {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
   position: relative;
 }
 
@@ -839,7 +838,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 24px;
   padding: 16px 20px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -858,14 +857,14 @@ onMounted(() => {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(102, 126, 234, 0.3);
-  color: #667eea;
+  color: var(--primary);
   backdrop-filter: blur(5px);
   transition: all 0.3s ease;
 }
 
 .back-btn:hover {
   background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  border-color: var(--primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
@@ -883,7 +882,7 @@ onMounted(() => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .k8s-icon {
@@ -898,7 +897,7 @@ onMounted(() => {
 }
 
 .cluster-version {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
   background: #f0f2f5;
   padding: 4px 8px;
@@ -906,7 +905,7 @@ onMounted(() => {
 }
 
 .cluster-type {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
 }
 
@@ -929,7 +928,7 @@ onMounted(() => {
 .overview-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
 }
 
 .card-content {
@@ -949,7 +948,7 @@ onMounted(() => {
 }
 
 .nodes-card .card-icon {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-card-alt);
 }
 
 .workloads-card .card-icon {
@@ -984,19 +983,19 @@ onMounted(() => {
 .card-value {
   font-size: 28px;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .card-label {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   margin: 4px 0;
 }
 
 .card-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 /* 使用率颜色指示 */
@@ -1034,7 +1033,7 @@ onMounted(() => {
 .info-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card);
 }
 
 .card-header {
@@ -1042,7 +1041,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--text-primary);
 }
 
 .info-content {
@@ -1064,13 +1063,13 @@ onMounted(() => {
 }
 
 .info-row .label {
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
   min-width: 120px;
 }
 
 .info-row .value {
-  color: #2c3e50;
+  color: var(--text-primary);
   text-align: right;
   word-break: break-all;
 }
@@ -1124,7 +1123,7 @@ onMounted(() => {
 }
 
 .stat-icon.pods {
-  background: #909399;
+  background: var(--text-secondary);
 }
 
 .stat-icon.running-pods {
@@ -1134,13 +1133,13 @@ onMounted(() => {
 .stat-value {
   font-size: 20px;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .stat-label {
   font-size: 12px;
-  color: #606266;
+  color: var(--text-regular);
   margin-top: 2px;
 }
 
@@ -1158,7 +1157,7 @@ onMounted(() => {
   padding: 12px;
   background: #f8f9fc;
   border-radius: 8px;
-  border-left: 4px solid #e4e7ed;
+  border-left: 4px solid var(--border);
 }
 
 .component-item .component-status.Running {
@@ -1175,13 +1174,13 @@ onMounted(() => {
 
 .component-name {
   font-weight: 500;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
 .component-version {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
 }
 
 /* 节点表格 */
@@ -1215,7 +1214,7 @@ onMounted(() => {
 
 .no-data {
   text-align: center;
-  color: #909399;
+  color: var(--text-secondary);
   padding: 40px;
   font-size: 14px;
 }

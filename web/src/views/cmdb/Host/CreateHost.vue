@@ -171,7 +171,7 @@
                   <li>复制DevOps服务器的公钥: <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">cat ~/.ssh/id_rsa.pub</code></li>
                   <li>将公钥添加到目标主机: <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">echo "公钥内容" >> /root/.ssh/authorized_keys</code></li>
                 </ol>
-                <p style="margin: 12px 0 0 0; color: #909399; font-size: 13px;">
+                <p style="margin: 12px 0 0 0; color: var(--text-secondary); font-size: 13px;">
                   💡 提示:公钥认证无需存储密码或密钥，系统会自动使用DevOps服务器的私钥进行认证。
                 </p>
               </div>
@@ -202,7 +202,7 @@
                   <li>复制目标主机的私钥内容到下方文本框</li>
                   <li>私钥格式应包含完整的BEGIN和END标记</li>
                 </ol>
-                <p style="margin: 12px 0 0 0; color: #909399; font-size: 13px;">
+                <p style="margin: 12px 0 0 0; color: var(--text-secondary); font-size: 13px;">
                   💡 提示：密钥认证需要预先在目标主机配置公钥，然后上传对应的私钥内容。
                 </p>
               </div>

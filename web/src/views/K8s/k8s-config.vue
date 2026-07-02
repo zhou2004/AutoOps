@@ -19,13 +19,21 @@ import k8sApi from '@/api/k8s'
 import PodYamlDialog from './pods/PodYamlDialog.vue'
 import ClusterSelector from './pods/ClusterSelector.vue'
 import NamespaceSelector from './pods/NamespaceSelector.vue'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 
 // 基础状态
 const loading = ref(false)
 const activeTab = ref('configmap')
 const searchKeyword = ref('')
 const visibleSecretKeys = ref({})
+
+// 分页
+const cmCurrentPage = ref(1)
+const cmPageSize = ref(20)
+const cmTotal = ref(0)
+const secretCurrentPage = ref(1)
+const secretPageSize = ref(20)
+const secretTotal = ref(0)
 
 const toggleSecretVisibility = (key) => {
   visibleSecretKeys.value[key] = !visibleSecretKeys.value[key]
@@ -76,6 +84,28 @@ const filteredSecretList = computed(() => {
     item.namespace?.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
+
+// 分页后的列表
+const paginatedConfigMapList = computed(() => {
+  const start = (cmCurrentPage.value - 1) * cmPageSize.value
+  const end = start + cmPageSize.value
+  return filteredConfigMapList.value.slice(start, end)
+})
+
+const paginatedSecretList = computed(() => {
+  const start = (secretCurrentPage.value - 1) * secretPageSize.value
+  const end = start + secretPageSize.value
+  return filteredSecretList.value.slice(start, end)
+})
+
+watch(filteredConfigMapList, () => { cmTotal.value = filteredConfigMapList.value.length })
+watch(filteredSecretList, () => { secretTotal.value = filteredSecretList.value.length })
+watch(searchKeyword, () => { cmCurrentPage.value = 1; secretCurrentPage.value = 1 })
+
+const handleCmSizeChange = (val) => { cmPageSize.value = val; cmCurrentPage.value = 1 }
+const handleCmCurrentChange = (val) => { cmCurrentPage.value = val }
+const handleSecretSizeChange = (val) => { secretPageSize.value = val; secretCurrentPage.value = 1 }
+const handleSecretCurrentChange = (val) => { secretCurrentPage.value = val }
 
 // 处理集群选择变化
 const handleClusterChange = (clusterId) => {
@@ -637,14 +667,14 @@ onMounted(async () => {
         <el-tab-pane label="ConfigMap" name="configmap">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ filteredConfigMapList.length }} 个 ConfigMap</span>
+              <span class="resource-count">共 {{ cmTotal }} 个 ConfigMap</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreateConfigMap">
                 创建 ConfigMap
               </el-button>
             </div>
 
             <el-table
-              :data="filteredConfigMapList"
+              :data="paginatedConfigMapList"
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
@@ -675,19 +705,43 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="标签" min-width="150">
+              <el-table-column label="标签" min-width="200">
                 <template #default="{ row }">
                   <div class="labels-info">
-                    <el-tag
-                      v-for="(value, key) in (row?.labels || {})"
-                      :key="key"
-                      size="small"
-                      type="primary"
-                      class="label-tag"
-                    >
-                      {{ key }}={{ value }}
-                    </el-tag>
-                    <span v-if="!row?.labels || Object.keys(row?.labels).length === 0" class="no-labels">无标签</span>
+                    <template v-if="row?.labels && Object.keys(row.labels).length > 0">
+                      <el-tag
+                        v-for="(value, key) in Object.entries(row.labels).slice(0, 3)"
+                        :key="key"
+                        size="small"
+                        type="primary"
+                        class="label-tag"
+                      >
+                        {{ value[0] }}={{ value[1] }}
+                      </el-tag>
+                      <el-popover
+                        v-if="Object.keys(row.labels).length > 3"
+                        placement="top-start"
+                        width="300"
+                        trigger="hover"
+                      >
+                        <template #reference>
+                          <el-tag size="small" type="info" class="label-tag" style="cursor: pointer;">
+                            +{{ Object.keys(row.labels).length - 3 }} ...
+                          </el-tag>
+                        </template>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                          <el-tag
+                            v-for="(value, key) in row.labels"
+                            :key="key"
+                            size="small"
+                            type="primary"
+                          >
+                            {{ key }}={{ value }}
+                          </el-tag>
+                        </div>
+                      </el-popover>
+                    </template>
+                    <span v-else class="no-labels">无标签</span>
                   </div>
                 </template>
               </el-table-column>
@@ -723,6 +777,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="cmCurrentPage"
+                v-model:page-size="cmPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="cmTotal"
+                @size-change="handleCmSizeChange"
+                @current-change="handleCmCurrentChange"
+              />
+            </div>
           </div>
         </el-tab-pane>
 
@@ -730,14 +796,14 @@ onMounted(async () => {
         <el-tab-pane label="Secret" name="secret">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ filteredSecretList.length }} 个 Secret</span>
+              <span class="resource-count">共 {{ secretTotal }} 个 Secret</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreateSecret">
                 创建 Secret
               </el-button>
             </div>
 
             <el-table
-              :data="filteredSecretList"
+              :data="paginatedSecretList"
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
@@ -782,19 +848,43 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="标签" min-width="150">
+              <el-table-column label="标签" min-width="200">
                 <template #default="{ row }">
                   <div class="labels-info">
-                    <el-tag
-                      v-for="(value, key) in (row?.labels || {})"
-                      :key="key"
-                      size="small"
-                      type="primary"
-                      class="label-tag"
-                    >
-                      {{ key }}={{ value }}
-                    </el-tag>
-                    <span v-if="!row?.labels || Object.keys(row?.labels).length === 0" class="no-labels">无标签</span>
+                    <template v-if="row?.labels && Object.keys(row.labels).length > 0">
+                      <el-tag
+                        v-for="(value, key) in Object.entries(row.labels).slice(0, 3)"
+                        :key="key"
+                        size="small"
+                        type="primary"
+                        class="label-tag"
+                      >
+                        {{ value[0] }}={{ value[1] }}
+                      </el-tag>
+                      <el-popover
+                        v-if="Object.keys(row.labels).length > 3"
+                        placement="top-start"
+                        width="300"
+                        trigger="hover"
+                      >
+                        <template #reference>
+                          <el-tag size="small" type="info" class="label-tag" style="cursor: pointer;">
+                            +{{ Object.keys(row.labels).length - 3 }} ...
+                          </el-tag>
+                        </template>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                          <el-tag
+                            v-for="(value, key) in row.labels"
+                            :key="key"
+                            size="small"
+                            type="primary"
+                          >
+                            {{ key }}={{ value }}
+                          </el-tag>
+                        </div>
+                      </el-popover>
+                    </template>
+                    <span v-else class="no-labels">无标签</span>
                   </div>
                 </template>
               </el-table-column>
@@ -830,6 +920,18 @@ onMounted(async () => {
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                v-model:current-page="secretCurrentPage"
+                v-model:page-size="secretPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                :background="true"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="secretTotal"
+                @size-change="handleSecretSizeChange"
+                @current-change="handleSecretCurrentChange"
+              />
+            </div>
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -977,15 +1079,14 @@ onMounted(async () => {
 .k8s-config-management {
   padding: 20px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-page);
 }
 
 .config-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .card-header {
@@ -997,10 +1098,7 @@ onMounted(async () => {
 .title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -1011,9 +1109,9 @@ onMounted(async () => {
 .search-section {
   margin-bottom: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(103, 126, 234, 0.1);
+  background: var(--bg-card-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
 }
 
 .search-form {
@@ -1035,30 +1133,30 @@ onMounted(async () => {
 /* 输入框样式 - 与k8s-clusters.vue保持一致 */
 .el-input :deep(.el-input__wrapper),
 .el-select :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(103, 126, 234, 0.2);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   box-shadow: none;
   transition: all 0.3s ease;
 }
 
 .el-input :deep(.el-input__wrapper):hover,
 .el-select :deep(.el-input__wrapper):hover {
-  border-color: #c0c4cc;
+  border-color: var(--primary);
 }
 
 .el-input :deep(.el-input__wrapper.is-focus),
 .el-select :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(103, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+  background: var(--bg-card);
 }
 
 .el-input :deep(.el-input__inner),
 .el-select :deep(.el-input__inner) {
   background: transparent;
   border: none;
-  color: #2c3e50;
+  color: var(--text-regular);
 }
 
 /* 标签样式 */
@@ -1078,16 +1176,22 @@ onMounted(async () => {
 
 .config-tabs :deep(.el-tabs__item) {
   font-weight: 500;
-  color: #606266;
+  color: var(--text-regular);
 }
 
 .config-tabs :deep(.el-tabs__item.is-active) {
-  color: #409EFF;
+  color: var(--primary);
   font-weight: 600;
 }
 
 .tab-content {
   padding: 0;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .content-header {
@@ -1100,7 +1204,7 @@ onMounted(async () => {
 
 .resource-count {
   font-size: 14px;
-  color: #606266;
+  color: var(--text-regular);
   font-weight: 500;
 }
 
@@ -1110,11 +1214,11 @@ onMounted(async () => {
 }
 
 .resource-table :deep(.el-table__header) {
-  background: #f8f9fa;
+  background: var(--bg-card-alt);
 }
 
 .resource-table :deep(.el-table__row:hover) {
-  background-color: #f5f7fa;
+  background-color: var(--bg-card-alt);
 }
 
 .resource-name {
@@ -1147,12 +1251,12 @@ onMounted(async () => {
 }
 
 .keys-text {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 13px;
 }
 
 .secret-icon {
-  color: #E6A23C;
+  color: var(--warning);
   font-size: 14px;
 }
 
@@ -1172,7 +1276,7 @@ onMounted(async () => {
 }
 
 .no-labels {
-  color: #909399;
+  color: var(--text-secondary);
   font-size: 12px;
   font-style: italic;
 }
@@ -1185,21 +1289,19 @@ onMounted(async () => {
 
 /* 详情对话框样式 - 与k8s-clusters.vue保持一致 */
 .detail-dialog :deep(.el-dialog) {
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
 }
 
 .detail-dialog :deep(.el-dialog__header) {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  background: var(--bg-card-alt);
+  border-bottom: 1px solid var(--border);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
   padding: 20px 24px;
 }
 
 .detail-dialog :deep(.el-dialog__title) {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -1223,8 +1325,8 @@ onMounted(async () => {
   gap: 8px;
   margin: 0 0 16px 0;
   padding: 8px 0;
-  border-bottom: 2px solid #f0f0f0;
-  color: #2c3e50;
+  border-bottom: 2px solid var(--border-light);
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 600;
 }
@@ -1236,27 +1338,27 @@ onMounted(async () => {
 }
 
 .data-item {
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: var(--bg-card-alt);
+  border-radius: var(--radius-sm);
   padding: 12px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--border);
 }
 
 .data-item.secret-item {
-  background: #fff7e6;
-  border-color: #ffd591;
+  background: var(--warning-light, #fff7e6);
+  border-color: var(--warning);
 }
 
 .data-key {
   font-weight: 600;
-  color: #409EFF;
+  color: var(--primary);
   margin-bottom: 8px;
   font-size: 14px;
 }
 
 .data-value {
   margin: 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.5;
   background: transparent;
@@ -1268,14 +1370,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #E6A23C;
+  color: var(--warning);
   font-weight: 500;
 }
 
-/* 加载动画样式 */
-.el-loading-mask {
-  background-color: rgba(103, 126, 234, 0.1);
-  backdrop-filter: blur(4px);
+.el-input :deep(.el-input__inner),
+.el-select :deep(.el-input__inner) {
+  color: var(--text-regular);
 }
 
 /* 响应式设计 */
