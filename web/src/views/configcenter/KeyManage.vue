@@ -435,7 +435,7 @@ export default {
     }
   },
   methods: {
-    getAssetUrl(path) { return new URL(path.replace('@/', '/src/'), import.meta.url).href; },
+    getAssetUrl(path) { return this.$getAssetUrl(path); },
     // 获取密钥列表
     async getList() {
       this.loading = true

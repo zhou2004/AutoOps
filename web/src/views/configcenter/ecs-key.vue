@@ -281,7 +281,7 @@ export default {
   },
   methods: {
     getAssetUrl(path) {
-      return new URL(path.replace('@/', '/src/'), import.meta.url).href;
+      return this.$getAssetUrl(path);
     },
     // 获取凭据列表
     async getList() {

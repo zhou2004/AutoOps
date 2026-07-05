@@ -454,7 +454,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowLeft, InfoFilled, Monitor, Connection as Network, FolderOpened, Setting, Box, Cpu, Memory, Grid, Files, CircleCheck, Warning, Timer } from '@element-plus/icons-vue'
+import { ArrowLeft, InfoFilled, Monitor, Connection as Network, FolderOpened, Setting, Box, Cpu, Grid, Files, CircleCheck, Warning, Timer } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
 

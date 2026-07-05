@@ -283,7 +283,7 @@ export default {
     }
   },
     methods: {
-      getAssetUrl(path) { return new URL(path.replace('@/', '/src/'), import.meta.url).href; },
+      getAssetUrl(path) { return this.$getAssetUrl(path); },
       // 获取数据库图标
       getDbIcon(type) {
         const iconMap = {

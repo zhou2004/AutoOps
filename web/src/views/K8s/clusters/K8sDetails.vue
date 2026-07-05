@@ -448,7 +448,6 @@ import {
   Monitor,
   Box,
   Cpu,
-  Memory,
   InfoFilled,
   Connection as Network,
   FolderOpened,

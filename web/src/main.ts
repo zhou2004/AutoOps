@@ -69,9 +69,21 @@ for (let iconName in ElIconModules) {
 // 全局注入 AutoOps 工具
 app.config.globalProperties.$storage = storage as any;
 app.config.globalProperties.$handleTree = handleTree;
+
+// 预加载 @/assets/image/ 下所有资源，确保 Vite 打包时将其包含在产物中
+// 否则运行时动态 path 参数无法被 Rollup 静态分析，导致资源被 tree-shake
+const assetImageModules = import.meta.glob<
+  typeof import('*.svg') | typeof import('*.png') | typeof import('*.jpg')
+>('@/assets/image/*', { eager: true, query: '?url', import: 'default' });
+
 // 全局资源路径解析（兼容 @/ 别名在模板中无法被 Vite 解析的问题）
+// 注意：Vite 编译 import.meta.glob 会将 @/ 别名解析为 /src/ 前缀，所以需要归一化
 app.config.globalProperties.$getAssetUrl = (path: string): string => {
-  return new URL(path.replace('@/', '/src/'), import.meta.url).href;
+  const normalizedPath = path.replace('@/', '/src/');
+  const cached = (assetImageModules as unknown as Record<string, string>)[normalizedPath];
+  if (cached) return cached;
+  // 兜底：其他路径的资源
+  return new URL(normalizedPath, import.meta.url).href;
 };
 
 getPlatformConfig(app).then(async config => {

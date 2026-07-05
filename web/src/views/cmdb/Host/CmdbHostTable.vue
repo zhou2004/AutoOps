@@ -259,7 +259,7 @@ export default {
   },
   methods: {
     getAssetUrl(path) {
-      return new URL(path.replace('@/', '/src/'), import.meta.url).href;
+      return this.$getAssetUrl(path);
     },
     getStatusText(status) {
       const statusMap = {

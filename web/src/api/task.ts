@@ -580,12 +580,16 @@ export function GetAnsibleTaskDetail(id) {
 }
 
 // 启动Ansible任务
-export function StartAnsibleTaskFlow(id, surveyVars = null) {
-  const data = surveyVars ? { survey_vars: surveyVars } : {}
+export function StartAnsibleTaskFlow(id, surveyVars = null, surveyEnabled = false, startupCliArgs = '', cliArgsEnabled = false) {
   return request({
     url: `task/ansible/${id}/start`,
     method: 'post',
-    data: data,
+    data: {
+      survey_vars: surveyVars || {},
+      survey_enabled: surveyEnabled,
+      startup_cli_args: startupCliArgs || '',
+      cli_args_enabled: cliArgsEnabled
+    },
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

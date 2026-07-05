@@ -30,26 +30,26 @@ import (
 )
 
 type ITaskAnsibleService interface {
-	CreateTask(c *gin.Context, req *CreateTaskRequest)                                   // 创建任务
-	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                             // 创建K8s任务
-	List(c *gin.Context, page, size int)                                                 // 获取任务列表
-	StartJob(c *gin.Context, taskID uint, surveyVars map[string]string)                  // 启动任务
-	StopJob(c *gin.Context, taskID, workID uint)                                         // 停止任务
-	GetJobLog(c *gin.Context, taskID, workID uint)                                       // 实时获取任务日志(SSE)
-	GetJobStatus(c *gin.Context, taskID, workID uint)                                    // 获取任务状态
-	GetTaskDetail(c *gin.Context, taskID uint)                                           // 获取任务详情
-	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error)                     // 获取子任务详情
-	DeleteTask(c *gin.Context, taskID uint)                                              // 删除任务
-	GetTasksByName(c *gin.Context, name string)                                          // 根据名称模糊查询任务
-	GetTasksByType(c *gin.Context, taskType int)                                         // 根据类型查询任务
-	GetTasks(c *gin.Context, name string, taskType int, viewName string, page, size int) // 综合查询任务列表
-	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)                      // 修改任务
-	GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int)                     // 获取任务历史记录列表
-	GetTaskHistoryDetail(c *gin.Context, historyID uint)                                 // 获取任务历史记录详情
-	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                // 获取历史任务日志
-	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)           // 获取历史任务日志(通过详细信息)
-	DeleteTaskHistory(c *gin.Context, historyID uint)                                    // 删除任务历史记录
-	ExecuteTask(taskID uint, surveyVars map[string]string) error                         // 执行任务
+	CreateTask(c *gin.Context, req *CreateTaskRequest)                                                                                  // 创建任务
+	CreateK8sTask(c *gin.Context, req *CreateK8sTaskRequest)                                                                            // 创建K8s任务
+	List(c *gin.Context, page, size int)                                                                                                // 获取任务列表
+	StartJob(c *gin.Context, taskID uint, surveyVars map[string]string, surveyEnabled bool, startupCliArgs string, cliArgsEnabled bool) // 启动任务
+	StopJob(c *gin.Context, taskID, workID uint)                                                                                        // 停止任务
+	GetJobLog(c *gin.Context, taskID, workID uint)                                                                                      // 实时获取任务日志(SSE)
+	GetJobStatus(c *gin.Context, taskID, workID uint)                                                                                   // 获取任务状态
+	GetTaskDetail(c *gin.Context, taskID uint)                                                                                          // 获取任务详情
+	GetWorkByID(taskID, workID uint) (*model.TaskAnsibleWork, error)                                                                    // 获取子任务详情
+	DeleteTask(c *gin.Context, taskID uint)                                                                                             // 删除任务
+	GetTasksByName(c *gin.Context, name string)                                                                                         // 根据名称模糊查询任务
+	GetTasksByType(c *gin.Context, taskType int)                                                                                        // 根据类型查询任务
+	GetTasks(c *gin.Context, name string, taskType int, viewName string, page, size int)                                                // 综合查询任务列表
+	UpdateTask(c *gin.Context, taskID uint, req *UpdateTaskRequest)                                                                     // 修改任务
+	GetTaskHistoryList(c *gin.Context, taskID uint, page, limit int)                                                                    // 获取任务历史记录列表
+	GetTaskHistoryDetail(c *gin.Context, historyID uint)                                                                                // 获取任务历史记录详情
+	GetTaskHistoryLog(c *gin.Context, historyWorkID uint)                                                                               // 获取历史任务日志
+	GetTaskHistoryLogByDetails(c *gin.Context, taskID, workID, historyID uint)                                                          // 获取历史任务日志(通过详细信息)
+	DeleteTaskHistory(c *gin.Context, historyID uint)                                                                                   // 删除任务历史记录
+	ExecuteTask(taskID uint, surveyVars map[string]string, surveyEnabled bool, startupCliArgs string, cliArgsEnabled bool) error        // 执行任务
 }
 
 func NewTaskAnsibleService(db *gorm.DB) ITaskAnsibleService {
@@ -108,7 +108,10 @@ type UpdateTaskRequest struct {
 
 // StartJobRequest 启动任务请求参数
 type StartJobRequest struct {
-	SurveyVars map[string]string `json:"survey_vars"` // 调查参数，启动时可临时添加，会覆盖全局变量和扩展参数
+	SurveyVars     map[string]string `json:"survey_vars"`      // 调查参数
+	SurveyEnabled  bool              `json:"survey_enabled"`   // 是否启用调查参数
+	StartupCliArgs string            `json:"startup_cli_args"` // 启动时临时命令行参数
+	CliArgsEnabled bool              `json:"cli_args_enabled"` // 是否启用启动命令行参数
 }
 
 // CreateK8sTaskRequest 创建K8s任务请求参数
@@ -752,8 +755,8 @@ func (s *TaskAnsibleServiceImpl) GetTasks(c *gin.Context, name string, taskType 
 }
 
 // StartJob 启动任务
-func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint, surveyVars map[string]string) {
-	if err := s.ExecuteTask(taskID, surveyVars); err != nil {
+func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint, surveyVars map[string]string, surveyEnabled bool, startupCliArgs string, cliArgsEnabled bool) {
+	if err := s.ExecuteTask(taskID, surveyVars, surveyEnabled, startupCliArgs, cliArgsEnabled); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -761,7 +764,7 @@ func (s *TaskAnsibleServiceImpl) StartJob(c *gin.Context, taskID uint, surveyVar
 }
 
 // ExecuteTask 执行任务
-func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]string) error {
+func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]string, surveyEnabled bool, startupCliArgs string, cliArgsEnabled bool) error {
 	// 1. 获取任务详情（包含子任务）
 	task, err := s.dao.GetTaskDetail(taskID)
 	if err != nil {
@@ -779,7 +782,7 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 	}
 
 	// 3. 异步执行Ansible任务
-	go func(sv map[string]string) {
+	go func(sv map[string]string, se bool, scArgs string, ce bool) {
 		defer func() {
 			if r := recover(); r != nil {
 				errMsg := fmt.Sprintf("任务执行异常: %v", r)
@@ -970,8 +973,8 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 					}
 				}
 
-				// 添加调查参数(Survey Vars)- 以最高优先级覆盖全局变量和扩展参数
-				if len(sv) > 0 {
+				// 添加调查参数(Survey Vars)- 仅当启用时以最高优先级覆盖全局变量和扩展参数
+				if se && len(sv) > 0 {
 					surveyVarsFile := "vars/survey.yml"
 					absSurveyVarsPath := filepath.Join(absTaskDir, surveyVarsFile)
 					var surveyContent strings.Builder
@@ -993,6 +996,11 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 				// 添加CliArgs参数
 				if cliArgsStr != "" {
 					cmdArgs = append(cmdArgs, strings.Fields(cliArgsStr)...)
+				}
+
+				// 添加启动时临时CliArgs参数（仅当启用时追加）
+				if ce && scArgs != "" {
+					cmdArgs = append(cmdArgs, strings.Fields(scArgs)...)
 				}
 
 				// 添加Playbook路径
@@ -1158,7 +1166,7 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 			}
 			// --- 历史记录保存结束 ---
 		}
-	}(surveyVars)
+	}(surveyVars, surveyEnabled, startupCliArgs, cliArgsEnabled)
 
 	return nil
 }

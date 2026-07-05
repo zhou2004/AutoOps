@@ -31,9 +31,9 @@ ENV GO111MODULE=on \
 RUN mkdir -p /app/log /app/upload /app/docs /go/pkg/mod /go-cache && \
     chmod -R 777 /go /go-cache
 
-# 复制编译好的二进制文件
-COPY devops /app/devops
-RUN chmod +x /app/devops
+# 复制 Go 源码并编译
+COPY api/ /app/
+RUN CGO_ENABLED=0 GOOS=linux go build -o devops . && chmod +x /app/devops
 
 # 暴露端口
 EXPOSE 8000

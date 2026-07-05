@@ -287,17 +287,23 @@ func (c *TaskAnsibleController) StartTask(ctx *gin.Context) {
 		return
 	}
 
-	// 解析可选的调查参数(survey_vars)，允许请求体为空
+	// 解析可选的调查参数(survey_vars)和启动命令行参数(startup_cli_args)，允许请求体为空
 	var surveyVars map[string]string
+	var surveyEnabled bool
+	var startupCliArgs string
+	var cliArgsEnabled bool
 	bodyBytes, err := io.ReadAll(ctx.Request.Body)
 	if err == nil && len(bodyBytes) > 0 {
 		var req service.StartJobRequest
-		if json.Unmarshal(bodyBytes, &req) == nil && req.SurveyVars != nil {
+		if json.Unmarshal(bodyBytes, &req) == nil {
 			surveyVars = req.SurveyVars
+			surveyEnabled = req.SurveyEnabled
+			startupCliArgs = req.StartupCliArgs
+			cliArgsEnabled = req.CliArgsEnabled
 		}
 	}
 
-	c.service.StartJob(ctx, uint(id), surveyVars)
+	c.service.StartJob(ctx, uint(id), surveyVars, surveyEnabled, startupCliArgs, cliArgsEnabled)
 }
 
 // GetJobLog 获取任务日志(SSE实现)

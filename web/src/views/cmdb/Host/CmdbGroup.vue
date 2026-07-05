@@ -295,7 +295,7 @@ export default {
     document.removeEventListener('click', this.hideContextMenu)
   },
   methods: {
-    getAssetUrl(path) { return new URL(path.replace('@/', '/src/'), import.meta.url).href; },
+    getAssetUrl(path) { return this.$getAssetUrl(path); },
     handleGroupSearch() {
       this.$emit('group-search', this.groupSearchText)
     },

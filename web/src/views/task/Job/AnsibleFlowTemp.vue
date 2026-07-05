@@ -64,25 +64,59 @@
     </div>
     <!-- 调查参数(Survey)对话框 -->
     <el-dialog
-      title="调查参数 (Survey Variables)"
+      title="启动参数设置"
       v-model="surveyDialogVisible"
-      width="500px"
+      width="550px"
       :modal="true"
       :append-to-body="true"
       :close-on-click-modal="false"
       class="modern-dialog"
     >
-      <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">
-        添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。
+      <!-- ========== 调查参数区域 ========== -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">📋 调查参数 (Survey Variables)</span>
+        <el-switch v-model="surveyEnabled" active-text="启用" inactive-text="关闭" size="small" />
       </div>
-      <div v-for="(item, index) in surveyVars" :key="index" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
-        <el-input v-model="item.key" placeholder="变量名" size="small" style="width: 180px;" />
-        <el-input v-model="item.value" placeholder="变量值" size="small" style="width: 180px;" />
-        <el-button type="danger" icon="Delete" size="small" circle @click="removeSurveyVar(index)" />
+      <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12px;">
+        添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。数据会保存在浏览器中。
       </div>
-      <div style="margin-top: 8px;">
-        <el-button type="primary" icon="Plus" size="small" @click="addSurveyVar">添加变量</el-button>
+      <template v-if="surveyEnabled">
+        <div v-for="(item, index) in surveyVars" :key="index" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+          <el-input v-model="item.key" placeholder="变量名" size="small" style="width: 180px;" />
+          <el-input v-model="item.value" placeholder="变量值" size="small" style="width: 180px;" />
+          <el-button type="danger" :icon="Delete" size="small" circle @click="removeSurveyVar(index)" />
+        </div>
+        <div style="margin-top: 4px;">
+          <el-button type="primary" :icon="Plus" size="small" @click="addSurveyVar">添加变量</el-button>
+        </div>
+      </template>
+      <div v-else style="color: var(--text-secondary); font-size: 13px; padding: 12px 0; text-align: center; background: var(--bg-card-alt); border-radius: 6px;">
+        已禁用，不会应用调查参数
       </div>
+
+      <el-divider style="margin: 20px 0 12px;" />
+
+      <!-- ========== 启动命令行参数区域 ========== -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">⚡ 启动命令行参数 (CLI Args)</span>
+        <el-switch v-model="cliArgsEnabled" active-text="启用" inactive-text="关闭" size="small" />
+      </div>
+      <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12px;">
+        临时追加的命令行参数，会在任务配置的 CLI 参数之后追加，仅本次执行生效。
+      </div>
+      <template v-if="cliArgsEnabled">
+        <el-input
+          v-model="startupCliArgs"
+          type="textarea"
+          :rows="2"
+          placeholder="例如: -e 'ansible_user=root' --limit web"
+          style="width: 100%;"
+        />
+      </template>
+      <div v-else style="color: var(--text-secondary); font-size: 13px; padding: 12px 0; text-align: center; background: var(--bg-card-alt); border-radius: 6px;">
+        已禁用，不会追加命令行参数
+      </div>
+
       <template #footer>
         <el-button @click="surveyDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="confirmSurveyVars" :loading="starting">确认并启动</el-button>
@@ -112,7 +146,10 @@ export default {
     return {
       starting: false,
       surveyDialogVisible: false,
-      surveyVars: []
+      surveyVars: [],
+      surveyEnabled: false,
+      startupCliArgs: '',
+      cliArgsEnabled: false
     }
   },
   props: {
@@ -211,7 +248,7 @@ export default {
     removeSurveyVar(index) {
       this.surveyVars.splice(index, 1);
     },
-    // 显示调查参数对话框
+    // 显示调查参数对话框 - 从 localStorage 加载持久化数据
     startAnsibleTask() {
       if (this.historyMode) {
         this.$message.warning('历史记录模式下无法启动任务');
@@ -221,8 +258,28 @@ export default {
         this.$message.error('Ansible任务ID未定义');
         return;
       }
-      // 重置调查参数
-      this.surveyVars = [];
+      // 从 localStorage 加载之前保存的调查参数
+      const storageKey = `ansible_survey_${this.taskId}`;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          this.surveyVars = parsed.vars || [];
+          this.surveyEnabled = parsed.enabled || false;
+          this.startupCliArgs = parsed.cliArgs || '';
+          this.cliArgsEnabled = parsed.cliArgsEnabled || false;
+        } else {
+          this.surveyVars = [];
+          this.surveyEnabled = false;
+          this.startupCliArgs = '';
+          this.cliArgsEnabled = false;
+        }
+      } catch (e) {
+        this.surveyVars = [];
+        this.surveyEnabled = false;
+        this.startupCliArgs = '';
+        this.cliArgsEnabled = false;
+      }
       this.surveyDialogVisible = true;
     },
     // 确认调查参数并启动任务
@@ -240,10 +297,29 @@ export default {
           }
         }
         
-        console.log('Survey vars:', surveyVarsMap);
+        // 持久化到 localStorage
+        const storageKey = `ansible_survey_${this.taskId}`;
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            vars: this.surveyVars,
+            enabled: this.surveyEnabled,
+            cliArgs: this.startupCliArgs,
+            cliArgsEnabled: this.cliArgsEnabled
+          }));
+        } catch (e) {
+          console.warn('保存调查参数到 localStorage 失败:', e);
+        }
         
-        const varsToSend = Object.keys(surveyVarsMap).length > 0 ? surveyVarsMap : null;
-        await StartAnsibleTaskFlow(this.taskId, varsToSend);
+        console.log('Survey vars:', surveyVarsMap, 'enabled:', this.surveyEnabled);
+        console.log('Startup CLI args:', this.startupCliArgs, 'enabled:', this.cliArgsEnabled);
+        
+        await StartAnsibleTaskFlow(
+          this.taskId,
+          surveyVarsMap,
+          this.surveyEnabled,
+          this.startupCliArgs,
+          this.cliArgsEnabled
+        );
         
         this.surveyDialogVisible = false;
         this.$message.success('Ansible任务已启动');

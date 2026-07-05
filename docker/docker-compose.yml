@@ -53,63 +53,9 @@ services:
       timeout: 3s
       retries: 5
 
-  # Pushgateway metrics push service
-  pushgateway:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/pushgateway:v1.9.0
-    container_name: devops-pushgateway
-    restart: always
-    user: root
-    ports:
-      - "${PUSHGATEWAY_PORT:-9091}:9091"
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-    volumes:
-      # Persistent data
-      - ./pushgateway/data:/pushgateway
-    networks:
-      - devops-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9091/-/healthy"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-  # Prometheus monitoring service
-  prometheus:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/prometheus:v2.47.0
-    container_name: devops-prometheus
-    restart: always
-    user: root
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-    volumes:
-      # Prometheus configuration
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      # Persistent data directory
-      - ./prometheus/data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--storage.tsdb.retention.time=15d'
-      - '--web.enable-lifecycle'
-    networks:
-      - devops-network
-    depends_on:
-      pushgateway:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   # DevOps API backend service
   devops-api:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-api:v1.0
+    image: devops-api:latest
     container_name: devops-api
     restart: always
     ports:
@@ -143,8 +89,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      prometheus:
-        condition: service_healthy
     # 禁用健康检查,API 已正常启动
     # healthcheck:
     #   test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/"]
@@ -155,7 +99,7 @@ services:
 
   # DevOps Web frontend service
   devops-web:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-web:v1.0
+    image: devops-web:latest
     container_name: devops-web
     restart: always
     ports:
@@ -187,5 +131,3 @@ networks:
 volumes:
   mysql-data:
   redis-data:
-  prometheus-data:
-  pushgateway-data:
