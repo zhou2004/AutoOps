@@ -38,7 +38,7 @@
   <!-- YAML 查看对话框 -->
   <YamlViewerDialog
     v-model="dialogs.yaml.visible"
-    :title="dialogs.yaml.data?.title || 'YAML查看'"
+    :title="$tr(dialogs.yaml.data?.title || 'YAML查看')"
     :yaml-content="dialogs.yaml.data?.yamlContent || ''"
     :resource-type="dialogs.yaml.data?.resourceType || ''"
     :resource-name="dialogs.yaml.data?.resourceName || ''"

@@ -2,6 +2,7 @@
 package db
 
 import (
+	aiopsmodel "dodevops-api/api/aiops/model"
 	appmodel "dodevops-api/api/app/model"
 	cmdbmodel "dodevops-api/api/cmdb/model"
 	ccmodel "dodevops-api/api/configcenter/model"
@@ -16,13 +17,31 @@ import (
 
 // 注册所有需要自动建表的 model
 var models = []interface{}{
+	&aiopsmodel.Config{},
+	&aiopsmodel.Run{},
+	&aiopsmodel.Session{},
+	&aiopsmodel.Message{},
+	&aiopsmodel.ToolCall{},
+	&aiopsmodel.HarnessTicket{},
+	&systemmodel.APIKey{},
+	&systemmodel.RolePermission{},
 	&cmdbmodel.CmdbGroup{},
 	&ccmodel.EcsAuth{},
 	&ccmodel.KeyManage{},
 	&ccmodel.SyncSchedule{},
 	&cmdbmodel.CmdbHost{},
+	&cmdbmodel.CmdbAssetConnection{},
+	&cmdbmodel.CmdbConnectionTicket{},
+	&cmdbmodel.CmdbConnectionAudit{},
+	&cmdbmodel.CmdbNetworkConfigSnapshot{},
+	&cmdbmodel.CmdbNetworkConfigAudit{},
 	&cmdbmodel.CmdbSQLRecord{},
 	&cmdbmodel.CmdbSQL{},
+	&cmdbmodel.CmdbDatabaseAudit{},
+	&cmdbmodel.DatabaseDeployment{},
+	&cmdbmodel.DatabaseAutomationRun{},
+	&cmdbmodel.DatabaseAutomationLock{},
+	&cmdbmodel.CmdbDockerAudit{},
 	&cmdbmodel.CmdbIDC{},
 	&cmdbmodel.CmdbCabinet{},
 	&cmdbmodel.CmdbPhysicalMachine{},
@@ -35,9 +54,16 @@ var models = []interface{}{
 	&taskmodel.TaskTemplate{},
 	&taskmodel.Task{},
 	&taskmodel.TaskWork{},
+	&taskmodel.TaskExecutionHistory{},
+	&taskmodel.TaskExecutionLog{},
 	&taskmodel.TaskAnsible{},
 	&taskmodel.TaskAnsibleWork{},
+	&taskmodel.KubeaszOperation{},
 	&monitormodel.Agent{},
+	&monitormodel.MonitorCategory{},
+	&monitormodel.DomainCert{},
+	&monitormodel.MonitorAPIEndpoint{},
+	&monitormodel.MonitorIncident{},
 	&monitormodel.MonitorDataSource{},
 	&monitormodel.MonitorAlertGroupRule{},
 	&monitormodel.MonitorAlertRule{},
@@ -61,5 +87,11 @@ var models = []interface{}{
 
 // 自动迁移所有模型
 func AutoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(models...)
+	if err := db.AutoMigrate(models...); err != nil {
+		return err
+	}
+	if err := migrateLegacyMonitorIncidents(db); err != nil {
+		return err
+	}
+	return migrateManagementNavigation(db)
 }

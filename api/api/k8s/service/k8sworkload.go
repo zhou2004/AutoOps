@@ -149,20 +149,43 @@ func (s *K8sWorkloadServiceImpl) GetWorkloads(c *gin.Context, clusterId uint, na
 		// 获取独立的 Pod（不属于任何工作负载）
 		workloads, err = s.getStandalonePods(clientset, namespaceName)
 	case "all":
-		// 获取所有类型的工作负载
-		deployments, _ := s.getDeployments(clientset, namespaceName)
-		statefulsets, _ := s.getStatefulSets(clientset, namespaceName)
-		daemonsets, _ := s.getDaemonSets(clientset, namespaceName)
-		jobs, _ := s.getJobs(clientset, namespaceName)
-		cronjobs, _ := s.getCronJobs(clientset, namespaceName)
-		standalonePods, _ := s.getStandalonePods(clientset, namespaceName)
+		allowedKinds, scoped := c.Get("k8s_workload_kinds")
+		canRead := func(kind string) bool {
+			if !scoped {
+				return true
+			}
+			for _, k := range allowedKinds.([]string) {
+				if k == kind {
+					return true
+				}
+			}
+			return false
+		}
+		if canRead("deployments") {
+			deployments, _ := s.getDeployments(clientset, namespaceName)
+			workloads = append(workloads, deployments...)
+		}
+		if canRead("statefulsets") {
+			statefulsets, _ := s.getStatefulSets(clientset, namespaceName)
+			workloads = append(workloads, statefulsets...)
+		}
+		if canRead("daemonsets") {
+			daemonsets, _ := s.getDaemonSets(clientset, namespaceName)
+			workloads = append(workloads, daemonsets...)
+		}
+		if canRead("jobs") {
+			jobs, _ := s.getJobs(clientset, namespaceName)
+			workloads = append(workloads, jobs...)
+		}
+		if canRead("cronjobs") {
+			cronjobs, _ := s.getCronJobs(clientset, namespaceName)
+			workloads = append(workloads, cronjobs...)
+		}
+		if canRead("pods") {
+			pods, _ := s.getStandalonePods(clientset, namespaceName)
+			workloads = append(workloads, pods...)
+		}
 
-		workloads = append(workloads, deployments...)
-		workloads = append(workloads, statefulsets...)
-		workloads = append(workloads, daemonsets...)
-		workloads = append(workloads, jobs...)
-		workloads = append(workloads, cronjobs...)
-		workloads = append(workloads, standalonePods...)
 	default:
 		result.Failed(c, http.StatusBadRequest, "不支持的工作负载类型: "+workloadType)
 		return
@@ -323,15 +346,30 @@ func (s *K8sWorkloadServiceImpl) getJobs(clientset *kubernetes.Clientset, namesp
 }
 
 // getCronJobs 获取CronJob列表
+// 优先使用 batch/v1 API（K8s v1.21+），失败时回退到 batch/v1beta1 API（旧版 K8s）
 func (s *K8sWorkloadServiceImpl) getCronJobs(clientset *kubernetes.Clientset, namespaceName string) ([]model.K8sWorkload, error) {
-	cronJobList, err := clientset.BatchV1beta1().CronJobs(namespaceName).List(context.TODO(), metav1.ListOptions{})
+	var workloads []model.K8sWorkload
+
+	// 优先尝试 batch/v1 API（K8s v1.21+ 稳定版）
+	cronJobListV1, err := clientset.BatchV1().CronJobs(namespaceName).List(context.TODO(), metav1.ListOptions{})
+	if err == nil {
+		for _, cronJob := range cronJobListV1.Items {
+			cj := cronJob // 避免循环变量指针问题
+			workload := s.convertCronJobV1ToWorkload(&cj)
+			workloads = append(workloads, workload)
+		}
+		return workloads, nil
+	}
+
+	// 回退到 batch/v1beta1 API（旧版 K8s，v1.25 以前）
+	cronJobListBeta, err := clientset.BatchV1beta1().CronJobs(namespaceName).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	var workloads []model.K8sWorkload
-	for _, cronJob := range cronJobList.Items {
-		workload := s.convertCronJobToWorkload(&cronJob)
+	for _, cronJob := range cronJobListBeta.Items {
+		cj := cronJob
+		workload := s.convertCronJobToWorkload(&cj)
 		workloads = append(workloads, workload)
 	}
 
@@ -516,7 +554,7 @@ func (s *K8sWorkloadServiceImpl) convertJobToWorkload(job *batchv1.Job) model.K8
 	}
 }
 
-// convertCronJobToWorkload 转换CronJob为工作负载
+// convertCronJobToWorkload 转换CronJob为工作负载（v1beta1 API）
 func (s *K8sWorkloadServiceImpl) convertCronJobToWorkload(cronJob *batchv1beta1.CronJob) model.K8sWorkload {
 	var replicas int32 = 1
 	if cronJob.Spec.JobTemplate.Spec.Completions != nil {
@@ -535,6 +573,28 @@ func (s *K8sWorkloadServiceImpl) convertCronJobToWorkload(cronJob *batchv1beta1.
 		Status:        s.getCronJobStatus(cronJob),
 		CreatedAt:     cronJob.CreationTimestamp.Format(time.RFC3339),
 		UpdatedAt:     s.getCronJobLastUpdateTime(cronJob),
+	}
+}
+
+// convertCronJobV1ToWorkload 转换CronJob为工作负载（v1 API，K8s v1.21+）
+func (s *K8sWorkloadServiceImpl) convertCronJobV1ToWorkload(cronJob *batchv1.CronJob) model.K8sWorkload {
+	var replicas int32 = 1
+	if cronJob.Spec.JobTemplate.Spec.Completions != nil {
+		replicas = *cronJob.Spec.JobTemplate.Spec.Completions
+	}
+
+	return model.K8sWorkload{
+		Name:          cronJob.Name,
+		Type:          model.WorkloadTypeCronJob,
+		Namespace:     cronJob.Namespace,
+		Labels:        cronJob.Labels,
+		Replicas:      replicas,
+		ReadyReplicas: 0, // CronJob没有常驻副本
+		Resources:     s.extractPodResources(&cronJob.Spec.JobTemplate.Spec.Template.Spec),
+		Images:        s.extractImages(&cronJob.Spec.JobTemplate.Spec.Template.Spec),
+		Status:        s.getCronJobV1Status(cronJob),
+		CreatedAt:     cronJob.CreationTimestamp.Format(time.RFC3339),
+		UpdatedAt:     s.getCronJobV1LastUpdateTime(cronJob),
 	}
 }
 
@@ -654,8 +714,19 @@ func (s *K8sWorkloadServiceImpl) getJobStatus(job *batchv1.Job) string {
 	return "Pending"
 }
 
-// getCronJobStatus 获取CronJob状态
+// getCronJobStatus 获取CronJob状态（v1beta1 API）
 func (s *K8sWorkloadServiceImpl) getCronJobStatus(cronJob *batchv1beta1.CronJob) string {
+	if cronJob.Spec.Suspend != nil && *cronJob.Spec.Suspend {
+		return "Suspended"
+	}
+	if len(cronJob.Status.Active) > 0 {
+		return "Running"
+	}
+	return "Active"
+}
+
+// getCronJobV1Status 获取CronJob状态（v1 API，K8s v1.21+）
+func (s *K8sWorkloadServiceImpl) getCronJobV1Status(cronJob *batchv1.CronJob) string {
 	if cronJob.Spec.Suspend != nil && *cronJob.Spec.Suspend {
 		return "Suspended"
 	}
@@ -729,8 +800,16 @@ func (s *K8sWorkloadServiceImpl) getDaemonSetLastUpdateTime(conditions []appsv1.
 	return latestTime.Format(time.RFC3339)
 }
 
-// getCronJobLastUpdateTime 获取CronJob最后更新时间
+// getCronJobLastUpdateTime 获取CronJob最后更新时间（v1beta1 API）
 func (s *K8sWorkloadServiceImpl) getCronJobLastUpdateTime(cronJob *batchv1beta1.CronJob) string {
+	if cronJob.Status.LastScheduleTime != nil {
+		return cronJob.Status.LastScheduleTime.Format(time.RFC3339)
+	}
+	return cronJob.CreationTimestamp.Format(time.RFC3339)
+}
+
+// getCronJobV1LastUpdateTime 获取CronJob最后更新时间（v1 API，K8s v1.21+）
+func (s *K8sWorkloadServiceImpl) getCronJobV1LastUpdateTime(cronJob *batchv1.CronJob) string {
 	if cronJob.Status.LastScheduleTime != nil {
 		return cronJob.Status.LastScheduleTime.Format(time.RFC3339)
 	}
@@ -854,12 +933,8 @@ func (s *K8sWorkloadServiceImpl) getJobDetail(clientset *kubernetes.Clientset, n
 }
 
 // getCronJobDetail 获取CronJob详情
+// 优先使用 batch/v1 API（K8s v1.21+），失败时回退到 batch/v1beta1 API（旧版 K8s）
 func (s *K8sWorkloadServiceImpl) getCronJobDetail(clientset *kubernetes.Clientset, namespaceName, cronJobName string) (*model.K8sWorkloadDetail, error) {
-	cronJob, err := clientset.BatchV1beta1().CronJobs(namespaceName).Get(context.TODO(), cronJobName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
 	// CronJob的Pod是通过其创建的Job获取的
 	pods := []model.K8sPodInfo{}
 
@@ -868,14 +943,33 @@ func (s *K8sWorkloadServiceImpl) getCronJobDetail(clientset *kubernetes.Clientse
 		events = []model.K8sEvent{}
 	}
 
-	workload := s.convertCronJobToWorkload(cronJob)
+	// 优先尝试 batch/v1 API（K8s v1.21+ 稳定版）
+	cronJobV1, err := clientset.BatchV1().CronJobs(namespaceName).Get(context.TODO(), cronJobName, metav1.GetOptions{})
+	if err == nil {
+		workload := s.convertCronJobV1ToWorkload(cronJobV1)
+		return &model.K8sWorkloadDetail{
+			K8sWorkload: workload,
+			Pods:        pods,
+			Conditions:  []model.WorkloadCondition{}, // CronJob没有标准的Conditions
+			Events:      events,
+			Spec:        cronJobV1.Spec,
+		}, nil
+	}
+
+	// 回退到 batch/v1beta1 API（旧版 K8s，v1.25 以前）
+	cronJobBeta, err := clientset.BatchV1beta1().CronJobs(namespaceName).Get(context.TODO(), cronJobName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	workload := s.convertCronJobToWorkload(cronJobBeta)
 
 	return &model.K8sWorkloadDetail{
 		K8sWorkload: workload,
 		Pods:        pods,
 		Conditions:  []model.WorkloadCondition{}, // CronJob没有标准的Conditions
 		Events:      events,
-		Spec:        cronJob.Spec,
+		Spec:        cronJobBeta.Spec,
 	}, nil
 }
 
@@ -2234,6 +2328,68 @@ func (s *K8sWorkloadServiceImpl) GetPodMetrics(c *gin.Context, clusterId uint, n
 	result.Success(c, podMetricsInfo)
 }
 
+// getPodResourceRequests 获取Pod的CPU和内存requests总和
+func getPodResourceRequests(pod *corev1.Pod) (resource.Quantity, resource.Quantity) {
+	var reqCPU, reqMem resource.Quantity
+	if pod == nil {
+		return reqCPU, reqMem
+	}
+	for _, container := range pod.Spec.Containers {
+		if r, ok := container.Resources.Requests[corev1.ResourceCPU]; ok {
+			reqCPU.Add(r)
+		}
+		if r, ok := container.Resources.Requests[corev1.ResourceMemory]; ok {
+			reqMem.Add(r)
+		}
+	}
+	return reqCPU, reqMem
+}
+
+// findPodByName 在Pod列表中查找指定名称和命名空间的Pod
+func findPodByName(podList *corev1.PodList, name, namespace string) *corev1.Pod {
+	if podList == nil {
+		return nil
+	}
+	for i := range podList.Items {
+		if podList.Items[i].Name == name && podList.Items[i].Namespace == namespace {
+			return &podList.Items[i]
+		}
+	}
+	return nil
+}
+
+// getPodMetricsSummary 根据Pod Metrics和Pod信息构建PodMetricsSummary（含使用率计算）
+func getPodMetricsSummary(podMetric *metricsv1beta1.PodMetrics, pod *corev1.Pod) model.PodMetricsSummary {
+	var totalCPU, totalMemory resource.Quantity
+	for _, containerMetric := range podMetric.Containers {
+		totalCPU.Add(containerMetric.Usage[corev1.ResourceCPU])
+		totalMemory.Add(containerMetric.Usage[corev1.ResourceMemory])
+	}
+
+	// 计算使用率：usage / requests * 100
+	reqCPU, reqMem := getPodResourceRequests(pod)
+	var cpuRate, memRate float64
+	if reqCPU.MilliValue() > 0 && totalCPU.MilliValue() > 0 {
+		cpuRate = float64(totalCPU.MilliValue()) / float64(reqCPU.MilliValue()) * 100
+	}
+	if reqMem.Value() > 0 && totalMemory.Value() > 0 {
+		memRate = float64(totalMemory.Value()) / float64(reqMem.Value()) * 100
+	}
+
+	return model.PodMetricsSummary{
+		PodName:   podMetric.Name,
+		Namespace: podMetric.Namespace,
+		Usage: model.ResourceUsage{
+			CPU:    totalCPU.String(),
+			Memory: totalMemory.String(),
+		},
+		UsageRate: model.ResourceUsageRate{
+			CPURate:    cpuRate,
+			MemoryRate: memRate,
+		},
+	}
+}
+
 // GetNodeMetrics 获取节点监控指标
 func (s *K8sWorkloadServiceImpl) GetNodeMetrics(c *gin.Context, clusterId uint, nodeName string) {
 	// 获取集群信息
@@ -2254,13 +2410,6 @@ func (s *K8sWorkloadServiceImpl) GetNodeMetrics(c *gin.Context, clusterId uint, 
 		return
 	}
 
-	// 创建Metrics客户端
-	metricsClient, err := s.createMetricsClient(cluster.Credential)
-	if err != nil {
-		result.Failed(c, http.StatusInternalServerError, "连接Metrics服务失败: "+err.Error())
-		return
-	}
-
 	// 获取节点基础信息
 	node, err := clientset.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
 	if err != nil {
@@ -2268,23 +2417,102 @@ func (s *K8sWorkloadServiceImpl) GetNodeMetrics(c *gin.Context, clusterId uint, 
 		return
 	}
 
-	// 获取Node Metrics
-	nodeMetrics, err := metricsClient.MetricsV1beta1().NodeMetricses().Get(context.TODO(), nodeName, metav1.GetOptions{})
-	if err != nil {
-		result.Failed(c, http.StatusInternalServerError, "获取节点监控数据失败: "+err.Error())
-		return
-	}
-
-	// 获取节点上的所有Pod Metrics
-	podMetricsList, err := metricsClient.MetricsV1beta1().PodMetricses("").List(context.TODO(), metav1.ListOptions{
+	// 获取节点上的所有 Pod 列表（用于展示 Pod 信息，metrics 不可用时的兜底数据源）
+	podList, _ := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("spec.nodeName=%s", nodeName),
 	})
-	if err != nil {
-		podMetricsList = &metricsv1beta1.PodMetricsList{} // 如果获取失败，使用空列表
+
+	// 初始化默认值
+	var usage, capacity, allocatable model.ResourceUsage
+	var cpuRate, memoryRate float64
+	var podMetricsSummary []model.PodMetricsSummary
+
+	// 从 Node.Status 获取容量和可分配量（不依赖 metrics-server）
+	if cpu, ok := node.Status.Capacity[corev1.ResourceCPU]; ok {
+		capacity.CPU = cpu.String()
+	}
+	if memory, ok := node.Status.Capacity[corev1.ResourceMemory]; ok {
+		capacity.Memory = memory.String()
+	}
+	if cpu, ok := node.Status.Allocatable[corev1.ResourceCPU]; ok {
+		allocatable.CPU = cpu.String()
+	}
+	if memory, ok := node.Status.Allocatable[corev1.ResourceMemory]; ok {
+		allocatable.Memory = memory.String()
 	}
 
-	// 转换为响应结构
-	nodeMetricsInfo := s.convertToNodeMetricsInfo(node, nodeMetrics, podMetricsList, clientset)
+	// 尝试创建 Metrics 客户端（metrics-server 不可用时降级处理）
+	metricsClient, _ := s.createMetricsClient(cluster.Credential)
+	if metricsClient != nil {
+		// 获取 Node Metrics
+		if nodeMetrics, err := metricsClient.MetricsV1beta1().NodeMetricses().Get(context.TODO(), nodeName, metav1.GetOptions{}); err == nil {
+			if cpu, ok := nodeMetrics.Usage[corev1.ResourceCPU]; ok {
+				usage.CPU = cpu.String()
+			}
+			if memory, ok := nodeMetrics.Usage[corev1.ResourceMemory]; ok {
+				usage.Memory = memory.String()
+			}
+			// 计算使用率（基于可分配量）
+			if allocatableCPU, err := resource.ParseQuantity(allocatable.CPU); err == nil {
+				if usedCPU, err := resource.ParseQuantity(usage.CPU); err == nil && allocatableCPU.MilliValue() > 0 {
+					cpuRate = float64(usedCPU.MilliValue()) / float64(allocatableCPU.MilliValue()) * 100
+				}
+			}
+			if allocatableMemory, err := resource.ParseQuantity(allocatable.Memory); err == nil {
+				if usedMemory, err := resource.ParseQuantity(usage.Memory); err == nil && allocatableMemory.Value() > 0 {
+					memoryRate = float64(usedMemory.Value()) / float64(allocatableMemory.Value()) * 100
+				}
+			}
+		}
+
+		// 获取节点上的所有 Pod Metrics（真实用量数据）
+		if podMetricsList, err := metricsClient.MetricsV1beta1().PodMetricses("").List(context.TODO(), metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("spec.nodeName=%s", nodeName),
+		}); err == nil {
+			for _, podMetric := range podMetricsList.Items {
+				pod := findPodByName(podList, podMetric.Name, podMetric.Namespace)
+				summary := getPodMetricsSummary(&podMetric, pod)
+				podMetricsSummary = append(podMetricsSummary, summary)
+			}
+		}
+	}
+
+	// 兜底：metrics 不可用时，至少展示节点上的 Pod 列表（无用量数据）
+	if len(podMetricsSummary) == 0 && podList != nil {
+		for _, pod := range podList.Items {
+			podMetricsSummary = append(podMetricsSummary, model.PodMetricsSummary{
+				PodName:   pod.Name,
+				Namespace: pod.Namespace,
+				Usage: model.ResourceUsage{
+					CPU:    "0m",
+					Memory: "0Mi",
+				},
+				UsageRate: model.ResourceUsageRate{CPURate: 0, MemoryRate: 0},
+			})
+		}
+	}
+
+	nodeMetricsInfo := model.NodeMetricsInfo{
+		NodeName:    node.Name,
+		Timestamp:   time.Now().Format(time.RFC3339),
+		Usage:       usage,
+		Capacity:    capacity,
+		Allocatable: allocatable,
+		UsageRate: model.ResourceUsageRate{
+			CPURate:    cpuRate,
+			MemoryRate: memoryRate,
+		},
+		PodCount:   len(podMetricsSummary),
+		PodMetrics: podMetricsSummary,
+		SystemInfo: model.NodeSystemInfo{
+			KernelVersion:           node.Status.NodeInfo.KernelVersion,
+			OSImage:                 node.Status.NodeInfo.OSImage,
+			ContainerRuntimeVersion: node.Status.NodeInfo.ContainerRuntimeVersion,
+			KubeletVersion:          node.Status.NodeInfo.KubeletVersion,
+			KubeProxyVersion:        node.Status.NodeInfo.KubeProxyVersion,
+			Architecture:            node.Status.NodeInfo.Architecture,
+		},
+	}
 
 	result.Success(c, nodeMetricsInfo)
 }
@@ -2309,13 +2537,6 @@ func (s *K8sWorkloadServiceImpl) GetNamespaceMetrics(c *gin.Context, clusterId u
 		return
 	}
 
-	// 创建Metrics客户端
-	metricsClient, err := s.createMetricsClient(cluster.Credential)
-	if err != nil {
-		result.Failed(c, http.StatusInternalServerError, "连接Metrics服务失败: "+err.Error())
-		return
-	}
-
 	// 获取命名空间基础信息
 	namespace, err := clientset.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {
@@ -2323,22 +2544,117 @@ func (s *K8sWorkloadServiceImpl) GetNamespaceMetrics(c *gin.Context, clusterId u
 		return
 	}
 
-	// 获取命名空间下所有Pod的Metrics
-	podMetricsList, err := metricsClient.MetricsV1beta1().PodMetricses(namespaceName).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		result.Failed(c, http.StatusInternalServerError, "获取命名空间监控数据失败: "+err.Error())
-		return
-	}
-
-	// 获取命名空间下所有Pod的基础信息
+	// 获取命名空间下所有Pod的基础信息（不依赖 metrics-server）
 	podList, err := clientset.CoreV1().Pods(namespaceName).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "获取Pod列表失败: "+err.Error())
 		return
 	}
 
-	// 转换为响应结构
-	namespaceMetricsInfo := s.convertToNamespaceMetricsInfo(namespace, podMetricsList, podList, clientset)
+	// 初始化返回值
+	var totalCPU, totalMemory resource.Quantity
+	var podMetricsSummary []model.PodMetricsSummary
+	var runningPods int
+	var cpuRate, memoryRate float64
+	var quotaHard, quotaUsed model.ResourceUsage
+
+	// 统计运行中的 Pod
+	for _, pod := range podList.Items {
+		if pod.Status.Phase == corev1.PodRunning {
+			runningPods++
+		}
+	}
+
+	// 尝试获取 ResourceQuota（用于展示容量）
+	if quotaList, err := clientset.CoreV1().ResourceQuotas(namespaceName).List(context.TODO(), metav1.ListOptions{}); err == nil && len(quotaList.Items) > 0 {
+		quota := quotaList.Items[0]
+		if hardCPU, ok := quota.Status.Hard[corev1.ResourceCPU]; ok {
+			quotaHard.CPU = hardCPU.String()
+		}
+		if hardMemory, ok := quota.Status.Hard[corev1.ResourceMemory]; ok {
+			quotaHard.Memory = hardMemory.String()
+		}
+		if usedCPU, ok := quota.Status.Used[corev1.ResourceCPU]; ok {
+			quotaUsed.CPU = usedCPU.String()
+		}
+		if usedMemory, ok := quota.Status.Used[corev1.ResourceMemory]; ok {
+			quotaUsed.Memory = usedMemory.String()
+		}
+	}
+
+	// 尝试创建 Metrics 客户端（metrics-server 不可用时降级处理）
+	metricsClient, _ := s.createMetricsClient(cluster.Credential)
+	if metricsClient != nil {
+		// 获取命名空间下所有Pod的Metrics（真实用量）
+		if podMetricsList, err := metricsClient.MetricsV1beta1().PodMetricses(namespaceName).List(context.TODO(), metav1.ListOptions{}); err == nil {
+			for _, podMetric := range podMetricsList.Items {
+				// 累加命名空间总用量
+				var podCPU, podMemory resource.Quantity
+				for _, containerMetric := range podMetric.Containers {
+					podCPU.Add(containerMetric.Usage[corev1.ResourceCPU])
+					podMemory.Add(containerMetric.Usage[corev1.ResourceMemory])
+				}
+				totalCPU.Add(podCPU)
+				totalMemory.Add(podMemory)
+
+				// 计算每个 Pod 的使用率（基于 requests）
+				pod := findPodByName(podList, podMetric.Name, podMetric.Namespace)
+				summary := getPodMetricsSummary(&podMetric, pod)
+				podMetricsSummary = append(podMetricsSummary, summary)
+			}
+		}
+	}
+
+	// 兜底：metrics 不可用时，至少展示命名空间下的 Pod 列表（无用量数据）
+	if len(podMetricsSummary) == 0 {
+		for _, pod := range podList.Items {
+			podMetricsSummary = append(podMetricsSummary, model.PodMetricsSummary{
+				PodName:   pod.Name,
+				Namespace: pod.Namespace,
+				Usage: model.ResourceUsage{
+					CPU:    "0m",
+					Memory: "0Mi",
+				},
+				UsageRate: model.ResourceUsageRate{CPURate: 0, MemoryRate: 0},
+			})
+		}
+	}
+
+	// 计算使用率（基于 ResourceQuota，有配额时才有值）
+	if quotaHard.CPU != "" && quotaUsed.CPU != "" {
+		if hardCPU, err := resource.ParseQuantity(quotaHard.CPU); err == nil {
+			if usedCPU, err := resource.ParseQuantity(quotaUsed.CPU); err == nil && hardCPU.MilliValue() > 0 {
+				cpuRate = float64(usedCPU.MilliValue()) / float64(hardCPU.MilliValue()) * 100
+			}
+		}
+	}
+	if quotaHard.Memory != "" && quotaUsed.Memory != "" {
+		if hardMemory, err := resource.ParseQuantity(quotaHard.Memory); err == nil {
+			if usedMemory, err := resource.ParseQuantity(quotaUsed.Memory); err == nil && hardMemory.Value() > 0 {
+				memoryRate = float64(usedMemory.Value()) / float64(hardMemory.Value()) * 100
+			}
+		}
+	}
+
+	namespaceMetricsInfo := model.NamespaceMetricsInfo{
+		Namespace:   namespace.Name,
+		Timestamp:   time.Now().Format(time.RFC3339),
+		PodCount:    len(podList.Items),
+		RunningPods: runningPods,
+		TotalUsage: model.ResourceUsage{
+			CPU:    totalCPU.String(),
+			Memory: totalMemory.String(),
+		},
+		ResourceQuota: model.NamespaceResourceQuota{
+			Hard: quotaHard,
+			Used: quotaUsed,
+		},
+		UsageRate: model.ResourceUsageRate{
+			CPURate:    cpuRate,
+			MemoryRate: memoryRate,
+		},
+		PodMetrics: podMetricsSummary,
+	}
 
 	result.Success(c, namespaceMetricsInfo)
 }
@@ -2475,207 +2791,6 @@ func (s *K8sWorkloadServiceImpl) convertToPodMetricsInfo(pod *corev1.Pod, podMet
 			CPURate:    podCPURate,
 			MemoryRate: podMemoryRate,
 		},
-	}
-}
-
-// convertToNodeMetricsInfo 转换Node监控信息
-func (s *K8sWorkloadServiceImpl) convertToNodeMetricsInfo(node *corev1.Node, nodeMetrics *metricsv1beta1.NodeMetrics, podMetricsList *metricsv1beta1.PodMetricsList, clientset *kubernetes.Clientset) model.NodeMetricsInfo {
-	// 获取节点资源信息，安全地获取资源值
-	var capacityCPU, capacityMemory string
-	if cpu, ok := node.Status.Capacity[corev1.ResourceCPU]; ok {
-		capacityCPU = cpu.String()
-	}
-	if memory, ok := node.Status.Capacity[corev1.ResourceMemory]; ok {
-		capacityMemory = memory.String()
-	}
-
-	var allocatableCPU, allocatableMemory string
-	if cpu, ok := node.Status.Allocatable[corev1.ResourceCPU]; ok {
-		allocatableCPU = cpu.String()
-	}
-	if memory, ok := node.Status.Allocatable[corev1.ResourceMemory]; ok {
-		allocatableMemory = memory.String()
-	}
-
-	var usageCPU, usageMemory string
-	if cpu, ok := nodeMetrics.Usage[corev1.ResourceCPU]; ok {
-		usageCPU = cpu.String()
-	}
-	if memory, ok := nodeMetrics.Usage[corev1.ResourceMemory]; ok {
-		usageMemory = memory.String()
-	}
-
-	capacity := model.ResourceUsage{
-		CPU:    capacityCPU,
-		Memory: capacityMemory,
-	}
-
-	allocatable := model.ResourceUsage{
-		CPU:    allocatableCPU,
-		Memory: allocatableMemory,
-	}
-
-	usage := model.ResourceUsage{
-		CPU:    usageCPU,
-		Memory: usageMemory,
-	}
-
-	// 计算使用率
-	var cpuRate, memoryRate float64
-	if allocatableCPU, err := resource.ParseQuantity(allocatable.CPU); err == nil {
-		if usedCPU, err := resource.ParseQuantity(usage.CPU); err == nil {
-			if allocatableCPU.MilliValue() > 0 {
-				cpuRate = float64(usedCPU.MilliValue()) / float64(allocatableCPU.MilliValue()) * 100
-			}
-		}
-	}
-	if allocatableMemory, err := resource.ParseQuantity(allocatable.Memory); err == nil {
-		if usedMemory, err := resource.ParseQuantity(usage.Memory); err == nil {
-			if allocatableMemory.Value() > 0 {
-				memoryRate = float64(usedMemory.Value()) / float64(allocatableMemory.Value()) * 100
-			}
-		}
-	}
-
-	// 转换Pod监控摘要
-	var podMetricsSummary []model.PodMetricsSummary
-	for _, podMetric := range podMetricsList.Items {
-		var totalCPU, totalMemory resource.Quantity
-		for _, containerMetric := range podMetric.Containers {
-			totalCPU.Add(containerMetric.Usage[corev1.ResourceCPU])
-			totalMemory.Add(containerMetric.Usage[corev1.ResourceMemory])
-		}
-
-		podMetricsSummary = append(podMetricsSummary, model.PodMetricsSummary{
-			PodName:   podMetric.Name,
-			Namespace: podMetric.Namespace,
-			Usage: model.ResourceUsage{
-				CPU:    totalCPU.String(),
-				Memory: totalMemory.String(),
-			},
-			UsageRate: model.ResourceUsageRate{
-				CPURate:    0, // 此处可以计算Pod级别的使用率，但需要额外的Pod配置信息
-				MemoryRate: 0,
-			},
-		})
-	}
-
-	return model.NodeMetricsInfo{
-		NodeName:    node.Name,
-		Timestamp:   nodeMetrics.Timestamp.Format(time.RFC3339),
-		Usage:       usage,
-		Capacity:    capacity,
-		Allocatable: allocatable,
-		UsageRate: model.ResourceUsageRate{
-			CPURate:    cpuRate,
-			MemoryRate: memoryRate,
-		},
-		PodCount:   len(podMetricsList.Items),
-		PodMetrics: podMetricsSummary,
-		SystemInfo: model.NodeSystemInfo{
-			KernelVersion:           node.Status.NodeInfo.KernelVersion,
-			OSImage:                 node.Status.NodeInfo.OSImage,
-			ContainerRuntimeVersion: node.Status.NodeInfo.ContainerRuntimeVersion,
-			KubeletVersion:          node.Status.NodeInfo.KubeletVersion,
-			KubeProxyVersion:        node.Status.NodeInfo.KubeProxyVersion,
-			Architecture:            node.Status.NodeInfo.Architecture,
-		},
-	}
-}
-
-// convertToNamespaceMetricsInfo 转换Namespace监控信息
-func (s *K8sWorkloadServiceImpl) convertToNamespaceMetricsInfo(namespace *corev1.Namespace, podMetricsList *metricsv1beta1.PodMetricsList, podList *corev1.PodList, clientset *kubernetes.Clientset) model.NamespaceMetricsInfo {
-	// 计算总使用量
-	var totalCPU, totalMemory resource.Quantity
-	var podMetricsSummary []model.PodMetricsSummary
-	var runningPods int
-
-	for _, podMetric := range podMetricsList.Items {
-		var podCPU, podMemory resource.Quantity
-		for _, containerMetric := range podMetric.Containers {
-			podCPU.Add(containerMetric.Usage[corev1.ResourceCPU])
-			podMemory.Add(containerMetric.Usage[corev1.ResourceMemory])
-		}
-
-		totalCPU.Add(podCPU)
-		totalMemory.Add(podMemory)
-
-		podMetricsSummary = append(podMetricsSummary, model.PodMetricsSummary{
-			PodName:   podMetric.Name,
-			Namespace: podMetric.Namespace,
-			Usage: model.ResourceUsage{
-				CPU:    podCPU.String(),
-				Memory: podMemory.String(),
-			},
-			UsageRate: model.ResourceUsageRate{
-				CPURate:    0, // 可以根据需要计算Pod使用率
-				MemoryRate: 0,
-			},
-		})
-	}
-
-	// 统计运行中的Pod数量
-	for _, pod := range podList.Items {
-		if pod.Status.Phase == corev1.PodRunning {
-			runningPods++
-		}
-	}
-
-	// 尝试获取ResourceQuota（如果存在）
-	var resourceQuota model.NamespaceResourceQuota
-	if quotaList, err := clientset.CoreV1().ResourceQuotas(namespace.Name).List(context.TODO(), metav1.ListOptions{}); err == nil && len(quotaList.Items) > 0 {
-		// 使用第一个ResourceQuota
-		quota := quotaList.Items[0]
-		if hardCPU, ok := quota.Status.Hard[corev1.ResourceCPU]; ok {
-			resourceQuota.Hard.CPU = hardCPU.String()
-		}
-		if hardMemory, ok := quota.Status.Hard[corev1.ResourceMemory]; ok {
-			resourceQuota.Hard.Memory = hardMemory.String()
-		}
-		if usedCPU, ok := quota.Status.Used[corev1.ResourceCPU]; ok {
-			resourceQuota.Used.CPU = usedCPU.String()
-		}
-		if usedMemory, ok := quota.Status.Used[corev1.ResourceMemory]; ok {
-			resourceQuota.Used.Memory = usedMemory.String()
-		}
-	}
-
-	// 计算使用率
-	var cpuRate, memoryRate float64
-	if resourceQuota.Hard.CPU != "" && resourceQuota.Used.CPU != "" {
-		if hardCPU, err := resource.ParseQuantity(resourceQuota.Hard.CPU); err == nil {
-			if usedCPU, err := resource.ParseQuantity(resourceQuota.Used.CPU); err == nil {
-				if hardCPU.MilliValue() > 0 {
-					cpuRate = float64(usedCPU.MilliValue()) / float64(hardCPU.MilliValue()) * 100
-				}
-			}
-		}
-	}
-	if resourceQuota.Hard.Memory != "" && resourceQuota.Used.Memory != "" {
-		if hardMemory, err := resource.ParseQuantity(resourceQuota.Hard.Memory); err == nil {
-			if usedMemory, err := resource.ParseQuantity(resourceQuota.Used.Memory); err == nil {
-				if hardMemory.Value() > 0 {
-					memoryRate = float64(usedMemory.Value()) / float64(hardMemory.Value()) * 100
-				}
-			}
-		}
-	}
-
-	return model.NamespaceMetricsInfo{
-		Namespace:   namespace.Name,
-		Timestamp:   time.Now().Format(time.RFC3339),
-		PodCount:    len(podList.Items),
-		RunningPods: runningPods,
-		TotalUsage: model.ResourceUsage{
-			CPU:    totalCPU.String(),
-			Memory: totalMemory.String(),
-		},
-		ResourceQuota: resourceQuota,
-		UsageRate: model.ResourceUsageRate{
-			CPURate:    cpuRate,
-			MemoryRate: memoryRate,
-		},
-		PodMetrics: podMetricsSummary,
 	}
 }
 

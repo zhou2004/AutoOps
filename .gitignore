@@ -2,3 +2,8 @@ api/devops
 .agent
 .github/skills
 api/dodevops-api
+
+# AI provider encryption material (never commit)
+api/data/
+data/aiops.key
+docker/api/data/

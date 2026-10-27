@@ -1,0 +1,25 @@
+---
+mysql_major_version: '8.0'
+mysql_version: '8.0.24'
+mysql_arch: x86_64
+mysql_package_checksum: 'sha256:a57de67caf731a474ce52c97d744903303ffc93c0f087e5b8a3fecb3b52e4729'
+mysql_package_folder: 'mysql-{{ mysql_version }}-linux-glibc2.12-{{ mysql_arch }}'
+mysql_tarball: '{{ mysql_package_folder }}.tar.xz'
+mysql_download_url: 'https://cdn.mysql.com/archives/mysql-{{ mysql_major_version }}/{{ mysql_tarball }}'
+local_package_path: ''
+install_base_dir: /opt/autoops/mysql
+mysql_install_dir: '{{ install_base_dir }}/{{ mysql_package_folder }}'
+mysql_data_dir: /var/lib/autoops-mysql
+mysql_config_path: /etc/autoops-mysql.cnf
+mysql_port: '{{ database_port }}'
+mysql_user: mysql
+mysql_group: mysql
+mysql_max_connections: 300
+mysql_max_connect_errors: 100
+mysql_char_set: utf8mb4
+mysql_storage_engine: INNODB
+mysql_auth_plugin: mysql_native_password
+cleanup_local_strategy: false
+orc_version: '3.2.6'
+orc_pkg_url: 'https://github.com/openark/orchestrator/releases/download/v{{ orc_version }}/orchestrator-{{ orc_version }}-linux-amd64.tar.gz'
+orc_install_dir: /opt/autoops/orchestrator

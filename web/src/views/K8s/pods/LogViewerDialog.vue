@@ -13,33 +13,33 @@
       <div class="logs-controls">
         <el-row :gutter="12" style="margin-bottom: 16px;">
           <el-col :span="6">
-            <el-select v-model="selectedContainer" placeholder="选择容器" style="width: 100%;" @change="fetchLogs">
+            <el-select v-model="selectedContainer" :placeholder='$tr("选择容器")' style="width: 100%;" @change="fetchLogs">
               <el-option 
                 v-for="container in parsedContainers" 
                 :key="container.name"
-                :label="container.name" 
+                :label="$tr(container.name)" 
                 :value="container.name"
               />
             </el-select>
           </el-col>
           <el-col :span="4">
-            <el-select v-model="logTailLines" placeholder="行数" style="width: 100%;" @change="fetchLogs">
-              <el-option label="最近100行" :value="100" />
-              <el-option label="最近300行" :value="300" />
-              <el-option label="最近500行" :value="500" />
-              <el-option label="最近1000行" :value="1000" />
+            <el-select v-model="logTailLines" :placeholder='$tr("行数")' style="width: 100%;" @change="fetchLogs">
+              <el-option :label='$tr("最近100行")' :value="100" />
+              <el-option :label='$tr("最近300行")' :value="300" />
+              <el-option :label='$tr("最近500行")' :value="500" />
+              <el-option :label='$tr("最近1000行")' :value="1000" />
             </el-select>
           </el-col>
           <el-col :span="6">
             <div style="display: flex; align-items: center; height: 32px; gap: 12px; white-space: nowrap;">
-              <el-checkbox v-model="followLogs" @change="toggleFollow">实时跟踪</el-checkbox>
-              <el-checkbox v-model="showPreviousLogs" @change="fetchLogs">上个容器退出日志</el-checkbox>
+              <el-checkbox v-model="followLogs" @change="toggleFollow">{{ $tr("实时跟踪") }}</el-checkbox>
+              <el-checkbox v-model="showPreviousLogs" @change="fetchLogs">{{ $tr("上个容器退出日志") }}</el-checkbox>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="logs-actions" style="display: flex; justify-content: flex-end; align-items: center;">
-              <el-button size="small" type="primary" :icon="Refresh" @click="fetchLogs" :loading="logsLoading">刷新</el-button>
-              <el-button size="small" type="success" :icon="Download" @click="handleDownloadLogs">下载</el-button>
+              <el-button size="small" type="primary" :icon="Refresh" @click="fetchLogs" :loading="logsLoading">{{ $tr("刷新") }}</el-button>
+              <el-button size="small" type="success" :icon="Download" @click="handleDownloadLogs">{{ $tr("下载") }}</el-button>
             </div>
           </el-col>
         </el-row>
@@ -47,16 +47,16 @@
       
       <div class="logs-display" v-loading="logsLoading">
         <div v-if="!selectedContainer" class="logs-placeholder">
-          <el-empty description="请选择容器查看日志" />
+          <el-empty :description='$tr("请选择容器查看日志")' />
         </div>
         <div v-else class="logs-content-display">
           <div class="logs-header" style="margin-bottom: 8px; font-size: 13px; color: var(--text-secondary);">
             <span class="container-name">{{ selectedContainer }}</span> 
             <span class="logs-info" style="margin-left: 10px;">
-              最近 {{ logTailLines || 1000 }} 行 
+              {{ $tr("最近") }} {{ logTailLines || 1000 }} {{ $tr("行") }} 
             </span>
             <span v-if="followLogs" style="margin-left: 10px; color: #67c23a;">
-              <el-icon class="is-loading" style="margin-right:4px;"><Loading /></el-icon>实时接收中...
+              <el-icon class="is-loading" style="margin-right:4px;"><Loading /></el-icon>{{ $tr("实时接收中...") }}
             </span>
           </div>
           
@@ -68,12 +68,14 @@
     </div>
     
     <template #footer>
-      <el-button @click="visible = false">关闭</el-button>
+      <el-button @click="visible = false">{{ $tr("关闭") }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, watch, onBeforeUnmount, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Refresh, Download, Loading } from '@element-plus/icons-vue'
@@ -306,7 +308,7 @@ const handleClose = () => {
 
 const handleDownloadLogs = () => {
   if (!currentLogs.value) {
-    ElMessage.warning('没有日志内容可下载')
+    ElMessage.warning(tr('没有日志内容可下载'))
     return
   }
   

@@ -3,8 +3,10 @@ package jwt
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"dodevops-api/api/system/model"
@@ -24,7 +26,23 @@ type userStdClaims struct {
 const TokenExpireDuration = time.Hour * 24
 
 // token密钥
-var Secret = []byte("dodevops-api")
+var Secret = signingSecret()
+
+func signingSecret() []byte {
+	if configured := os.Getenv("AUTOOPS_JWT_SECRET"); configured != "" {
+		if len(configured) < 32 {
+			panic("AUTOOPS_JWT_SECRET must contain at least 32 bytes")
+		}
+		return []byte(configured)
+	}
+	// Development fallback: unpredictable per-process secret. Production replicas share an environment secret.
+	secret := make([]byte, 32)
+	if _, err := rand.Read(secret); err != nil {
+		panic("cannot initialize signing secret")
+	}
+	return secret
+}
+
 var (
 	ErrAbsent  = "token absent"  // 令牌不存在
 	ErrInvalid = "token invalid" //令牌无效
@@ -44,9 +62,9 @@ func GenerateTokenByAdmin(admin model.SysAdmin) (string, error) {
 	c := userStdClaims{
 		jwtAdmin,
 		jwt.StandardClaims{
-			// 取消JWT内置的过期时间验证，将控制权交给redis
-			// ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(), //过期时间
-			Issuer: "admin", //签发人
+			ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "admin", //签发人
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
@@ -68,21 +86,15 @@ func ValidateToken(tokenString string) (*model.JwtAdmin, error) {
 	if tokenString == "" {
 		return nil, errors.New(ErrAbsent)
 	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return Secret, nil
-	})
-	if token == nil {
-		return nil, errors.New(ErrInvalid)
-	}
 	claims := userStdClaims{}
-	_, err = jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return Secret, nil
 	})
-	if err != nil {
-		return nil, err
+	if err != nil || token == nil || !token.Valid || claims.ExpiresAt == 0 || claims.ID == 0 {
+		return nil, errors.New(ErrInvalid)
 	}
 
 	// 验证Redis中的Token是否过期
@@ -114,13 +126,13 @@ func GetAdminId(c *gin.Context) (uint, error) {
 func GetAdminName(c *gin.Context) (string, error) {
 	u, exist := c.Get(constant.ContextKeyUserObj)
 	if !exist {
-		return string(string(0)), errors.New("无法获取用户名")
+		return "", errors.New("无法获取用户名")
 	}
 	admin, ok := u.(*model.JwtAdmin)
 	if ok {
 		return admin.Username, nil
 	}
-	return string(string(0)), errors.New("无法转换为api名称")
+	return "", errors.New("无法转换为api名称")
 }
 
 // 返回admin信息

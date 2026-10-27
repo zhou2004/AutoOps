@@ -21,18 +21,26 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.GET("/template/query/type", middleware.AuthMiddleware(), controller.GetTemplatesByType)
 
 	// 任务管理路由
-	router.POST("/task/add", middleware.AuthMiddleware(), controller.CreateTask)                        // 创建任务
-	router.GET("/task/get", middleware.AuthMiddleware(), controller.GetTaskByID)                        // 获取任务信息
-	router.PUT("/task/update", middleware.AuthMiddleware(), controller.UpdateTask)                      // 修改任务
-	router.DELETE("/task/delete", middleware.AuthMiddleware(), controller.DeleteTask)                   // 删除任务
-	router.GET("/task/list", middleware.AuthMiddleware(), controller.ListTasks)                         // 获取任务列表
-	router.GET("/task/list-with-details", middleware.AuthMiddleware(), controller.ListTasksWithDetails) // 获取任务列表（包含关联信息）
-	router.GET("/task/query/name", middleware.AuthMiddleware(), controller.GetTasksByName)              // 获取任务名称列表
-	router.GET("/task/query/type", middleware.AuthMiddleware(), controller.GetTasksByType)              // 获取任务类型列表
-	router.GET("/task/query/status", middleware.AuthMiddleware(), controller.GetTasksByStatus)          // 获取任务状态列表
-	router.GET("/task/next-execution", middleware.AuthMiddleware(), controller.GetNextExecutionTime)    // 获取任务下次执行时间
-	router.GET("/task/execution-info", middleware.AuthMiddleware(), controller.GetTaskExecutionInfo)    // 获取任务执行信息
-	router.GET("/task/templates", middleware.AuthMiddleware(), controller.GetTaskTemplatesWithStatus)   // 获取任务模板列表
+	router.POST("/task/add", middleware.AuthMiddleware(), controller.CreateTask)                           // 创建任务
+	router.GET("/task/get", middleware.AuthMiddleware(), controller.GetTaskByID)                           // 获取任务信息
+	router.PUT("/task/update", middleware.AuthMiddleware(), controller.UpdateTask)                         // 修改任务
+	router.DELETE("/task/delete", middleware.AuthMiddleware(), controller.DeleteTask)                      // 删除任务
+	router.GET("/task/list", middleware.AuthMiddleware(), controller.ListTasks)                            // 获取任务列表
+	router.GET("/task/list-with-details", middleware.AuthMiddleware(), controller.ListTasksWithDetails)    // 获取任务列表（包含关联信息）
+	router.GET("/task/query/name", middleware.AuthMiddleware(), controller.GetTasksByName)                 // 获取任务名称列表
+	router.GET("/task/query/type", middleware.AuthMiddleware(), controller.GetTasksByType)                 // 获取任务类型列表
+	router.GET("/task/query/status", middleware.AuthMiddleware(), controller.GetTasksByStatus)             // 获取任务状态列表
+	router.GET("/task/next-execution", middleware.AuthMiddleware(), controller.GetNextExecutionTime)       // 获取任务下次执行时间
+	router.GET("/task/execution-info", middleware.AuthMiddleware(), controller.GetTaskExecutionInfo)       // 获取任务执行信息
+	router.GET("/task/templates", middleware.AuthMiddleware(), controller.GetTaskTemplatesWithStatus)      // 获取任务模板列表
+	router.POST("/task/:id/run", middleware.AuthMiddleware(), controller.RunTaskNow)                       // 手动立即触发任务
+	router.POST("/task/:id/schedule", middleware.AuthMiddleware(), controller.ScheduleTask)                // 启用定时调度
+	router.POST("/task/:id/execution/pause", middleware.AuthMiddleware(), controller.PauseTaskExecution)   // 暂停当前执行
+	router.POST("/task/:id/execution/resume", middleware.AuthMiddleware(), controller.ResumeTaskExecution) // 恢复当前执行
+	router.POST("/task/:id/execution/stop", middleware.AuthMiddleware(), controller.StopTaskExecution)     // 停止当前执行
+	router.GET("/task/:id/history", middleware.AuthMiddleware(), controller.ListTaskHistory)               // 执行历史
+	router.GET("/task/:id/history/:history_id", middleware.AuthMiddleware(), controller.GetTaskHistoryDetail)
+	router.POST("/task/:id/history/:history_id/rollback", middleware.AuthMiddleware(), controller.RollbackTaskHistory)
 
 	// 任务作业路由
 	router.POST("/taskjob/start", middleware.AuthMiddleware(), controller.TaskWork().StartJob)
@@ -55,6 +63,17 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.POST("/task/monitor/scheduled/reset", middleware.AuthMiddleware(), taskMonitorCtrl.ResetScheduledTaskStatus) // 重置定时任务状态
 	router.GET("/task/monitor/task/status", middleware.AuthMiddleware(), taskMonitorCtrl.GetTaskStatus)                 // 获取任务状态详情
 
+	// 固定 kubeasz 系统模板，统一接入 Ansible 入口并独立保存操作审计。
+	kubeaszCtrl := controller.NewKubeaszController(common.GetDB())
+	kubeaszRoutes := router.Group("/task/kubeasz", middleware.AuthMiddleware(), kubeaszCtrl.RequireAdmin())
+	kubeaszRoutes.GET("/catalog", kubeaszCtrl.Catalog)
+	kubeaszRoutes.POST("/preview", kubeaszCtrl.Preview)
+	kubeaszRoutes.POST("/operations", kubeaszCtrl.Start)
+	kubeaszRoutes.GET("/operations", kubeaszCtrl.History)
+	kubeaszRoutes.GET("/operations/:id", kubeaszCtrl.Detail)
+	kubeaszRoutes.POST("/operations/:id/cancel", kubeaszCtrl.Cancel)
+	kubeaszRoutes.POST("/operations/:id/reconcile", kubeaszCtrl.Reconcile)
+
 	// Ansible任务路由
 	taskAnsibleCtrl := controller.NewTaskAnsibleController(service.NewTaskAnsibleService(common.GetDB()))
 	router.GET("/task/ansiblelist", middleware.AuthMiddleware(), taskAnsibleCtrl.List)                   // 获取任务列表
@@ -63,6 +82,7 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.GET("/task/ansible/:id", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTask)                // 通过任务ID获取任务信息
 	router.PUT("/task/ansible/:id", middleware.AuthMiddleware(), taskAnsibleCtrl.UpdateTask)             // 修改任务
 	router.POST("/task/ansible/:id/start", middleware.AuthMiddleware(), taskAnsibleCtrl.StartTask)       // 启动任务(支持Ansible和K8s)
+	router.POST("/task/ansible/:id/stop", middleware.AuthMiddleware(), taskAnsibleCtrl.StopTask)         // 停止任务(支持Ansible)
 	router.DELETE("/task/ansible/:id", middleware.AuthMiddleware(), taskAnsibleCtrl.DeleteTask)          // 删除任务(级联删除子任务)
 	router.GET("/task/ansible/:id/log/:work_id", middleware.AuthMiddleware(), taskAnsibleCtrl.GetJobLog) // 获取任务日志(SSE)
 	router.GET("/task/ansible/query/name", middleware.AuthMiddleware(), taskAnsibleCtrl.GetTasksByName)  // 根据名称模糊查询任务
@@ -98,5 +118,5 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 func RegisterWebSocketRoutes(router *gin.RouterGroup) {
 	// WebSocket任务日志路由 (内部处理认证)
 	wsCtrl := controller.NewWebSocketController(service.NewTaskAnsibleService(common.GetDB()))
-	router.GET("/ws/task/ansible/:id/log/:work_id", wsCtrl.GetJobLogWS) // WebSocket日志接口
+	router.GET("/ws/task/ansible/:id/log/:work_id", middleware.AuthMiddleware(), wsCtrl.GetJobLogWS) // WebSocket日志接口
 }

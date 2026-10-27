@@ -5,22 +5,22 @@
       <div class="custom-dialog-overlay" @click="handleOverlayClick"></div>
       <div class="custom-dialog" ref="customDialog" @click.stop>
         <div class="custom-dialog-header">
-          <span class="custom-dialog-title">{{ drawerTitle }}</span>
+          <span class="custom-dialog-title">{{ $tr(drawerTitle) }}</span>
           <button class="custom-dialog-close" @click="onClose">×</button>
         </div>
         <div class="custom-dialog-body">
           <div class="terminal-header">
             <el-button size="mini" v-authority="['cmdb:ecs:connecthost']" @click="connect" :disabled="isConnecting || !currentHost">
-              {{ isConnected ? '重新连接' : '连接' }}
+              {{ isConnected ? '重新连接' : $tr('连接') }}
             </el-button>
             <el-button size="mini" @click="disconnect" :disabled="!isConnected || isConnecting">
-              断开
+              {{ $tr("断开") }}
             </el-button>
             <el-button size="mini" @click="clear" :disabled="!term">
-              清屏
+              {{ $tr("清屏") }}
             </el-button>
             <el-button size="mini" class="close-button" @click="onClose">
-              关闭
+              {{ $tr("关闭") }}
             </el-button>
           </div>
           <div id="xterm" class="xterm" style="height: calc(100% - 50px);" />

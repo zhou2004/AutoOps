@@ -3,24 +3,25 @@
     <el-table
         v-loading="loading"
         :data="hostListWithMonitor"
-        stripe
+        row-key="id"
         style="width: 100%"
-        class="host-table"
+        class="host-table asset-table"
     >
       <el-table-column label="ID" prop="id" v-if="false" />
-      <el-table-column label="主机名称" width="200" show-overflow-tooltip>
+      <el-table-column :label='$tr("主机")' min-width="210" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="host-name-cell" @mouseenter="showCopyIcon($event, 'hostname')" @mouseleave="hideCopyIcon">
             <!-- 操作系统图标 -->
-            <img 
-              :src="getOSIcon(scope.row.os)" 
-              :alt="getOSName(scope.row.os)"
-              :title="getOSName(scope.row.os)"
+            <el-icon v-if="String(scope.row.os || scope.row.osType).toLowerCase().includes('windows')" class="os-icon"><Monitor /></el-icon>
+            <img v-else
+              :src="getOSIcon(scope.row.os || scope.row.osType)"
+              :alt="getOSName(scope.row.os || scope.row.osType)"
+              :title="$tr(getOSName(scope.row.os || scope.row.osType))"
               class="os-icon"
             />
             <el-link type="primary" @click="$emit('show-detail', scope.row)">{{ scope.row.hostName }}</el-link>
-            <el-icon 
-              class="copy-icon" 
+            <el-icon
+              class="copy-icon"
               @click="copyToClipboard(scope.row.hostName, '主机名称', $event)"
               style="display: none; margin-left: 5px; cursor: pointer; color: #409EFF;"
             >
@@ -29,14 +30,14 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="IP地址" width="150" show-overflow-tooltip>
+      <el-table-column :label='$tr("访问地址")' min-width="170" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="ip-cell" @mouseenter="showCopyIcon($event, 'ip')" @mouseleave="hideCopyIcon">
             <div v-if="scope.row.publicIp" class="ip-row public-ip">
               <el-icon class="ip-icon" color="#67C23A"><Connection /></el-icon>
               <span>{{ scope.row.publicIp }}</span>
-              <el-icon 
-                class="copy-icon" 
+              <el-icon
+                class="copy-icon"
                 @click="copyToClipboard(scope.row.publicIp, '公网IP', $event)"
                 style="display: none; margin-left: 5px; cursor: pointer; color: #409EFF;"
               >
@@ -46,8 +47,8 @@
             <div v-if="scope.row.privateIp" class="ip-row private-ip">
               <el-icon class="ip-icon" color="#409EFF"><Link /></el-icon>
               <span>{{ scope.row.privateIp }}</span>
-              <el-icon 
-                class="copy-icon" 
+              <el-icon
+                class="copy-icon"
                 @click="copyToClipboard(scope.row.privateIp, '内网IP', $event)"
                 style="display: none; margin-left: 5px; cursor: pointer; color: #67C23A;"
               >
@@ -57,76 +58,77 @@
           </div>
         </template>
       </el-table-column>
-    
-      <el-table-column label="操作系统" width="160" show-overflow-tooltip>
+
+      <el-table-column :label='$tr("操作系统")' width="160" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="os-cell">
             <!-- 使用带颜色的图标，区分不同操作系统 -->
-            <div 
+            <div
               class="os-icon-wrapper"
               :style="{ backgroundColor: getOSColor(scope.row.os) }"
-              :title="scope.row.os || '未知系统'"
+              :title="$tr(scope.row.os || '未知系统')"
             >
-              <img 
-                :src="getOSIcon(scope.row.os)" 
-                :alt="getOSName(scope.row.os)"
+              <el-icon v-if="String(scope.row.os || scope.row.osType).toLowerCase().includes('windows')" class="os-icon-colored"><Monitor /></el-icon>
+              <img v-else
+                :src="getOSIcon(scope.row.os || scope.row.osType)"
+                :alt="getOSName(scope.row.os || scope.row.osType)"
                 class="os-icon-colored"
               />
             </div>
-            <span class="os-text" :title="scope.row.os || '未知系统'">
-              {{ getOSDetailName(scope.row.os) }}
+            <span class="os-text" :title="$tr(scope.row.os || '未知系统')">
+              {{ getOSDetailName(scope.row.os || scope.row.osType) }}
             </span>
           </div>
         </template>
       </el-table-column>
-      
-      <el-table-column label="配置信息" width="150" show-overflow-tooltip>
+
+      <el-table-column :label='$tr("配置信息")' width="150" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="config-cell">
             <el-icon :size="16" color="var(--text-secondary)"><Cpu /></el-icon>
-            <span class="config-text">{{ formatCPU(scope.row.cpu) }}核 {{ formatMemory(scope.row.memory) }}G</span>
+            <span class="config-text">{{ formatCPU(scope.row.cpu) }}{{ $tr("核") }} {{ formatMemory(scope.row.memory) }}G</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="存活状态">
+      <el-table-column :label='$tr("监控状态")' min-width="110">
         <template v-slot="scope">
           <div class="status-cell">
-            <img 
-              :src="scope.row.isAlive ? getAssetUrl('@/assets/image/主机在线.svg') : getAssetUrl('@/assets/image/主机离线.svg')" 
-              :alt="scope.row.isAlive ? '在线' : '离线'"
+            <img
+              :src="scope.row.isAlive ? getAssetUrl('@/assets/image/主机在线.svg') : getAssetUrl('@/assets/image/主机离线.svg')"
+              :alt="scope.row.isAlive ? $tr('在线') : '无心跳'"
               style="width: 16px; height: 16px; margin-right: 6px; flex-shrink: 0;"
             />
             <el-tag :type="scope.row.isAlive ? 'success' : 'danger'" size="small">
-              {{ scope.row.isAlive ? '在线' : '离线' }}
+              {{ scope.row.isAlive ? $tr('在线') : '无心跳' }}
             </el-tag>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="认证状态">
+      <el-table-column :label='$tr("SSH 认证")' min-width="110">
         <template v-slot="scope">
           <el-tag :type="getStatusTagType(scope.row.status)">
-            {{ getStatusText(scope.row.status) }}
+            {{ $tr(getStatusText(scope.row.status)) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="主机类型" prop="vendor" show-overflow-tooltip>
+      <el-table-column :label='$tr("主机类型")' prop="vendor" show-overflow-tooltip>
         <template v-slot="scope">
           <div class="vendor-cell">
             <template v-if="scope.row.vendor == 1">
               <el-icon :size="18" color="#409EFF"><OfficeBuilding /></el-icon>
-              <span>自建</span>
+              <span>{{ $tr("自建") }}</span>
             </template>
             <template v-else-if="scope.row.vendor == 2">
               <img :src="$getAssetUrl('@/assets/image/aliyun.png')" style="width: 18px; height: 18px"/>
-              <span>阿里</span>
+              <span>{{ $tr("阿里") }}</span>
             </template>
             <template v-else-if="scope.row.vendor == 3">
               <img :src="$getAssetUrl('@/assets/image/tengxun.png')" style="width: 18px; height: 18px"/>
-              <span>腾讯</span>
+              <span>{{ $tr("腾讯") }}</span>
             </template>
             <template v-else-if="scope.row.vendor == 4">
               <img :src="$getAssetUrl('@/assets/image/baidu.svg')" style="width: 18px; height: 18px"/>
-              <span>百度</span>
+              <span>{{ $tr("百度") }}</span>
             </template>
             <template v-else>
               {{ scope.row.vendor }}
@@ -136,33 +138,26 @@
       </el-table-column>
 
 
-      <el-table-column label="操作" fixed="right" width="210">
-        <template v-slot="scope">
-          <div class="table-operation">
-            <el-tooltip content="同步信息" placement="top">
-              <el-button type="warning" :icon="Refresh" size="small" circle @click="$emit('sync-host', scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="编辑" placement="top">
-              <el-button type="primary" :icon="Edit" size="small" circle @click="$emit('edit-host', scope.row.id)" />
-            </el-tooltip>
-            <el-tooltip content="文件上传" placement="top">
-              <el-button type="success" :icon="Upload" size="small" circle @click="$emit('show-upload', scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="终端" placement="top">
-              <el-button :icon="Monitor" size="small" circle @click="openTerminalWindow(scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="执行命令" placement="top">
-              <el-button type="info" :icon="Operation" size="small" circle @click="$emit('execute-command', scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top">
-              <el-button type="danger" :icon="Delete" size="small" circle @click="$emit('delete-host', scope.row)" />
-            </el-tooltip>
-          </div>
-        </template>
+      <el-table-column :label='$tr("操作")' fixed="right" width="210">
+        <template #default="{row}"><div class="asset-actions">
+          <el-button type="primary" size="small" plain @click="connectionAsset = row; connectionsVisible = true">{{ $tr("连接") }}</el-button>
+          <el-button link type="primary" @click="$emit('edit-host', row.id)">{{ $tr("编辑") }}</el-button>
+          <el-dropdown trigger="click"><el-button text size="small" :aria-label='$tr("更多操作")'>{{ $tr("更多") }}</el-button><template #dropdown><el-dropdown-menu>
+            <el-dropdown-item @click="$emit('show-detail', row)">{{ $tr("查看详情") }}</el-dropdown-item>
+            <el-dropdown-item :disabled="row.osType === 'windows'" @click="$emit('sync-host', row)">{{ $tr("通过 SSH 同步信息") }}</el-dropdown-item>
+            <el-dropdown-item @click="$emit('show-upload', row)">{{ $tr("上传文件") }}</el-dropdown-item>
+            <el-dropdown-item @click="$emit('execute-command', row)">{{ $tr("执行命令") }}</el-dropdown-item>
+            <el-dropdown-item @click="openTerminalWindow(row)">{{ $tr("传统 SSH 终端") }}</el-dropdown-item>
+            <el-dropdown-item divided @click="$emit('delete-host', row)">{{ $tr("删除资产") }}</el-dropdown-item>
+          </el-dropdown-menu></template></el-dropdown>
+        </div></template>
       </el-table-column>
+      <template #empty><el-empty :description='$tr("暂无主机，添加 Linux 或 Windows 资产开始管理")' :image-size="90" /></template>
     </el-table>
 
-    <monitor-dialog 
+    <AssetConnections v-model="connectionsVisible" asset-type="host" :asset="connectionAsset" />
+
+    <monitor-dialog
       v-if="showMonitorDialog"
       v-model="showMonitorDialog"
       :host-id="currentHostId"
@@ -186,7 +181,10 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import MonitorDialog from './MonitorDialog.vue'
+import AssetConnections from '../components/AssetConnections.vue'
 import ProcessMonitorDialog from './ProcessMonitorDialog.vue'
 import TcpPortMonitorDialog from './TcpPortMonitorDialog.vue'
 import { Refresh, Edit, Upload, Monitor, Delete, DocumentCopy, Connection, Link, Cpu, Operation, OfficeBuilding } from '@element-plus/icons-vue'
@@ -198,6 +196,7 @@ export default {
     return { Refresh, Edit, Upload, Monitor, Delete, DocumentCopy, Connection, Link, Cpu, Operation, OfficeBuilding }
   },
   components: {
+    AssetConnections,
     MonitorDialog,
     ProcessMonitorDialog,
     TcpPortMonitorDialog
@@ -214,6 +213,7 @@ export default {
   },
   data() {
     return {
+      connectionsVisible: false, connectionAsset: null,
       monitorData: {},
       refreshInterval: null,
       refreshRate: 10000, // 监控数据和存活状态查询频率，单位毫秒(当前10秒)
@@ -241,7 +241,7 @@ export default {
   },
   computed: {
     hostListWithMonitor() {
-      
+
       const result = this.hostList.map(host => {
         const monitor = this.monitorData[host.id] || {}
         const merged = {
@@ -253,7 +253,7 @@ export default {
         }
         return merged
       })
-      
+
       return result
     }
   },
@@ -264,7 +264,7 @@ export default {
     getStatusText(status) {
       const statusMap = {
         1: '认证成功',
-        2: '未认证', 
+        2: '未认证',
         3: '认证失败'
       }
       return statusMap[status] || '未知状态'
@@ -272,7 +272,7 @@ export default {
     getStatusTagType(status) {
       const typeMap = {
         1: 'success',
-        2: 'warning', 
+        2: 'warning',
         3: 'danger'
       }
       return typeMap[status] || 'info'
@@ -283,13 +283,13 @@ export default {
       if (usage > 60) return '#E6A23C'
       return '#67C23A'
     },
-    
+
     // 获取操作系统图标（返回SVG路径或require路径）
     getOSIcon(os) {
       // 统一返回linux.svg，通过getOSColor方法区分颜色
       return new URL('@/assets/image/linux.svg', import.meta.url).href
     },
-    
+
     // 获取操作系统图标颜色（用于区分不同操作系统）
     getOSColor(os) {
       if (!os) return 'var(--text-secondary)'
@@ -307,7 +307,7 @@ export default {
       if (osLower.includes('arch')) return '#1793D1'  // Arch Linux蓝色
       return '#777777'  // 默认灰色
     },
-    
+
     // 获取操作系统名称（简化显示）
     getOSName(os) {
       if (!os) return '未知系统'
@@ -323,60 +323,60 @@ export default {
       if (osLower.includes('almalinux')) return 'AlmaLinux'
       return os
     },
-    
+
     // 获取操作系统详细名称（包含版本号）
     getOSDetailName(os) {
       if (!os) return '未知系统'
       const osLower = os.toLowerCase()
-      
+
       // Ubuntu版本提取
       if (osLower.includes('ubuntu')) {
         const versionMatch = os.match(/(\d+\.\d+)/)
         return versionMatch ? `Ubuntu ${versionMatch[1]}` : 'Ubuntu'
       }
-      
+
       // CentOS版本提取
       if (osLower.includes('centos')) {
         const versionMatch = os.match(/(\d+)/)
         return versionMatch ? `CentOS ${versionMatch[1]}` : 'CentOS'
       }
-      
+
       // Debian版本提取
       if (osLower.includes('debian')) {
         const versionMatch = os.match(/(\d+(\.\d+)?)/)
         return versionMatch ? `Debian ${versionMatch[1]}` : 'Debian'
       }
-      
+
       // RedHat版本提取
       if (osLower.includes('redhat') || osLower.includes('rhel')) {
         const versionMatch = os.match(/(\d+(\.\d+)?)/)
         return versionMatch ? `RedHat ${versionMatch[1]}` : 'RedHat'
       }
-      
+
       // Fedora版本提取
       if (osLower.includes('fedora')) {
         const versionMatch = os.match(/(\d+)/)
         return versionMatch ? `Fedora ${versionMatch[1]}` : 'Fedora'
       }
-      
+
       // Alpine版本提取
       if (osLower.includes('alpine')) {
         const versionMatch = os.match(/(\d+(\.\d+)?)/)
         return versionMatch ? `Alpine ${versionMatch[1]}` : 'Alpine'
       }
-      
+
       // Rocky Linux版本提取
       if (osLower.includes('rocky')) {
         const versionMatch = os.match(/(\d+(\.\d+)?)/)
         return versionMatch ? `Rocky ${versionMatch[1]}` : 'Rocky Linux'
       }
-      
+
       // AlmaLinux版本提取
       if (osLower.includes('almalinux')) {
         const versionMatch = os.match(/(\d+(\.\d+)?)/)
         return versionMatch ? `AlmaLinux ${versionMatch[1]}` : 'AlmaLinux'
       }
-      
+
       // Windows版本提取
       if (osLower.includes('windows')) {
         if (osLower.includes('server 2022') || osLower.includes('2022')) return 'Win Server 2022'
@@ -386,10 +386,10 @@ export default {
         if (osLower.includes('11')) return 'Windows 11'
         return 'Windows'
       }
-      
+
       return os
     },
-    
+
     // 格式化CPU显示
     formatCPU(cpu) {
       if (!cpu) return '-'
@@ -400,7 +400,7 @@ export default {
       const match = cpu.match(/(\d+)/)
       return match ? match[1] : cpu
     },
-    
+
     // 格式化内存显示
     formatMemory(memory) {
       if (!memory) return '-'
@@ -409,7 +409,7 @@ export default {
       const match = memory.match(/(\d+)/)
       return match ? match[1] : memory
     },
-    
+
     // 获取操作系统标签类型
     getOSTagType(os) {
       if (!os) return 'info'
@@ -420,7 +420,7 @@ export default {
       if (osLower.includes('alpine')) return 'info'
       return 'info'
     },
-    
+
     async fetchMonitorData() {
       if (!this.hostList || this.hostList.length === 0) return
 
@@ -428,7 +428,7 @@ export default {
       if (validHosts.length === 0) return
 
       const ids = validHosts.map(host => host.id).join(',')
-      
+
       // 请求合并后的监控数据接口
       const monitorRes = await this.$api.getHostsMonitorData(ids)
 
@@ -475,7 +475,7 @@ export default {
       });
       window.open(href, '_blank');
     },
-    
+
     // 显示复制图标
     showCopyIcon(event, type) {
       const icons = event.currentTarget.querySelectorAll('.copy-icon')
@@ -483,7 +483,7 @@ export default {
         icon.style.display = 'inline-block'
       })
     },
-    
+
     // 隐藏复制图标
     hideCopyIcon(event) {
       const icons = event.currentTarget.querySelectorAll('.copy-icon')
@@ -491,13 +491,13 @@ export default {
         icon.style.display = 'none'
       })
     },
-    
+
     // 复制到剪贴板
     async copyToClipboard(text, type, event) {
       try {
         await navigator.clipboard.writeText(text)
         this.$message.success(`${type} 已复制: ${text}`)
-        
+
         // 添加复制成功的视觉反馈
         if (event && event.target) {
           const icon = event.target.closest('.copy-icon')
@@ -518,7 +518,7 @@ export default {
         try {
           document.execCommand('copy')
           this.$message.success(`${type} 已复制: ${text}`)
-          
+
           // 添加复制成功的视觉反馈
           if (event && event.target) {
             const icon = event.target.closest('.copy-icon')
@@ -530,7 +530,7 @@ export default {
             }
           }
         } catch (fallbackError) {
-          this.$message.error('复制失败，请手动复制')
+          this.$message.error(tr('复制失败，请手动复制'))
         }
         document.body.removeChild(textArea)
       }

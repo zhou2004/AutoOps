@@ -1,6 +1,6 @@
 <template>
     <el-dialog
-    title="主机监控"
+    :title='$tr("主机监控")'
     v-model:visible="dialogVisible"
     width="80%"
     top="5vh"
@@ -13,8 +13,8 @@
   >
     <div class="time-selector">
       <el-radio-group v-model="timeRangeType" size="small" @change="handleTimeRangeChange">
-        <el-radio-button label="preset">预设时间</el-radio-button>
-        <el-radio-button label="custom">自定义时间</el-radio-button>
+        <el-radio-button label="preset">{{ $tr("预设时间") }}</el-radio-button>
+        <el-radio-button label="custom">{{ $tr("自定义时间") }}</el-radio-button>
       </el-radio-group>
 
       <div v-if="timeRangeType === 'preset'" class="preset-buttons">
@@ -25,7 +25,7 @@
           :type="activeDuration === duration.value ? 'primary' : ''"
           @click="selectPresetDuration(duration.value)"
         >
-          {{ duration.label }}
+          {{ $tr(duration.label) }}
         </el-button>
       </div>
 
@@ -46,7 +46,7 @@
           @click="handleQueryClick"
           :disabled="!customTimeRange || customTimeRange.length !== 2"
         >
-          查询
+          {{ $tr("查询") }}
         </el-button>
       </div>
     </div>
@@ -56,7 +56,7 @@
       <el-col :span="8" v-for="(metric, index) in nonNetworkIOMetrics" :key="metric.key">
         <el-card class="metric-card">
           <div class="metric-header">
-            <span class="metric-title">{{ metric.title }}</span>
+            <span class="metric-title">{{ $tr(metric.title) }}</span>
             <el-tag size="mini" :type="getMetricStatus(metric.value)">
               {{ metric.value }} {{ metric.unit }}
             </el-tag>
@@ -69,13 +69,13 @@
       <el-col :span="8">
         <el-card class="metric-card">
           <div class="metric-header">
-            <span class="metric-title">磁盘I/O速率</span>
+            <span class="metric-title">{{ $tr("磁盘I/O速率") }}</span>
             <div class="disk-io-tags">
               <el-tag size="mini" type="success" style="margin-right: 5px;">
-                读: {{ diskReadMetric.value }} {{ diskReadMetric.unit }}
+                {{ $tr("读:") }} {{ diskReadMetric.value }} {{ diskReadMetric.unit }}
               </el-tag>
               <el-tag size="mini" type="warning">
-                写: {{ diskWriteMetric.value }} {{ diskWriteMetric.unit }}
+                {{ $tr("写:") }} {{ diskWriteMetric.value }} {{ diskWriteMetric.unit }}
               </el-tag>
             </div>
           </div>
@@ -87,13 +87,13 @@
       <el-col :span="8">
         <el-card class="metric-card">
           <div class="metric-header">
-            <span class="metric-title">网络I/O速率</span>
+            <span class="metric-title">{{ $tr("网络I/O速率") }}</span>
             <div class="network-io-tags">
               <el-tag size="mini" type="info" style="margin-right: 5px;">
-                接收: {{ networkReceiveMetric.value }} {{ networkReceiveMetric.unit }}
+                {{ $tr("接收:") }} {{ networkReceiveMetric.value }} {{ networkReceiveMetric.unit }}
               </el-tag>
               <el-tag size="mini" type="primary">
-                发送: {{ networkSendMetric.value }} {{ networkSendMetric.unit }}
+                {{ $tr("发送:") }} {{ networkSendMetric.value }} {{ networkSendMetric.unit }}
               </el-tag>
             </div>
           </div>
@@ -105,6 +105,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import * as echarts from 'echarts';
 import moment from 'moment';
 
@@ -1215,7 +1217,7 @@ export default {
         this.fetchMetrics()
       } else {
         console.warn('时间范围无效，无法发送请求')
-        this.$message.warning('请选择完整的时间范围')
+        this.$message.warning(tr('请选择完整的时间范围'))
       }
     },
     handleClose() {

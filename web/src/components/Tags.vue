@@ -5,7 +5,7 @@
             v-for="(item, index) in tags" :key="item.path" @click="goTo(item.path)" @close="close(index)"
             :closable="index > 0">
             <i class="circular" v-show="item.title == $route.meta.tTitle"></i>
-            {{item.title}}
+            {{$tr(item.title)}}
     </el-tag>
   </div>
 </template>

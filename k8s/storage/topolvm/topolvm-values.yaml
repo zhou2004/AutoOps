@@ -1,0 +1,20 @@
+# TopoLVM Helm values override for AutoOps 实战部署
+# 适配: worker-01(192.168.80.52) /dev/sda 20G, worker-02(192.168.80.53) /dev/sdb 20G
+# 两个节点均创建了 LVM 卷组: myvg
+
+lvmd:
+  deviceClasses:
+    - name: ssd
+      volume-group: myvg
+      default: true
+      spare-gb: 10
+
+scheduler:
+  enabled: true
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unschedulable
+      operator: Exists
+      effect: NoSchedule

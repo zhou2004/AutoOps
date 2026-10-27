@@ -4,29 +4,16 @@
       "id": "mysql",
       "name": "MySQL",
       "category": "database",
-      "description": "关系型数据库",
+      "description": "通过 Ansible 安装 MySQL，支持 GTID 主从、Orchestrator 高可用及备份",
       "icon": "database",
       "versions": [
         {
-          "id": "mysql-5.7",
-          "name": "MySQL 5.7",
-          "file": "04-mysql/versions/mysql-5.7-docker-compose.yml",
+          "id": "mysql-ansible",
+          "name": "MySQL 8.0.24 · Ansible",
+          "file": "automation/database/playbooks/install.yml",
           "stable": true,
-          "recommended": false
-        },
-        {
-          "id": "mysql-8.0",
-          "name": "MySQL 8.0",
-          "file": "04-mysql/versions/mysql-8.0-docker-compose.yml",
-          "stable": true,
-          "recommended": true
-        },
-        {
-          "id": "mysql-8.4",
-          "name": "MySQL 8.4",
-          "file": "04-mysql/versions/mysql-8.4-docker-compose.yml",
-          "stable": true,
-          "recommended": false
+          "recommended": true,
+          "deploy_type": "ansible"
         }
       ],
       "default_port": 3306,
@@ -55,29 +42,16 @@
       "id": "redis",
       "name": "Redis",
       "category": "database",
-      "description": "内存数据库/缓存",
+      "description": "通过 Ansible 原生安装 Redis，启用认证和持久化并提供 RDB 备份",
       "icon": "database",
       "versions": [
         {
-          "id": "redis-6.2",
-          "name": "Redis 6.2",
-          "file": "05-redis/versions/redis-6.2-docker-compose.yml",
+          "id": "redis-ansible",
+          "name": "系统软件源 · Ansible",
+          "file": "automation/database/playbooks/install.yml",
           "stable": true,
-          "recommended": false
-        },
-        {
-          "id": "redis-7.0",
-          "name": "Redis 7.0",
-          "file": "05-redis/versions/redis-7.0-docker-compose.yml",
-          "stable": true,
-          "recommended": false
-        },
-        {
-          "id": "redis-7.2",
-          "name": "Redis 7.2",
-          "file": "05-redis/versions/redis-7.2-docker-compose.yml",
-          "stable": true,
-          "recommended": true
+          "recommended": true,
+          "deploy_type": "ansible"
         }
       ],
       "default_port": 6379,
@@ -106,29 +80,16 @@
       "id": "postgresql",
       "name": "PostgreSQL",
       "category": "database",
-      "description": "关系型数据库",
+      "description": "通过 Ansible 原生安装 PostgreSQL，自动登记数据源并提供备份",
       "icon": "database",
       "versions": [
         {
-          "id": "postgresql-13",
-          "name": "PostgreSQL 13",
-          "file": "08-postgresql/versions/postgresql-13-docker-compose.yml",
+          "id": "postgresql-ansible",
+          "name": "系统软件源 · Ansible",
+          "file": "automation/database/playbooks/install.yml",
           "stable": true,
-          "recommended": false
-        },
-        {
-          "id": "postgresql-14",
-          "name": "PostgreSQL 14",
-          "file": "08-postgresql/versions/postgresql-14-docker-compose.yml",
-          "stable": true,
-          "recommended": false
-        },
-        {
-          "id": "postgresql-16",
-          "name": "PostgreSQL 16",
-          "file": "08-postgresql/versions/postgresql-16-docker-compose.yml",
-          "stable": true,
-          "recommended": true
+          "recommended": true,
+          "deploy_type": "ansible"
         }
       ],
       "default_port": 5432,

@@ -1,0 +1,143 @@
+# ============================================================
+# Ceph + Rook 最小实现方案（适配 AutoOps 测试集群）
+# 集群节点（每节点新增 50G 闲置盘, TopoLVM 保留）:
+#   master-01: 192.168.80.51 (OSD 使用 /dev/sdb 50G, 新增盘)
+#   worker-01: 192.168.80.52 (OSD 使用 /dev/sdb 50G, 新增盘; TopoLVM 用 /dev/sda)
+#   worker-02: 192.168.80.53 (OSD 使用 /dev/sdb 50G, 新增盘; TopoLVM 用 /dev/sdc)
+#
+# 方案说明:
+#   - OSD: 3 个（每节点 1 个 50G OSD）
+#   - 副本: size 3（三副本，生产级最小要求）
+#   - MON: 3 个（3 节点各一个，master 通过 toleration 参与）
+#   - MGR: 1 个
+# ============================================================
+
+# 1. CephCluster 定义
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v18.2.0
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 1
+  dashboard:
+    enabled: true
+    ssl: false
+  # 容忍 master 的 taints，让 MON/OSD 能调度到 master（placement.all 应用到所有组件）
+  placement:
+    all:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node.kubernetes.io/unschedulable"
+          operator: "Exists"
+          effect: "NoSchedule"
+  storage:
+    useAllNodes: false
+    useAllDevices: false
+    nodes:
+      - name: "master-01"
+        devices:
+          - name: "sdb"      # 50G 新增盘
+      - name: "worker-01"
+        devices:
+          - name: "sdb"      # 50G 新增盘
+      - name: "worker-02"
+        devices:
+          - name: "sdb"      # 50G 新增盘
+---
+# 2. CephBlockPool（RBD 块存储，三副本）
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 3
+    requireSafeReplicaSize: true
+---
+# 3. RBD StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  pool: replicapool
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+---
+# 4. CephFilesystem（CephFS 共享文件存储，三副本）
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: myfs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    replicated:
+      size: 3
+  dataPools:
+    - failureDomain: host
+      replicated:
+        size: 3
+      name: myfs-data0
+  preserveFilesystemOnDelete: true
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+---
+# 5. CephFS StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-cephfs
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: myfs
+  pool: myfs-myfs-data0
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+---
+# 6. 测试 PVC（RBD 块）
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-pvc-ceph-rbd
+  namespace: test-pv
+spec:
+  storageClassName: rook-ceph-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,0 +1,31 @@
+=== RUN   TestAutoscalingLive
+    autoscaling_live_test.go:88: Kubernetes version: v1.34.3
+=== RUN   TestAutoscalingLive/API_capabilities
+    autoscaling_live_test.go:109: hpa API=autoscaling/v2 available=true
+    autoscaling_live_test.go:109: vpa API=autoscaling.k8s.io/v1 available=true
+    autoscaling_live_test.go:109: kpa API=serving.knative.dev/v1 available=true
+    autoscaling_live_test.go:109: metrics API=metrics.k8s.io/v1beta1 available=true
+=== NAME  TestAutoscalingLive
+    autoscaling_live_test.go:145: isolated namespace: autoops-api-e2e-final-20261002
+=== RUN   TestAutoscalingLive/HPA_dry_run_CRUD_and_stale_version
+=== RUN   TestAutoscalingLive/VPA_recommendation_policy_and_target_conflicts
+=== RUN   TestAutoscalingLive/HPA_delete
+=== RUN   TestAutoscalingLive/concurrent_HPA_target_serialization
+=== RUN   TestAutoscalingLive/KPA_sparse_update_dry_run_and_reset
+I1002 00:45:51.026369   31656 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:45:51.634695   31656 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:45:52.439942   31656 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:45:53.231077   31656 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:45:54.025907   31656 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+    autoscaling_live_test.go:373: Knative fixture foreground cleanup confirmed
+=== NAME  TestAutoscalingLive
+    autoscaling_live_test.go:162: cleanup confirmed: namespace autoops-api-e2e-final-20261002 removed
+--- PASS: TestAutoscalingLive (57.15s)
+    --- PASS: TestAutoscalingLive/API_capabilities (0.01s)
+    --- PASS: TestAutoscalingLive/HPA_dry_run_CRUD_and_stale_version (3.80s)
+    --- PASS: TestAutoscalingLive/VPA_recommendation_policy_and_target_conflicts (6.60s)
+    --- PASS: TestAutoscalingLive/HPA_delete (0.80s)
+    --- PASS: TestAutoscalingLive/concurrent_HPA_target_serialization (1.20s)
+    --- PASS: TestAutoscalingLive/KPA_sparse_update_dry_run_and_reset (38.61s)
+PASS
+ok  	dodevops-api/api/k8s/service	57.167s

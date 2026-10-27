@@ -3,15 +3,14 @@ package controller
 import (
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/robfig/cron/v3"
 	"dodevops-api/api/task/model"
 	"dodevops-api/api/task/service"
 	"dodevops-api/common"
 	"dodevops-api/common/result"
+	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 )
 
 var (
@@ -28,12 +27,16 @@ func getTaskJobService() service.TaskJobService {
 
 // CreateTaskRequest 创建任务请求体
 type CreateTaskRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Type     int    `json:"type" binding:"required"`
-	Shell    string `json:"shell" binding:"required"`
-	HostIDs  string `json:"host_ids" binding:"required"`
-	CronExpr string `json:"cron_expr,omitempty"`
-	Remark   string `json:"remark,omitempty"`
+	Name           string `json:"name" binding:"required"`
+	Type           int    `json:"type" binding:"required"`
+	Shell          string `json:"shell"`
+	ExecutionMode  int    `json:"execution_mode"`
+	Command        string `json:"command"`
+	CommandType    int    `json:"command_type"`
+	HostIDs        string `json:"host_ids" binding:"required"`
+	CronExpr       string `json:"cron_expr,omitempty"`
+	Remark         string `json:"remark,omitempty"`
+	MaxHistoryKeep int    `json:"max_history_keep"`
 }
 
 // CreateTask 创建任务
@@ -53,9 +56,7 @@ func CreateTask(ctx *gin.Context) {
 		return
 	}
 
-	// 验证主机ID格式(必须是逗号分隔的数字)
-	if _, err := strconv.Atoi(strings.ReplaceAll(req.HostIDs, ",", "")); err != nil {
-		result.Failed(ctx, http.StatusBadRequest, "主机ID必须是数字或逗号分隔的数字")
+	if !service.AuthorizeTaskHostString(ctx, req.HostIDs) {
 		return
 	}
 
@@ -68,28 +69,19 @@ func CreateTask(ctx *gin.Context) {
 		return
 	}
 
-	// 验证定时任务必须包含CronExpr
-	if req.Type == 2 && req.CronExpr == "" {
-		result.Failed(ctx, http.StatusBadRequest, "定时任务必须包含定时表达式")
-		return
-	}
-
-	// 计算任务数量(根据Shell中逗号分隔的模板ID数量)
-	taskCount := 1
-	if strings.Contains(req.Shell, ",") {
-		taskCount = len(strings.Split(req.Shell, ","))
-	}
-
 	task := model.Task{
-		Name:         req.Name,
-		Type:         req.Type,
-		Shell:        req.Shell,
-		HostIDs:      req.HostIDs,
-		CronExpr:     req.CronExpr,
-		Remark:       req.Remark,
-		Status:       1, // 默认等待中
-		TaskCount:    taskCount,
-		ExecuteCount: 0, // 初始执行次数为0
+		Name:           req.Name,
+		Type:           req.Type,
+		Shell:          req.Shell,
+		ExecutionMode:  req.ExecutionMode,
+		Command:        req.Command,
+		CommandType:    req.CommandType,
+		HostIDs:        req.HostIDs,
+		CronExpr:       req.CronExpr,
+		Remark:         req.Remark,
+		Status:         1, // 默认等待中
+		ExecuteCount:   0, // 初始执行次数为0
+		MaxHistoryKeep: req.MaxHistoryKeep,
 	}
 
 	// 如果是定时任务，计算下次执行时间
@@ -118,7 +110,6 @@ func CreateTask(ctx *gin.Context) {
 	result.Success(ctx, createdTask)
 }
 
-
 // UpdateTask 更新任务
 // @Summary 更新任务
 // @Description 更新任务信息
@@ -141,12 +132,17 @@ func UpdateTask(ctx *gin.Context) {
 		return
 	}
 
-	// 验证定时任务必须包含CronExpr
-	if task.Type == 2 && task.CronExpr == "" {
-		result.Failed(ctx, http.StatusBadRequest, "定时任务必须包含定时表达式")
+	if task.HostIDs != "" && !service.AuthorizeTaskHostString(ctx, task.HostIDs) {
 		return
 	}
-
+	current, err := getTaskJobService().GetTask(task.ID)
+	if err != nil {
+		result.Failed(ctx, 404, "任务不存在")
+		return
+	}
+	if !service.AuthorizeTaskHostString(ctx, current.HostIDs) {
+		return
+	}
 	if err := getTaskJobService().UpdateTask(task.ID, &task); err != nil {
 		result.Failed(ctx, http.StatusInternalServerError, "更新任务失败: "+err.Error())
 		return

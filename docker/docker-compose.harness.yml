@@ -1,0 +1,27 @@
+# Optional: docker compose -f docker-compose.yml -f docker-compose.harness.yml up -d --build
+services:
+  devops-api:
+    environment:
+      AIOPS_HARNESS_URL: http://harness:8091
+      AIOPS_HARNESS_SECRET: ${AIOPS_HARNESS_SECRET:?Set a random shared secret of at least 32 characters}
+      AIOPS_CALLBACK_URL: http://devops-api:8000
+  harness:
+    build: ./harness
+    image: autoops-harness:0.2.1rc2
+    restart: unless-stopped
+    environment:
+      AIOPS_HARNESS_SECRET: ${AIOPS_HARNESS_SECRET:?Set a random shared secret of at least 32 characters}
+      AUTOOPS_CALLBACK_URL: http://devops-api:8000
+    networks: [devops-network]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=512m,mode=1777
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 1g
+    cpus: 2
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

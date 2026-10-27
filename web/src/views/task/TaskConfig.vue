@@ -2,9 +2,9 @@
   <div class="ansible-config-management">
     <el-card shadow="hover" class="config-card">
       <div class="card-header">
-        <div class="title">Ansible配置管理</div>
+        <div class="title">{{ $tr("Ansible配置管理") }}</div>
         <div class="header-actions">
-          <el-button type="primary" :icon="Plus" @click="handleCreate">新增配置</el-button>
+          <el-button type="primary" :icon="Plus" @click="handleCreate">{{ $tr("新增配置") }}</el-button>
           <el-button :icon="Refresh" circle @click="handleRefresh"></el-button>
         </div>
       </div>
@@ -14,7 +14,7 @@
           <el-form-item>
             <el-input
               v-model="searchKeyword"
-              placeholder="搜索配置名称"
+              :placeholder='$tr("搜索配置名称")'
               :prefix-icon="Search"
               clearable
               @clear="fetchConfigList"
@@ -22,43 +22,43 @@
             />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="fetchConfigList">搜索</el-button>
-            <el-button @click="resetSearch">重置</el-button>
+            <el-button type="primary" @click="fetchConfigList">{{ $tr("搜索") }}</el-button>
+            <el-button @click="resetSearch">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
 
       <div class="config-tabs">
         <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-          <el-tab-pane label="主机清单" name="inventory">
+          <el-tab-pane :label='$tr("主机清单")' name="inventory">
             <template #label>
               <span class="custom-tab-label">
                 <el-icon><List /></el-icon>
-                <span>主机清单</span>
+                <span>{{ $tr("主机清单") }}</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="全局变量" name="globalVars">
+          <el-tab-pane :label='$tr("全局变量")' name="globalVars">
             <template #label>
               <span class="custom-tab-label">
                 <el-icon><Operation /></el-icon>
-                <span>全局变量</span>
+                <span>{{ $tr("全局变量") }}</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="扩展变量" name="extraVars">
+          <el-tab-pane :label='$tr("扩展变量")' name="extraVars">
              <template #label>
               <span class="custom-tab-label">
                 <el-icon><TopRight /></el-icon>
-                <span>扩展变量</span>
+                <span>{{ $tr("扩展变量") }}</span>
               </span>
             </template>
           </el-tab-pane>
-          <el-tab-pane label="命令行参数" name="cliArgs">
+          <el-tab-pane :label='$tr("命令行参数")' name="cliArgs">
              <template #label>
               <span class="custom-tab-label">
                 <el-icon><Terminal /></el-icon>
-                <span>命令行参数</span>
+                <span>{{ $tr("命令行参数") }}</span>
               </span>
             </template>
           </el-tab-pane>
@@ -66,28 +66,28 @@
 
         <div class="tab-content" v-loading="loading">
           <div class="content-header">
-            <span class="resource-count">共 {{ total }} 个配置</span>
+            <span class="resource-count">{{ $tr("共") }} {{ total }} {{ $tr("个配置") }}</span>
           </div>
 
           <div class="resource-table">
             <el-table :data="configList" style="width: 100%" class="config-table">
-              <el-table-column prop="Name" label="名称" min-width="150" sortable>
+              <el-table-column prop="Name" :label='$tr("名称")' min-width="150" sortable>
                 <template #default="{ row }">
                    <span class="name-text">{{ row.Name }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="Content" label="内容预览" min-width="250">
+              <el-table-column prop="Content" :label='$tr("内容预览")' min-width="250">
                  <template #default="{ row }">
                   <div class="content-preview">{{ formatContent(row.Content) }}</div>
                 </template>
               </el-table-column>
-               <el-table-column prop="Remark" label="备注" min-width="150" show-overflow-tooltip />
-              <el-table-column prop="CreatedAt" label="创建时间" width="180">
+               <el-table-column prop="Remark" :label='$tr("备注")' min-width="150" show-overflow-tooltip />
+              <el-table-column prop="CreatedAt" :label='$tr("创建时间")' width="180">
                  <template #default="{ row }">
                   {{ formatDate(row.CreatedAt) }}
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="200" fixed="right">
+              <el-table-column :label='$tr("操作")' width="200" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
                     <el-button type="primary" :icon="Edit" size="small" circle @click="handleEdit(row)" />
@@ -116,21 +116,21 @@
     <!-- Create/Edit Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'create' ? '新增配置' : '编辑配置'"
+      :title="dialogType === 'create' ? $tr('新增配置') : $tr('编辑配置')"
       width="60%"
       class="modern-dialog"
       :close-on-click-modal="false"
       destroy-on-close
     >
       <el-form ref="configFormRef" :model="currentConfig" :rules="formRules" label-width="100px" label-position="top">
-        <el-form-item label="配置名称" prop="name">
-          <el-input v-model="currentConfig.name" placeholder="请输入配置名称" />
+        <el-form-item :label='$tr("配置名称")' prop="name">
+          <el-input v-model="currentConfig.name" :placeholder='$tr("请输入配置名称")' />
         </el-form-item>
         
-        <el-form-item label="配置内容" prop="content">
+        <el-form-item :label='$tr("配置内容")' prop="content">
             <template #label>
               <div class="label-with-tip">
-                <span>配置内容</span>
+                <span>{{ $tr("配置内容") }}</span>
                 <span class="tip-text">{{ getContentTypeTip() }}</span>
               </div>
             </template>
@@ -138,21 +138,21 @@
             v-model="currentConfig.content"
             type="textarea"
             :rows="10"
-            placeholder="请输入配置内容"
+            :placeholder='$tr("请输入配置内容")'
             class="code-editor"
             @keydown="handleEditorKeydown"
           />
         </el-form-item>
 
-        <el-form-item label="备注描述" prop="remark">
-          <el-input v-model="currentConfig.remark" type="textarea" rows="2" placeholder="请输入备注信息" />
+        <el-form-item :label='$tr("备注描述")' prop="remark">
+          <el-input v-model="currentConfig.remark" type="textarea" rows="2" :placeholder='$tr("请输入备注信息")' />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button>
           <el-button type="primary" @click="handleSubmit" :loading="submitting">
-            确定
+            {{ $tr("确定") }}
           </el-button>
         </span>
       </template>
@@ -161,31 +161,31 @@
     <!-- View Detail Dialog -->
     <el-dialog
       v-model="viewDialogVisible"
-      title="配置详情"
+      :title='$tr("配置详情")'
       width="60%"
       class="detail-dialog"
     >
       <div class="detail-content" v-if="viewConfig">
         <div class="detail-item">
-          <span class="label">名称:</span>
+          <span class="label">{{ $tr("名称:") }}</span>
           <span class="value">{{ viewConfig.Name }}</span>
         </div>
          <div class="detail-item">
-          <span class="label">类型:</span>
+          <span class="label">{{ $tr("类型:") }}</span>
           <span class="value">{{ getTypeName(viewConfig.Type) }}</span>
         </div>
          <div class="detail-item">
-          <span class="label">备注:</span>
+          <span class="label">{{ $tr("备注:") }}</span>
           <span class="value">{{ viewConfig.Remark || '-' }}</span>
         </div>
         <div class="detail-item code-block">
-            <div class="label">内容:</div>
+            <div class="label">{{ $tr("内容:") }}</div>
              <pre class="code-content">{{ viewConfig.Content }}</pre>
         </div>
       </div>
        <template #footer>
         <span class="dialog-footer">
-          <el-button @click="viewDialogVisible = false">关闭</el-button>
+          <el-button @click="viewDialogVisible = false">{{ $tr("关闭") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -193,6 +193,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -257,8 +259,8 @@ const currentConfig = reactive({
 const viewConfig = ref(null)
 
 const formRules = {
-  name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-  content: [{ required: true, message: '请输入配置内容', trigger: 'blur' }]
+  name: [{ required: true, get message() { return tr('请输入配置名称'); }, trigger: 'blur' }],
+  content: [{ required: true, get message() { return tr('请输入配置内容'); }, trigger: 'blur' }]
 }
 
 // Methods
@@ -295,7 +297,7 @@ const fetchConfigList = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch configs:', error)
-    ElMessage.error('获取配置列表失败')
+    ElMessage.error(tr('获取配置列表失败'))
   } finally {
     loading.value = false
   }
@@ -392,10 +394,10 @@ const handleView = async (row) => {
 const handleDelete = (row) => {
     ElMessageBox.confirm(
     `确定要删除配置 "${row.Name}" 吗?`,
-    '警告',
+    tr('警告'),
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning',
     }
   )
@@ -403,13 +405,13 @@ const handleDelete = (row) => {
       try {
         const res = await DeleteAnsibleConfig(row.id || row.ID)
         if (res && res.data && res.data.code === 200) {
-             ElMessage.success('删除成功')
+             ElMessage.success(tr('删除成功'))
              fetchConfigList()
         } else {
-             ElMessage.error(res.data.message || '删除失败')
+             ElMessage.error(res.data.message || tr('删除失败'))
         }
       } catch (error) {
-         ElMessage.error('删除配置失败')
+         ElMessage.error(tr('删除配置失败'))
       }
     })
     .catch(() => {})
@@ -438,15 +440,15 @@ const handleSubmit = async () => {
         }
 
         if (res && res.data && res.data.code === 200) {
-          ElMessage.success(dialogType.value === 'create' ? '创建成功' : '更新成功')
+          ElMessage.success(dialogType.value === 'create' ? tr('创建成功') : '更新成功')
           dialogVisible.value = false
           fetchConfigList()
         } else {
-           ElMessage.error(res.data.message || '操作失败')
+           ElMessage.error(res.data.message || tr('操作失败'))
         }
       } catch (error) {
         console.error(error)
-        ElMessage.error(dialogType.value === 'create' ? '创建失败' : '更新失败')
+        ElMessage.error(dialogType.value === 'create' ? tr('创建失败') : '更新失败')
       } finally {
         submitting.value = false
       }

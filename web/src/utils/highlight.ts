@@ -4,6 +4,10 @@ import python from 'highlight.js/lib/languages/python';
 import go from 'highlight.js/lib/languages/go';
 import yaml from 'highlight.js/lib/languages/yaml';
 import bash from 'highlight.js/lib/languages/bash';
+import powershell from 'highlight.js/lib/languages/powershell';
+import ruby from 'highlight.js/lib/languages/ruby';
+import php from 'highlight.js/lib/languages/php';
+import perl from 'highlight.js/lib/languages/perl';
 import 'highlight.js/styles/github-dark.css';
 
 // 注册语言
@@ -12,6 +16,10 @@ hljs.registerLanguage('python', python);
 hljs.registerLanguage('go', go);
 hljs.registerLanguage('yaml', yaml);
 hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('powershell', powershell);
+hljs.registerLanguage('ruby', ruby);
+hljs.registerLanguage('php', php);
+hljs.registerLanguage('perl', perl);
 
 /**
  * 代码高亮函数

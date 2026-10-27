@@ -56,6 +56,10 @@ func (s *DomainCertServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *DomainCertServiceImpl) Add(c *gin.Context, req *model.DomainCertAddReq) {
+	if err := dao.NewMonitorCategoryDao().Validate("domain_cert", req.CategoryID); err != nil {
+		result.Failed(c, 400, err.Error())
+		return
+	}
 	domain := strings.TrimSpace(req.Domain)
 	if domain == "" {
 		result.Failed(c, 400, "域名不能为空")
@@ -72,7 +76,7 @@ func (s *DomainCertServiceImpl) Add(c *gin.Context, req *model.DomainCertAddReq)
 	}
 	now := time.Now().Format("2006-01-02 15:04:05")
 	cert := &model.DomainCert{
-		Domain: domain, Port: port, Status: 1,
+		CategoryID: req.CategoryID, Domain: domain, Port: port, Status: 1,
 		RemainingDays: -1, CheckTime: now,
 	}
 	if err := s.dao.Create(cert); err != nil {
@@ -80,11 +84,18 @@ func (s *DomainCertServiceImpl) Add(c *gin.Context, req *model.DomainCertAddReq)
 		return
 	}
 	s.checkCertInternal(cert)
-	s.dao.Update(cert)
+	if err := s.dao.UpdateCheck(cert); err != nil {
+		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+		return
+	}
 	result.Success(c, cert)
 }
 
 func (s *DomainCertServiceImpl) Update(c *gin.Context, req *model.DomainCertUpdateReq) {
+	if err := dao.NewMonitorCategoryDao().Validate("domain_cert", req.CategoryID); err != nil {
+		result.Failed(c, 400, err.Error())
+		return
+	}
 	cert, err := s.dao.GetByID(req.ID)
 	if err != nil {
 		result.Failed(c, 404, "未找到该域名记录")
@@ -106,6 +117,7 @@ func (s *DomainCertServiceImpl) Update(c *gin.Context, req *model.DomainCertUpda
 	if port <= 0 {
 		port = 443
 	}
+	cert.CategoryID = req.CategoryID
 	cert.Domain = domain
 	cert.Port = port
 	if err := s.dao.Update(cert); err != nil {
@@ -116,7 +128,10 @@ func (s *DomainCertServiceImpl) Update(c *gin.Context, req *model.DomainCertUpda
 }
 
 func (s *DomainCertServiceImpl) Delete(c *gin.Context, id uint) {
-	s.dao.Delete(id)
+	if err := s.dao.Delete(id); err != nil {
+		result.Failed(c, 500, "删除失败: "+err.Error())
+		return
+	}
 	result.Success(c, nil)
 }
 
@@ -125,7 +140,10 @@ func (s *DomainCertServiceImpl) BatchDelete(c *gin.Context, ids []uint) {
 		result.Failed(c, 400, "请选择要删除的记录")
 		return
 	}
-	s.dao.BatchDelete(ids)
+	if err := s.dao.BatchDelete(ids); err != nil {
+		result.Failed(c, 500, "批量删除失败: "+err.Error())
+		return
+	}
 	result.Success(c, nil)
 }
 
@@ -136,7 +154,10 @@ func (s *DomainCertServiceImpl) CheckCert(c *gin.Context, id uint) {
 		return
 	}
 	s.checkCertInternal(cert)
-	s.dao.Update(cert)
+	if err := s.dao.UpdateCheck(cert); err != nil {
+		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+		return
+	}
 	result.Success(c, s.toCheckResult(cert))
 }
 
@@ -149,7 +170,10 @@ func (s *DomainCertServiceImpl) CheckAllCerts(c *gin.Context) {
 	var results []model.DomainCertCheckResult
 	for i := range list {
 		s.checkCertInternal(&list[i])
-		s.dao.Update(&list[i])
+		if err := s.dao.UpdateCheck(&list[i]); err != nil {
+			result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+			return
+		}
 		results = append(results, s.toCheckResult(&list[i]))
 	}
 	result.Success(c, map[string]interface{}{"total": len(list), "results": results})

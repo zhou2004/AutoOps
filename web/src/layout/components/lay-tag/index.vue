@@ -595,7 +595,7 @@ onBeforeUnmount(() => {
             <span
               class="tag-title dark:text-text_color_primary! dark:hover:text-primary!"
             >
-              {{ item.meta.title }}
+              {{ $tr(item.meta.title) }}
             </span>
             <span
               v-if="
@@ -620,7 +620,7 @@ onBeforeUnmount(() => {
               <TagChrome />
             </div>
             <span class="tag-title">
-              {{ item.meta.title }}
+              {{ $tr(item.meta.title) }}
             </span>
             <span
               v-if="isFixedTag(item) ? false : index !== 0"
@@ -653,7 +653,7 @@ onBeforeUnmount(() => {
         >
           <li v-if="item.show" @click="selectTag(key, item)">
             <IconifyIconOffline :icon="item.icon" />
-            {{ item.text }}
+            {{ $tr(item.text) }}
           </li>
         </div>
       </ul>
@@ -677,7 +677,7 @@ onBeforeUnmount(() => {
             :disabled="item.disabled"
           >
             <IconifyIconOffline :icon="item.icon" />
-            {{ item.text }}
+            {{ $tr(item.text) }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>

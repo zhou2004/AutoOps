@@ -1,20 +1,20 @@
 package controller
 
 import (
-	"net/http"
-	"strconv"
-	"dodevops-api/api/task/dao"
+	"dodevops-api/api/task/model"
 	"dodevops-api/api/task/service"
 	"dodevops-api/common"
 	"dodevops-api/common/result"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
 )
 
 type ITaskWorkController interface {
-	StartJob(c *gin.Context)                  // 启动指定任务
-	GetJobLog(c *gin.Context)                 // 获取任务日志
-	StopJob(c *gin.Context)                   // 停止单个任务
-	GetJobStatus(c *gin.Context)              // 获取任务状态
+	StartJob(c *gin.Context)     // 启动指定任务
+	GetJobLog(c *gin.Context)    // 获取任务日志
+	StopJob(c *gin.Context)      // 停止单个任务
+	GetJobStatus(c *gin.Context) // 获取任务状态
 }
 
 type TaskWorkController struct {
@@ -59,24 +59,12 @@ func (t *TaskWorkController) StartJob(c *gin.Context) {
 
 	// 根据任务类型处理
 	if task.Type == 2 { // 定时任务
-		// 获取所有关联的task_work记录
-		taskWorks, err := dao.TaskWorkDao().GetByTaskID(uint(taskId))
-		if err != nil {
-			result.Failed(c, http.StatusInternalServerError, "获取任务工作项失败: "+err.Error())
+		if err := t.service.ScheduleTask(uint(taskId)); err != nil {
+			result.Failed(c, http.StatusInternalServerError, "调度定时任务失败: "+err.Error())
 			return
 		}
-
-		// 为每个task_work记录调度定时任务
-		for _, work := range taskWorks {
-			if work.Status == 1 { // 只调度等待中的任务
-				if err := t.service.ScheduleJob(&work); err != nil {
-					result.Failed(c, http.StatusInternalServerError, "调度定时任务失败: "+err.Error())
-					return
-				}
-			}
-		}
 	} else { // 普通任务
-		err = t.service.StartJob(uint(taskId))
+		_, err = t.service.RunNow(uint(taskId), model.TaskTriggerManual, currentOperator(c))
 		if err != nil {
 			result.Failed(c, http.StatusInternalServerError, err.Error())
 			return

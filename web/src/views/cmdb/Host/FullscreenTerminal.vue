@@ -3,9 +3,9 @@
     <!-- 文件管理左侧边栏 -->
     <div :class="['file-manager', { 'is-expanded': showFileManager }]">
       <div class="fm-header">
-        <span>文件管理</span>
+        <span>{{ $tr("文件管理") }}</span>
         <div class="fm-actions">
-           <el-icon @click="fetchFileList(currentPath)" class="action-icon" style="cursor: pointer; margin-right: 10px;" title="刷新"><Refresh /></el-icon>
+           <el-icon @click="fetchFileList(currentPath)" class="action-icon" style="cursor: pointer; margin-right: 10px;" :title='$tr("刷新")'><Refresh /></el-icon>
            <el-icon @click="toggleFileManager" class="close-icon" style="cursor: pointer;"><Close /></el-icon>
         </div>
       </div>
@@ -13,7 +13,7 @@
       <!-- 路径导航 -->
       <div class="fm-path-bar" v-if="showFileManager">
         <span>{{ currentPath }}</span>
-        <el-icon @click="goUpDir" class="action-icon" style="margin-left:auto;cursor:pointer;" title="返回上一级"><Top /></el-icon>
+        <el-icon @click="goUpDir" class="action-icon" style="margin-left:auto;cursor:pointer;" :title='$tr("返回上一级")'><Top /></el-icon>
       </div>
 
       <div class="fm-content" v-loading="fileLoading" @drop.prevent="handleDrop" @dragover.prevent>
@@ -22,15 +22,15 @@
             <div class="file-info">
               <el-icon class="file-icon" v-if="item.isDir"><Folder color="#e6a23c" /></el-icon>
               <el-icon class="file-icon" v-else><Document color="var(--text-secondary)" /></el-icon>
-              <span class="file-name" :title="item.name">{{ item.name }}</span>
+              <span class="file-name" :title="$tr(item.name)">{{ item.name }}</span>
             </div>
             
             <div class="file-ops" v-if="!item.isDir">
-              <el-icon @click="downloadFile(item)" title="下载"><Download /></el-icon>
-              <el-icon @click="deleteFile(item)" class="danger-icon" title="删除"><Delete /></el-icon>
+              <el-icon @click="downloadFile(item)" :title='$tr("下载")'><Download /></el-icon>
+              <el-icon @click="deleteFile(item)" class="danger-icon" :title='$tr("删除")'><Delete /></el-icon>
             </div>
             <div class="file-ops" v-else>
-              <el-icon @click="deleteFile(item)" class="danger-icon" title="删除"><Delete /></el-icon>
+              <el-icon @click="deleteFile(item)" class="danger-icon" :title='$tr("删除")'><Delete /></el-icon>
             </div>
           </div>
         </div>
@@ -52,6 +52,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import 'xterm/css/xterm.css'
@@ -182,7 +184,7 @@ export default {
         window.URL.revokeObjectURL(downloadUrl)
       } catch (error) {
         console.error('下载失败', error)
-        ElMessage.error('下载失败，请检查网络或后端日志')
+        ElMessage.error(tr('下载失败，请检查网络或后端日志'))
       }
     },
 
@@ -190,7 +192,7 @@ export default {
       const filePath = this.currentPath.endsWith('/') 
         ? this.currentPath + item.name 
         : this.currentPath + '/' + item.name
-      ElMessageBox.confirm(`确定要删除 ${item.isDir ? '目录' : '文件'} ${item.name} 吗？`, '提示', {
+      ElMessageBox.confirm(`确定要删除 ${item.isDir ? tr('目录') : tr('文件')} ${item.name} 吗？`, tr('提示'), {
         type: 'warning'
       }).then(async () => {
         try {
@@ -200,10 +202,10 @@ export default {
             params: { hostId: this.hostId, path: filePath }
           })
           if (res.data?.code === 200) {
-            ElMessage.success('删除成功')
+            ElMessage.success(tr('删除成功'))
             this.fetchFileList(this.currentPath)
           } else {
-            ElMessage.error(res.data?.message || '删除失败')
+            ElMessage.error(res.data?.message || tr('删除失败'))
           }
         } catch (error) {
           console.error(error)

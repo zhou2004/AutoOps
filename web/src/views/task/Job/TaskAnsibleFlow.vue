@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="Ansible任务流程"
+    :title='$tr("Ansible任务流程")'
     v-model="visible"
     width="90%"
     top="5vh"
@@ -13,10 +13,10 @@
           <h3>{{ taskData.name }}</h3>
           <div class="task-meta">
             <el-tag :type="taskData.type === 1 ? 'primary' : 'success'">
-              {{ taskData.type === 1 ? '手动任务' : '自动任务' }}
+              {{ taskData.type === 1 ? $tr('手动任务') : $tr('自动任务') }}
             </el-tag>
             <el-tag :type="getStatusType(taskData.status)" style="margin-left: 10px">
-              {{ getStatusText(taskData.status) }}
+              {{ $tr(getStatusText(taskData.status)) }}
             </el-tag>
           </div>
         </div>
@@ -30,7 +30,7 @@
             :loading="starting"
             :disabled="taskData.status === 2"
           >
-            启动任务
+            {{ $tr("启动任务") }}
           </el-button>
           <el-button
             type="info"
@@ -38,14 +38,14 @@
             @click="refreshTaskStatus"
             :loading="refreshing"
           >
-            刷新状态
+            {{ $tr("刷新状态") }}
           </el-button>
           <el-button
             type="warning"
             icon="Document"
             @click="viewLogs"
           >
-            查看日志
+            {{ $tr("查看日志") }}
           </el-button>
         </div>
       </el-card>
@@ -53,7 +53,7 @@
       <!-- 主机分组信息 -->
       <el-card class="host-groups-card" shadow="never" v-if="hostGroups">
         <template #header>
-          <span>主机分组配置</span>
+          <span>{{ $tr("主机分组配置") }}</span>
         </template>
         <div class="host-groups">
           <div
@@ -64,7 +64,7 @@
             <div class="group-header">
               <el-icon><Server /></el-icon>
               <span class="group-name">{{ groupName }}</span>
-              <el-tag size="small">{{ hosts.length }}台主机</el-tag>
+              <el-tag size="small">{{ hosts.length }}{{ $tr("台主机") }}</el-tag>
             </div>
             <div class="hosts-list">
               <el-tag
@@ -74,7 +74,7 @@
                 type="info"
                 style="margin: 2px;"
               >
-                主机ID: {{ hostId }}
+                {{ $tr("主机ID:") }} {{ hostId }}
               </el-tag>
             </div>
           </div>
@@ -84,7 +84,7 @@
       <!-- 任务流程图 -->
       <el-card class="flow-chart-card" shadow="never">
         <template #header>
-          <span>任务执行流程</span>
+          <span>{{ $tr("任务执行流程") }}</span>
         </template>
         
         <div class="flow-container">
@@ -99,9 +99,9 @@
               <div class="step-number">{{ index + 1 }}</div>
               <div class="step-info">
                 <h4>{{ step.name }}</h4>
-                <p>{{ step.description }}</p>
+                <p>{{ $tr(step.description) }}</p>
                 <div class="step-meta">
-                  <span class="step-status">{{ getStepStatusText(step.status) }}</span>
+                  <span class="step-status">{{ $tr(getStepStatusText(step.status)) }}</span>
                   <span class="step-time" v-if="step.startTime">
                     {{ formatTime(step.startTime) }}
                   </span>
@@ -110,7 +110,7 @@
               
               <!-- 步骤操作按钮 -->
               <div class="step-actions">
-                <el-tooltip content="查看日志" placement="top">
+                <el-tooltip :content='$tr("查看日志")' placement="top">
                   <el-button
                     size="small"
                     icon="Document"
@@ -119,7 +119,7 @@
                     :disabled="step.status === 1"
                   />
                 </el-tooltip>
-                <el-tooltip content="重新执行" placement="top">
+                <el-tooltip :content='$tr("重新执行")' placement="top">
                   <el-button
                     size="small"
                     icon="Refresh"
@@ -148,7 +148,7 @@
         v-if="taskData.type === 2 && taskData.gitRepo"
       >
         <template #header>
-          <span>Git仓库信息</span>
+          <span>{{ $tr("Git仓库信息") }}</span>
         </template>
         <div class="git-info">
           <el-icon><FolderOpened /></el-icon>
@@ -164,7 +164,7 @@
         v-if="taskData.type === 1 && taskData.variables"
       >
         <template #header>
-          <span>全局变量</span>
+          <span>{{ $tr("全局变量") }}</span>
         </template>
         <pre class="variables-content">{{ formatVariables(taskData.variables) }}</pre>
       </el-card>
@@ -172,7 +172,7 @@
 
     <!-- 日志查看对话框 -->
     <el-dialog
-      title="任务日志"
+      :title='$tr("任务日志")'
       v-model="logDialogVisible"
       width="80%"
       append-to-body
@@ -181,14 +181,16 @@
         <pre class="log-content">{{ currentLogs }}</pre>
       </div>
       <template #footer>
-        <el-button @click="logDialogVisible = false">关闭</el-button>
-        <el-button type="primary" @click="downloadLogs">下载日志</el-button>
+        <el-button @click="logDialogVisible = false">{{ $tr("关闭") }}</el-button>
+        <el-button type="primary" @click="downloadLogs">{{ $tr("下载日志") }}</el-button>
       </template>
     </el-dialog>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Monitor as Server, FolderOpened } from '@element-plus/icons-vue'
@@ -319,7 +321,7 @@ const fetchTaskData = async () => {
     }
   } catch (error) {
     console.error('获取任务详情失败:', error)
-    ElMessage.error('获取任务详情失败')
+    ElMessage.error(tr('获取任务详情失败'))
   }
 }
 
@@ -328,12 +330,12 @@ const startTask = async () => {
     starting.value = true
     const response = await StartAnsibleTask(props.taskId)
     if (response?.data?.code === 200) {
-      ElMessage.success('任务启动成功')
+      ElMessage.success(tr('任务启动成功'))
       await fetchTaskData()
     }
   } catch (error) {
     console.error('启动任务失败:', error)
-    ElMessage.error('启动任务失败')
+    ElMessage.error(tr('启动任务失败'))
   } finally {
     starting.value = false
   }
@@ -343,10 +345,10 @@ const refreshTaskStatus = async () => {
   try {
     refreshing.value = true
     await fetchTaskData()
-    ElMessage.success('状态已刷新')
+    ElMessage.success(tr('状态已刷新'))
   } catch (error) {
     console.error('刷新状态失败:', error)
-    ElMessage.error('刷新状态失败')
+    ElMessage.error(tr('刷新状态失败'))
   } finally {
     refreshing.value = false
   }
@@ -362,7 +364,7 @@ const viewLogs = async () => {
     }
   } catch (error) {
     console.error('获取日志失败:', error)
-    ElMessage.error('获取日志失败')
+    ElMessage.error(tr('获取日志失败'))
   }
 }
 
@@ -377,12 +379,12 @@ const viewStepLog = async (step) => {
     }
   } catch (error) {
     console.error('获取步骤日志失败:', error)
-    ElMessage.error('获取步骤日志失败')
+    ElMessage.error(tr('获取步骤日志失败'))
   }
 }
 
 const retryStep = (step) => {
-  ElMessage.info('重新执行功能暂未实现')
+  ElMessage.info(tr('重新执行功能暂未实现'))
 }
 
 const downloadLogs = () => {

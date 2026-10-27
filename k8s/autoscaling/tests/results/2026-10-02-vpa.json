@@ -1,0 +1,1581 @@
+{
+  "namespace": "autoops-vpa-e2e-20261002",
+  "worker": "worker-01",
+  "started_at": "2026-10-01T16:33:51Z",
+  "status": "passed",
+  "before": [
+    {
+      "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+      "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "25m",
+          "memory": "32Mi"
+        }
+      }
+    },
+    {
+      "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+      "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "25m",
+          "memory": "32Mi"
+        }
+      }
+    }
+  ],
+  "off_observations": [
+    {
+      "at": "2026-10-01T16:34:55Z",
+      "held_seconds": 0,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "192m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:35:10Z",
+      "held_seconds": 15,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "192m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:35:25Z",
+      "held_seconds": 30,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "192m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:35:40Z",
+      "held_seconds": 45,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "192m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:35:55Z",
+      "held_seconds": 60,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "205m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:36:10Z",
+      "held_seconds": 75,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "205m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:36:26Z",
+      "held_seconds": 90,
+      "recommendation": {
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-01T16:34:52Z",
+            "status": "True",
+            "type": "RecommendationProvided"
+          }
+        ],
+        "recommendation": {
+          "containerRecommendations": [
+            {
+              "containerName": "probe",
+              "lowerBound": {
+                "cpu": "205m"
+              },
+              "target": {
+                "cpu": "250m"
+              },
+              "uncappedTarget": {
+                "cpu": "296m"
+              },
+              "upperBound": {
+                "cpu": "250m"
+              }
+            }
+          ]
+        }
+      },
+      "pods": [
+        {
+          "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+          "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        },
+        {
+          "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+          "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+          "node": "worker-01",
+          "phase": "Running",
+          "deleting": false,
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "requests": {
+              "cpu": "25m",
+              "memory": "32Mi"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "off_recommendation": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-10-01T16:34:52Z",
+        "status": "True",
+        "type": "RecommendationProvided"
+      }
+    ],
+    "recommendation": {
+      "containerRecommendations": [
+        {
+          "containerName": "probe",
+          "lowerBound": {
+            "cpu": "205m"
+          },
+          "target": {
+            "cpu": "250m"
+          },
+          "uncappedTarget": {
+            "cpu": "296m"
+          },
+          "upperBound": {
+            "cpu": "250m"
+          }
+        }
+      ]
+    }
+  },
+  "off_pods": [
+    {
+      "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+      "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "25m",
+          "memory": "32Mi"
+        }
+      }
+    },
+    {
+      "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+      "uid": "7931c27b-4473-49a3-84d0-17486607595e",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "25m",
+          "memory": "32Mi"
+        }
+      }
+    }
+  ],
+  "off_observation_seconds": 90,
+  "recreate_started_at": "2026-10-01T16:36:26Z",
+  "after": [
+    {
+      "name": "autoops-vpa-probe-78fb749b68-5srkl",
+      "uid": "6641d6c5-c42f-4498-b2ab-8eb256b91a3a",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "32Mi"
+        }
+      }
+    },
+    {
+      "name": "autoops-vpa-probe-78fb749b68-tj6pg",
+      "uid": "3dafc469-a37a-4a66-872d-e3c89a11c352",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "ready": true,
+      "resources": {
+        "limits": {
+          "cpu": "250m",
+          "memory": "128Mi"
+        },
+        "requests": {
+          "cpu": "250m",
+          "memory": "32Mi"
+        }
+      }
+    }
+  ],
+  "final_vpa_status": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-10-01T16:34:52Z",
+        "status": "True",
+        "type": "RecommendationProvided"
+      }
+    ],
+    "recommendation": {
+      "containerRecommendations": [
+        {
+          "containerName": "probe",
+          "lowerBound": {
+            "cpu": "221m"
+          },
+          "target": {
+            "cpu": "250m"
+          },
+          "uncappedTarget": {
+            "cpu": "296m"
+          },
+          "upperBound": {
+            "cpu": "250m"
+          }
+        }
+      ]
+    }
+  },
+  "deployment_template_resources": {
+    "limits": {
+      "cpu": "250m",
+      "memory": "128Mi"
+    },
+    "requests": {
+      "cpu": "25m",
+      "memory": "32Mi"
+    }
+  },
+  "events": [
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281206",
+        "uid": "6641d6c5-c42f-4498-b2ab-8eb256b91a3a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:51Z",
+      "message": "Successfully assigned autoops-vpa-e2e-20261002/autoops-vpa-probe-78fb749b68-5srkl to worker-01",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl.18da7526cd0e1c13",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281213",
+        "uid": "167e4e1e-009b-437c-a7b2-862dbecd1255"
+      },
+      "reason": "Scheduled",
+      "reportingComponent": "default-scheduler",
+      "reportingInstance": "",
+      "source": {
+        "component": "default-scheduler"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:52Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281211",
+        "uid": "6641d6c5-c42f-4498-b2ab-8eb256b91a3a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:52Z",
+      "message": "Container image \"docker.io/library/alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6\" already present on machine",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:52Z",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl.18da7526faddccc4",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281223",
+        "uid": "4d0f0343-c5e9-4f52-83ee-369cc812dea1"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:52Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281211",
+        "uid": "6641d6c5-c42f-4498-b2ab-8eb256b91a3a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:52Z",
+      "message": "Created container: probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:52Z",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl.18da7526fdfe4128",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281224",
+        "uid": "1279589a-b579-49ab-8f31-7bb61a73e19c"
+      },
+      "reason": "Created",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:52Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281211",
+        "uid": "6641d6c5-c42f-4498-b2ab-8eb256b91a3a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:52Z",
+      "message": "Started container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:52Z",
+        "name": "autoops-vpa-probe-78fb749b68-5srkl.18da7527069f013a",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281226",
+        "uid": "f9d2a4a4-34c2-4f0f-9bad-dbb4a96240b0"
+      },
+      "reason": "Started",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279936",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "Successfully assigned autoops-vpa-e2e-20261002/autoops-vpa-probe-78fb749b68-6rrqr to worker-01",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da74fd56c64a3d",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279946",
+        "uid": "7c7d07c7-066c-4130-b233-37c78e85bfd7"
+      },
+      "reason": "Scheduled",
+      "reportingComponent": "default-scheduler",
+      "reportingInstance": "",
+      "source": {
+        "component": "default-scheduler"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279944",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Container image \"docker.io/library/alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6\" already present on machine",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da74fd88e59ad2",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279957",
+        "uid": "56887583-1e7c-4292-b774-ab0aa65fd412"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279944",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Created container: probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da74fd8a4b5a2f",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279959",
+        "uid": "ad2545d3-c1ae-4b7d-bf2c-99bb913f5bb2"
+      },
+      "reason": "Created",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279944",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Started container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da74fd8e6a9bc9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279963",
+        "uid": "ddf611d4-b2ed-4e4c-bb8d-9e1b7eeb3ef6"
+      },
+      "reason": "Started",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279965",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:51Z",
+      "message": "Pod was evicted by VPA Updater to apply resource recommendation.",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da7526ca4bc505",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281203",
+        "uid": "4e750042-a32f-4de2-96dc-79e23add981e"
+      },
+      "reason": "EvictedByVPA",
+      "reportingComponent": "vpa-updater",
+      "reportingInstance": "",
+      "source": {
+        "component": "vpa-updater"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279944",
+        "uid": "569e100b-9ea0-4db4-acaf-2ea157d95eeb"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:51Z",
+      "message": "Stopping container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-6rrqr.18da7526cb05a61b",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281201",
+        "uid": "10155043-cfae-4d09-8479-3a3b29f1e55c"
+      },
+      "reason": "Killing",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279932",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "Successfully assigned autoops-vpa-e2e-20261002/autoops-vpa-probe-78fb749b68-cwjq9 to worker-01",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da74fd56c14171",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279945",
+        "uid": "906f7d46-eb13-4982-be1e-c96b00612055"
+      },
+      "reason": "Scheduled",
+      "reportingComponent": "default-scheduler",
+      "reportingInstance": "",
+      "source": {
+        "component": "default-scheduler"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279943",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Container image \"docker.io/library/alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6\" already present on machine",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da74fd89ea980c",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279958",
+        "uid": "145aafe4-3cfa-4543-85cf-b14adc113ea9"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279943",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Created container: probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da74fd8b016ea7",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279960",
+        "uid": "3dc4c17e-a962-4eeb-972d-385d7fc2f6ba"
+      },
+      "reason": "Created",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:54Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279943",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:54Z",
+      "message": "Started container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:54Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da74fd8e9f2a50",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279964",
+        "uid": "3238cae5-960d-4b6b-9839-20a4824aa44a"
+      },
+      "reason": "Started",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279966",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Pod was evicted by VPA Updater to apply resource recommendation.",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da7534bf3ca8b2",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281529",
+        "uid": "5a2928cb-ab6d-46f9-aec7-83d4452b22e4"
+      },
+      "reason": "EvictedByVPA",
+      "reportingComponent": "vpa-updater",
+      "reportingInstance": "",
+      "source": {
+        "component": "vpa-updater"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279943",
+        "uid": "7931c27b-4473-49a3-84d0-17486607595e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Stopping container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-cwjq9.18da7534bfdd4719",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281528",
+        "uid": "87942f23-151e-44d6-9104-e0d0792681cb"
+      },
+      "reason": "Killing",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281533",
+        "uid": "3dafc469-a37a-4a66-872d-e3c89a11c352"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Successfully assigned autoops-vpa-e2e-20261002/autoops-vpa-probe-78fb749b68-tj6pg to worker-01",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg.18da7534c25a73d2",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281539",
+        "uid": "8c4dd8d4-2e15-4994-a1ed-c91519fa4299"
+      },
+      "reason": "Scheduled",
+      "reportingComponent": "default-scheduler",
+      "reportingInstance": "",
+      "source": {
+        "component": "default-scheduler"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281538",
+        "uid": "3dafc469-a37a-4a66-872d-e3c89a11c352"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Container image \"docker.io/library/alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6\" already present on machine",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg.18da7534e07feffa",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281548",
+        "uid": "775dbb4c-4d1d-4678-ae08-c33ef70ac398"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281538",
+        "uid": "3dafc469-a37a-4a66-872d-e3c89a11c352"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Created container: probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg.18da7534e1551886",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281549",
+        "uid": "85c273f2-76ad-4620-8d85-7bdc757789be"
+      },
+      "reason": "Created",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{probe}",
+        "kind": "Pod",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281538",
+        "uid": "3dafc469-a37a-4a66-872d-e3c89a11c352"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Started container probe",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68-tj6pg.18da7534e4d0fd8a",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281550",
+        "uid": "109cdaa0-ce09-4c4b-adc0-71c82537f88e"
+      },
+      "reason": "Started",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "worker-01",
+      "source": {
+        "component": "kubelet",
+        "host": "worker-01"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "apps/v1",
+        "kind": "ReplicaSet",
+        "name": "autoops-vpa-probe-78fb749b68",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279928",
+        "uid": "4de4837c-5bcd-48c0-8075-94e3c64719b2"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "Created pod: autoops-vpa-probe-78fb749b68-cwjq9",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe-78fb749b68.18da74fd50a83e35",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279933",
+        "uid": "b1f33165-4ffb-4999-877d-aab9b8cc5727"
+      },
+      "reason": "SuccessfulCreate",
+      "reportingComponent": "replicaset-controller",
+      "reportingInstance": "",
+      "source": {
+        "component": "replicaset-controller"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "apps/v1",
+        "kind": "ReplicaSet",
+        "name": "autoops-vpa-probe-78fb749b68",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279928",
+        "uid": "4de4837c-5bcd-48c0-8075-94e3c64719b2"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "Created pod: autoops-vpa-probe-78fb749b68-6rrqr",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe-78fb749b68.18da74fd52004287",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279937",
+        "uid": "766f7b25-eda5-446b-ba93-ec8823ac243c"
+      },
+      "reason": "SuccessfulCreate",
+      "reportingComponent": "replicaset-controller",
+      "reportingInstance": "",
+      "source": {
+        "component": "replicaset-controller"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:51Z",
+      "involvedObject": {
+        "apiVersion": "apps/v1",
+        "kind": "ReplicaSet",
+        "name": "autoops-vpa-probe-78fb749b68",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279971",
+        "uid": "4de4837c-5bcd-48c0-8075-94e3c64719b2"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:51Z",
+      "message": "Created pod: autoops-vpa-probe-78fb749b68-5srkl",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:51Z",
+        "name": "autoops-vpa-probe-78fb749b68.18da7526cc1d6c4f",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281207",
+        "uid": "39790703-980f-4f5c-8bf7-c3b4028f94cd"
+      },
+      "reason": "SuccessfulCreate",
+      "reportingComponent": "replicaset-controller",
+      "reportingInstance": "",
+      "source": {
+        "component": "replicaset-controller"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "apps/v1",
+        "kind": "ReplicaSet",
+        "name": "autoops-vpa-probe-78fb749b68",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281230",
+        "uid": "4de4837c-5bcd-48c0-8075-94e3c64719b2"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "Created pod: autoops-vpa-probe-78fb749b68-tj6pg",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe-78fb749b68.18da7534c14e34f7",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281535",
+        "uid": "f1252586-5c26-43e4-a274-f3d9619c4a33"
+      },
+      "reason": "SuccessfulCreate",
+      "reportingComponent": "replicaset-controller",
+      "reportingInstance": "",
+      "source": {
+        "component": "replicaset-controller"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 2,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "policy/v1",
+        "kind": "PodDisruptionBudget",
+        "name": "autoops-vpa-probe",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279925",
+        "uid": "656d24ac-82c4-4074-abd2-81aa516b293e"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "No matching pods found",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe.18da74fd4b804b83",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279931",
+        "uid": "08d50f97-52e2-435c-9a98-d68cc8015d57"
+      },
+      "reason": "NoPods",
+      "reportingComponent": "controllermanager",
+      "reportingInstance": "",
+      "source": {
+        "component": "controllermanager"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:33:53Z",
+      "involvedObject": {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "name": "autoops-vpa-probe",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279924",
+        "uid": "fec64860-aa0c-47f0-bf4d-4eda14679cde"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:33:53Z",
+      "message": "Scaled up replica set autoops-vpa-probe-78fb749b68 from 0 to 2",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:33:53Z",
+        "name": "autoops-vpa-probe.18da74fd4e02180e",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "279929",
+        "uid": "88d4f163-8e32-4b06-b0a2-c5561eaea297"
+      },
+      "reason": "ScalingReplicaSet",
+      "reportingComponent": "deployment-controller",
+      "reportingInstance": "",
+      "source": {
+        "component": "deployment-controller"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:36:51Z",
+      "involvedObject": {
+        "apiVersion": "autoscaling.k8s.io/v1",
+        "kind": "VerticalPodAutoscaler",
+        "name": "autoops-vpa-probe",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281063",
+        "uid": "d1e503e6-97e0-47ec-a9f1-aee1c27cfd6a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:36:51Z",
+      "message": "VPA Updater evicted Pod autoops-vpa-probe-78fb749b68-6rrqr to apply resource recommendation.",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:36:51Z",
+        "name": "autoops-vpa-probe.18da7526ca653a63",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281205",
+        "uid": "ab43d7bb-4b54-4c5e-ad80-b2c1110859c7"
+      },
+      "reason": "EvictedPod",
+      "reportingComponent": "vpa-updater",
+      "reportingInstance": "",
+      "source": {
+        "component": "vpa-updater"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 1,
+      "eventTime": null,
+      "firstTimestamp": "2026-10-01T16:37:51Z",
+      "involvedObject": {
+        "apiVersion": "autoscaling.k8s.io/v1",
+        "kind": "VerticalPodAutoscaler",
+        "name": "autoops-vpa-probe",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281234",
+        "uid": "d1e503e6-97e0-47ec-a9f1-aee1c27cfd6a"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-10-01T16:37:51Z",
+      "message": "VPA Updater evicted Pod autoops-vpa-probe-78fb749b68-cwjq9 to apply resource recommendation.",
+      "metadata": {
+        "creationTimestamp": "2026-10-01T16:37:51Z",
+        "name": "autoops-vpa-probe.18da7534bf3d4aab",
+        "namespace": "autoops-vpa-e2e-20261002",
+        "resourceVersion": "281531",
+        "uid": "7b03b64c-dd06-4acd-bb4e-a4d098556155"
+      },
+      "reason": "EvictedPod",
+      "reportingComponent": "vpa-updater",
+      "reportingInstance": "",
+      "source": {
+        "component": "vpa-updater"
+      },
+      "type": "Normal"
+    }
+  ],
+  "finished_at": "2026-10-01T16:37:56Z",
+  "namespace_deleted": true,
+  "testScriptSHA256": "6e9cde281ad4511c2e51345b04d1a1dd6bc8c453ed68187fe0f111ea1cd46f26"
+}

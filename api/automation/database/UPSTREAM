@@ -1,0 +1,7 @@
+MySQL installation role adapted from https://github.com/zhou2004/Ansible-Mysql
+Commit: 273d54dfb732b41afb13ecf154b0e381e91bcc62
+License: Apache-2.0 (LICENSE.Ansible-Mysql)
+AutoOps changes: native copy, strict initialization/authentication, explicit socket,
+port/report_host/server_id/GTID configuration, private data permissions,
+non-destructive preflight and no shell interpolation of passwords.
+Replication, backup and orchestrator integration are maintained by AutoOps.

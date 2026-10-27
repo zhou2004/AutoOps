@@ -1,33 +1,32 @@
 package service
 
 import (
-	"fmt"
 	cmdbDao "dodevops-api/api/cmdb/dao"
 	"dodevops-api/api/cmdb/model"
 	configDao "dodevops-api/api/configcenter/dao"
+	"dodevops-api/common"
 	"dodevops-api/common/constant"
 	"dodevops-api/common/result"
 	"dodevops-api/common/util"
+	"dodevops-api/pkg/jwt"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 // filterAllowedHosts 从上下文中获取允许的资产ID列表，过滤主机列表
-// 管理员不受限制（cmdb_allowed_asset_ids为空时返回全部）
+// 缺少范围代表管理员；显式空范围返回空列表。
 func filterAllowedHosts(c *gin.Context, hosts []model.CmdbHost) []model.CmdbHost {
-	allowedIDs, exists := c.Get("cmdb_allowed_asset_ids")
-	if !exists {
+	scope := assetIDScope(c)
+	if scope == nil {
 		return hosts
 	}
-	idSet, ok := allowedIDs.(map[uint]bool)
-	if !ok || len(idSet) == 0 {
-		return hosts
-	}
-	var filtered []model.CmdbHost
-	for _, h := range hosts {
-		if idSet[h.ID] {
-			filtered = append(filtered, h)
+	filtered := make([]model.CmdbHost, 0)
+	for _, host := range hosts {
+		if scope[host.ID] {
+			filtered = append(filtered, host)
 		}
 	}
 	return filtered
@@ -182,7 +181,7 @@ func (s *CmdbHostServiceImpl) ImportHostsFromExcel(c *gin.Context, dto *model.Im
 
 // 获取主机列表(分页)
 func (s *CmdbHostServiceImpl) GetCmdbHostListWithPage(c *gin.Context, page, pageSize int) {
-	list, _ := s.dao.GetCmdbHostListWithPage(page, pageSize)
+	list, total := s.dao.GetCmdbHostListWithPage(page, pageSize, assetIDScope(c))
 	// 过滤用户被允许的主机
 	filteredList := filterAllowedHosts(c, list)
 	var vos []model.CmdbHostVo
@@ -201,10 +200,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostListWithPage(c *gin.Context, page, page
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -215,12 +215,12 @@ func (s *CmdbHostServiceImpl) GetCmdbHostListWithPage(c *gin.Context, page, page
 			UpdateTime:  host.UpdateTime,
 		})
 	}
-	result.SuccessWithPage(c, vos, int64(len(vos)), page, pageSize)
+	result.SuccessWithPage(c, vos, total, page, pageSize)
 }
 
 // 获取主机列表
 func (s *CmdbHostServiceImpl) GetCmdbHostList(c *gin.Context) {
-	list := s.dao.GetCmdbHostList()
+	list := filterAllowedHosts(c, s.dao.GetCmdbHostList())
 	var vos []model.CmdbHostVo
 	for _, host := range list {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
@@ -237,10 +237,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostList(c *gin.Context) {
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -256,18 +257,60 @@ func (s *CmdbHostServiceImpl) GetCmdbHostList(c *gin.Context) {
 
 // 创建主机
 func (s *CmdbHostServiceImpl) CreateCmdbHost(c *gin.Context, dto *model.CreateCmdbHostDto) {
+	if dto.OSType == "" {
+		dto.OSType = "linux"
+	}
+	if strings.TrimSpace(dto.HostName) == "" || dto.GroupID == 0 || (dto.OSType != "linux" && dto.OSType != "windows") {
+		result.Failed(c, constant.INVALID_PARAMS, "请填写主机名称、分组以及 Linux/Windows 系统类型")
+		return
+	}
+	if _, err := s.groupDao.GetCmdbGroupById(dto.GroupID); err != nil {
+		result.Failed(c, constant.INVALID_PARAMS, "主机分组不存在")
+		return
+	}
+	if dto.SSHPort == 0 {
+		dto.SSHPort = 22
+	}
+	if dto.OSType == "windows" {
+		dto.SkipSSH = true
+	}
+	if !dto.SkipSSH && (!validEndpoint(dto.SSHIP) || dto.SSHName == "" || dto.SSHKeyID == 0 || dto.SSHPort < 1 || dto.SSHPort > 65535) {
+		result.Failed(c, constant.INVALID_PARAMS, "请填写完整 SSH 信息，或选择稍后配置连接")
+		return
+	}
 	// 检查名称是否已存在
 	if s.dao.CheckNameExists(dto.HostName) {
 		result.FailedWithCode(c, constant.CMDB_HOST_NAME_EXISTS, "主机名称已存在")
 		return
 	}
 
-	// 获取SSH凭据 (前端已确保SSHKeyID有效)
+	// Credential references are authorized on the server before any SSH operation.
 	authDao := configDao.NewEcsAuthDao()
+	if dto.SkipSSH {
+		dto.SSHIP = ""
+		dto.SSHName = ""
+		dto.SSHKeyID = 0
+	}
+	if dto.SSHKeyID > 0 {
+		uid, err := jwt.GetAdminId(c)
+		allowed, permErr := cmdbDao.NewCmdbAssetPermissionDao(common.GetDB()).IsAdministrator(uid)
+		if err != nil || permErr != nil || !allowed {
+			result.Failed(c, 403, "SSH 连接与凭据绑定由管理员配置")
+			return
+		}
+		if _, err := authDao.GetEcsAuthById(dto.SSHKeyID); err != nil {
+			result.Failed(c, 400, "SSH 凭据不存在")
+			return
+		}
+	}
 	auth, _ := authDao.GetEcsAuthById(dto.SSHKeyID)
 
 	// 初始保存连接信息
 	host := model.CmdbHost{
+		OSType:     dto.OSType,
+		OS:         dto.OS,
+		PrivateIP:  dto.PrivateIP,
+		Name:       dto.HostName,
 		HostName:   dto.HostName,
 		GroupID:    dto.GroupID,
 		SSHIP:      dto.SSHIP,
@@ -287,6 +330,10 @@ func (s *CmdbHostServiceImpl) CreateCmdbHost(c *gin.Context, dto *model.CreateCm
 	}
 
 	// 立即返回成功响应，后台异步执行SSH操作
+	if dto.SkipSSH {
+		result.Success(c, gin.H{"id": host.ID, "status": host.Status, "msg": "资产已创建，可配置独立 SSH、VNC 或 RDP 连接"})
+		return
+	}
 	go func() {
 		// 准备SSH配置
 		sshConfig := util.SSHConfig{
@@ -300,7 +347,6 @@ func (s *CmdbHostServiceImpl) CreateCmdbHost(c *gin.Context, dto *model.CreateCm
 
 		// 获取系统信息
 		fmt.Println("开始尝试SSH连接获取系统信息...")
-		fmt.Printf("SSH配置: %+v\n", sshConfig)
 
 		sshUtil := util.NewSSHUtil()
 		systemInfo, err := sshUtil.GetSystemInfo(&sshConfig)
@@ -343,19 +389,62 @@ func (s *CmdbHostServiceImpl) CreateCmdbHost(c *gin.Context, dto *model.CreateCm
 
 // 更新主机
 func (s *CmdbHostServiceImpl) UpdateCmdbHost(c *gin.Context, id uint, dto *model.UpdateCmdbHostDto) {
-	// 不再需要查询认证凭证信息，直接从dto获取SSHName和SSHPort
+	existing, err := s.dao.GetCmdbHostById(id)
+	if err != nil {
+		result.Failed(c, 404, "主机不存在")
+		return
+	}
+	if dto.OSType == "" {
+		dto.OSType = existing.OSType
+		if dto.OSType == "" {
+			dto.OSType = "linux"
+		}
+	}
+	if strings.TrimSpace(dto.HostName) == "" || dto.GroupID == 0 || (dto.OSType != "linux" && dto.OSType != "windows") {
+		result.Failed(c, 400, "主机名称、分组或系统类型无效")
+		return
+	}
+	if _, err := s.groupDao.GetCmdbGroupById(dto.GroupID); err != nil {
+		result.Failed(c, 400, "主机分组不存在")
+		return
+	}
+	if dto.SSHPort == 0 {
+		dto.SSHPort = 22
+	}
+	if dto.OSType == "windows" {
+		dto.SkipSSH = true
+	}
+	if dto.SkipSSH {
+		dto.SSHIP = ""
+		dto.SSHName = ""
+		dto.SSHKeyID = 0
+	} else if !validEndpoint(dto.SSHIP) || dto.SSHName == "" || dto.SSHKeyID == 0 || dto.SSHPort < 1 || dto.SSHPort > 65535 {
+		result.Failed(c, 400, "请填写完整 SSH 信息，或选择稍后配置连接")
+		return
+	}
+	if dto.SSHKeyID > 0 && (dto.SSHKeyID != existing.SSHKeyID || dto.SSHIP != existing.SSHIP || dto.SSHPort != existing.SSHPort || dto.SSHName != existing.SSHName) {
+		uid, e := jwt.GetAdminId(c)
+		allowed, pe := cmdbDao.NewCmdbAssetPermissionDao(common.GetDB()).IsAdministrator(uid)
+		if e != nil || pe != nil || !allowed {
+			result.Failed(c, 403, "SSH 连接与凭据绑定由管理员配置")
+			return
+		}
+	}
 
 	host := model.CmdbHost{
-		HostName: dto.HostName,
-		GroupID:  dto.GroupID,
-		SSHIP:    dto.SSHIP,
-		SSHName:  dto.SSHName,
-		SSHKeyID: dto.SSHKeyID,
-		SSHPort:  dto.SSHPort,
-		Vendor:   dto.Vendor,
-		Remark:   dto.Remark,
+		OSType:    dto.OSType,
+		OS:        dto.OS,
+		PrivateIP: dto.PrivateIP,
+		HostName:  dto.HostName,
+		GroupID:   dto.GroupID,
+		SSHIP:     dto.SSHIP,
+		SSHName:   dto.SSHName,
+		SSHKeyID:  dto.SSHKeyID,
+		SSHPort:   dto.SSHPort,
+		Vendor:    dto.Vendor,
+		Remark:    dto.Remark,
 	}
-	err := s.dao.UpdateCmdbHost(id, &host)
+	err = common.GetDB().Model(&model.CmdbHost{}).Where("id = ?", id).Select("host_name", "group_id", "ssh_ip", "ssh_name", "ssh_key_id", "ssh_port", "vendor", "remark", "os_type", "os", "private_ip").Updates(&host).Error
 	if err != nil {
 		result.FailedWithCode(c, constant.CMDB_HOST_UPDATE_FAILED, err.Error())
 		return
@@ -385,10 +474,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostById(c *gin.Context, id uint) {
 		SSHKeyID:    host.SSHKeyID,
 		SSHPort:     host.SSHPort,
 		Remark:      host.Remark,
-		Vendor:      fmt.Sprintf("%d", host.Vendor),
+		Vendor:      host.Vendor,
 		Region:      host.Region,
 		InstanceID:  host.InstanceID,
 		OS:          host.OS,
+		OSType:      host.OSType,
 		Status:      host.Status,
 		CPU:         host.CPU,
 		Memory:      host.Memory,
@@ -423,10 +513,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostByName(c *gin.Context, name string) {
 		SSHKeyID:    host.SSHKeyID,
 		SSHPort:     host.SSHPort,
 		Remark:      host.Remark,
-		Vendor:      fmt.Sprintf("%d", host.Vendor),
+		Vendor:      host.Vendor,
 		Region:      host.Region,
 		InstanceID:  host.InstanceID,
 		OS:          host.OS,
+		OSType:      host.OSType,
 		Status:      host.Status,
 		CPU:         host.CPU,
 		Memory:      host.Memory,
@@ -451,7 +542,7 @@ func (s *CmdbHostServiceImpl) DeleteCmdbHost(c *gin.Context, id uint) {
 
 // 根据分组ID获取主机列表
 func (s *CmdbHostServiceImpl) GetCmdbHostsByGroupId(c *gin.Context, groupId uint) {
-	list := s.dao.GetCmdbHostsByGroupId(groupId)
+	list := filterAllowedHosts(c, s.dao.GetCmdbHostsByGroupId(groupId))
 	var vos []model.CmdbHostVo
 	for _, host := range list {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
@@ -468,10 +559,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByGroupId(c *gin.Context, groupId uint
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -487,7 +579,7 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByGroupId(c *gin.Context, groupId uint
 
 // 根据主机名称模糊查询
 func (s *CmdbHostServiceImpl) GetCmdbHostsByHostNameLike(c *gin.Context, name string) {
-	list := s.dao.GetCmdbHostsByHostNameLike(name)
+	list := filterAllowedHosts(c, s.dao.GetCmdbHostsByHostNameLike(name))
 	var vos []model.CmdbHostVo
 	for _, host := range list {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
@@ -504,10 +596,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByHostNameLike(c *gin.Context, name st
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -523,7 +616,7 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByHostNameLike(c *gin.Context, name st
 
 // 根据IP查询(内网/公网/SSH)
 func (s *CmdbHostServiceImpl) GetCmdbHostsByIP(c *gin.Context, ip string) {
-	list := s.dao.GetCmdbHostsByIP(ip)
+	list := filterAllowedHosts(c, s.dao.GetCmdbHostsByIP(ip))
 	var vos []model.CmdbHostVo
 	for _, host := range list {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
@@ -540,10 +633,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByIP(c *gin.Context, ip string) {
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -559,7 +653,7 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByIP(c *gin.Context, ip string) {
 
 // 根据状态查询
 func (s *CmdbHostServiceImpl) GetCmdbHostsByStatus(c *gin.Context, status int) {
-	list := s.dao.GetCmdbHostsByStatus(status)
+	list := filterAllowedHosts(c, s.dao.GetCmdbHostsByStatus(status))
 	var vos []model.CmdbHostVo
 	for _, host := range list {
 		group, _ := s.groupDao.GetCmdbGroupById(host.GroupID)
@@ -576,10 +670,11 @@ func (s *CmdbHostServiceImpl) GetCmdbHostsByStatus(c *gin.Context, status int) {
 			SSHKeyID:    host.SSHKeyID,
 			SSHPort:     host.SSHPort,
 			Remark:      host.Remark,
-			Vendor:      fmt.Sprintf("%d", host.Vendor),
+			Vendor:      host.Vendor,
 			Region:      host.Region,
 			InstanceID:  host.InstanceID,
 			OS:          host.OS,
+			OSType:      host.OSType,
 			Status:      host.Status,
 			CPU:         host.CPU,
 			Memory:      host.Memory,
@@ -610,6 +705,10 @@ func (s *CmdbHostServiceImpl) SyncHostInfo(c *gin.Context, id uint) {
 	}
 
 	// 2. 检查SSH连接信息是否完整
+	if host.OSType == "windows" {
+		result.Failed(c, 400, "Windows 资产请通过 RDP 连接；当前自动信息采集仅支持 Linux SSH")
+		return
+	}
 	if host.SSHIP == "" || host.SSHName == "" || host.SSHKeyID == 0 {
 		result.FailedWithCode(c, constant.INVALID_PARAMS, "主机SSH连接信息不完整，无法同步")
 		return

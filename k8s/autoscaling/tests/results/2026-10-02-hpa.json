@@ -1,0 +1,2432 @@
+{
+  "namespace": "autoops-hpa-e2e-final-20261002",
+  "node": "worker-02",
+  "image": "docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b",
+  "observations": [
+    {
+      "at": "2026-10-01T16:46:55.506160+00:00",
+      "phase": "idle",
+      "desired": 0,
+      "current": null,
+      "deploymentReplicas": 1,
+      "ready": 0,
+      "metrics": null,
+      "conditions": []
+    },
+    {
+      "at": "2026-10-01T16:47:05.600666+00:00",
+      "phase": "idle",
+      "desired": 0,
+      "current": null,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": null,
+      "conditions": []
+    },
+    {
+      "at": "2026-10-01T16:47:15.717134+00:00",
+      "phase": "idle",
+      "desired": 0,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "type": ""
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to get the target's current scale",
+          "reason": "SucceededGetScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA was unable to compute the replica count: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API",
+          "reason": "FailedGetResourceMetric",
+          "status": "False",
+          "type": "ScalingActive"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:47:25.814252+00:00",
+      "phase": "idle",
+      "desired": 0,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "type": ""
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to get the target's current scale",
+          "reason": "SucceededGetScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA was unable to compute the replica count: failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)",
+          "reason": "FailedGetResourceMetric",
+          "status": "False",
+          "type": "ScalingActive"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:47:35.913589+00:00",
+      "phase": "idle",
+      "desired": 0,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "type": ""
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to get the target's current scale",
+          "reason": "SucceededGetScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA was unable to compute the replica count: failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)",
+          "reason": "FailedGetResourceMetric",
+          "status": "False",
+          "type": "ScalingActive"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:47:46.005940+00:00",
+      "phase": "idle",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:47:46.137300+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:47:56.228195+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:06.318154+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:16.415655+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:26.498123+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:36.608711+00:00",
+      "phase": "load-on",
+      "desired": 1,
+      "current": 1,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:46.701202+00:00",
+      "phase": "load-on",
+      "desired": 3,
+      "current": 1,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 320,
+              "averageValue": "64m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to update the target scale to 3",
+          "reason": "SucceededRescale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:46.885212+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 1,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 320,
+              "averageValue": "64m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to update the target scale to 3",
+          "reason": "SucceededRescale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:48:56.983822+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 500,
+              "averageValue": "100m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:07.074090+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 500,
+              "averageValue": "100m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:17.177569+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 500,
+              "averageValue": "100m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:27.277303+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 505,
+              "averageValue": "101m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:37.386387+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 505,
+              "averageValue": "101m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:47.479844+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 465,
+              "averageValue": "93m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:49:57.566956+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 335,
+              "averageValue": "67m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:07.648946+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 335,
+              "averageValue": "67m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:17.739116+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 336,
+              "averageValue": "67m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:27.832492+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 216,
+              "averageValue": "43m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:37.939414+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 216,
+              "averageValue": "43m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recommended size matches current size",
+          "reason": "ReadyForNewScale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:48:40Z",
+          "message": "the desired replica count is more than the maximum replica count",
+          "reason": "TooManyReplicas",
+          "status": "True",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:48.019097+00:00",
+      "phase": "load-off",
+      "desired": 3,
+      "current": 3,
+      "deploymentReplicas": 3,
+      "ready": 3,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 21,
+              "averageValue": "4m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "recent recommendations were higher than current one, applying the highest recent recommendation",
+          "reason": "ScaleDownStabilized",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:50:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:50:58.116105+00:00",
+      "phase": "load-off",
+      "desired": 2,
+      "current": 3,
+      "deploymentReplicas": 2,
+      "ready": 2,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to update the target scale to 2",
+          "reason": "SucceededRescale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:50:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:51:08.213649+00:00",
+      "phase": "load-off",
+      "desired": 2,
+      "current": 3,
+      "deploymentReplicas": 2,
+      "ready": 2,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to update the target scale to 2",
+          "reason": "SucceededRescale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:50:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-01T16:51:18.314659+00:00",
+      "phase": "load-off",
+      "desired": 1,
+      "current": 2,
+      "deploymentReplicas": 1,
+      "ready": 1,
+      "metrics": [
+        {
+          "resource": {
+            "current": {
+              "averageUtilization": 5,
+              "averageValue": "1m"
+            },
+            "name": "cpu"
+          },
+          "type": "Resource"
+        }
+      ],
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-01T16:47:10Z",
+          "message": "the HPA controller was able to update the target scale to 1",
+          "reason": "SucceededRescale",
+          "status": "True",
+          "type": "AbleToScale"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:47:40Z",
+          "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+          "reason": "ValidMetricFound",
+          "status": "True",
+          "type": "ScalingActive"
+        },
+        {
+          "lastTransitionTime": "2026-10-01T16:50:40Z",
+          "message": "the desired count is within the acceptable range",
+          "reason": "DesiredWithinRange",
+          "status": "False",
+          "type": "ScalingLimited"
+        }
+      ]
+    }
+  ],
+  "passed": true,
+  "loadExpiresAtUnix": 1790875014,
+  "serverVersion": "v1.34.3",
+  "namespaceUID": "fbd6ba21-cb34-4fa5-92e1-51749dc50fbb",
+  "idle": {
+    "at": "2026-10-01T16:47:46.005940+00:00",
+    "phase": "idle",
+    "desired": 1,
+    "current": 1,
+    "deploymentReplicas": 1,
+    "ready": 1,
+    "metrics": [
+      {
+        "resource": {
+          "current": {
+            "averageUtilization": 5,
+            "averageValue": "1m"
+          },
+          "name": "cpu"
+        },
+        "type": "Resource"
+      }
+    ],
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-10-01T16:47:10Z",
+        "message": "recommended size matches current size",
+        "reason": "ReadyForNewScale",
+        "status": "True",
+        "type": "AbleToScale"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:47:40Z",
+        "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+        "reason": "ValidMetricFound",
+        "status": "True",
+        "type": "ScalingActive"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:47:40Z",
+        "message": "the desired count is within the acceptable range",
+        "reason": "DesiredWithinRange",
+        "status": "False",
+        "type": "ScalingLimited"
+      }
+    ]
+  },
+  "scaleOut": {
+    "at": "2026-10-01T16:48:46.701202+00:00",
+    "phase": "load-on",
+    "desired": 3,
+    "current": 1,
+    "deploymentReplicas": 3,
+    "ready": 3,
+    "metrics": [
+      {
+        "resource": {
+          "current": {
+            "averageUtilization": 320,
+            "averageValue": "64m"
+          },
+          "name": "cpu"
+        },
+        "type": "Resource"
+      }
+    ],
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-10-01T16:47:10Z",
+        "message": "the HPA controller was able to update the target scale to 3",
+        "reason": "SucceededRescale",
+        "status": "True",
+        "type": "AbleToScale"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:47:40Z",
+        "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+        "reason": "ValidMetricFound",
+        "status": "True",
+        "type": "ScalingActive"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:48:40Z",
+        "message": "the desired replica count is more than the maximum replica count",
+        "reason": "TooManyReplicas",
+        "status": "True",
+        "type": "ScalingLimited"
+      }
+    ]
+  },
+  "podImages": [
+    {
+      "name": "cpu-55f69d5546-b4bk6",
+      "node": "worker-02",
+      "images": [
+        {
+          "allocatedResources": {
+            "cpu": "20m",
+            "memory": "16Mi"
+          },
+          "containerID": "containerd://32eca6670243015ade71bc34fdf20bc18e955b568de641f40f4c007e8d2fe0d3",
+          "image": "docker.io/library/alpine:latest",
+          "imageID": "docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b",
+          "lastState": {},
+          "name": "cpu",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "requests": {
+              "cpu": "20m",
+              "memory": "16Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-01T16:48:41Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                6,
+                10,
+                11,
+                20,
+                26,
+                27
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/control",
+              "name": "control",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cpu-55f69d5546-lfzjd",
+      "node": "worker-02",
+      "images": [
+        {
+          "allocatedResources": {
+            "cpu": "20m",
+            "memory": "16Mi"
+          },
+          "containerID": "containerd://dcfebee71461d1b51eddca0905458b9b7d46e75f05815425aeafcdeadc4b2e4a",
+          "image": "docker.io/library/alpine:latest",
+          "imageID": "docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b",
+          "lastState": {},
+          "name": "cpu",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "requests": {
+              "cpu": "20m",
+              "memory": "16Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-01T16:46:56Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                6,
+                10,
+                11,
+                20,
+                26,
+                27
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/control",
+              "name": "control",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cpu-55f69d5546-n65mb",
+      "node": "worker-02",
+      "images": [
+        {
+          "allocatedResources": {
+            "cpu": "20m",
+            "memory": "16Mi"
+          },
+          "containerID": "containerd://1773b26678c98435bf926d61f513a828c71502dddd8ade4d55bed79ec2d66c80",
+          "image": "docker.io/library/alpine:latest",
+          "imageID": "docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b",
+          "lastState": {},
+          "name": "cpu",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "requests": {
+              "cpu": "20m",
+              "memory": "16Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-01T16:48:41Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                6,
+                10,
+                11,
+                20,
+                26,
+                27
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/control",
+              "name": "control",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "scaleIn": {
+    "at": "2026-10-01T16:51:18.314659+00:00",
+    "phase": "load-off",
+    "desired": 1,
+    "current": 2,
+    "deploymentReplicas": 1,
+    "ready": 1,
+    "metrics": [
+      {
+        "resource": {
+          "current": {
+            "averageUtilization": 5,
+            "averageValue": "1m"
+          },
+          "name": "cpu"
+        },
+        "type": "Resource"
+      }
+    ],
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-10-01T16:47:10Z",
+        "message": "the HPA controller was able to update the target scale to 1",
+        "reason": "SucceededRescale",
+        "status": "True",
+        "type": "AbleToScale"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:47:40Z",
+        "message": "the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)",
+        "reason": "ValidMetricFound",
+        "status": "True",
+        "type": "ScalingActive"
+      },
+      {
+        "lastTransitionTime": "2026-10-01T16:50:40Z",
+        "message": "the desired count is within the acceptable range",
+        "reason": "DesiredWithinRange",
+        "status": "False",
+        "type": "ScalingLimited"
+      }
+    ]
+  },
+  "events": {
+    "apiVersion": "v1",
+    "items": [
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-b4bk6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286648",
+          "uid": "4541976b-2bee-43f5-9695-52d73979b718"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "Successfully assigned autoops-hpa-e2e-final-20261002/cpu-55f69d5546-b4bk6 to worker-02",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu-55f69d5546-b4bk6.18da75cbed38270f",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286659",
+          "uid": "59617630-3297-48d7-9d6b-36453669ad9a"
+        },
+        "reason": "Scheduled",
+        "reportingComponent": "default-scheduler",
+        "reportingInstance": "",
+        "source": {
+          "component": "default-scheduler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-b4bk6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286655",
+          "uid": "4541976b-2bee-43f5-9695-52d73979b718"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Container image \"docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b\" already present on machine",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-b4bk6.18da75cc1483a037",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286669",
+          "uid": "6e9f135a-0f70-46ca-98fe-18e3a9a85c04"
+        },
+        "reason": "Pulled",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-b4bk6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286655",
+          "uid": "4541976b-2bee-43f5-9695-52d73979b718"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Created container: cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-b4bk6.18da75cc15442ccc",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286671",
+          "uid": "158f8e27-b7b6-417f-8e4d-01469c987602"
+        },
+        "reason": "Created",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-b4bk6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286655",
+          "uid": "4541976b-2bee-43f5-9695-52d73979b718"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Started container cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-b4bk6.18da75cc1a83baea",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286673",
+          "uid": "2984b38b-5297-40c6-bd41-0712c29945c3"
+        },
+        "reason": "Started",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:50:55Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-b4bk6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286655",
+          "uid": "4541976b-2bee-43f5-9695-52d73979b718"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:50:55Z",
+        "message": "Stopping container cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:50:55Z",
+          "name": "cpu-55f69d5546-b4bk6.18da75eb602eca18",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287400",
+          "uid": "3efc405c-2d85-4de7-a144-011f60524ce1"
+        },
+        "reason": "Killing",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:55Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-lfzjd",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285609",
+          "uid": "891163dc-ca9e-4d4f-8563-d5824b10d440"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:55Z",
+        "message": "Successfully assigned autoops-hpa-e2e-final-20261002/cpu-55f69d5546-lfzjd to worker-02",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:55Z",
+          "name": "cpu-55f69d5546-lfzjd.18da75b36ebeaffc",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285613",
+          "uid": "a382b550-9c4d-45de-8a58-19b8eadbf297"
+        },
+        "reason": "Scheduled",
+        "reportingComponent": "default-scheduler",
+        "reportingInstance": "",
+        "source": {
+          "component": "default-scheduler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:55Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-lfzjd",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285612",
+          "uid": "891163dc-ca9e-4d4f-8563-d5824b10d440"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:55Z",
+        "message": "Container image \"docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b\" already present on machine",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:55Z",
+          "name": "cpu-55f69d5546-lfzjd.18da75b38f91c093",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285638",
+          "uid": "76f37301-f189-44c1-a0dd-ceb96fb31e2e"
+        },
+        "reason": "Pulled",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:55Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-lfzjd",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285612",
+          "uid": "891163dc-ca9e-4d4f-8563-d5824b10d440"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:55Z",
+        "message": "Created container: cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:55Z",
+          "name": "cpu-55f69d5546-lfzjd.18da75b39059966b",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285639",
+          "uid": "d23681a6-b1e8-4f9e-86b2-231d0646deef"
+        },
+        "reason": "Created",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:56Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-lfzjd",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285612",
+          "uid": "891163dc-ca9e-4d4f-8563-d5824b10d440"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:56Z",
+        "message": "Started container cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:56Z",
+          "name": "cpu-55f69d5546-lfzjd.18da75b395aafef0",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285641",
+          "uid": "0bbd87ef-3d5b-424a-874e-20d0a66ed6af"
+        },
+        "reason": "Started",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:51:10Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-lfzjd",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285612",
+          "uid": "891163dc-ca9e-4d4f-8563-d5824b10d440"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:51:10Z",
+        "message": "Stopping container cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:51:10Z",
+          "name": "cpu-55f69d5546-lfzjd.18da75eedea432d6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287500",
+          "uid": "be5ddf65-a44d-46ff-9842-3cd8623c87b8"
+        },
+        "reason": "Killing",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-n65mb",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286651",
+          "uid": "ff7e0edb-712f-440f-aca6-7c285fa8195f"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "Successfully assigned autoops-hpa-e2e-final-20261002/cpu-55f69d5546-n65mb to worker-02",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu-55f69d5546-n65mb.18da75cbed14bae7",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286658",
+          "uid": "ce378186-ac64-47e3-b40e-b9bdac014cff"
+        },
+        "reason": "Scheduled",
+        "reportingComponent": "default-scheduler",
+        "reportingInstance": "",
+        "source": {
+          "component": "default-scheduler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-n65mb",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286656",
+          "uid": "ff7e0edb-712f-440f-aca6-7c285fa8195f"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Container image \"docker.io/library/alpine@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b\" already present on machine",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-n65mb.18da75cc145e0ead",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286668",
+          "uid": "6ddbc456-6cf8-402f-9bfb-8db296cbd42c"
+        },
+        "reason": "Pulled",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-n65mb",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286656",
+          "uid": "ff7e0edb-712f-440f-aca6-7c285fa8195f"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Created container: cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-n65mb.18da75cc152f9744",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286670",
+          "uid": "c77cb01e-d7ce-49bc-ad59-7b6863a7d14a"
+        },
+        "reason": "Created",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:41Z",
+        "involvedObject": {
+          "apiVersion": "v1",
+          "fieldPath": "spec.containers{cpu}",
+          "kind": "Pod",
+          "name": "cpu-55f69d5546-n65mb",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286656",
+          "uid": "ff7e0edb-712f-440f-aca6-7c285fa8195f"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:41Z",
+        "message": "Started container cpu",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:41Z",
+          "name": "cpu-55f69d5546-n65mb.18da75cc1a814443",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286672",
+          "uid": "783fb375-d9f8-4a96-a955-51b093b3ed58"
+        },
+        "reason": "Started",
+        "reportingComponent": "kubelet",
+        "reportingInstance": "worker-02",
+        "source": {
+          "component": "kubelet",
+          "host": "worker-02"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:55Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "name": "cpu-55f69d5546",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285604",
+          "uid": "b7572eb9-52c6-441c-b4fe-db5c3bfe860a"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:55Z",
+        "message": "Created pod: cpu-55f69d5546-lfzjd",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:55Z",
+          "name": "cpu-55f69d5546.18da75b36db1ada0",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285610",
+          "uid": "40620d4f-81ac-4db3-9ebe-9ea443ec3cae"
+        },
+        "reason": "SuccessfulCreate",
+        "reportingComponent": "replicaset-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "replicaset-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "name": "cpu-55f69d5546",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286643",
+          "uid": "b7572eb9-52c6-441c-b4fe-db5c3bfe860a"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "Created pod: cpu-55f69d5546-b4bk6",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu-55f69d5546.18da75cbeb7b0f19",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286649",
+          "uid": "2e0fd271-9d32-42de-95d4-57d525433ef7"
+        },
+        "reason": "SuccessfulCreate",
+        "reportingComponent": "replicaset-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "replicaset-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "name": "cpu-55f69d5546",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286643",
+          "uid": "b7572eb9-52c6-441c-b4fe-db5c3bfe860a"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "Created pod: cpu-55f69d5546-n65mb",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu-55f69d5546.18da75cbec1d24f9",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286652",
+          "uid": "968cf679-3e64-4a70-a3be-a84ab3dd4ed0"
+        },
+        "reason": "SuccessfulCreate",
+        "reportingComponent": "replicaset-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "replicaset-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:50:55Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "name": "cpu-55f69d5546",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287396",
+          "uid": "b7572eb9-52c6-441c-b4fe-db5c3bfe860a"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:50:55Z",
+        "message": "Deleted pod: cpu-55f69d5546-b4bk6",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:50:55Z",
+          "name": "cpu-55f69d5546.18da75eb6113a7e0",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287401",
+          "uid": "2ce0877c-53e9-4b90-bcdf-33df059ad659"
+        },
+        "reason": "SuccessfulDelete",
+        "reportingComponent": "replicaset-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "replicaset-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:51:10Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "name": "cpu-55f69d5546",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287495",
+          "uid": "b7572eb9-52c6-441c-b4fe-db5c3bfe860a"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:51:10Z",
+        "message": "Deleted pod: cpu-55f69d5546-lfzjd",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:51:10Z",
+          "name": "cpu-55f69d5546.18da75eedf9623e6",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287501",
+          "uid": "3c3fc49c-b1a4-46be-b78a-39502f5ff77d"
+        },
+        "reason": "SuccessfulDelete",
+        "reportingComponent": "replicaset-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "replicaset-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:46:55Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285603",
+          "uid": "0b9797bf-4d9b-4d43-b642-c3439b676db0"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:46:55Z",
+        "message": "Scaled up replica set cpu-55f69d5546 from 0 to 1",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:46:55Z",
+          "name": "cpu.18da75b36c2184a2",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285606",
+          "uid": "416f7763-524c-418a-8132-422a148b2287"
+        },
+        "reason": "ScalingReplicaSet",
+        "reportingComponent": "deployment-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "deployment-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:47:10Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285617",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:47:10Z",
+        "message": "failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:47:10Z",
+          "name": "cpu.18da75b6efd45bbb",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285998",
+          "uid": "3a719cef-89ac-4368-a2fb-4e40b00b7633"
+        },
+        "reason": "FailedGetResourceMetric",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Warning"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:47:10Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "285617",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:47:10Z",
+        "message": "invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: unable to get metrics for resource cpu: no metrics returned from resource metrics API",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:47:10Z",
+          "name": "cpu.18da75b6f015ac8b",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286001",
+          "uid": "23617fe1-8fbd-406f-8e0e-a4edb7b37dfa"
+        },
+        "reason": "FailedComputeMetricsReplicas",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Warning"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:47:25Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286000",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:47:25Z",
+        "message": "failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:47:25Z",
+          "name": "cpu.18da75ba6eae9826",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286093",
+          "uid": "80d7f4dc-1fd4-48b4-8396-2c384750d49f"
+        },
+        "reason": "FailedGetResourceMetric",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Warning"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:47:25Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286000",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:47:25Z",
+        "message": "invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:47:25Z",
+          "name": "cpu.18da75ba6eea23e5",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286095",
+          "uid": "653abff3-d02c-4ffb-900d-034dfae7ca80"
+        },
+        "reason": "FailedComputeMetricsReplicas",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Warning"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286345",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "New size: 3; reason: cpu resource utilization (percentage of request) above target",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu.18da75cbe93f8ae9",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286641",
+          "uid": "1014ab3d-9665-4b1e-bdad-674c749fecd0"
+        },
+        "reason": "SuccessfulRescale",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:48:40Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286640",
+          "uid": "0b9797bf-4d9b-4d43-b642-c3439b676db0"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:48:40Z",
+        "message": "Scaled up replica set cpu-55f69d5546 from 1 to 3",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:48:40Z",
+          "name": "cpu.18da75cbe9e6cc59",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "286644",
+          "uid": "5f63c85a-2f21-46a8-9f92-3c97c1615532"
+        },
+        "reason": "ScalingReplicaSet",
+        "reportingComponent": "deployment-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "deployment-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:50:55Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287329",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:50:55Z",
+        "message": "New size: 2; reason: All metrics below target",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:50:55Z",
+          "name": "cpu.18da75eb5fbb66a7",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287395",
+          "uid": "a0bc7010-3139-4a7a-a7f3-31695e76684f"
+        },
+        "reason": "SuccessfulRescale",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:50:55Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287393",
+          "uid": "0b9797bf-4d9b-4d43-b642-c3439b676db0"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:50:55Z",
+        "message": "Scaled down replica set cpu-55f69d5546 from 3 to 2",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:50:55Z",
+          "name": "cpu.18da75eb607ccbdc",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287397",
+          "uid": "ea3b6967-3c51-43cc-a2ea-3b3c95cf68ad"
+        },
+        "reason": "ScalingReplicaSet",
+        "reportingComponent": "deployment-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "deployment-controller"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:51:10Z",
+        "involvedObject": {
+          "apiVersion": "autoscaling/v2",
+          "kind": "HorizontalPodAutoscaler",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287394",
+          "uid": "9527457d-7755-46af-9656-dc9e4337d922"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:51:10Z",
+        "message": "New size: 1; reason: All metrics below target",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:51:10Z",
+          "name": "cpu.18da75eedef81a7e",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287493",
+          "uid": "2fa6af9e-54b0-4e5a-bb2d-7b1043a083eb"
+        },
+        "reason": "SuccessfulRescale",
+        "reportingComponent": "horizontal-pod-autoscaler",
+        "reportingInstance": "",
+        "source": {
+          "component": "horizontal-pod-autoscaler"
+        },
+        "type": "Normal"
+      },
+      {
+        "apiVersion": "v1",
+        "count": 1,
+        "eventTime": null,
+        "firstTimestamp": "2026-10-01T16:51:10Z",
+        "involvedObject": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "cpu",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287492",
+          "uid": "0b9797bf-4d9b-4d43-b642-c3439b676db0"
+        },
+        "kind": "Event",
+        "lastTimestamp": "2026-10-01T16:51:10Z",
+        "message": "Scaled down replica set cpu-55f69d5546 from 2 to 1",
+        "metadata": {
+          "creationTimestamp": "2026-10-01T16:51:10Z",
+          "name": "cpu.18da75eedf60ed71",
+          "namespace": "autoops-hpa-e2e-final-20261002",
+          "resourceVersion": "287496",
+          "uid": "9e9132f6-955d-4e26-9529-fce461fe9738"
+        },
+        "reason": "ScalingReplicaSet",
+        "reportingComponent": "deployment-controller",
+        "reportingInstance": "",
+        "source": {
+          "component": "deployment-controller"
+        },
+        "type": "Normal"
+      }
+    ],
+    "kind": "List",
+    "metadata": {
+      "resourceVersion": ""
+    }
+  },
+  "functionalPassed": true,
+  "cleanupRequested": true,
+  "namespaceDeleted": true,
+  "testScriptSHA256": "c626b371d15d11707e05fce3674b68b102d4e83228e4b0070666115817975717"
+}

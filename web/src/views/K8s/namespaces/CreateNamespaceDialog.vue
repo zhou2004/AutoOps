@@ -2,7 +2,7 @@
   <!-- 创建命名空间对话框 -->
   <el-dialog
     :model-value="visible"
-    title="创建命名空间"
+    :title='$tr("创建命名空间")'
     width="500px"
     class="create-namespace-dialog"
     @update:model-value="handleClose"
@@ -10,32 +10,32 @@
   >
     <el-form :model="createForm" label-width="100px" ref="formRef">
       <el-form-item 
-        label="名称" 
+        :label='$tr("名称")' 
         required
         :rules="[
-          { required: true, message: '请输入命名空间名称', trigger: 'blur' },
+          { required: true, message: $tr('请输入命名空间名称'), trigger: 'blur' },
           { pattern: /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/, message: '命名空间名称只能包含小写字母、数字和连字符，且必须以字母数字字符开头和结尾', trigger: 'blur' }
         ]"
       >
         <el-input
           v-model="createForm.name"
-          placeholder="请输入命名空间名称"
+          :placeholder='$tr("请输入命名空间名称")'
         />
       </el-form-item>
       
-      <el-form-item label="描述">
+      <el-form-item :label='$tr("描述")'>
         <el-input
           v-model="createForm.description"
-          placeholder="请输入描述信息"
+          :placeholder='$tr("请输入描述信息")'
           type="textarea"
           :rows="2"
         />
       </el-form-item>
 
-      <el-form-item label="标签">
+      <el-form-item :label='$tr("标签")'>
         <el-input
           v-model="createForm.customLabels"
-          placeholder="格式：key=value，每行一个"
+          :placeholder='$tr("格式：key=value，每行一个")'
           type="textarea"
           :rows="3"
         />
@@ -46,14 +46,16 @@
     
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">创建</el-button>
+        <el-button @click="handleCancel">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting">{{ $tr("创建") }}</el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
@@ -153,7 +155,7 @@ const handleSubmit = async () => {
     if (!valid) return
 
     if (!createForm.name) {
-      ElMessage.warning('请输入命名空间名称')
+      ElMessage.warning(tr('请输入命名空间名称'))
       return
     }
 

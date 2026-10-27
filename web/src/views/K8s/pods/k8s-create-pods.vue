@@ -3,7 +3,7 @@
     <!-- 创建Pod对话框 -->
     <el-dialog
       v-model="createDialogVisible"
-      title="通过YAML创建Pod"
+      :title='$tr("通过YAML创建Pod")'
       width="50%"
       class="create-pod-dialog"
       :close-on-click-modal="false"
@@ -18,7 +18,7 @@
               @click="validatePodYaml" 
               :loading="loading"
             >
-              校验YAML
+              {{ $tr("校验YAML") }}
             </el-button>
             <el-button 
               :icon="Search" 
@@ -26,13 +26,13 @@
               @click="previewPodCreation" 
               :loading="loading"
             >
-              DryRun预览
+              {{ $tr("DryRun预览") }}
             </el-button>
             <el-button 
               :icon="Copy" 
               @click="copyToClipboard(createForm.yamlContent, 'YAML已复制')"
             >
-              复制YAML
+              {{ $tr("复制YAML") }}
             </el-button>
           </div>
           <div class="status-indicators">
@@ -62,16 +62,16 @@
             height="500px"
             fontSize="14px"
             :readonly="false"
-            placeholder="请输入Pod的YAML配置..."
+            :placeholder='$tr("请输入Pod的YAML配置...")'
           />
         </div>
 
         <!-- 验证结果显示 -->
         <div v-if="validationResult && !validationResult.valid" class="validation-result error">
           <el-alert
-            :title="validationResult.message"
+            :title="$tr(validationResult.message)"
             type="error"
-            :description="validationResult.details"
+            :description="$tr(validationResult.details)"
             show-icon
             :closable="false"
           />
@@ -79,7 +79,7 @@
 
         <div v-if="validationResult && validationResult.valid" class="validation-result success">
           <el-alert
-            :title="validationResult.message"
+            :title="$tr(validationResult.message)"
             type="success"
             show-icon
             :closable="false"
@@ -89,9 +89,9 @@
         <!-- DryRun结果显示 -->
         <div v-if="dryRunResult" class="dryrun-result">
           <el-alert
-            :title="dryRunResult.message"
+            :title="$tr(dryRunResult.message)"
             :type="dryRunResult.success ? 'success' : 'error'"
-            :description="dryRunResult.details"
+            :description="$tr(dryRunResult.details)"
             show-icon
             :closable="false"
           />
@@ -101,13 +101,13 @@
         <div class="create-options">
           <el-card class="options-card">
             <template #header>
-              <span>创建选项</span>
+              <span>{{ $tr("创建选项") }}</span>
             </template>
             <el-descriptions :column="2" size="small">
-              <el-descriptions-item label="目标集群">
+              <el-descriptions-item :label='$tr("目标集群")'>
                 {{ clusterName || '未选择' }}
               </el-descriptions-item>
-              <el-descriptions-item label="目标命名空间">
+              <el-descriptions-item :label='$tr("目标命名空间")'>
                 {{ namespace || '未选择' }}
               </el-descriptions-item>
             </el-descriptions>
@@ -117,14 +117,14 @@
       
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button @click="createDialogVisible = false">{{ $tr("取消") }}</el-button>
           <el-button 
             type="primary" 
             @click="createPod" 
             :loading="loading"
             :disabled="validationResult && !validationResult.valid"
           >
-            创建Pod
+            {{ $tr("创建Pod") }}
           </el-button>
         </div>
       </template>
@@ -133,6 +133,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { View, Search, DocumentCopy as Copy } from '@element-plus/icons-vue'
@@ -230,7 +232,7 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
       document.execCommand('copy')
       ElMessage.success(successMessage)
     } catch (err) {
-      ElMessage.error('复制失败')
+      ElMessage.error(tr('复制失败'))
     }
     document.body.removeChild(textArea)
   }
@@ -239,11 +241,11 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
 // 显示创建对话框
 const showCreateDialog = () => {
   if (!props.clusterId) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!props.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
   
@@ -279,7 +281,7 @@ const showCreateDialog = () => {
 // YAML校验函数
 const validatePodYaml = async () => {
   if (!createForm.yamlContent.trim()) {
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return
   }
   
@@ -300,7 +302,7 @@ const validatePodYaml = async () => {
         message: responseData.message || 'YAML格式验证通过',
         details: responseData.data
       }
-      ElMessage.success('YAML格式验证通过')
+      ElMessage.success(tr('YAML格式验证通过'))
     } else {
       validationResult.value = {
         valid: false,
@@ -316,7 +318,7 @@ const validatePodYaml = async () => {
       message: error.message || 'YAML格式校验失败',
       details: null
     }
-    ElMessage.error('YAML格式校验失败: ' + (error.message || '网络错误'))
+    ElMessage.error('YAML格式校验失败: ' + (error.message || tr('网络错误')))
   } finally {
     loading.value = false
   }
@@ -325,7 +327,7 @@ const validatePodYaml = async () => {
 // DryRun预览函数
 const previewPodCreation = async () => {
   if (!createForm.yamlContent.trim()) {
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return
   }
   
@@ -347,7 +349,7 @@ const previewPodCreation = async () => {
         message: responseData.message || 'Pod创建预览成功',
         details: responseData.data
       }
-      ElMessage.success('Pod创建预览成功，可以正常创建')
+      ElMessage.success(tr('Pod创建预览成功，可以正常创建'))
     } else {
       dryRunResult.value = {
         success: false,
@@ -363,7 +365,7 @@ const previewPodCreation = async () => {
       message: error.message || 'Pod创建预览失败',
       details: null
     }
-    ElMessage.error('Pod创建预览失败: ' + (error.message || '网络错误'))
+    ElMessage.error('Pod创建预览失败: ' + (error.message || tr('网络错误')))
   } finally {
     loading.value = false
   }
@@ -372,7 +374,7 @@ const previewPodCreation = async () => {
 // 创建Pod函数
 const createPod = async () => {
   if (!createForm.yamlContent.trim()) {
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return
   }
   
@@ -388,7 +390,7 @@ const createPod = async () => {
     const responseData = response.data || response
     
     if (responseData.code === 200) {
-      ElMessage.success('Pod创建成功!')
+      ElMessage.success(tr('Pod创建成功!'))
       createDialogVisible.value = false
       
       // 通知父组件刷新列表
@@ -399,7 +401,7 @@ const createPod = async () => {
     }
   } catch (error) {
     console.error('Pod创建失败:', error)
-    ElMessage.error('Pod创建失败: ' + (error.message || '网络错误'))
+    ElMessage.error('Pod创建失败: ' + (error.message || tr('网络错误')))
   } finally {
     loading.value = false
   }

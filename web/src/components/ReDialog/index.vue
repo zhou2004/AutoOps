@@ -127,7 +127,7 @@ function handleClose(
         v-if="options?.fullscreenIcon"
         class="flex items-center justify-between"
       >
-        <span :id="titleId" :class="titleClass">{{ options?.title }}</span>
+        <span :id="titleId" :class="titleClass">{{ $tr(options?.title) }}</span>
         <i
           v-if="!options?.fullscreen"
           :class="fullscreenClass"
@@ -183,7 +183,7 @@ function handleClose(
             "
           >
             <template #reference>
-              <el-button v-bind="btn">{{ btn?.label }}</el-button>
+              <el-button v-bind="btn">{{ $tr(btn?.label) }}</el-button>
             </template>
           </el-popconfirm>
           <el-button
@@ -197,7 +197,7 @@ function handleClose(
               })
             "
           >
-            {{ btn?.label }}
+            {{ $tr(btn?.label) }}
           </el-button>
         </template>
       </span>

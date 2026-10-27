@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="Ansible任务日志"
+    :title='$tr("Ansible任务日志")'
     v-model="dialogVisible"
     width="80%"
     top="5vh"
@@ -9,38 +9,38 @@
   >
     <div class="log-header" v-if="logInfo">
       <el-descriptions :column="3" border>
-        <el-descriptions-item label="任务ID">{{ logInfo.taskId }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("任务ID")'>{{ logInfo.taskId }}</el-descriptions-item>
         <el-descriptions-item label="Work ID">{{ logInfo.workId }}</el-descriptions-item>
-        <el-descriptions-item label="文件名">{{ logInfo.fileName }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("文件名")'>{{ logInfo.fileName }}</el-descriptions-item>
       </el-descriptions>
     </div>
 
     <div class="log-container">
       <div class="log-controls">
         <el-button type="primary" icon="Refresh" size="small" @click="refreshLog" :loading="refreshing">
-          刷新日志
+          {{ $tr("刷新日志") }}
         </el-button>
         <el-button type="info" icon="Download" size="small" @click="downloadLog">
-          下载日志
+          {{ $tr("下载日志") }}
         </el-button>
         <el-tag v-if="wsConnected" type="success" size="small">
-          🔄 实时连接
+          {{ $tr("🔄 实时连接") }}
         </el-tag>
         <el-tag v-else-if="isCompleted" type="info" size="small">
-          ✅ 任务完成
+          {{ $tr("✅ 任务完成") }}
         </el-tag>
         <el-tag v-else type="warning" size="small">
-          ⚪ 未连接
+          {{ $tr("⚪ 未连接") }}
         </el-tag>
       </div>
       
       <div class="log-content-wrapper">
         <!-- 日志统计信息 -->
         <div v-if="logs.length > 0" class="log-stats">
-          📊 日志行数: {{ logs.length }} 行 
-          <span v-if="isCompleted" style="color: #67c23a;">| ✅ 任务已完成</span>
-          <span v-else-if="wsConnected" style="color: #409eff;">| 🔄 任务运行中</span>
-          <span v-else style="color: var(--text-secondary);">| 空闲</span>
+          {{ $tr("📊 日志行数:") }} {{ logs.length }} {{ $tr("行") }} 
+          <span v-if="isCompleted" style="color: #67c23a;">{{ $tr("| ✅ 任务已完成") }}</span>
+          <span v-else-if="wsConnected" style="color: #409eff;">{{ $tr("| 🔄 任务运行中") }}</span>
+          <span v-else style="color: var(--text-secondary);">{{ $tr("| 空闲") }}</span>
         </div>
         
         <div 
@@ -52,9 +52,9 @@
           <div v-if="loading" class="log-loading">
             <el-icon class="is-loading"><Loading /></el-icon>
             <div class="loading-text">
-              <div>加载历史日志中...</div>
+              <div>{{ $tr("加载历史日志中...") }}</div>
               <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">
-                后端可能需要2-3分钟处理时间，请耐心等待
+                {{ $tr("后端可能需要2-3分钟处理时间，请耐心等待") }}
               </div>
             </div>
           </div>
@@ -66,7 +66,7 @@
           
           <div v-else-if="logs.length === 0" class="log-empty">
             <el-icon><Document /></el-icon>
-            暂无日志数据
+            {{ $tr("暂无日志数据") }}
           </div>
           
           <div v-else class="log-lines">
@@ -87,6 +87,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, watch, nextTick, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, WarningFilled, Document } from '@element-plus/icons-vue'
@@ -201,7 +203,7 @@ const connectSSE = () => {
     onError: (error) => {
       console.error('❌ 实时流错误:', error)
       wsConnected.value = false
-      ElMessage.error('实时日志连接失败')
+      ElMessage.error(tr('实时日志连接失败'))
     },
     onClose: () => {
       console.log('🔌 实时流连接关闭')
@@ -372,7 +374,7 @@ const refreshLog = async () => {
 
     // 显示友好的加载提示
     if (logs.value.length === 0) {
-      ElMessage.info('正在获取历史日志，后端可能需要处理时间...')
+      ElMessage.info(tr('正在获取历史日志，后端可能需要处理时间...'))
     }
 
     let response
@@ -413,7 +415,7 @@ const refreshLog = async () => {
         if (parsedHistoryLogs.length > 0) {
           ElMessage.success(`成功获取 ${parsedHistoryLogs.length} 行归档日志`)
         } else {
-             ElMessage.info('该任务没有产生日志或日志为空')
+             ElMessage.info(tr('该任务没有产生日志或日志为空'))
         }
         
         // 提前返回，不再执行后续逻辑
@@ -465,7 +467,7 @@ const refreshLog = async () => {
       if (logs.value.length === 0) {
         ElMessage({
           type: 'info',
-          message: '暂无历史日志，等待实时日志数据...',
+          message: tr('暂无历史日志，等待实时日志数据...'),
           duration: 3000
         })
       }
@@ -553,10 +555,10 @@ const downloadLog = () => {
     a.download = `ansible-task-${logInfo.value?.taskId}-work-${logInfo.value?.workId}-logs.txt`
     a.click()
     window.URL.revokeObjectURL(url)
-    ElMessage.success('日志下载成功')
+    ElMessage.success(tr('日志下载成功'))
   } catch (error) {
     console.error('下载日志失败:', error)
-    ElMessage.error('下载日志失败')
+    ElMessage.error(tr('下载日志失败'))
   }
 }
 

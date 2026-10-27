@@ -1,3 +1,4 @@
+import { tr } from "@/locales";
 import type { VNode } from "vue";
 import { isFunction } from "@pureadmin/utils";
 import { type MessageHandler, ElMessage } from "element-plus";
@@ -41,6 +42,7 @@ const message = (
   message: string | VNode | (() => VNode),
   params?: MessageParams
 ): MessageHandler => {
+  if (typeof message === "string") message = tr(message);
   if (!params) {
     return ElMessage({
       message,

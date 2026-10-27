@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -150,7 +152,7 @@ const handleClusterEdit = async (row) => {
     }
   } catch (error) {
     console.error('获取集群详情失败:', error)
-    ElMessage.error('获取集群详情失败，请检查网络连接')
+    ElMessage.error(tr('获取集群详情失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -180,7 +182,7 @@ const checkBackendConnection = async () => {
     await k8sApi.getClusterList()
   } catch (error) {
     if (error.code === 'ERR_NETWORK' || error.message.includes('ERR_CONNECTION_REFUSED')) {
-      ElMessage.warning('后端服务未启动，主机选择功能可能不可用')
+      ElMessage.warning(tr('后端服务未启动，主机选择功能可能不可用'))
     }
   }
 }
@@ -196,7 +198,7 @@ const handleHostsSelected = (hosts) => {
   if (currentNodeType.value === 'Master') {
     // 单节点模式只能选择一台Master
     if (createForm.deploymentMode === 1 && hosts.length > 1) {
-      ElMessage.warning('单节点模式只能选择一台Master节点主机')
+      ElMessage.warning(tr('单节点模式只能选择一台Master节点主机'))
       return
     }
     
@@ -246,11 +248,11 @@ const handleDeploymentModeChange = () => {
   // 如果从集群模式切换到单节点模式，且已选择多个Master节点
   if (createForm.deploymentMode === 1 && selectedMasterHosts.value.length > 1) {
     ElMessageBox.confirm(
-      '切换到单节点模式将只保留第一个Master节点，其他Master节点将被移除。是否继续？',
-      '模式切换确认',
+      tr('切换到单节点模式将只保留第一个Master节点，其他Master节点将被移除。是否继续？'),
+      tr('模式切换确认'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     ).then(() => {
@@ -266,7 +268,7 @@ const handleDeploymentModeChange = () => {
         createForm.nodeConfig.etcdHostIds = [firstMaster.id]
       }
       
-      ElMessage.success('已切换到单节点模式，只保留一个Master节点')
+      ElMessage.success(tr('已切换到单节点模式，只保留一个Master节点'))
     }).catch(() => {
       // 用户取消，恢复到集群模式
       createForm.deploymentMode = 2
@@ -315,18 +317,18 @@ const handleEditClosed = () => {
 const submitCreate = async () => {
   try {
     if (!createForm.name) {
-      ElMessage.warning('请输入集群名称')
+      ElMessage.warning(tr('请输入集群名称'))
       return
     }
     if (!createForm.nodeConfig.masterHostIds.length) {
-      ElMessage.warning('请选择Master节点')
+      ElMessage.warning(tr('请选择Master节点'))
       return
     }
     
     // 单节点模式验证
     if (createForm.deploymentMode === 1) {
       if (createForm.nodeConfig.masterHostIds.length > 1) {
-        ElMessage.warning('单节点模式只能选择1个Master节点')
+        ElMessage.warning(tr('单节点模式只能选择1个Master节点'))
         return
       }
     }
@@ -334,7 +336,7 @@ const submitCreate = async () => {
     // 集群模式验证
     if (createForm.deploymentMode === 2) {
       if (createForm.nodeConfig.masterHostIds.length < 3) {
-        ElMessage.warning('集群模式至少需要选择3个Master节点以确保高可用')
+        ElMessage.warning(tr('集群模式至少需要选择3个Master节点以确保高可用'))
         return
       }
     }
@@ -358,7 +360,7 @@ const submitCreate = async () => {
     console.log('创建集群API响应:', responseData)
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('K8s集群创建任务已提交成功！')
+      ElMessage.success(tr('K8s集群创建任务已提交成功！'))
       createDialogVisible.value = false
       resetCreateForm()
       refreshTrigger.value++  // 触发表格刷新
@@ -417,13 +419,13 @@ onMounted(() => {
     <el-card shadow="hover" class="cluster-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 集群管理</span>
+          <span class="title">{{ $tr("K8s 集群管理") }}</span>
           <div class="header-actions">
             <el-button type="primary" :icon="Plus" size="small" @click="handleRegister">
-              注册集群
+              {{ $tr("注册集群") }}
             </el-button>
             <el-button type="success" :icon="Plus" size="small" @click="handleCreate">
-              创建集群
+              {{ $tr("创建集群") }}
             </el-button>
           </div>
         </div>
@@ -458,26 +460,26 @@ onMounted(() => {
     <!-- 创建集群对话框 -->
     <el-dialog
       v-model="createDialogVisible"
-      title="创建 K8s 集群"
+      :title='$tr("创建 K8s 集群")'
       width="700px"
       class="create-dialog compact-dialog"
     >
       <el-form :model="createForm" label-width="90px" class="compact-form">
         <!-- 基础配置行 -->
         <div class="form-row">
-          <el-form-item label="集群名称" required class="form-item-half">
+          <el-form-item :label='$tr("集群名称")' required class="form-item-half">
             <el-input
               v-model="createForm.name"
-              placeholder="请输入集群名称"
+              :placeholder='$tr("请输入集群名称")'
               size="small"
             />
           </el-form-item>
-          <el-form-item label="K8s版本" required class="form-item-half">
+          <el-form-item :label='$tr("K8s版本")' required class="form-item-half">
             <el-select v-model="createForm.version" style="width: 100%" size="small">
               <el-option 
                 v-for="option in k8sVersionOptions"
                 :key="option.value"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.value" 
               />
             </el-select>
@@ -486,30 +488,30 @@ onMounted(() => {
         
         <!-- 部署模式和自动部署行 -->
         <div class="form-row">
-          <el-form-item label="部署模式" required class="form-item-half">
+          <el-form-item :label='$tr("部署模式")' required class="form-item-half">
             <el-radio-group v-model="createForm.deploymentMode" @change="handleDeploymentModeChange" size="small">
-              <el-radio :label="1">单节点</el-radio>
-              <el-radio :label="2">集群</el-radio>
+              <el-radio :label="1">{{ $tr("单节点") }}</el-radio>
+              <el-radio :label="2">{{ $tr("集群") }}</el-radio>
             </el-radio-group>
             <div class="mode-tip">
               {{ createForm.deploymentMode === 1 ? '适合测试' : '适合生产' }}
             </div>
           </el-form-item>
-          <el-form-item label="自动部署" class="form-item-half">
+          <el-form-item :label='$tr("自动部署")' class="form-item-half">
             <el-switch
               v-model="createForm.autoDeploy"
-              active-text="立即部署"
-              inactive-text="稍后部署"
+              :active-text='$tr("立即部署")'
+              :inactive-text='$tr("稍后部署")'
               size="small"
             />
             <div class="auto-deploy-tip">
-              开启后自动执行部署脚本
+              {{ $tr("开启后自动执行部署脚本") }}
             </div>
           </el-form-item>
         </div>
         
         <!-- 节点选择区域 -->
-        <el-form-item label="节点配置" required class="nodes-config">
+        <el-form-item :label='$tr("节点配置")' required class="nodes-config">
           <div class="nodes-selection">
             <!-- Master节点 -->
             <div class="node-section">
@@ -521,7 +523,7 @@ onMounted(() => {
                 >
                   Master{{ createForm.deploymentMode === 1 ? '(1台)' : '(≥3台)' }}
                 </el-button>
-                <span class="node-count">{{ selectedMasterHosts.length }}台</span>
+                <span class="node-count">{{ selectedMasterHosts.length }}{{ $tr("台") }}</span>
               </div>
               <div v-if="selectedMasterHosts.length > 0" class="selected-tags">
                 <el-tag
@@ -545,9 +547,9 @@ onMounted(() => {
                   size="small"
                   @click="openHostSelector('Worker')"
                 >
-                  Worker(可选)
+                  {{ $tr("Worker(可选)") }}
                 </el-button>
-                <span class="node-count">{{ selectedWorkerHosts.length }}台</span>
+                <span class="node-count">{{ selectedWorkerHosts.length }}{{ $tr("台") }}</span>
               </div>
               <div v-if="selectedWorkerHosts.length > 0" class="selected-tags">
                 <el-tag
@@ -571,9 +573,9 @@ onMounted(() => {
                   size="small"
                   @click="openHostSelector('ETCD')"
                 >
-                  ETCD(可选)
+                  {{ $tr("ETCD(可选)") }}
                 </el-button>
-                <span class="node-count">{{ selectedEtcdHosts.length }}台</span>
+                <span class="node-count">{{ selectedEtcdHosts.length }}{{ $tr("台") }}</span>
               </div>
               <div v-if="selectedEtcdHosts.length > 0" class="selected-tags">
                 <el-tag
@@ -587,12 +589,12 @@ onMounted(() => {
                   {{ host.name }}
                 </el-tag>
               </div>
-              <div v-else class="etcd-tip">默认使用Master节点</div>
+              <div v-else class="etcd-tip">{{ $tr("默认使用Master节点") }}</div>
             </div>
           </div>
         </el-form-item>
         
-        <el-form-item label="网络插件" required>
+        <el-form-item :label='$tr("网络插件")' required>
           <div class="plugin-single-line">
             <div class="plugin-group">
               <div class="plugin-buttons">
@@ -604,13 +606,13 @@ onMounted(() => {
                   size="small"
                   @click="createForm.networkPlugin = plugin.value"
                 >
-                  {{ plugin.label }}
+                  {{ $tr(plugin.label) }}
                 </el-button>
               </div>
             </div>
             
             <div class="plugin-group">
-              <span class="plugin-label">必选组件:</span>
+              <span class="plugin-label">{{ $tr("必选组件:") }}</span>
               <div class="plugin-buttons">
                 <el-button
                   v-for="component in requiredComponents"
@@ -619,15 +621,15 @@ onMounted(() => {
                   size="small"
                   disabled
                 >
-                  {{ component.label }}
-                  <el-tag type="success" size="small" style="margin-left: 4px;">必选</el-tag>
+                  {{ $tr(component.label) }}
+                  <el-tag type="success" size="small" style="margin-left: 4px;">{{ $tr("必选") }}</el-tag>
                 </el-button>
               </div>
             </div>
           </div>
         </el-form-item>
 
-        <el-form-item label="可选组件">
+        <el-form-item :label='$tr("可选组件")'>
           <div class="plugin-single-line">
             <div class="plugin-group full-width">
               <div class="plugin-buttons">
@@ -639,7 +641,7 @@ onMounted(() => {
                   size="small"
                   @click="toggleOptionalComponent(component.value)"
                 >
-                  {{ component.label }}
+                  {{ $tr(component.label) }}
                 </el-button>
               </div>
             </div>
@@ -647,13 +649,13 @@ onMounted(() => {
         </el-form-item>
         
         <!-- 镜像仓库配置（可选） -->
-        <el-form-item label="镜像仓库" class="registry-config">
+        <el-form-item :label='$tr("镜像仓库")' class="registry-config">
           <div class="form-row">
             <el-form-item label="" class="form-item-half">
               <el-switch
                 v-model="createForm.usePrivateRegistry"
-                active-text="使用私有仓库"
-                inactive-text="使用默认仓库"
+                :active-text='$tr("使用私有仓库")'
+                :inactive-text='$tr("使用默认仓库")'
                 size="small"
               />
             </el-form-item>
@@ -664,10 +666,10 @@ onMounted(() => {
               <el-form-item label="" class="form-item-full">
                 <el-input
                   v-model="createForm.registryConfig.privateRegistry"
-                  placeholder="私有镜像仓库地址，如：registry.example.com"
+                  :placeholder='$tr("私有镜像仓库地址，如：registry.example.com")'
                   size="small"
                 >
-                  <template #prepend>仓库地址</template>
+                  <template #prepend>{{ $tr("仓库地址") }}</template>
                 </el-input>
               </el-form-item>
             </div>
@@ -675,41 +677,41 @@ onMounted(() => {
               <el-form-item label="" class="form-item-half">
                 <el-input
                   v-model="createForm.registryConfig.registryUsername"
-                  placeholder="仓库用户名"
+                  :placeholder='$tr("仓库用户名")'
                   size="small"
                 >
-                  <template #prepend>用户名</template>
+                  <template #prepend>{{ $tr("用户名") }}</template>
                 </el-input>
               </el-form-item>
               <el-form-item label="" class="form-item-half">
                 <el-input
                   v-model="createForm.registryConfig.registryPassword"
                   type="password"
-                  placeholder="仓库密码"
+                  :placeholder='$tr("仓库密码")'
                   size="small"
                   show-password
                 >
-                  <template #prepend>密码</template>
+                  <template #prepend>{{ $tr("密码") }}</template>
                 </el-input>
               </el-form-item>
             </div>
           </div>
         </el-form-item>
         
-        <el-form-item label="描述信息">
+        <el-form-item :label='$tr("描述信息")'>
           <el-input
             v-model="createForm.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入集群描述"
+            :placeholder='$tr("请输入集群描述")'
             size="small"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="createDialogVisible = false">取消</el-button>
-          <el-button type="success" @click="submitCreate">创建</el-button>
+          <el-button @click="createDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="success" @click="submitCreate">{{ $tr("创建") }}</el-button>
         </span>
       </template>
     </el-dialog>

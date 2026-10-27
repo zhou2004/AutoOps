@@ -1,3 +1,4 @@
+import { tr } from "@/locales";
 import { storeToRefs } from "pinia";
 import { getConfig } from "@/config";
 import { emitter } from "@/utils/mitt";
@@ -75,8 +76,8 @@ export function useNav() {
   /** 动态title */
   function changeTitle(meta: routeMetaType) {
     const Title = getConfig().Title;
-    if (Title) document.title = `${meta.title} | ${Title}`;
-    else document.title = meta.title;
+    if (Title) document.title = `${tr(meta.title)} | ${Title}`;
+    else document.title = tr(meta.title);
   }
 
   /** 退出登录 */

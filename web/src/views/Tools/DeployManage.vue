@@ -4,34 +4,34 @@
     <el-card shadow="hover" class="manage-card">
       <template #header>
         <div class="card-header">
-          <span class="title">部署管理</span>
+          <span class="title">{{ $tr("部署管理") }}</span>
         </div>
       </template>
 
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-          <el-form-item label="服务名称">
+          <el-form-item :label='$tr("服务名称")'>
             <el-input
               v-model="queryParams.serviceName"
-              placeholder="请输入服务名称"
+              :placeholder='$tr("请输入服务名称")'
               clearable
               size="small"
               @keyup.enter="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="queryParams.status" clearable size="small" placeholder="请选择状态">
-              <el-option label="全部" :value="-1" />
-              <el-option label="部署中" :value="0" />
-              <el-option label="运行中" :value="1" />
-              <el-option label="已停止" :value="2" />
-              <el-option label="部署失败" :value="3" />
+          <el-form-item :label='$tr("状态")'>
+            <el-select v-model="queryParams.status" clearable size="small" :placeholder='$tr("请选择状态")'>
+              <el-option :label='$tr("全部")' :value="-1" />
+              <el-option :label='$tr("部署中")' :value="0" />
+              <el-option :label='$tr("运行中")' :value="1" />
+              <el-option :label='$tr("已停止")' :value="2" />
+              <el-option :label='$tr("部署失败")' :value="3" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">查询</el-button>
-            <el-button icon="Refresh" size="small" @click="handleReset">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleQuery">{{ $tr("查询") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="handleReset">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -44,7 +44,7 @@
           stripe
           class="deploy-table"
         >
-          <el-table-column prop="serviceName" label="服务名称" width="150">
+          <el-table-column prop="serviceName" :label='$tr("服务名称")' width="150">
             <template #default="{ row }">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <el-icon :color="getServiceColor(row.serviceName)">
@@ -54,28 +54,28 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="version" label="版本" width="150" />
-          <el-table-column label="主机" width="200">
+          <el-table-column prop="version" :label='$tr("版本")' width="150" />
+          <el-table-column :label='$tr("主机")' width="200">
             <template #default="{ row }">
               <div>{{ row.hostName }}</div>
               <div style="color: #999; font-size: 12px">{{ row.hostIp }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="installDir" label="安装目录" width="200" />
-          <el-table-column label="状态" width="120">
+          <el-table-column prop="installDir" :label='$tr("安装目录")' width="200" />
+          <el-table-column :label='$tr("状态")' width="120">
             <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)">
                 <el-icon><component :is="getStatusIcon(row.status)" /></el-icon>
-                {{ row.statusText }}
+                {{ $tr(row.statusText) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="部署时间" width="180">
+          <el-table-column prop="createTime" :label='$tr("部署时间")' width="180">
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right" width="200">
+          <el-table-column :label='$tr("操作")' fixed="right" width="200">
             <template #default="{ row }">
               <el-button
                 type="primary"
@@ -83,15 +83,15 @@
                 icon="View"
                 @click="viewLog(row)"
               >
-                查看日志
+                {{ $tr("查看日志") }}
               </el-button>
               <el-popconfirm
-                title="确定要卸载此服务吗？"
+                :title='$tr("确定要卸载此服务吗？")'
                 @confirm="handleUninstall(row.id)"
               >
                 <template #reference>
                   <el-button type="danger" size="small" icon="Delete">
-                    卸载
+                    {{ $tr("卸载") }}
                   </el-button>
                 </template>
               </el-popconfirm>
@@ -127,27 +127,27 @@
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-          <el-form-item label="服务名称">
+          <el-form-item :label='$tr("服务名称")'>
             <el-input
               v-model="queryParams.serviceName"
-              placeholder="请输入服务名称"
+              :placeholder='$tr("请输入服务名称")'
               clearable
               size="small"
               @keyup.enter="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="queryParams.status" clearable size="small" placeholder="请选择状态">
-              <el-option label="全部" :value="-1" />
-              <el-option label="部署中" :value="0" />
-              <el-option label="运行中" :value="1" />
-              <el-option label="已停止" :value="2" />
-              <el-option label="部署失败" :value="3" />
+          <el-form-item :label='$tr("状态")'>
+            <el-select v-model="queryParams.status" clearable size="small" :placeholder='$tr("请选择状态")'>
+              <el-option :label='$tr("全部")' :value="-1" />
+              <el-option :label='$tr("部署中")' :value="0" />
+              <el-option :label='$tr("运行中")' :value="1" />
+              <el-option :label='$tr("已停止")' :value="2" />
+              <el-option :label='$tr("部署失败")' :value="3" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">查询</el-button>
-            <el-button icon="Refresh" size="small" @click="handleReset">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleQuery">{{ $tr("查询") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="handleReset">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -160,7 +160,7 @@
           stripe
           class="deploy-table"
         >
-          <el-table-column prop="serviceName" label="服务名称" width="150">
+          <el-table-column prop="serviceName" :label='$tr("服务名称")' width="150">
             <template #default="{ row }">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <el-icon :color="getServiceColor(row.serviceName)">
@@ -170,28 +170,28 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="version" label="版本" width="150" />
-          <el-table-column label="主机" width="200">
+          <el-table-column prop="version" :label='$tr("版本")' width="150" />
+          <el-table-column :label='$tr("主机")' width="200">
             <template #default="{ row }">
               <div>{{ row.hostName }}</div>
               <div style="color: #999; font-size: 12px">{{ row.hostIp }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="installDir" label="安装目录" width="200" />
-          <el-table-column label="状态" width="120">
+          <el-table-column prop="installDir" :label='$tr("安装目录")' width="200" />
+          <el-table-column :label='$tr("状态")' width="120">
             <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)">
                 <el-icon><component :is="getStatusIcon(row.status)" /></el-icon>
-                {{ row.statusText }}
+                {{ $tr(row.statusText) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="部署时间" width="180">
+          <el-table-column prop="createTime" :label='$tr("部署时间")' width="180">
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" fixed="right" width="200">
+          <el-table-column :label='$tr("操作")' fixed="right" width="200">
             <template #default="{ row }">
               <el-button
                 type="primary"
@@ -199,15 +199,15 @@
                 icon="View"
                 @click="viewLog(row)"
               >
-                查看日志
+                {{ $tr("查看日志") }}
               </el-button>
               <el-popconfirm
-                title="确定要卸载此服务吗？"
+                :title='$tr("确定要卸载此服务吗？")'
                 @confirm="handleUninstall(row.id)"
               >
                 <template #reference>
                   <el-button type="danger" size="small" icon="Delete">
-                    卸载
+                    {{ $tr("卸载") }}
                   </el-button>
                 </template>
               </el-popconfirm>
@@ -239,6 +239,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 const props = defineProps({
   embedded: { type: Boolean, default: false }
 })
@@ -368,14 +370,14 @@ const handleUninstall = async (id) => {
   try {
     const res = await deleteDeploy(id)
     if (res.data?.code === 200) {
-      ElMessage.success('卸载成功')
+      ElMessage.success(tr('卸载成功'))
       handleQuery()
     } else {
-      ElMessage.error(res.data?.message || '卸载失败')
+      ElMessage.error(res.data?.message || tr('卸载失败'))
     }
   } catch (error) {
     console.error('卸载失败:', error)
-    ElMessage.error('卸载失败')
+    ElMessage.error(tr('卸载失败'))
   }
 }
 

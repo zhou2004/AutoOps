@@ -2,7 +2,10 @@
 // model/cmdb_group.go
 package model
 
-import "dodevops-api/common/util"
+import (
+	"dodevops-api/common/util"
+	"sort"
+)
 
 type CmdbGroup struct {
 	ID         uint        `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`                 // 主键ID
@@ -46,6 +49,7 @@ func buildSubTree(group CmdbGroup, groupMap map[uint]CmdbGroup) CmdbGroup {
 			group.Children = append(group.Children, buildSubTree(child, groupMap))
 		}
 	}
+	sort.Slice(group.Children, func(i, j int) bool { return group.Children[i].ID < group.Children[j].ID })
 	return group
 }
 
@@ -86,5 +90,6 @@ func buildSubTreeWithHostCount(group CmdbGroup, groupMap map[uint]CmdbGroup, dir
 			group.HostCount += childWithCount.HostCount
 		}
 	}
+	sort.Slice(group.Children, func(i, j int) bool { return group.Children[i].ID < group.Children[j].ID })
 	return group
 }

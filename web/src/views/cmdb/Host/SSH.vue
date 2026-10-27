@@ -4,11 +4,11 @@
       <div class="tree-section">
         <el-card shadow="never" class="group-card">
           <div slot="header" class="card-header">
-            <h3>资产分组</h3>
+            <h3>{{ $tr("资产分组") }}</h3>
           </div>
           <el-input
             v-model="groupSearchText"
-            placeholder="搜索分组"
+            :placeholder='$tr("搜索分组")'
             clearable
             size="medium"
             class="search-input"
@@ -45,7 +45,7 @@
                   <el-icon v-if="expandedKeys.includes(node.key)" class="tree-icon"><FolderOpened /></el-icon>
                   <el-icon v-else class="tree-icon"><Folder /></el-icon>
                 </template>
-                {{ node.label }}
+                {{ $tr(node.label) }}
               </span>
             </template>
           </el-tree>
@@ -56,11 +56,11 @@
       <div class="terminal-section">
         <el-card shadow="never" class="terminal-card">
           <div slot="header" class="card-header">
-            <h3>模拟终端</h3>
+            <h3>{{ $tr("模拟终端") }}</h3>
           </div>
           <div class="terminal-content">
             <div class="terminal-welcome">
-              <h2>欢迎访问 devops 业务终端系统</h2>
+              <h2>{{ $tr("欢迎访问 devops 业务终端系统") }}</h2>
             </div>
             <div class="terminal-prompt">
               <p>user@devops:~$ _</p>
@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import Terminal from './Terminal.vue'
 import storage from '@/utils/storage'
 
@@ -150,7 +152,7 @@ export default {
         }
       } catch (error) {
         console.error('加载分组列表失败:', error)
-        this.$message.error('加载分组列表失败')
+        this.$message.error(tr('加载分组列表失败'))
       }
     },
     
@@ -227,11 +229,11 @@ export default {
             })
           }
         } else {
-          this.$message.warning('未找到匹配的分组')
+          this.$message.warning(tr('未找到匹配的分组'))
         }
       } catch (error) {
         console.error('搜索分组失败:', error)
-        this.$message.error('搜索分组失败')
+        this.$message.error(tr('搜索分组失败'))
       }
     },
     

@@ -35,7 +35,7 @@ func (d *CmdbPhysicalMachineDao) GetByID(id uint) (*model.CmdbPhysicalMachine, e
 	return &data, err
 }
 
-func (d *CmdbPhysicalMachineDao) GetList(query model.CmdbPhysicalMachineQuery) ([]model.CmdbPhysicalMachine, int64, error) {
+func (d *CmdbPhysicalMachineDao) GetList(query model.CmdbPhysicalMachineQuery, scopes ...map[uint]bool) ([]model.CmdbPhysicalMachine, int64, error) {
 	var list []model.CmdbPhysicalMachine
 	var total int64
 	db := d.db.Model(&model.CmdbPhysicalMachine{}).Preload("IDC").Preload("Cabinet")
@@ -67,7 +67,10 @@ func (d *CmdbPhysicalMachineDao) GetList(query model.CmdbPhysicalMachineQuery) (
 			kw, kw, kw, kw, kw)
 	}
 
-	db.Count(&total)
+	db = ApplyAssetIDScope(db, scopes...)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	page, size := query.Page, query.Size
 	if page <= 0 {
 		page = 1
@@ -101,22 +104,22 @@ func (d *CmdbPhysicalMachineDao) CheckSNExists(sn string, excludeID uint) bool {
 }
 
 // GetAll 获取所有物理机
-func (d *CmdbPhysicalMachineDao) GetAll() ([]model.CmdbPhysicalMachine, error) {
+func (d *CmdbPhysicalMachineDao) GetAll(scopes ...map[uint]bool) ([]model.CmdbPhysicalMachine, error) {
 	var list []model.CmdbPhysicalMachine
-	err := d.db.Preload("IDC").Preload("Cabinet").Order("id ASC").Find(&list).Error
+	err := ApplyAssetIDScope(d.db, scopes...).Preload("IDC").Preload("Cabinet").Order("id ASC").Find(&list).Error
 	return list, err
 }
 
 // GetStats 获取统计信息
-func (d *CmdbPhysicalMachineDao) GetStats() map[string]int64 {
+func (d *CmdbPhysicalMachineDao) GetStats(scopes ...map[uint]bool) map[string]int64 {
 	result := make(map[string]int64)
 	var total int64
-	d.db.Model(&model.CmdbPhysicalMachine{}).Count(&total)
+	ApplyAssetIDScope(d.db.Model(&model.CmdbPhysicalMachine{}), scopes...).Count(&total)
 	result["total"] = total
 
 	for i := 1; i <= 5; i++ {
 		var count int64
-		d.db.Model(&model.CmdbPhysicalMachine{}).Where("asset_status = ?", i).Count(&count)
+		ApplyAssetIDScope(d.db.Model(&model.CmdbPhysicalMachine{}), scopes...).Where("asset_status = ?", i).Count(&count)
 		statusNames := map[int]string{1: "in_stock", 2: "online", 3: "repair", 4: "offline", 5: "scrap"}
 		result[fmt.Sprintf("status_%s", statusNames[i])] = count
 	}

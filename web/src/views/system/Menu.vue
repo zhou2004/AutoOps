@@ -4,40 +4,40 @@
     <div class="glass-card main-card">
       <!-- 卡片标题 -->
       <div class="card-header">
-        <h1 class="gradient-title">菜单管理</h1>
+        <h1 class="gradient-title">{{ $tr("菜单管理") }}</h1>
       </div>
 
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item prop="menuName" label="菜单名称">
+          <el-form-item prop="menuName" :label='$tr("菜单名称")'>
             <el-input 
-              placeholder="请输入菜单名称" 
+              :placeholder='$tr("请输入菜单名称")' 
               clearable 
               size="small" 
               @keyup.enter="handleQuery"
               v-model="queryParams.menuName" 
               class="modern-input" />
           </el-form-item>
-          <el-form-item prop="menuStatus" label="菜单状态">
+          <el-form-item prop="menuStatus" :label='$tr("菜单状态")'>
             <el-select 
               size="small" 
-              placeholder="菜单状态" 
+              :placeholder='$tr("菜单状态")' 
               v-model="queryParams.menuStatus" 
               class="modern-select"
               style="width: 150px;">
-              <el-option v-for="item in menuStatusList" :key="item.value" :label="item.label" :value="item.value">
+              <el-option v-for="item in menuStatusList" :key="item.value" :label="$tr(item.label)" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="handleQuery" class="modern-btn primary-btn">
               <el-icon><Search /></el-icon>
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button size="small" @click="resetQuery" class="modern-btn reset-btn">
               <el-icon><Refresh /></el-icon>
-              重置
+              {{ $tr("重置") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -53,14 +53,14 @@
             v-authority="['base:menu:add']"
             class="modern-btn success-btn">
             <el-icon><Plus /></el-icon>
-            新增菜单
+            {{ $tr("新增菜单") }}
           </el-button>
           <el-button 
             size="small" 
             @click="toggleExpandAll"
             class="modern-btn secondary-btn">
             <el-icon><Sort /></el-icon>
-            展开/折叠
+            {{ $tr("展开/折叠") }}
           </el-button>
         </div>
       </div>
@@ -78,12 +78,12 @@
         :header-cell-style="{ background: 'transparent', color: 'var(--text-primary)', fontWeight: '600' }"
         :row-style="{ background: 'rgba(255, 255, 255, 0.05)' }"
         stripe>
-        <el-table-column prop="menuName" label="菜单名称" min-width="150">
+        <el-table-column prop="menuName" :label='$tr("菜单名称")' min-width="150">
           <template v-slot="scope">
             <span class="menu-name">{{ scope.row.menuName }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="icon" label="图标" width="80">
+        <el-table-column prop="icon" :label='$tr("图标")' width="80">
           <template v-slot="scope">
             <div class="icon-wrapper">
               <el-icon class="menu-icon">
@@ -92,47 +92,47 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="sort" label="排序" width="80" />
-        <el-table-column prop="value" label="权限标识" min-width="150" />
-        <el-table-column prop="url" label="组件路径" min-width="200" />
-        <el-table-column prop="menuType" label="菜单类型" width="100">
+        <el-table-column prop="sort" :label='$tr("排序")' width="80" />
+        <el-table-column prop="value" :label='$tr("权限标识")' min-width="150" />
+        <el-table-column prop="url" :label='$tr("组件路径")' min-width="200" />
+        <el-table-column prop="menuType" :label='$tr("菜单类型")' width="100">
           <template v-slot="scope">
             <el-tag 
               v-if="scope.row.menuType === 1" 
               class="modern-tag modern-tag-directory">
-              目录
+              {{ $tr("目录") }}
             </el-tag>
             <el-tag 
               v-else-if="scope.row.menuType === 2" 
               class="modern-tag modern-tag-menu">
-              菜单
+              {{ $tr("菜单") }}
             </el-tag>
             <el-tag 
               v-else-if="scope.row.menuType === 3" 
               class="modern-tag modern-tag-button">
-              按钮
+              {{ $tr("按钮") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="menuStatus" label="状态" width="100">
+        <el-table-column prop="menuStatus" :label='$tr("状态")' width="100">
           <template v-slot="scope">
             <el-tag 
               v-if="scope.row.menuStatus === 2" 
               class="modern-tag modern-tag-active">
-              启用
+              {{ $tr("启用") }}
             </el-tag>
             <el-tag 
               v-else-if="scope.row.menuStatus === 1" 
               class="modern-tag modern-tag-inactive">
-              禁用
+              {{ $tr("禁用") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" prop="createTime" min-width="160" />
-        <el-table-column label="操作" width="190" fixed="right">
+        <el-table-column :label='$tr("创建时间")' prop="createTime" min-width="160" />
+        <el-table-column :label='$tr("操作")' width="190" fixed="right">
           <template v-slot="scope">
             <div class="operation-buttons">
-              <el-tooltip content="修改" placement="top">
+              <el-tooltip :content='$tr("修改")' placement="top">
                 <el-button
                   type="warning"
                   size="small"
@@ -143,7 +143,7 @@
                   <el-icon><Edit /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="复制" placement="top">
+              <el-tooltip :content='$tr("复制")' placement="top">
                 <el-button
                   type="primary"
                   size="small"
@@ -154,7 +154,7 @@
                   <el-icon><DocumentCopy /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip :content='$tr("删除")' placement="top">
                 <el-button
                   type="danger"
                   size="small"
@@ -174,7 +174,7 @@
 
     <!-- 新增菜单对话框 -->
     <el-dialog 
-      title="新增菜单" 
+      :title='$tr("新增菜单")' 
       v-model="addMenuDialogVisible" 
       width="600px" 
       @close="addMenuDialogClosed"
@@ -184,58 +184,58 @@
         <el-form :model="menuForm" :rules="addMenuFormRules" ref="addMenuFormRefForm" label-width="100px" class="modern-form">
           <el-row :gutter="20">
             <el-col :span="24">
-              <el-form-item label="菜单类型" prop="menuType">
+              <el-form-item :label='$tr("菜单类型")' prop="menuType">
                 <el-radio-group v-model="menuForm.menuType" class="modern-radio-group">
-                  <el-radio :label="1" class="modern-radio">目录</el-radio>
-                  <el-radio :label="2" class="modern-radio">菜单</el-radio>
-                  <el-radio :label="3" class="modern-radio">按钮</el-radio>
+                  <el-radio :label="1" class="modern-radio">{{ $tr("目录") }}</el-radio>
+                  <el-radio :label="2" class="modern-radio">{{ $tr("菜单") }}</el-radio>
+                  <el-radio :label="3" class="modern-radio">{{ $tr("按钮") }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuForm.menuType != 1">
-              <el-form-item label="上级菜单" prop="parentId">
-                <treeselect :options="treeList" placeholder="请选择上级菜单" v-model="menuForm.parentId" class="modern-treeselect" />
+              <el-form-item :label='$tr("上级菜单")' prop="parentId">
+                <treeselect :options="treeList" :placeholder='$tr("请选择上级菜单")' v-model="menuForm.parentId" class="modern-treeselect" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuForm.menuType != 3">
-              <el-form-item label="菜单图标" prop="icon">
-                <el-select v-model="menuForm.icon" class="modern-select" placeholder="请选择图标">
-                  <el-option v-for="item in iconList" :key="item.value" :label="item.label" :value="item.value">
+              <el-form-item :label='$tr("菜单图标")' prop="icon">
+                <el-select v-model="menuForm.icon" class="modern-select" :placeholder='$tr("请选择图标")'>
+                  <el-option v-for="item in iconList" :key="item.value" :label="$tr(item.label)" :value="item.value">
                       <span style="display: flex; align-items: center;">
                         <el-icon style="font-size: 20px;">
                           <component :is="item.value" />
                         </el-icon>
-                        <span style="margin-left: 8px;">{{ item.label }}</span>
+                        <span style="margin-left: 8px;">{{ $tr(item.label) }}</span>
                       </span>
                   </el-option>
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="菜单名称" prop="menuName">
-                <el-input v-model="menuForm.menuName" placeholder="请输入菜单名称" class="modern-input" />
+              <el-form-item :label='$tr("菜单名称")' prop="menuName">
+                <el-input v-model="menuForm.menuName" :placeholder='$tr("请输入菜单名称")' class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="显示排序" prop="sort">
+              <el-form-item :label='$tr("显示排序")' prop="sort">
                 <el-input-number v-model="menuForm.sort" controls-position="right" :min="0" class="modern-input-number" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuForm.menuType != 3">
-              <el-form-item label="菜单路径" prop="url">
-                <el-input v-model="menuForm.url" placeholder="请输入菜单路径" class="modern-input" />
+              <el-form-item :label='$tr("菜单路径")' prop="url">
+                <el-input v-model="menuForm.url" :placeholder='$tr("请输入菜单路径")' class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuForm.menuType != 1">
-              <el-form-item label="权限标识" prop="value">
-                <el-input v-model="menuForm.value" placeholder="请输入权限标识" maxlength="50" class="modern-input" />
+              <el-form-item :label='$tr("权限标识")' prop="value">
+                <el-input v-model="menuForm.value" :placeholder='$tr("请输入权限标识")' maxlength="50" class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuForm.menuType != 3">
-              <el-form-item label="显示状态" prop="menuStatus">
+              <el-form-item :label='$tr("显示状态")' prop="menuStatus">
                 <el-radio-group v-model="menuForm.menuStatus" class="modern-radio-group">
-                  <el-radio :label="1" class="modern-radio">停用</el-radio>
-                  <el-radio :label="2" class="modern-radio">启用</el-radio>
+                  <el-radio :label="1" class="modern-radio">{{ $tr("停用") }}</el-radio>
+                  <el-radio :label="2" class="modern-radio">{{ $tr("启用") }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -244,15 +244,15 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="addMenuDialogVisible = false" class="modern-btn modern-btn-cancel">取消</el-button>
-          <el-button type="primary" @click="addMenu" class="modern-btn modern-btn-primary">确定</el-button>
+          <el-button @click="addMenuDialogVisible = false" class="modern-btn modern-btn-cancel">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="addMenu" class="modern-btn modern-btn-primary">{{ $tr("确定") }}</el-button>
         </div>
       </template>
     </el-dialog>
 
     <!-- 修改菜单对话框 -->
     <el-dialog 
-      title="修改菜单" 
+      :title='$tr("修改菜单")' 
       v-model="editMenuDialogVisible" 
       width="600px" 
       @close="editMenuDialogClosed"
@@ -262,58 +262,58 @@
         <el-form :model="menuInfo" :rules="editMenuFormRules" ref="editMenuFormRefForm" label-width="100px" class="modern-form">
           <el-row :gutter="20">
             <el-col :span="24">
-              <el-form-item label="菜单类型" prop="menuType">
+              <el-form-item :label='$tr("菜单类型")' prop="menuType">
                 <el-radio-group v-model="menuInfo.menuType" class="modern-radio-group">
-                  <el-radio :label="1" class="modern-radio">目录</el-radio>
-                  <el-radio :label="2" class="modern-radio">菜单</el-radio>
-                  <el-radio :label="3" class="modern-radio">按钮</el-radio>
+                  <el-radio :label="1" class="modern-radio">{{ $tr("目录") }}</el-radio>
+                  <el-radio :label="2" class="modern-radio">{{ $tr("菜单") }}</el-radio>
+                  <el-radio :label="3" class="modern-radio">{{ $tr("按钮") }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuInfo.menuType != 1">
-              <el-form-item label="上级菜单" prop="parentId">
-                <treeselect :options="treeList" placeholder="请选择上级菜单" v-model="menuInfo.parentId" class="modern-treeselect" />
+              <el-form-item :label='$tr("上级菜单")' prop="parentId">
+                <treeselect :options="treeList" :placeholder='$tr("请选择上级菜单")' v-model="menuInfo.parentId" class="modern-treeselect" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuInfo.menuType != 3">
-              <el-form-item label="菜单图标" prop="icon">
-                <el-select v-model="menuInfo.icon" class="modern-select" placeholder="请选择图标">
-                  <el-option v-for="item in iconList" :key="item.value" :label="item.label" :value="item.value">
+              <el-form-item :label='$tr("菜单图标")' prop="icon">
+                <el-select v-model="menuInfo.icon" class="modern-select" :placeholder='$tr("请选择图标")'>
+                  <el-option v-for="item in iconList" :key="item.value" :label="$tr(item.label)" :value="item.value">
                       <span style="display: flex; align-items: center;">
                         <el-icon style="font-size: 20px;">
                           <component :is="item.value" />
                         </el-icon>
-                        <span style="margin-left: 8px;">{{ item.label }}</span>
+                        <span style="margin-left: 8px;">{{ $tr(item.label) }}</span>
                       </span>
                   </el-option>
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="菜单名称" prop="menuName">
-                <el-input v-model="menuInfo.menuName" placeholder="请输入菜单名称" class="modern-input" />
+              <el-form-item :label='$tr("菜单名称")' prop="menuName">
+                <el-input v-model="menuInfo.menuName" :placeholder='$tr("请输入菜单名称")' class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="显示排序" prop="sort">
+              <el-form-item :label='$tr("显示排序")' prop="sort">
                 <el-input-number v-model="menuInfo.sort" controls-position="right" :min="0" class="modern-input-number" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuInfo.menuType != 3">
-              <el-form-item label="菜单路径" prop="url">
-                <el-input v-model="menuInfo.url" placeholder="请输入菜单路径" class="modern-input" />
+              <el-form-item :label='$tr("菜单路径")' prop="url">
+                <el-input v-model="menuInfo.url" :placeholder='$tr("请输入菜单路径")' class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuInfo.menuType != 1">
-              <el-form-item label="权限标识" prop="value">
-                <el-input v-model="menuInfo.value" placeholder="请输入权限标识" maxlength="50" class="modern-input" />
+              <el-form-item :label='$tr("权限标识")' prop="value">
+                <el-input v-model="menuInfo.value" :placeholder='$tr("请输入权限标识")' maxlength="50" class="modern-input" />
               </el-form-item>
             </el-col>
             <el-col :span="24" v-if="menuInfo.menuType != 3">
-              <el-form-item label="显示状态" prop="menuStatus">
+              <el-form-item :label='$tr("显示状态")' prop="menuStatus">
                 <el-radio-group v-model="menuInfo.menuStatus" class="modern-radio-group">
-                  <el-radio :label="1" class="modern-radio">停用</el-radio>
-                  <el-radio :label="2" class="modern-radio">启用</el-radio>
+                  <el-radio :label="1" class="modern-radio">{{ $tr("停用") }}</el-radio>
+                  <el-radio :label="2" class="modern-radio">{{ $tr("启用") }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -322,8 +322,8 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="editMenuDialogVisible = false" class="modern-btn modern-btn-cancel">取消</el-button>
-          <el-button type="primary" @click="editMenu" class="modern-btn modern-btn-primary">确定</el-button>
+          <el-button @click="editMenuDialogVisible = false" class="modern-btn modern-btn-cancel">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="editMenu" class="modern-btn modern-btn-primary">{{ $tr("确定") }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -331,6 +331,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import Treeselect from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import {
@@ -407,19 +409,19 @@ export default {
         menuStatus: 2
       },
       addMenuFormRules: {
-        menuType: [{ required: true, message: "菜单类型不能为空", trigger: "blur" }],
-        menuName: [{ required: true, message: "菜单名称不能为空", trigger: "blur" }],
-        sort: [{ required: true, message: "菜单顺序不能为空", trigger: "blur" }],
-        value: [{ required: true, message: "权限标识不能为空", trigger: "blur" }]
+        menuType: [{ required: true, get message() { return tr("菜单类型不能为空"); }, trigger: "blur" }],
+        menuName: [{ required: true, get message() { return tr("菜单名称不能为空"); }, trigger: "blur" }],
+        sort: [{ required: true, get message() { return tr("菜单顺序不能为空"); }, trigger: "blur" }],
+        value: [{ required: true, get message() { return tr("权限标识不能为空"); }, trigger: "blur" }]
       },
       treeList: [],
       editMenuDialogVisible: false,
       menuInfo: [],
       editMenuFormRules: {
-        menuType: [{ required: true, message: "菜单类型不能为空", trigger: "blur" }],
-        menuName: [{ required: true, message: "菜单名称不能为空", trigger: "blur" }],
-        sort: [{ required: true, message: "菜单顺序不能为空", trigger: "blur" }],
-        value: [{ required: true, message: "权限标识不能为空", trigger: "blur" }]
+        menuType: [{ required: true, get message() { return tr("菜单类型不能为空"); }, trigger: "blur" }],
+        menuName: [{ required: true, get message() { return tr("菜单名称不能为空"); }, trigger: "blur" }],
+        sort: [{ required: true, get message() { return tr("菜单顺序不能为空"); }, trigger: "blur" }],
+        value: [{ required: true, get message() { return tr("权限标识不能为空"); }, trigger: "blur" }]
       },
     }
   },
@@ -444,7 +446,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getMenuList();
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // 展开/折叠
     toggleExpandAll() {
@@ -514,7 +516,7 @@ export default {
         console.log('上级菜单排序结果:', this.treeList);
       } catch (error) {
         console.error('获取菜单列表失败:', error);
-        this.$message.error('获取菜单列表失败');
+        this.$message.error(tr('获取菜单列表失败'));
       }
     },
     // 新增操作
@@ -533,7 +535,7 @@ export default {
         try {
           const { data: res } = await this.$api.addMenu(submitData);
           if (res.code === 200) {
-            this.$message.success("新增菜单成功，请点击顶部导航栏刷新按钮更新侧边栏")
+            this.$message.success(tr("新增菜单成功，请点击顶部导航栏刷新按钮更新侧边栏"))
             this.addMenuDialogVisible = false
             await this.getMenuList()
             await this.getMenuVoList()
@@ -544,7 +546,7 @@ export default {
           console.error('新增菜单错误:', error)
           // 如果是400错误但实际可能创建成功，先关闭对话框再刷新列表
           if (error.response?.status === 400) {
-            this.$message.warning("操作完成，正在刷新数据...")
+            this.$message.warning(tr("操作完成，正在刷新数据..."))
             this.addMenuDialogVisible = false
             await this.getMenuList()
             await this.getMenuVoList()
@@ -578,7 +580,7 @@ export default {
         } else {
           this.editMenuDialogVisible = false
           await this.getMenuList()
-          this.$message.success("修改菜单成功，请点击顶部导航栏刷新按钮更新侧边栏")
+          this.$message.success(tr("修改菜单成功，请点击顶部导航栏刷新按钮更新侧边栏"))
         }
       })
     },
@@ -611,19 +613,19 @@ export default {
     },
     // 删除菜单
     async handleMenuDelete(row) {
-      const confirmResult = await this.$confirm('是否确认删除菜单为"' + row.menuName + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除菜单为"' + row.menuName + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.menuDelete(row.id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功，请点击顶部导航栏刷新按钮更新侧边栏')
+        this.$message.success(tr('删除成功，请点击顶部导航栏刷新按钮更新侧边栏'))
         await this.getMenuList()
       }
     },

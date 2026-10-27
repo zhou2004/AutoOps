@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    :title="dialogTitle"
+    :title="$tr(dialogTitle)"
     width="80%"
     class="pod-yaml-dialog"
     :close-on-click-modal="false"
@@ -11,7 +11,7 @@
       <!-- 操作按钮和目标信息 -->
       <div class="yaml-controls">
         <div class="control-group">
-          <el-tooltip content="YAML格式验证" placement="top">
+          <el-tooltip :content='$tr("YAML格式验证")' placement="top">
             <el-button
               :icon="Search"
               type="primary"
@@ -23,7 +23,7 @@
               class="validate-btn"
             />
           </el-tooltip>
-          <el-tooltip content="复制YAML" placement="top">
+          <el-tooltip :content='$tr("复制YAML")' placement="top">
             <el-button
               :icon="DocumentCopy"
               type="success"
@@ -37,11 +37,11 @@
           <!-- 资源信息 -->
           <div class="target-info">
             <div class="target-item">
-              <span class="target-label">资源类型:</span>
+              <span class="target-label">{{ $tr("资源类型:") }}</span>
               <el-tag type="info" size="small">{{ resourceType || '未知' }}</el-tag>
             </div>
             <div class="target-item">
-              <span class="target-label">资源名称:</span>
+              <span class="target-label">{{ $tr("资源名称:") }}</span>
               <el-tag type="warning" size="small">{{ resourceName || '未选择' }}</el-tag>
             </div>
           </div>
@@ -73,7 +73,7 @@
             :height="editorHeight"
             fontSize="14px"
             :readonly="false"
-            placeholder="请输入YAML配置..."
+            :placeholder='$tr("请输入YAML配置...")'
           />
         </div>
       </div>
@@ -81,9 +81,9 @@
       <!-- YAML验证结果显示 -->
       <div v-if="validationResult" class="validation-result">
         <el-alert
-          :title="validationResult.message"
+          :title="$tr(validationResult.message)"
           :type="validationResult.success ? 'success' : 'error'"
-          :description="validationResult.details"
+          :description="$tr(validationResult.details)"
           show-icon
           :closable="false"
         />
@@ -91,14 +91,14 @@
 
       <!-- 操作按钮 -->
       <div class="action-buttons">
-        <el-button @click="handleClose">{{ editable ? '取消' : '关闭' }}</el-button>
+        <el-button @click="handleClose">{{ editable ? $tr('取消') : $tr('关闭') }}</el-button>
         <el-button
           v-if="editable"
           type="primary"
           @click="saveYaml"
           :loading="saving"
         >
-          保存YAML
+          {{ $tr("保存YAML") }}
         </el-button>
       </div>
     </div>
@@ -106,6 +106,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, watch, defineProps, defineEmits } from 'vue'
 import { ElMessage } from 'element-plus'
 import { DocumentCopy, Search } from '@element-plus/icons-vue'
@@ -202,12 +204,12 @@ const copyToClipboard = async () => {
     console.log('Text to copy:', typeof textToCopy === 'string' ? textToCopy.substring(0, 100) + '...' : textToCopy)
 
     if (!textToCopy || typeof textToCopy !== 'string' || textToCopy.trim() === '') {
-      ElMessage.warning('没有内容可以复制')
+      ElMessage.warning(tr('没有内容可以复制'))
       return
     }
 
     await navigator.clipboard.writeText(textToCopy)
-    ElMessage.success('YAML已复制到剪贴板')
+    ElMessage.success(tr('YAML已复制到剪贴板'))
   } catch (error) {
     console.error('复制失败:', error)
     // 备用方案：使用旧方法复制
@@ -218,10 +220,10 @@ const copyToClipboard = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success('YAML已复制到剪贴板')
+      ElMessage.success(tr('YAML已复制到剪贴板'))
     } catch (fallbackError) {
       console.error('备用复制方案也失败:', fallbackError)
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
   }
 }
@@ -237,10 +239,10 @@ const validateYaml = async () => {
   if (!yamlToValidate || typeof yamlToValidate !== 'string' || !yamlToValidate.trim()) {
     validationResult.value = {
       success: false,
-      message: '验证失败',
+      get message() { return tr('验证失败'); },
       details: 'YAML内容不能为空'
     }
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return false
   }
 
@@ -276,7 +278,7 @@ const validateYaml = async () => {
     if (errors.length > 0) {
       validationResult.value = {
         success: false,
-        message: '格式验证失败',
+        get message() { return tr('格式验证失败'); },
         details: errors.join('; ')
       }
       return false
@@ -284,7 +286,7 @@ const validateYaml = async () => {
 
     validationResult.value = {
       success: true,
-      message: 'YAML格式验证通过',
+      get message() { return tr('YAML格式验证通过'); },
       details: '所有必需字段都存在，格式正确'
     }
     return true
@@ -292,7 +294,7 @@ const validateYaml = async () => {
     console.error('YAML验证失败:', error)
     validationResult.value = {
       success: false,
-      message: '验证异常',
+      get message() { return tr('验证异常'); },
       details: '验证过程中发生错误: ' + error.message
     }
     return false

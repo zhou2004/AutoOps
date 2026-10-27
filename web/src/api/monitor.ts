@@ -105,6 +105,14 @@ export function getAlertRecords(params) {
 export function cleanAlertRecords() {
     return request({ url: '/monitor/alert/records/clean', method: 'delete' })
 }
+// 批量删除通知历史（按ID列表）
+export function deleteAlertRecordsByIds(ids) {
+    return request({ url: '/monitor/alert/records', method: 'delete', data: { ids } })
+}
+// 按时间删除通知历史（beforeTime 为 RFC3339 格式）
+export function deleteAlertRecordsBefore(beforeTime) {
+    return request({ url: '/monitor/alert/records', method: 'delete', data: { beforeTime } })
+}
 
 // ---- Agent管理 ----
 export function scanNodeExporter(data) {
@@ -175,4 +183,21 @@ export function resolveIncident(id) {
 }
 export function deleteIncident(id) {
     return request({ url: `/monitor/incident/${id}`, method: 'delete' })
+}
+// 监控目标分类（域名证书 / API 分别管理）
+export function getMonitorCategories(scope) {
+  return request({ url: '/monitor/categories', method: 'get', params: { scope } })
+}
+export function saveMonitorCategory(data) {
+  return request({ url: '/monitor/category', method: data.id ? 'put' : 'post', data })
+}
+export function deleteMonitorCategory(id, scope) {
+  return request({ url: `/monitor/category/${id}`, method: 'delete', params: { scope } })
+}
+export function assignMonitorCategory(data) {
+  return request({ url: '/monitor/category/assign', method: 'post', data })
+}
+
+export function getAlertBusinessGroups() {
+  return request({ url: "/monitor/alert/business-groups", method: "get" });
 }

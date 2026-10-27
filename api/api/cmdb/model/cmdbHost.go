@@ -6,6 +6,7 @@ import (
 
 // 主机基本信息
 type CmdbHost struct {
+	OSType      string     `gorm:"column:os_type;size:16;default:linux" json:"osType"`
 	ID          uint       `gorm:"column:id;comment:'主键';primaryKey;NOT NULL" json:"id"`
 	HostName    string     `gorm:"column:host_name;varchar(64);comment:'名称';NOT NULL" json:"hostName"`
 	GroupID     uint       `gorm:"column:group_id;comment:'分组ID';NOT NULL" json:"groupId"`
@@ -38,26 +39,34 @@ func (CmdbHost) TableName() string {
 
 // 创建主机DTO - 仅需提供必要连接信息，其他信息将通过SSH连接自动获取
 type CreateCmdbHostDto struct {
-	HostName  string `validate:"required" json:"hostName"`    // 主机名称(唯一标识)
-	GroupID   uint   `validate:"required" json:"groupId"`      // 主机分组ID
-	SSHName   string `validate:"required" json:"sshName"`      // SSH登录用户名
-	SSHIP     string `validate:"required" json:"sshIp"`         // SSH连接IP(公网或私网IP)
-	SSHPort   int    `json:"sshPort"`                          // SSH端口(默认22)
-	SSHKeyID  uint   `validate:"required" json:"sshKeyId"`     // SSH凭据ID(从ecsAuth表获取)
-	Remark    string `json:"remark"`                            // 备注信息(可选)
+	OSType    string `json:"osType"`
+	OS        string `json:"os"`
+	PrivateIP string `json:"privateIp"`
+	SkipSSH   bool   `json:"skipSSH"`
+	HostName  string `validate:"required" json:"hostName"` // 主机名称(唯一标识)
+	GroupID   uint   `validate:"required" json:"groupId"`  // 主机分组ID
+	SSHName   string `json:"sshName"`                      // SSH登录用户名
+	SSHIP     string `json:"sshIp"`                        // SSH连接IP(公网或私网IP)
+	SSHPort   int    `json:"sshPort"`                      // SSH端口(默认22)
+	SSHKeyID  uint   `json:"sshKeyId"`                     // SSH凭据ID(从ecsAuth表获取)
+	Remark    string `json:"remark"`                       // 备注信息(可选)
 }
 
 // 更新主机DTO - 仅需提供必要连接信息
 type UpdateCmdbHostDto struct {
-	ID         uint   `json:"id"`                              // 主机ID
-	HostName   string `validate:"required" json:"hostName"`    // 主机名称(唯一标识)
-	GroupID    uint   `validate:"required" json:"groupId"`     // 主机分组ID
-	SSHIP      string `validate:"required" json:"sshIp"`        // SSH连接IP(公网或私网IP)
-	SSHName    string `validate:"required" json:"sshName"`     // SSH登录用户名
-	SSHKeyID   uint   `validate:"required" json:"sshKeyId"`    // SSH凭据ID(从ecsAuth表获取)
-	SSHPort    int    `json:"sshPort"`                          // SSH端口(默认22)
-	Vendor     int    `json:"vendor"`                           // 厂商类型:1->自建,2->阿里云,3->腾讯云
-	Remark     string `json:"remark"`                           // 备注信息(可选)
+	OSType    string `json:"osType"`
+	OS        string `json:"os"`
+	PrivateIP string `json:"privateIp"`
+	SkipSSH   bool   `json:"skipSSH"`
+	ID        uint   `json:"id"`                           // 主机ID
+	HostName  string `validate:"required" json:"hostName"` // 主机名称(唯一标识)
+	GroupID   uint   `validate:"required" json:"groupId"`  // 主机分组ID
+	SSHIP     string `json:"sshIp"`                        // SSH连接IP(公网或私网IP)
+	SSHName   string `json:"sshName"`                      // SSH登录用户名
+	SSHKeyID  uint   `json:"sshKeyId"`                     // SSH凭据ID(从ecsAuth表获取)
+	SSHPort   int    `json:"sshPort"`                      // SSH端口(默认22)
+	Vendor    int    `json:"vendor"`                       // 厂商类型:1->自建,2->阿里云,3->腾讯云
+	Remark    string `json:"remark"`                       // 备注信息(可选)
 }
 
 // 主机ID DTO
@@ -67,12 +76,12 @@ type CmdbHostIdDto struct {
 
 // 创建云主机DTO
 type CreateCmdbHostCloudDto struct {
-	GroupID    uint   `validate:"required" json:"groupId"`    // 分组ID
+	GroupID    uint   `validate:"required" json:"groupId"`   // 分组ID
 	Vendor     int    `validate:"required" json:"vendor"`    // 云厂商:2->阿里云,3->腾讯云
-	Region     string `validate:"required" json:"region"`     // 区域
-	AccessKey  string `validate:"required" json:"accessKey"`  // AK
-	SecretKey  string `validate:"required" json:"secretKey"`  // SK
-	InstanceID string `json:"instanceId"`                     // 实例ID(可选)
+	Region     string `validate:"required" json:"region"`    // 区域
+	AccessKey  string `validate:"required" json:"accessKey"` // AK
+	SecretKey  string `validate:"required" json:"secretKey"` // SK
+	InstanceID string `json:"instanceId"`                    // 实例ID(可选)
 }
 
 // 批量导入阿里云主机DTO
@@ -92,8 +101,8 @@ type BatchImportTencentHostsDto struct {
 
 // Excel导入主机DTO
 type ImportHostsFromExcelDto struct {
-	GroupID uint `validate:"required" json:"groupId"` // 分组ID
-	File    string `validate:"required" json:"file"`   // 上传的文件路径
+	GroupID uint   `validate:"required" json:"groupId"` // 分组ID
+	File    string `validate:"required" json:"file"`    // 上传的文件路径
 }
 
 // Excel主机模板行数据
@@ -107,6 +116,7 @@ type ExcelHostTemplate struct {
 
 // 主机VO
 type CmdbHostVo struct {
+	OSType      string     `json:"osType"`
 	ID          uint       `json:"id"`
 	HostName    string     `json:"hostName"`
 	Name        string     `json:"name"` // ECS主机名称
@@ -119,11 +129,11 @@ type CmdbHostVo struct {
 	SSHKeyID    uint       `json:"sshKeyId"`
 	SSHKeyName  string     `json:"sshKeyName"`
 	SSHPort     int        `json:"sshPort"`
-	Remark      string     `json:"remark"`    // 备注
-	Vendor      string     `json:"vendor"`
+	Remark      string     `json:"remark"` // 备注
+	Vendor      int        `json:"vendor"`
 	Region      string     `json:"region"`
 	InstanceID  string     `json:"instanceId"`
-	OS          string     `json:"os"`        // 操作系统
+	OS          string     `json:"os"` // 操作系统
 	Status      int        `json:"status"`
 	CPU         string     `json:"cpu"`
 	Memory      string     `json:"memory"`

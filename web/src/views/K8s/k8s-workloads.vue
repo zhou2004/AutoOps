@@ -1,4 +1,7 @@
 <script setup>
+import * as OperationIcons from "@element-plus/icons-vue";
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -17,10 +20,12 @@ import {
   DocumentCopy,
   Files,
   Document,
-  Connection
+  Connection,
+  RefreshLeft
 } from '@element-plus/icons-vue'
 import k8sApi from '@/api/k8s'
 import CodeEditor from '@/components/CodeEditor.vue'
+import ActionDropdown from '@/components/ActionDropdown.vue'
 
 // Import modular components
 import ClusterSelector from './pods/ClusterSelector.vue'
@@ -34,8 +39,27 @@ import PodMonitor from './pods/k8s-pod-monitor.vue'
 import CreatePods from './pods/k8s-create-pods.vue'
 import OperationPod from './pods/k8s-operation-pod.vue'
 import ContainerPods from './pods/k8s-container-pods.vue'
+import AutoscalingPanel from './autoscaling/index.vue'
 
 const router = useRouter()
+const autoscalingVisible = ref(false)
+const autoscalingTarget = ref(null)
+const canAutoscale = row => ['deployment', 'statefulset', 'daemonset'].includes(row.type) && !isSystemWorkload(row)
+function openAutoscaling(row) {
+  if (!canAutoscale(row)) return
+  autoscalingTarget.value = {
+    clusterId: String(selectedClusterId.value),
+    namespace: row.namespace,
+    targetKind: { deployment: 'Deployment', statefulset: 'StatefulSet', daemonset: 'DaemonSet' }[row.type],
+    targetName: row.name
+  }
+  autoscalingVisible.value = true
+}
+function workloadCommand(command, row) {
+  const actions = { scale: scaleWorkload, restart: restartWorkload, rollback: handleQuickRollback,
+    config: updatePodConfig, scheduling: updateScheduling, remove: deleteWorkload }
+  actions[command]?.(row)
+}
 
 const loading = ref(false)
 const activeTab = ref('')
@@ -139,7 +163,7 @@ const fetchClusterList = async () => {
     }
   } catch (error) {
     console.error('获取集群列表失败:', error)
-    ElMessage.warning('无法获取集群列表，请检查后端服务')
+    ElMessage.warning(tr('无法获取集群列表，请检查后端服务'))
   }
 }
 
@@ -166,12 +190,12 @@ const handleQuery = async () => {
   
   try {
     if (!selectedClusterId.value) {
-      ElMessage.warning('请选择一个集群')
+      ElMessage.warning(tr('请选择一个集群'))
       return
     }
     
     if (!queryParams.namespace) {
-      ElMessage.warning('请选择命名空间')
+      ElMessage.warning(tr('请选择命名空间'))
       return
     }
     
@@ -238,11 +262,11 @@ const handleQuery = async () => {
       // 特殊处理资源不存在的错误
       if (errorMsg.includes('the server could not find the requested resource')) {
         if (queryParams.type === 'cronjobs') {
-          ElMessage.warning('当前集群不支持CronJob资源，可能是Kubernetes版本过低')
+          ElMessage.warning(tr('当前集群不支持CronJob资源（已尝试 batch/v1 和 batch/v1beta1 API），请检查Kubernetes版本（需 ≥ v1.21）或集群配置'))
         } else if (queryParams.type) {
           ElMessage.warning(`当前集群不支持${queryParams.type}资源类型`)
         } else {
-          ElMessage.warning('请求的资源不存在，请检查集群配置')
+          ElMessage.warning(tr('请求的资源不存在，请检查集群配置'))
         }
       } else {
         ElMessage.error(errorMsg)
@@ -256,11 +280,11 @@ const handleQuery = async () => {
     if (error.code === 'ERR_NETWORK' || 
         error.message?.includes('ERR_CONNECTION_REFUSED') ||
         error.message?.includes('Failed to fetch')) {
-      ElMessage.warning('后端服务连接失败，请检查服务状态')
+      ElMessage.warning(tr('后端服务连接失败，请检查服务状态'))
     } else if (error.response?.status === 401) {
-      ElMessage.error('认证失败，请重新登录')
+      ElMessage.error(tr('认证失败，请重新登录'))
     } else if (error.response?.status === 403) {
-      ElMessage.error('权限不足，请联系管理员')
+      ElMessage.error(tr('权限不足，请联系管理员'))
     } else {
       console.warn('API调用异常，但可能数据已正确加载')
     }
@@ -391,11 +415,11 @@ const navigateToMonitoring = () => {
 // 创建工作负载相关函数
 const showCreatePodDialog = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
 
@@ -431,7 +455,7 @@ const handlePodPreview = async (data) => {
       details: null
     }
     createPodDialogRef.value?.setDryRunResult(result)
-    ElMessage.error('工作负载创建预览失败: ' + (error.message || '网络错误'))
+    ElMessage.error('工作负载创建预览失败: ' + (error.message || tr('网络错误')))
   } finally {
     createPodDialogRef.value?.setLoading(false)
   }
@@ -447,7 +471,7 @@ const handlePodCreate = async (data) => {
     const responseData = response.data || response
 
     if (responseData.code === 200) {
-      ElMessage.success('工作负载创建成功!')
+      ElMessage.success(tr('工作负载创建成功!'))
       createPodDialogVisible.value = false
       handleQuery() // 刷新工作负载列表
     } else {
@@ -455,7 +479,7 @@ const handlePodCreate = async (data) => {
     }
   } catch (error) {
     console.error('工作负载创建失败:', error)
-    ElMessage.error('工作负载创建失败: ' + (error.message || '网络错误'))
+    ElMessage.error('工作负载创建失败: ' + (error.message || tr('网络错误')))
   } finally {
     createPodDialogRef.value?.setLoading(false)
   }
@@ -509,11 +533,11 @@ const navigateToPodDetail = async (row) => {
         path: `/k8s/pod/${selectedClusterId.value}/${queryParams.namespace}/${firstPod.name}`
       })
     } else {
-      ElMessage.warning('该工作负载下暂无Pod或Pod信息获取失败')
+      ElMessage.warning(tr('该工作负载下暂无Pod或Pod信息获取失败'))
     }
   } catch (error) {
     console.error('获取工作负载Pod信息失败:', error)
-    ElMessage.error('获取工作负载Pod信息失败，请检查网络连接')
+    ElMessage.error(tr('获取工作负载Pod信息失败，请检查网络连接'))
   }
 }
 
@@ -571,7 +595,7 @@ const viewPodList = async (row) => {
     }
   } catch (error) {
     console.error('获取Pod列表失败:', error)
-    ElMessage.error('获取Pod列表失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod列表失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -609,7 +633,7 @@ const viewPodLogs = async (pod) => {
     }
   } catch (error) {
     console.error('获取Pod日志失败:', error)
-    ElMessage.error('获取Pod日志失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod日志失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -637,7 +661,7 @@ const viewYaml = async (pod) => {
     }
   } catch (error) {
     console.error('获取Pod YAML失败:', error)
-    ElMessage.error('获取Pod YAML失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod YAML失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -648,10 +672,10 @@ const rebuildPod = async (pod) => {
   try {
     await ElMessageBox.confirm(
       `确定要重构Pod "${pod.name}" 吗？\n重构操作会删除当前Pod并自动创建新的Pod实例。`,
-      '重构Pod确认',
+      tr('重构Pod确认'),
       {
         confirmButtonText: '确定重构',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -671,10 +695,10 @@ const rebuildPod = async (pod) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消重构操作')
+      ElMessage.info(tr('已取消重构操作'))
     } else {
       console.error('重构Pod失败:', error)
-      ElMessage.error('重构Pod失败，请检查网络连接')
+      ElMessage.error(tr('重构Pod失败，请检查网络连接'))
     }
   }
 }
@@ -682,7 +706,7 @@ const rebuildPod = async (pod) => {
 // 扩容缩容
 const scaleWorkload = (row) => {
   if (!canScale(row)) {
-    ElMessage.warning('该工作负载不支持扩缩容操作')
+    ElMessage.warning(tr('该工作负载不支持扩缩容操作'))
     return
   }
   
@@ -711,24 +735,24 @@ const submitScale = async () => {
     }
   } catch (error) {
     console.error('扩缩容失败:', error)
-    ElMessage.error('扩缩容失败，请检查网络连接')
+    ElMessage.error(tr('扩缩容失败，请检查网络连接'))
   }
 }
 
 // 重启工作负载
 const restartWorkload = async (row) => {
   if (!canRestart(row)) {
-    ElMessage.warning('该工作负载不支持重启操作')
+    ElMessage.warning(tr('该工作负载不支持重启操作'))
     return
   }
   
   try {
     await ElMessageBox.confirm(
       `确定要重启 ${row.type} "${row.name}" 吗？`,
-      '重启确认',
+      tr('重启确认'),
       {
         confirmButtonText: '确定重启',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -744,10 +768,53 @@ const restartWorkload = async (row) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消重启操作')
+      ElMessage.info(tr('已取消重启操作'))
     } else {
       console.error('重启失败:', error)
-      ElMessage.error('重启失败，请检查网络连接')
+      ElMessage.error(tr('重启失败，请检查网络连接'))
+    }
+  }
+}
+
+// 一键回滚到上一版本
+const handleQuickRollback = async (row) => {
+  if (!canRollback(row)) {
+    ElMessage.warning(tr('该工作负载不支持回滚操作'))
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要将 ${row.type} "${row.name}" 一键回滚到上一个版本吗？此操作会恢复 Deployment 的 Pod 模板到最近的历史版本。`,
+      tr('一键回滚确认'),
+      {
+        confirmButtonText: '确定回滚',
+        cancelButtonText: tr('取消'),
+        type: 'warning',
+      }
+    )
+    
+    // toRevision: 0 表示自动回滚到上一个历史版本
+    const response = await k8sApi.rollbackDeployment(
+      selectedClusterId.value,
+      queryParams.namespace,
+      row.name,
+      { toRevision: 0 }
+    )
+    
+    const responseData = response.data || response
+    if (responseData.code === 200 || responseData.success) {
+      ElMessage.success(`${row.name} 已成功回滚到上一版本`)
+      handleQuery()
+    } else {
+      ElMessage.error(responseData.message || '回滚失败')
+    }
+  } catch (error) {
+    if (error === 'cancel') {
+      ElMessage.info(tr('已取消回滚操作'))
+    } else {
+      console.error('回滚失败:', error)
+      ElMessage.error(`回滚失败: ${error.response?.data?.message || error.message || '请检查网络连接'}`)
     }
   }
 }
@@ -843,7 +910,7 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
       document.execCommand('copy')
       ElMessage.success(successMessage)
     } catch (fallbackError) {
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
     document.body.removeChild(textArea)
   }
@@ -885,6 +952,17 @@ const canRestart = (workload) => {
   }
   
   // 系统工作负载不允许重启
+  return !isSystemWorkload(workload)
+}
+
+// 判断是否可以回滚
+const canRollback = (workload) => {
+  // 只有 Deployment 支持回滚
+  if (workload.type !== 'deployment') {
+    return false
+  }
+  
+  // 系统工作负载不允许回滚
   return !isSystemWorkload(workload)
 }
 
@@ -985,7 +1063,7 @@ const viewAllImages = (row) => {
 // 更新Pod配置
 const updatePodConfig = (row) => {
   if (!canUpdatePodConfig(row)) {
-    ElMessage.warning('该工作负载不支持Pod配置更新')
+    ElMessage.warning(tr('该工作负载不支持Pod配置更新'))
     return
   }
   
@@ -996,7 +1074,7 @@ const updatePodConfig = (row) => {
 // 更新调度
 const updateScheduling = (row) => {
   if (!canUpdateScheduling(row)) {
-    ElMessage.warning('该工作负载不支持调度更新')
+    ElMessage.warning(tr('该工作负载不支持调度更新'))
     return
   }
   
@@ -1007,7 +1085,7 @@ const updateScheduling = (row) => {
 // 编辑工作负载YAML
 const editWorkloadYaml = async (row) => {
   if (!canEditYaml(row)) {
-    ElMessage.warning('系统工作负载不允许编辑YAML')
+    ElMessage.warning(tr('系统工作负载不允许编辑YAML'))
     return
   }
   
@@ -1093,7 +1171,7 @@ const editWorkloadYaml = async (row) => {
       currentWorkload.value = row
       currentYaml.value = templateYaml
       workloadYamlDialogVisible.value = true
-      ElMessage.warning('未找到实际YAML内容，显示基础模板')
+      ElMessage.warning(tr('未找到实际YAML内容，显示基础模板'))
     }
     
   } catch (error) {
@@ -1394,7 +1472,7 @@ const submitScheduling = async () => {
     }
   } catch (error) {
     console.error('调度配置更新失败:', error)
-    ElMessage.error('调度配置更新失败，请检查网络连接')
+    ElMessage.error(tr('调度配置更新失败，请检查网络连接'))
   }
 }
 
@@ -1403,14 +1481,14 @@ const parseWorkloadFromYaml = (yamlContent) => {
   try {
     const yamlObj = yaml.load(yamlContent)
     if (!yamlObj || typeof yamlObj !== 'object') {
-      throw new Error('无效的YAML格式')
+      throw new Error(tr('无效的YAML格式'))
     }
 
     const workloadType = yamlObj.kind?.toLowerCase()
     const workloadName = yamlObj.metadata?.name
 
     if (!workloadType || !workloadName) {
-      throw new Error('YAML中缺少kind或metadata.name字段')
+      throw new Error(tr('YAML中缺少kind或metadata.name字段'))
     }
 
     return { workloadType, workloadName }
@@ -1425,7 +1503,7 @@ const validateYaml = () => {
   try {
     // 简单的YAML格式验证
     if (!currentYaml.value.trim()) {
-      ElMessage.warning('YAML内容不能为空')
+      ElMessage.warning(tr('YAML内容不能为空'))
       return false
     }
 
@@ -1442,11 +1520,11 @@ const validateYaml = () => {
     })
 
     if (!hasApiVersion || !hasKind || !hasMetadata) {
-      ElMessage.warning('YAML缺少必要字段 (apiVersion, kind, metadata)')
+      ElMessage.warning(tr('YAML缺少必要字段 (apiVersion, kind, metadata)'))
       return false
     }
 
-    ElMessage.success('YAML格式验证通过')
+    ElMessage.success(tr('YAML格式验证通过'))
     return true
   } catch (error) {
     ElMessage.error('YAML格式验证失败: ' + error.message)
@@ -1478,12 +1556,12 @@ const saveWorkloadYaml = async () => {
       workloadYamlDialogVisible.value = false
       handleQuery() // 刷新列表
     } else {
-      throw new Error(responseData.message || '保存失败')
+      throw new Error(responseData.message || tr('保存失败'))
     }
   } catch (error) {
     console.error('YAML配置保存失败:', error)
     if (error instanceof SyntaxError) {
-      ElMessage.error('YAML格式错误，请检查语法')
+      ElMessage.error(tr('YAML格式错误，请检查语法'))
     } else {
       ElMessage.error('YAML配置保存失败: ' + (error.message || '请检查网络连接'))
     }
@@ -1510,7 +1588,7 @@ const handleYamlSave = async (data) => {
         ElMessage.success(`${data.resourceName} YAML配置保存成功`)
         podYamlDialogVisible.value = false
       } else {
-        throw new Error(responseData.message || '保存失败')
+        throw new Error(responseData.message || tr('保存失败'))
       }
     } else {
       // 对于工作负载，使用新的通用API
@@ -1530,7 +1608,7 @@ const handleYamlSave = async (data) => {
         ElMessage.success(`${workloadName} YAML配置保存成功`)
         workloadYamlDialogVisible.value = false
       } else {
-        throw new Error(responseData.message || '保存失败')
+        throw new Error(responseData.message || tr('保存失败'))
       }
     }
 
@@ -1544,25 +1622,25 @@ const handleYamlSave = async (data) => {
 // 占位函数 - 这些功能需要后续实现
 const editWorkload = (row) => {
   if (!canEdit(row)) {
-    ElMessage.warning('系统工作负载不允许编辑')
+    ElMessage.warning(tr('系统工作负载不允许编辑'))
     return
   }
-  ElMessage.info('编辑功能开发中...')
+  ElMessage.info(tr('编辑功能开发中...'))
 }
 
 const deleteWorkload = async (row) => {
   if (!canDelete(row)) {
-    ElMessage.warning('系统工作负载不允许删除')
+    ElMessage.warning(tr('系统工作负载不允许删除'))
     return
   }
 
   try {
     await ElMessageBox.confirm(
       `确定要删除 ${getWorkloadTypeName(row.type)} "${row.name}" 吗？此操作不可恢复！`,
-      '删除确认',
+      tr('删除确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
         dangerouslyUseHTMLString: false
       }
@@ -1610,7 +1688,7 @@ const deleteWorkload = async (row) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     } else {
       console.error('删除工作负载失败:', error)
       ElMessage.error(`删除失败: ${error.message || '请检查网络连接'}`)
@@ -1624,7 +1702,7 @@ const deleteWorkload = async (row) => {
     <el-card shadow="hover" class="workloads-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 工作负载管理</span>
+          <span class="title">{{ $tr("K8s 工作负载管理") }}</span>
           <div class="header-actions">
             <ClusterSelector
               v-model="selectedClusterId"
@@ -1643,10 +1721,10 @@ const deleteWorkload = async (row) => {
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="工作负载名称">
+          <el-form-item :label='$tr("工作负载名称")'>
             <el-input
               v-model="queryParams.name"
-              placeholder="请输入名称"
+              :placeholder='$tr("请输入名称")'
               clearable
               size="small"
               style="width: 200px"
@@ -1655,16 +1733,22 @@ const deleteWorkload = async (row) => {
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="handleQuery">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="resetQuery">
-              重置
+              {{ $tr("重置") }}
             </el-button>
-            <el-button :icon="Monitor" type="success" size="small" @click="navigateToMonitoring">
-              监控仪表板
-            </el-button>
+            <el-dropdown trigger="click">
+              <el-button :icon="OperationIcons.MoreFilled" size="small">{{ $tr("更多操作") }}</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :icon="OperationIcons.DataAnalysis" @click="navigateToMonitoring">{{ $tr("监控仪表板") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.ScaleToOriginal" @click="router.push({ path: '/k8s/autoscaling', query: { clusterId: String(selectedClusterId || ''), namespace: queryParams.namespace || '' } })">{{ $tr("弹性伸缩策略") }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button :icon="Plus" type="primary" size="small" @click="showCreatePodDialog">
-              创建工作负载
+              {{ $tr("创建工作负载") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -1672,9 +1756,9 @@ const deleteWorkload = async (row) => {
         <!-- 工作负载类型标签页 -->
         <div class="workload-type-section">
           <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="workload-tabs">
-            <el-tab-pane label="全部" name="">
+            <el-tab-pane :label='$tr("全部")' name="">
               <template #label>
-                <span class="tab-label">全部</span>
+                <span class="tab-label">{{ $tr("全部") }}</span>
               </template>
             </el-tab-pane>
             <el-tab-pane label="Deployment" name="deployments">
@@ -1715,7 +1799,7 @@ const deleteWorkload = async (row) => {
           style="width: 100%"
           class="workloads-table"
         >
-          <el-table-column prop="name" label="名称" min-width="200">
+          <el-table-column prop="name" :label='$tr("名称")' min-width="200">
             <template #default="{ row }">
               <div class="workload-name-container">
                 <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
@@ -1736,25 +1820,25 @@ const deleteWorkload = async (row) => {
             </template>
           </el-table-column>
           
-          <el-table-column label="标签" min-width="100" align="center">
+          <el-table-column :label='$tr("标签")' min-width="100" align="center">
             <template #default="{ row }">
               <div class="label-container">
                 <el-badge :value="getVisibleLabelCount(row.labels)" :max="99" class="label-badge">
-                  <el-button
+                  <el-button :icon="OperationIcons.Operation"
                     type="text"
                     size="small"
                     circle
                     @click="viewWorkloadLabels(row)"
                     class="label-icon-button"
                   >
-                    <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
+                    <img :src="$getAssetUrl('@/assets/image/标签.svg')" :alt='$tr("标签")' width="14" height="14" />
                   </el-button>
                 </el-badge>
               </div>
             </template>
           </el-table-column>
           
-          <el-table-column label="容器组数量" min-width="120" align="center">
+          <el-table-column :label='$tr("容器组数量")' min-width="120" align="center">
             <template #default="{ row }">
               <div class="pod-status-container">
                 <el-tag 
@@ -1768,7 +1852,7 @@ const deleteWorkload = async (row) => {
                 </el-tag>
                 <div class="pod-status-text">
                   <span :class="getReplicaStatusClass(row.readyReplicas, row.totalReplicas)">
-                    {{ getReplicaStatusText(row.readyReplicas, row.totalReplicas) }}
+                    {{ $tr(getReplicaStatusText(row.readyReplicas, row.totalReplicas)) }}
                   </span>
                 </div>
               </div>
@@ -1798,7 +1882,7 @@ const deleteWorkload = async (row) => {
             </template>
           </el-table-column>
           
-          <el-table-column label="镜像" min-width="250">
+          <el-table-column :label='$tr("镜像")' min-width="250">
             <template #default="{ row }">
               <div class="images-list">
                 <div
@@ -1810,20 +1894,20 @@ const deleteWorkload = async (row) => {
                   <el-icon class="copy-icon"><DocumentCopy /></el-icon>
                   <span class="full-image-name">{{ image }}</span>
                 </div>
-                <el-button
+                <el-button :icon="OperationIcons.Operation"
                   v-if="row.images.length > 1"
                   type="text"
                   size="small"
                   class="more-images-btn"
                   @click="viewAllImages(row)"
                 >
-                  +{{ row.images.length - 1 }}个镜像
+                  +{{ row.images.length - 1 }}{{ $tr("个镜像") }}
                 </el-button>
               </div>
             </template>
           </el-table-column>
           
-          <el-table-column label="创建时间" min-width="150">
+          <el-table-column :label='$tr("创建时间")' min-width="150">
             <template #default="{ row }">
               <div class="time-info">
                 <span class="datetime-text">{{ formatDateTime(row.updateTime) }}</span>
@@ -1831,7 +1915,7 @@ const deleteWorkload = async (row) => {
             </template>
           </el-table-column>
           
-          <el-table-column label="更新时间" min-width="150">
+          <el-table-column :label='$tr("更新时间")' min-width="150">
             <template #default="{ row }">
               <div class="time-info">
                 <span v-if="row.updatedAt" class="datetime-text">
@@ -1842,81 +1926,52 @@ const deleteWorkload = async (row) => {
             </template>
           </el-table-column>
           
-          <el-table-column label="操作" width="300" fixed="right">
+          <el-table-column :label='$tr("操作")' width="156" fixed="right">
             <template #default="{ row }">
-              <div class="operation-buttons">
-                <el-tooltip :content="canScale(row) ? '伸缩' : '不支持伸缩'" placement="top">
-                  <el-button
-                    type="primary"
-                    size="small"
-                    circle
-                    :disabled="!canScale(row)"
-                    @click="scaleWorkload(row)"
-                  >
-                    <img :src="$getAssetUrl('@/assets/image/扩容.svg')" alt="伸缩" width="16" height="16" style="filter: brightness(0) invert(1);" />
-                  </el-button>
+              <div class="workload-row-actions">
+                <el-tooltip :content="$tr('弹性伸缩')" placement="top">
+                  <span class="action-icon-trigger">
+                    <el-button
+                      :icon="OperationIcons.ScaleToOriginal"
+                      link
+                      type="primary"
+                      class="action-icon"
+                      :disabled="!canAutoscale(row)"
+                      :aria-label="$tr('弹性伸缩')"
+                      @click="openAutoscaling(row)"
+                    />
+                  </span>
                 </el-tooltip>
-                
-                <el-tooltip :content="canRestart(row) ? '重构' : '不支持重构'" placement="top">
-                  <el-button
-                    type="warning"
-                    size="small"
-                    circle
-                    :disabled="!canRestart(row)"
-                    @click="restartWorkload(row)"
-                  >
-                    <img :src="$getAssetUrl('@/assets/image/重启.svg')" alt="重启" width="14" height="14" style="filter: brightness(0) invert(1);" />
-                  </el-button>
+                <el-tooltip :content="$tr('编辑 YAML')" placement="top">
+                  <span class="action-icon-trigger">
+                    <el-button
+                      :icon="OperationIcons.Edit"
+                      link
+                      type="primary"
+                      class="action-icon"
+                      :disabled="!canEditYaml(row)"
+                      :aria-label="$tr('编辑 YAML')"
+                      @click="editWorkloadYaml(row)"
+                    />
+                  </span>
                 </el-tooltip>
-                
-                <el-tooltip :content="canUpdatePodConfig(row) ? '更新Pod配置' : '系统资源不可配置'" placement="top">
-                  <el-button
-                    type="success"
-                    :icon="Setting"
-                    size="small"
-                    circle
-                    :disabled="!canUpdatePodConfig(row)"
-                    @click="updatePodConfig(row)"
-                  />
-                </el-tooltip>
-                
-                <el-tooltip :content="canUpdateScheduling(row) ? '更新调度' : '不支持调度更新'" placement="top">
-                  <el-button
-                    type="info"
-                    :icon="Monitor"
-                    size="small"
-                    circle
-                    :disabled="!canUpdateScheduling(row)"
-                    @click="updateScheduling(row)"
-                  />
-                </el-tooltip>
-                
-                <el-tooltip :content="canEditYaml(row) ? '编辑YAML' : '系统资源不可编辑'" placement="top">
-                  <el-button
-                    type="primary"
-                    :icon="Document"
-                    size="small"
-                    circle
-                    :disabled="!canEditYaml(row)"
-                    @click="editWorkloadYaml(row)"
-                  />
-                </el-tooltip>
-                
-                <el-tooltip :content="canDelete(row) ? '删除' : '系统资源不可删除'" placement="top">
-                  <el-button
-                    type="danger"
-                    :icon="Delete"
-                    size="small"
-                    circle
-                    :disabled="!canDelete(row)"
-                    @click="deleteWorkload(row)"
-                  />
-                </el-tooltip>
+                <ActionDropdown :label="$tr('更多操作')" @command="command => workloadCommand(command, row)">
+                  <el-dropdown-item :icon="OperationIcons.ScaleToOriginal" command="scale" :disabled="!canScale(row)">{{ $tr("调整副本数") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.RefreshRight" command="restart" :disabled="!canRestart(row)">{{ $tr("重启工作负载") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.RefreshLeft" command="rollback" :disabled="!canRollback(row)">{{ $tr("一键回滚") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.Setting" command="config" divided :disabled="!canUpdatePodConfig(row)">{{ $tr("更新 Pod 配置") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.Setting" command="scheduling" :disabled="!canUpdateScheduling(row)">{{ $tr("更新调度") }}</el-dropdown-item>
+                  <el-dropdown-item :icon="OperationIcons.Delete" command="remove" divided :disabled="!canDelete(row)" class="danger-action">{{ $tr("删除") }}</el-dropdown-item>
+                </ActionDropdown>
               </div>
             </template>
           </el-table-column>
         </el-table>
       </div>
+
+      <el-drawer v-model="autoscalingVisible" :title="`${autoscalingTarget?.targetName || ''} · ${$tr('弹性伸缩')}`" size="min(1100px, 100vw)" destroy-on-close>
+        <AutoscalingPanel v-if="autoscalingVisible && autoscalingTarget" :key="`${autoscalingTarget.clusterId}/${autoscalingTarget.namespace}/${autoscalingTarget.targetName}`" v-bind="autoscalingTarget" embedded />
+      </el-drawer>
 
       <!-- 分页 -->
       <div class="pagination-section">
@@ -1965,22 +2020,22 @@ const deleteWorkload = async (row) => {
     >
       <div class="log-controls">
         <el-form :inline="true" size="small">
-          <el-form-item label="容器">
+          <el-form-item :label='$tr("容器")'>
             <el-select v-model="logParams.container" style="width: 200px">
               <el-option
                 v-for="container in currentPod.containers || []"
                 :key="container.name"
-                :label="container.name"
+                :label="$tr(container.name)"
                 :value="container.name"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="行数">
+          <el-form-item :label='$tr("行数")'>
             <el-input-number v-model="logParams.lines" :min="10" :max="1000" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="viewPodLogs(currentPod)">刷新日志</el-button>
-            <el-button @click="copyToClipboard(currentPodLogs, '日志已复制')">复制日志</el-button>
+            <el-button :icon="OperationIcons.Refresh" type="primary" @click="viewPodLogs(currentPod)">{{ $tr("刷新日志") }}</el-button>
+            <el-button :icon="OperationIcons.CopyDocument" @click="copyToClipboard(currentPodLogs, '日志已复制')">{{ $tr("复制日志") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -2009,20 +2064,20 @@ const deleteWorkload = async (row) => {
       class="scale-dialog"
     >
       <el-form :model="scaleForm" label-width="80px">
-        <el-form-item label="副本数" required>
+        <el-form-item :label='$tr("副本数")' required>
           <el-input-number
             v-model="scaleForm.replicas"
             :min="0"
             :max="100"
             style="width: 100%"
           />
-          <div class="form-tip">当前副本数: {{ currentWorkload.totalReplicas }}</div>
+          <div class="form-tip">{{ $tr("当前副本数:") }} {{ currentWorkload.totalReplicas }}</div>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="scaleDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitScale">确定</el-button>
+          <el-button :icon="OperationIcons.Close" @click="scaleDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button :icon="OperationIcons.Check" type="primary" @click="submitScale">{{ $tr("确定") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -2037,7 +2092,7 @@ const deleteWorkload = async (row) => {
       <div class="labels-view-content" v-if="currentWorkload.labels">
         <!-- 用户自定义标签 -->
         <div class="labels-section" v-if="Object.keys(getUserLabels(currentWorkload.labels)).length > 0">
-          <h4>用户标签</h4>
+          <h4>{{ $tr("用户标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getUserLabels(currentWorkload.labels)"
@@ -2055,7 +2110,7 @@ const deleteWorkload = async (row) => {
         
         <!-- 系统标签 -->
         <div class="labels-section" v-if="Object.keys(getSystemLabels(currentWorkload.labels)).length > 0">
-          <h4>系统标签</h4>
+          <h4>{{ $tr("系统标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getSystemLabels(currentWorkload.labels)"
@@ -2073,7 +2128,7 @@ const deleteWorkload = async (row) => {
         
         <!-- 没有标签的提示 -->
         <div v-if="!currentWorkload.labels || Object.keys(currentWorkload.labels).length === 0" class="no-labels">
-          <el-empty description="该工作负载没有标签" :image-size="60" />
+          <el-empty :description='$tr("该工作负载没有标签")' :image-size="60" />
         </div>
       </div>
     </el-dialog>
@@ -2087,7 +2142,7 @@ const deleteWorkload = async (row) => {
     >
       <div class="images-view-content" v-if="currentWorkload.images">
         <div class="images-section">
-          <h4>容器镜像 ({{ currentWorkload.images?.length || 0 }}个)</h4>
+          <h4>{{ $tr("容器镜像 (") }}{{ currentWorkload.images?.length || 0 }}{{ $tr("个)") }}</h4>
           <div class="all-images-list">
             <el-card
               v-for="(image, index) in currentWorkload.images"
@@ -2107,7 +2162,7 @@ const deleteWorkload = async (row) => {
                     :icon="DocumentCopy"
                     @click="copyToClipboard(image, '镜像地址已复制')"
                   >
-                    复制
+                    {{ $tr("复制") }}
                   </el-button>
                 </div>
               </div>
@@ -2121,7 +2176,7 @@ const deleteWorkload = async (row) => {
         
         <!-- 没有镜像的提示 -->
         <div v-if="!currentWorkload.images || currentWorkload.images.length === 0" class="no-images">
-          <el-empty description="该工作负载没有镜像" :image-size="60" />
+          <el-empty :description='$tr("该工作负载没有镜像")' :image-size="60" />
         </div>
       </div>
     </el-dialog>
@@ -2143,38 +2198,38 @@ const deleteWorkload = async (row) => {
       class="scheduling-dialog"
     >
       <el-form :model="currentWorkload" label-width="120px">
-        <el-form-item label="节点选择器">
+        <el-form-item :label='$tr("节点选择器")'>
           <el-input
             v-model="currentWorkload.nodeSelector"
-            placeholder="如: kubernetes.io/arch=amd64"
+            :placeholder='$tr("如: kubernetes.io/arch=amd64")'
             style="width: 100%"
           />
-          <div class="form-tip">格式: key=value，多个用逗号分隔</div>
+          <div class="form-tip">{{ $tr("格式: key=value，多个用逗号分隔") }}</div>
         </el-form-item>
-        <el-form-item label="节点亲和性">
+        <el-form-item :label='$tr("节点亲和性")'>
           <el-select
             v-model="currentWorkload.nodeAffinity"
-            placeholder="请选择节点亲和性"
+            :placeholder='$tr("请选择节点亲和性")'
             style="width: 100%"
           >
-            <el-option label="无要求" value="none" />
-            <el-option label="偏好调度" value="preferred" />
-            <el-option label="必须调度" value="required" />
+            <el-option :label='$tr("无要求")' value="none" />
+            <el-option :label='$tr("偏好调度")' value="preferred" />
+            <el-option :label='$tr("必须调度")' value="required" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Pod反亲和性">
+        <el-form-item :label='$tr("Pod反亲和性")'>
           <el-switch
             v-model="currentWorkload.podAntiAffinity"
-            active-text="启用"
-            inactive-text="禁用"
+            :active-text='$tr("启用")'
+            :inactive-text='$tr("禁用")'
           />
-          <div class="form-tip">避免Pod调度到同一节点</div>
+          <div class="form-tip">{{ $tr("避免Pod调度到同一节点") }}</div>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="schedulingDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitScheduling">更新调度</el-button>
+          <el-button :icon="OperationIcons.Close" @click="schedulingDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button :icon="OperationIcons.Operation" type="primary" @click="submitScheduling">{{ $tr("更新调度") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -2208,6 +2263,10 @@ const deleteWorkload = async (row) => {
 
 
 <style scoped>
+.workload-row-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.workload-row-actions .el-button + .el-button { margin-left: 0; }
+.danger-action { color: var(--el-color-danger); }
+
 .pagination-section {
   display: flex;
   justify-content: center;

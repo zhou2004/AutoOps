@@ -4,13 +4,13 @@
     <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.5s' }">
       <div class="section-title">
         <span class="title-bar"></span>
-        <span>👥 用户分析</span>
+        <span>{{ $tr("👥 用户分析") }}</span>
       </div>
       <div class="dashboard-grid dashboard-grid-4" style="margin-bottom:12px">
-        <StatCard icon="👤" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="userStats.total" label="用户总数" />
-        <StatCard icon="📅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="userStats.weekly" label="本周登录" />
-        <StatCard icon="📆" iconBg="linear-gradient(135deg,#fff7e6,#ffe7ba)" :value="userStats.monthly" label="本月登录" />
-        <StatCard icon="⭐" iconBg="linear-gradient(135deg,#f9f0ff,#efdbff)" :value="userStats.active" label="活跃用户" />
+        <StatCard icon="👤" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="userStats.total" :label='$tr("用户总数")' />
+        <StatCard icon="📅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="userStats.weekly" :label='$tr("本周登录")' />
+        <StatCard icon="📆" iconBg="linear-gradient(135deg,#fff7e6,#ffe7ba)" :value="userStats.monthly" :label='$tr("本月登录")' />
+        <StatCard icon="⭐" iconBg="linear-gradient(135deg,#f9f0ff,#efdbff)" :value="userStats.active" :label='$tr("活跃用户")' />
       </div>
     </div>
 
@@ -18,15 +18,15 @@
     <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.6s' }">
       <div class="section-title">
         <span class="title-bar"></span>
-        <span>📋 工单统计</span>
+        <span>{{ $tr("📋 工单统计") }}</span>
       </div>
       <div class="dashboard-grid dashboard-grid-2" style="margin-bottom:12px">
         <div class="stat-card">
-          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">工单分类统计</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("工单分类统计") }}</div>
           <BaseChart :option="ticketOption" size="sm" />
         </div>
         <div class="stat-card">
-          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">审批类型分布</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("审批类型分布") }}</div>
           <BaseChart :option="approveOption" size="sm" />
         </div>
       </div>

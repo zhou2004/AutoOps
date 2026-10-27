@@ -24,7 +24,7 @@
         class="upload-btn"
       >
         <el-icon><Upload /></el-icon>
-        上传config文件
+        {{ $tr("上传config文件") }}
       </el-button>
       <el-button 
         size="small" 
@@ -34,13 +34,15 @@
         :disabled="disabled"
       >
         <el-icon><Delete /></el-icon>
-        清空
+        {{ $tr("清空") }}
       </el-button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Upload, Delete } from '@element-plus/icons-vue'
@@ -86,14 +88,14 @@ const credentialContent = computed({
 // 触发文件选择
 const triggerFileUpload = () => {
   if (props.disabled) {
-    ElMessage.warning('当前状态不允许上传文件')
+    ElMessage.warning(tr('当前状态不允许上传文件'))
     return
   }
   
   if (fileInputRef.value) {
     fileInputRef.value.click()
   } else {
-    ElMessage.error('文件选择器初始化失败，请刷新页面重试')
+    ElMessage.error(tr('文件选择器初始化失败，请刷新页面重试'))
   }
 }
 
@@ -133,18 +135,18 @@ const handleFileChange = (event) => {
         credentialContent.value = content.trim()
         ElMessage.success(`凭证文件 ${fileName} 上传成功`)
       } else {
-        ElMessage.warning('文件内容为空')
+        ElMessage.warning(tr('文件内容为空'))
       }
     } catch (error) {
       console.error('读取文件失败:', error)
-      ElMessage.error('读取文件失败，请检查文件格式')
+      ElMessage.error(tr('读取文件失败，请检查文件格式'))
     }
     event.target.value = ''
   }
   
   reader.onerror = (error) => {
     console.error('文件读取错误:', error)
-    ElMessage.error('文件读取失败')
+    ElMessage.error(tr('文件读取失败'))
     event.target.value = ''
   }
   
@@ -154,27 +156,27 @@ const handleFileChange = (event) => {
 // 清空凭证内容
 const clearCredential = () => {
   if (props.disabled) {
-    ElMessage.warning('当前状态不允许清空')
+    ElMessage.warning(tr('当前状态不允许清空'))
     return
   }
   
   if (!credentialContent.value.trim()) {
-    ElMessage.info('凭证内容已经为空')
+    ElMessage.info(tr('凭证内容已经为空'))
     return
   }
   
   ElMessageBox.confirm(
-    '确定要清空凭证内容吗？',
-    '清空确认',
+    tr('确定要清空凭证内容吗？'),
+    tr('清空确认'),
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning',
     }
   )
   .then(() => {
     credentialContent.value = ''
-    ElMessage.success('凭证内容已清空')
+    ElMessage.success(tr('凭证内容已清空'))
   })
   .catch(() => {
     // 用户取消，不执行任何操作

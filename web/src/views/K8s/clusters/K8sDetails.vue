@@ -9,7 +9,7 @@
           @click="goBack"
           class="back-btn"
         >
-          返回
+          {{ $tr("返回") }}
         </el-button>
         <div class="cluster-info">
           <h1 class="cluster-title">
@@ -22,10 +22,10 @@
               size="small" 
               effect="dark"
             >
-              {{ getStatusText(clusterDetails.status) }}
+              {{ $tr(getStatusText(clusterDetails.status)) }}
             </el-tag>
             <span class="cluster-version">{{ clusterDetails.version }}</span>
-            <span class="cluster-type">{{ getClusterTypeText(clusterDetails.clusterType) }}</span>
+            <span class="cluster-type">{{ $tr(getClusterTypeText(clusterDetails.clusterType)) }}</span>
           </div>
         </div>
       </div>
@@ -36,7 +36,7 @@
           @click="refreshData"
           :loading="loading"
         >
-          刷新
+          {{ $tr("刷新") }}
         </el-button>
       </div>
     </div>
@@ -54,8 +54,8 @@
                 </div>
                 <div class="card-info">
                   <div class="card-value">{{ clusterDetails.nodeStats?.totalNodes || 0 }}</div>
-                  <div class="card-label">节点总数</div>
-                  <div class="card-sub">就绪: {{ clusterDetails.nodeStats?.readyNodes || 0 }}</div>
+                  <div class="card-label">{{ $tr("节点总数") }}</div>
+                  <div class="card-sub">{{ $tr("就绪:") }} {{ clusterDetails.nodeStats?.readyNodes || 0 }}</div>
                 </div>
               </div>
             </el-card>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="card-info">
                   <div class="card-value">{{ getTotalWorkloads() }}</div>
-                  <div class="card-label">工作负载</div>
+                  <div class="card-label">{{ $tr("工作负载") }}</div>
                   <div class="card-sub">Pod: {{ clusterDetails.workloadStats?.totalPods || 0 }}</div>
                 </div>
               </div>
@@ -82,8 +82,8 @@
                 </div>
                 <div class="card-info">
                   <div class="card-value" :class="getCpuUsageClass()">{{ clusterDetails.monitoring?.cpu?.usagePercent || 0 }}%</div>
-                  <div class="card-label">CPU使用率</div>
-                  <div class="card-sub">{{ clusterDetails.monitoring?.cpu?.availableCores || 0 }}核可用 / {{ clusterDetails.monitoring?.cpu?.totalCores || 0 }}核总量</div>
+                  <div class="card-label">{{ $tr("CPU使用率") }}</div>
+                  <div class="card-sub">{{ clusterDetails.monitoring?.cpu?.availableCores || 0 }}{{ $tr("核可用 /") }} {{ clusterDetails.monitoring?.cpu?.totalCores || 0 }}{{ $tr("核总量") }}</div>
                 </div>
               </div>
             </el-card>
@@ -96,8 +96,8 @@
                 </div>
                 <div class="card-info">
                   <div class="card-value" :class="getMemoryUsageClass()">{{ clusterDetails.monitoring?.memory?.usagePercent || 0 }}%</div>
-                  <div class="card-label">Memory使用率</div>
-                  <div class="card-sub">{{ clusterDetails.monitoring?.memory?.availableMi || 0 }}Mi可用 / {{ clusterDetails.monitoring?.memory?.totalMi || 0 }}Mi总量</div>
+                  <div class="card-label">{{ $tr("Memory使用率") }}</div>
+                  <div class="card-sub">{{ clusterDetails.monitoring?.memory?.availableMi || 0 }}{{ $tr("Mi可用 /") }} {{ clusterDetails.monitoring?.memory?.totalMi || 0 }}{{ $tr("Mi总量") }}</div>
                 </div>
               </div>
             </el-card>
@@ -115,32 +115,32 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><InfoFilled /></el-icon>
-                  <span>基础信息</span>
+                  <span>{{ $tr("基础信息") }}</span>
                 </div>
               </template>
               <div class="info-content">
                 <div class="info-row">
-                  <span class="label">集群名称:</span>
+                  <span class="label">{{ $tr("集群名称:") }}</span>
                   <span class="value">{{ clusterDetails.clusterName }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Kubernetes版本:</span>
+                  <span class="label">{{ $tr("Kubernetes版本:") }}</span>
                   <span class="value">{{ clusterDetails.version }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">集群类型:</span>
-                  <span class="value">{{ getClusterTypeText(clusterDetails.clusterType) }}</span>
+                  <span class="label">{{ $tr("集群类型:") }}</span>
+                  <span class="value">{{ $tr(getClusterTypeText(clusterDetails.clusterType)) }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">创建时间:</span>
+                  <span class="label">{{ $tr("创建时间:") }}</span>
                   <span class="value">{{ formatTime(clusterDetails.createdAt) }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">最后同步:</span>
+                  <span class="label">{{ $tr("最后同步:") }}</span>
                   <span class="value">{{ formatTime(clusterDetails.lastSyncTime) }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">运行时间:</span>
+                  <span class="label">{{ $tr("运行时间:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.uptime || '未知' }}</span>
                 </div>
               </div>
@@ -151,7 +151,7 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><Connection as Network /></el-icon>
-                  <span>网络配置</span>
+                  <span>{{ $tr("网络配置") }}</span>
                 </div>
               </template>
               <div class="info-content">
@@ -168,15 +168,15 @@
                   <span class="value">{{ clusterDetails.networkConfig?.apiServerEndpoint || '未配置' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">网络插件:</span>
+                  <span class="label">{{ $tr("网络插件:") }}</span>
                   <span class="value">{{ clusterDetails.networkConfig?.networkPlugin || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">服务转发:</span>
+                  <span class="label">{{ $tr("服务转发:") }}</span>
                   <span class="value">{{ clusterDetails.networkConfig?.proxyMode || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">DNS服务:</span>
+                  <span class="label">{{ $tr("DNS服务:") }}</span>
                   <span class="value">{{ clusterDetails.networkConfig?.dnsService || '未知' }}</span>
                 </div>
               </div>
@@ -187,20 +187,20 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><FolderOpened /></el-icon>
-                  <span>存储信息</span>
+                  <span>{{ $tr("存储信息") }}</span>
                 </div>
               </template>
               <div class="info-content">
                 <div class="info-row">
-                  <span class="label">PV总数:</span>
+                  <span class="label">{{ $tr("PV总数:") }}</span>
                   <span class="value">{{ clusterDetails.monitoring?.storage?.totalPVs || 0 }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">PVC总数:</span>
+                  <span class="label">{{ $tr("PVC总数:") }}</span>
                   <span class="value">{{ clusterDetails.monitoring?.storage?.totalPVCs || 0 }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">存储类:</span>
+                  <span class="label">{{ $tr("存储类:") }}</span>
                   <span class="value">{{ clusterDetails.monitoring?.storage?.storageClasses || 0 }}</span>
                 </div>
               </div>
@@ -214,7 +214,7 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><Box /></el-icon>
-                  <span>工作负载统计</span>
+                  <span>{{ $tr("工作负载统计") }}</span>
                 </div>
               </template>
               <div class="workload-stats">
@@ -260,7 +260,7 @@
                   </div>
                   <div class="stat-info">
                     <div class="stat-value">{{ clusterDetails.workloadStats?.totalPods || 0 }}</div>
-                    <div class="stat-label">总Pod数</div>
+                    <div class="stat-label">{{ $tr("总Pod数") }}</div>
                   </div>
                 </div>
                 <div class="stat-item">
@@ -269,7 +269,7 @@
                   </div>
                   <div class="stat-info">
                     <div class="stat-value">{{ clusterDetails.workloadStats?.runningPods || 0 }}</div>
-                    <div class="stat-label">运行中Pod</div>
+                    <div class="stat-label">{{ $tr("运行中Pod") }}</div>
                   </div>
                 </div>
               </div>
@@ -280,7 +280,7 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><Setting /></el-icon>
-                  <span>安装的组件</span>
+                  <span>{{ $tr("安装的组件") }}</span>
                 </div>
               </template>
               <div class="components-grid">
@@ -306,28 +306,28 @@
               <template #header>
                 <div class="card-header">
                   <el-icon><Cpu /></el-icon>
-                  <span>运行时信息</span>
+                  <span>{{ $tr("运行时信息") }}</span>
                 </div>
               </template>
               <div class="info-content">
                 <div class="info-row">
-                  <span class="label">容器运行时:</span>
+                  <span class="label">{{ $tr("容器运行时:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.containerRuntimeVersion || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">API Server版本:</span>
+                  <span class="label">{{ $tr("API Server版本:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.apiServerVersion || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">ETCD版本:</span>
+                  <span class="label">{{ $tr("ETCD版本:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.etcdVersion || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">CoreDNS版本:</span>
+                  <span class="label">{{ $tr("CoreDNS版本:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.coreDNSVersion || '未知' }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Kube-proxy版本:</span>
+                  <span class="label">{{ $tr("Kube-proxy版本:") }}</span>
                   <span class="value">{{ clusterDetails.runtime?.kubeProxyVersion || '未知' }}</span>
                 </div>
               </div>
@@ -340,8 +340,8 @@
           <template #header>
             <div class="card-header">
               <el-icon><Monitor /></el-icon>
-              <span>节点信息</span>
-              <el-tag size="small" type="info">{{ clusterDetails.nodeList?.length || 0 }}个节点</el-tag>
+              <span>{{ $tr("节点信息") }}</span>
+              <el-tag size="small" type="info">{{ clusterDetails.nodeList?.length || 0 }}{{ $tr("个节点") }}</el-tag>
             </div>
           </template>
           <el-table 
@@ -350,8 +350,8 @@
             class="nodes-table"
             max-height="300"
           >
-            <el-table-column prop="name" label="节点名称" width="200" />
-            <el-table-column prop="role" label="角色" width="100">
+            <el-table-column prop="name" :label='$tr("节点名称")' width="200" />
+            <el-table-column prop="role" :label='$tr("角色")' width="100">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.role === 'master' ? 'danger' : 'primary'" 
@@ -361,7 +361,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" width="100">
+            <el-table-column prop="status" :label='$tr("状态")' width="100">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.status === 'Ready' ? 'success' : 'warning'" 
@@ -371,7 +371,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="internalIP" label="内部IP" width="150">
+            <el-table-column prop="internalIP" :label='$tr("内部IP")' width="150">
               <template #default="{ row }">
                 <el-button 
                   type="text" 
@@ -383,17 +383,17 @@
                 </el-button>
               </template>
             </el-table-column>
-            <el-table-column prop="externalIP" label="外部IP" width="150" />
-            <el-table-column prop="version" label="K8s版本" width="120" />
-            <el-table-column prop="osImage" label="操作系统" width="200" show-overflow-tooltip />
-            <el-table-column prop="createdAt" label="创建时间" width="160">
+            <el-table-column prop="externalIP" :label='$tr("外部IP")' width="150" />
+            <el-table-column prop="version" :label='$tr("K8s版本")' width="120" />
+            <el-table-column prop="osImage" :label='$tr("操作系统")' width="200" show-overflow-tooltip />
+            <el-table-column prop="createdAt" :label='$tr("创建时间")' width="160">
               <template #default="{ row }">
                 {{ formatTime(row.createdAt) }}
               </template>
             </el-table-column>
           </el-table>
           <div v-if="!clusterDetails.nodeList || clusterDetails.nodeList.length === 0" class="no-data">
-            暂无节点信息
+            {{ $tr("暂无节点信息") }}
           </div>
         </el-card>
 
@@ -402,8 +402,8 @@
           <template #header>
             <div class="card-header">
               <el-icon><DocumentCopy /></el-icon>
-              <span>最近事件</span>
-              <el-tag size="small" type="info">最近50条</el-tag>
+              <span>{{ $tr("最近事件") }}</span>
+              <el-tag size="small" type="info">{{ $tr("最近50条") }}</el-tag>
             </div>
           </template>
           <el-table 
@@ -412,7 +412,7 @@
             class="events-table"
             max-height="300"
           >
-            <el-table-column prop="type" label="类型" width="80">
+            <el-table-column prop="type" :label='$tr("类型")' width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.type === 'Warning' ? 'warning' : 'success'" 
@@ -422,11 +422,11 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="reason" label="原因" width="120" />
-            <el-table-column prop="message" label="消息" min-width="200" show-overflow-tooltip />
-            <el-table-column prop="source" label="来源" width="150" show-overflow-tooltip />
-            <el-table-column prop="count" label="次数" width="60" />
-            <el-table-column prop="lastTimestamp" label="最后发生时间" width="160">
+            <el-table-column prop="reason" :label='$tr("原因")' width="120" />
+            <el-table-column prop="message" :label='$tr("消息")' min-width="200" show-overflow-tooltip />
+            <el-table-column prop="source" :label='$tr("来源")' width="150" show-overflow-tooltip />
+            <el-table-column prop="count" :label='$tr("次数")' width="60" />
+            <el-table-column prop="lastTimestamp" :label='$tr("最后发生时间")' width="160">
               <template #default="{ row }">
                 {{ formatTime(row.lastTimestamp) }}
               </template>
@@ -439,6 +439,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -709,14 +711,14 @@ const fetchClusterDetails = async () => {
     console.error('获取集群详情失败:', error)
     
     if (error.response?.status === 404) {
-      ElMessage.error('集群不存在或已被删除')
+      ElMessage.error(tr('集群不存在或已被删除'))
       router.push('/k8s/list')
     } else if (error.response?.status === 401) {
-      ElMessage.error('权限不足，无法访问集群详情')
+      ElMessage.error(tr('权限不足，无法访问集群详情'))
     } else if (error.code === 'ERR_NETWORK') {
-      ElMessage.error('网络连接失败，请检查网络状态')
+      ElMessage.error(tr('网络连接失败，请检查网络状态'))
     } else {
-      ElMessage.error('获取集群详情失败，请重试')
+      ElMessage.error(tr('获取集群详情失败，请重试'))
     }
   } finally {
     loading.value = false

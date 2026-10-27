@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     :model-value="visible"
-    title="通过YAML创建工作负载"
+    :title='$tr("通过YAML创建工作负载")'
     width="80%"
     class="create-pod-dialog"
     :close-on-click-modal="false"
@@ -11,7 +11,7 @@
       <!-- 操作按钮和目标信息 -->
       <div class="pod-controls">
         <div class="control-group">
-          <el-tooltip content="YAML创建校验" placement="top">
+          <el-tooltip :content='$tr("YAML创建校验")' placement="top">
             <el-button
               :icon="Search"
               type="primary"
@@ -22,7 +22,7 @@
               class="validate-btn"
             />
           </el-tooltip>
-          <el-tooltip content="复制YAML" placement="top">
+          <el-tooltip :content='$tr("复制YAML")' placement="top">
             <el-button
               :icon="DocumentCopy"
               type="success"
@@ -35,11 +35,11 @@
           <!-- 目标信息 -->
           <div class="target-info">
             <div class="target-item">
-              <span class="target-label">目标集群:</span>
+              <span class="target-label">{{ $tr("目标集群:") }}</span>
               <el-tag type="info" size="small">{{ clusterName || '未选择' }}</el-tag>
             </div>
             <div class="target-item">
-              <span class="target-label">目标命名空间:</span>
+              <span class="target-label">{{ $tr("目标命名空间:") }}</span>
               <el-tag type="warning" size="small">{{ namespace || '未选择' }}</el-tag>
             </div>
           </div>
@@ -64,16 +64,16 @@
           height="500px"
           fontSize="14px"
           :readonly="false"
-          placeholder="请输入工作负载的YAML配置..."
+          :placeholder='$tr("请输入工作负载的YAML配置...")'
         />
       </div>
 
       <!-- YAML创建校验结果显示 -->
       <div v-if="dryRunResult" class="dryrun-result">
         <el-alert
-          :title="dryRunResult.message"
+          :title="$tr(dryRunResult.message)"
           :type="dryRunResult.success ? 'success' : 'error'"
-          :description="dryRunResult.details"
+          :description="$tr(dryRunResult.details)"
           show-icon
           :closable="false"
         />
@@ -81,13 +81,13 @@
 
       <!-- 操作按钮 -->
       <div class="action-buttons">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button @click="handleClose">{{ $tr("取消") }}</el-button>
         <el-button
           type="primary"
           @click="handleSubmit"
           :loading="loading"
         >
-          创建工作负载
+          {{ $tr("创建工作负载") }}
         </el-button>
       </div>
     </div>
@@ -96,6 +96,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, watch, nextTick, defineProps, defineEmits } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, DocumentCopy } from '@element-plus/icons-vue'
@@ -194,7 +196,7 @@ const handleClose = () => {
 // YAML创建校验
 const previewPodCreation = async () => {
   if (!yamlContent.value.trim()) {
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return
   }
 
@@ -211,12 +213,12 @@ const copyToClipboard = async () => {
     console.log('YAML content to copy:', yamlContent.value ? yamlContent.value.substring(0, 100) + '...' : 'empty')
 
     if (!yamlContent.value || typeof yamlContent.value !== 'string' || yamlContent.value.trim() === '') {
-      ElMessage.warning('没有内容可以复制')
+      ElMessage.warning(tr('没有内容可以复制'))
       return
     }
 
     await navigator.clipboard.writeText(yamlContent.value)
-    ElMessage.success('YAML已复制到剪贴板')
+    ElMessage.success(tr('YAML已复制到剪贴板'))
   } catch (error) {
     console.error('复制失败:', error)
     // 备用方案：使用旧方法复制
@@ -227,10 +229,10 @@ const copyToClipboard = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success('YAML已复制到剪贴板')
+      ElMessage.success(tr('YAML已复制到剪贴板'))
     } catch (fallbackError) {
       console.error('备用复制方案也失败:', fallbackError)
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
   }
 }
@@ -238,7 +240,7 @@ const copyToClipboard = async () => {
 // 提交创建
 const handleSubmit = async () => {
   if (!yamlContent.value.trim()) {
-    ElMessage.warning('YAML内容不能为空')
+    ElMessage.warning(tr('YAML内容不能为空'))
     return
   }
 

@@ -1,178 +1,6 @@
-<template>
-  <div class="cmdb-group-management">
-    <el-card shadow="hover" class="group-card">
-      <template #header>
-        <div class="card-header">
-          <span class="title">分组管理</span>
-        </div>
-      </template>
-
-      <!-- 搜索表单 -->
-      <div class="search-section">
-        <el-form :inline="true" :model="queryParams" ref="queryForm" class="search-form">
-          <el-form-item label="分组名称" prop="groupName">
-            <el-input
-              v-model="queryParams.groupName"
-              placeholder="请输入分组名称"
-              clearable
-              size="small"
-              style="width: 200px"
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" size="small" @click="handleQuery">
-              <el-icon><Search /></el-icon>
-              搜索
-            </el-button>
-            <el-button type="warning" size="small" @click="resetQuery">
-              <el-icon><Refresh /></el-icon>
-              重置
-            </el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-
-      <!-- 操作按钮 -->
-      <div class="action-section">
-        <el-button
-          type="success"
-          size="small"
-          @click="addGroupDialogVisible = true"
-          v-authority="['cmdb:group:add']">
-          <el-icon><Plus /></el-icon>
-          创建分组
-        </el-button>
-        <el-button
-          type="info"
-          size="small"
-          @click="toggleExpandAll">
-          <el-icon><Sort /></el-icon>
-          {{ isExpandAll ? '折叠' : '展开' }}
-        </el-button>
-      </div>
-
-      <!-- 表格 -->
-      <div class="table-section">
-        <el-table
-          v-loading="loading"
-          :data="groupList"
-          row-key="id"
-          :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
-          :default-expand-all="isExpandAll"
-          :key="refreshTable"
-          class="modern-table"
-          stripe>
-          <el-table-column label="分组名称" prop="name" min-width="200">
-            <template v-slot="scope">
-              <div class="group-name-cell" :class="getGroupLevelClass(scope.row)">
-                <el-icon class="group-icon" :class="getGroupIconClass(scope.row)">
-                  <component :is="getGroupIcon(scope.row)" />
-                </el-icon>
-                <span class="group-name" :class="getGroupNameClass(scope.row)">{{ scope.row.name }}</span>
-                <el-tag v-if="scope.row.parentId === 0" size="small" type="primary" class="level-tag">一级</el-tag>
-                <el-tag v-else size="small" type="info" class="level-tag">二级</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="创建时间" prop="createTime" min-width="180">
-            <template v-slot="scope">
-              <div class="time-cell">
-                <el-icon class="time-icon"><Clock /></el-icon>
-                <span>{{ scope.row.createTime }}</span>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="200" fixed="right">
-            <template v-slot="scope">
-              <div class="operation-buttons" v-if="scope.row.id !== DEFAULT_GROUP_ID">
-                <el-tooltip content="编辑" placement="top">
-                  <el-button
-                    type="warning"
-                    size="small"
-                    circle
-                    @click="showEditGroupDialog(scope.row.id)"
-                    v-authority="['cmdb:group:update']">
-                    <el-icon><Edit /></el-icon>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip content="删除" placement="top">
-                  <el-button
-                    type="danger"
-                    size="small"
-                    circle
-                    @click="handleGroupDelete(scope.row)"
-                    v-authority="['cmdb:group:delete']">
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </el-tooltip>
-              </div>
-              <div v-else class="default-group-tag">
-                <el-tag type="info" size="small">默认分组</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    
-    <!--新增分组-->
-    <el-dialog title="新增业务分组" v-model="addGroupDialogVisible" width="30%" @close="addGroupDialogClosed">
-      <el-form :model="addGroupForm" :rules="addGroupFormRules" ref="addGroupFormRef" label-width="80px">
-        <el-form-item label="分组名称" prop="name">
-          <el-input v-model="addGroupForm.name"></el-input>
-        </el-form-item>
-        <el-form-item label="父级分组" prop="parentId" v-if="optionsGroupList.length > 0">
-          <el-tree-select
-            v-model="addGroupForm.parentId"
-            :data="optionsGroupList"
-            :props="{ 
-              label: 'name', 
-              value: 'id',
-              disabled: (data) => data.id === DEFAULT_GROUP_ID
-            }"
-            check-strictly
-            placeholder="请选择父级分组"
-          />
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="addGroup">确 定</el-button>
-        <el-button type="primary" @click="addGroupDialogVisible = false">取 消</el-button>
-      </span>
-    </el-dialog>
-    
-    <!--修改分组-->
-    <el-dialog title="编辑业务分组" v-model="editGroupDialogVisible" width="30%">
-      <el-form :model="groupInfo" :rules="editGroupFormRules" ref="editGroupFormRef" label-width="80px">
-        <el-form-item label="分组名称" prop="name">
-          <el-input v-model="groupInfo.name" :disabled="groupInfo.id === DEFAULT_GROUP_ID"></el-input>
-        </el-form-item>
-        <el-form-item label="父级分组" prop="parentId" v-if="optionsGroupList.length > 0">
-          <el-tree-select
-            v-model="groupInfo.parentId"
-            :data="optionsGroupList"
-            :props="{ 
-              label: 'name', 
-              value: 'id',
-              disabled: (data) => data.id === DEFAULT_GROUP_ID || groupInfo.id === DEFAULT_GROUP_ID
-            }"
-            check-strictly
-            placeholder="请选择父级分组"
-            :disabled="groupInfo.id === DEFAULT_GROUP_ID"
-          />
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="editGroup">确 定</el-button>
-        <el-button type="primary" @click="editGroupDialogVisible = false">取 消</el-button>
-      </span>
-    </el-dialog>
-    </el-card>
-  </div>
-</template>
-
-<script>
-import API from '@/api/cmdb'
+<script setup lang="ts">
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
+import { ElMessage, ElMessageBox, type FormInstance } from "element-plus";
 import {
   Search,
   Refresh,
@@ -181,272 +9,491 @@ import {
   Delete,
   FolderOpened,
   Folder,
-  Clock,
-  Sort
-} from '@element-plus/icons-vue'
+  Sort,
+  Check,
+  Close
+} from "@element-plus/icons-vue";
+import API from "@/api/cmdb";
+import { tr } from "@/locales";
 
-export default {
-  data() {
-    return {
-      DEFAULT_GROUP_ID: 1, // 默认业务分组ID
-      queryParams: {},
-      loading: true,
-      groupList: [],
-      addGroupDialogVisible: false,
-      addGroupForm: {
-        parentId: 0
-      },
-      addGroupFormRules: {
-        name: [{ required: true, message: '请输入分组名称', trigger: 'blur' }]
-      },
-      optionsGroupList: [],
-      editGroupDialogVisible: false,
-      groupInfo: {},
-      editGroupFormRules: {
-        name: [{ required: true, message: '请输入分组名称', trigger: 'blur' }]
-      },
-      isExpandAll: true,
-      refreshTable: true
+defineOptions({ name: "CmdbBusinessGroups" });
+interface BusinessGroup {
+  id: number;
+  name: string;
+  parentId: number;
+  createTime?: string;
+  hostCount: number;
+  children?: BusinessGroup[];
+  path?: string;
+  depth?: number;
+}
+const DEFAULT_GROUP_ID = 1;
+const groups = ref<BusinessGroup[]>([]);
+const loading = ref(false),
+  error = ref("");
+const search = ref(""),
+  expanded = ref(true),
+  tableVersion = ref(0);
+const dialog = ref(false),
+  saving = ref(false);
+const formRef = ref<FormInstance>();
+const form = reactive({ id: 0, name: "", parentId: 0 });
+const rules = {
+  name: [
+    {
+      required: true,
+      whitespace: true,
+      message: tr("请输入分组名称"),
+      trigger: "blur"
     }
-  },
-  methods: {
-    // 获取分组列表
-    async getList() {
-      this.loading = true
-      let retryCount = 0
-      const maxRetries = 2
-      
-      const fetchData = async () => {
-        try {
-          const { data: res } = await API.getAllCmdbGroups({
-            params: this.queryParams
-          })
-          
-          if (res.code !== 200) {
-            throw new Error(res.message || '获取数据失败')
-          }
-          
-          // 转换数据格式
-          const processData = (data) => {
-            return data.map(item => ({
-              ...item,
-              children: item.children && item.children.length > 0 
-                ? processData(item.children) 
-                : [],
-              hasChildren: !!(item.children && item.children.length)
-            }))
-          }
-          
-          const treeData = processData(res.data)
-          this.groupList = treeData
-          this.optionsGroupList = treeData
-          return true
-          
-        } catch (error) {
-          console.error('获取数据失败:', error)
-          if (retryCount < maxRetries) {
-            retryCount++
-            console.log(`重试第 ${retryCount} 次...`)
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            return fetchData()
-          }
-          throw error
-        }
-      }
-      
-      try {
-        await fetchData()
-      } catch (error) {
-        this.$message.error(`获取分组列表失败: ${error?.message || '未知错误'}`)
-      } finally {
-        this.loading = false
-      }
-    },
-    // 展开/折叠
-    toggleExpandAll() {
-      this.refreshTable = false
-      this.isExpandAll = !this.isExpandAll
-      this.$nextTick(() => {
-        this.refreshTable = true
-      })
-    },
-    
-    // 搜索
-    async handleQuery() {
-        if (!this.queryParams.groupName || !this.queryParams.groupName.trim()) {
-            this.$message.warning('请输入分组名称')
-            return
-        }
-        
-        try {
-            const { data: res } = await API.getCmdbGroupByName(this.queryParams.groupName.trim())
-            if (res.code === 200) {
-                this.groupList = res.data ? (Array.isArray(res.data) ? res.data : [res.data]) : []
-                this.$message.success('查询成功')
-            } else {
-                this.$message.error(res.message || '查询失败')
-            }
-        } catch (error) {
-            this.$message.error('查询失败: ' + (error.message || '未知错误'))
-        }
-    },
-    // 重置搜索
-    resetQuery() {
-      this.queryParams = {}
-      this.getList()
-      this.$message.success("重置成功")
-    },
-    // 监听新增分组对话框关闭
-    addGroupDialogClosed() {
-      this.$refs.addGroupFormRef?.resetFields()
-      this.addGroupForm = {}
-    },
-    // 新增分组
-    async addGroup() {
-      try {
-        await this.$refs.addGroupFormRef.validate()
-        const { data: res } = await API.createCmdbGroup(this.addGroupForm)
-        if (res.code !== 200) {
-          this.$message.error(res.message)
-        } else {
-          this.$message.success('新增分组成功')
-          this.addGroupDialogVisible = false
-          await this.getList()
-        }
-      } catch (error) {
-        console.error('新增分组失败:', error)
-        this.$message.error('新增分组失败，请检查网络连接')
-      }
-    },
-    // 展示编辑对话框
-    async showEditGroupDialog(id) {
-      const group = this.findGroupById(this.groupList, id)
-      if (group) {
-        this.groupInfo = {
-          id: group.id,
-          name: group.name,
-          parentId: group.parentId
-        }
-        this.editGroupDialogVisible = true
-      } else {
-        this.$message.error('未找到分组信息')
-      }
-    },
-
-    // 递归查找分组
-    findGroupById(groups, id) {
-      for (const group of groups) {
-        if (group.id === id) return group
-        if (group.children && group.children.length > 0) {
-          const found = this.findGroupById(group.children, id)
-          if (found) return found
-        }
-      }
-      return null
-    },
-    // 修改分组信息
-    async editGroup() {
-      let retryCount = 0
-      const maxRetries = 2
-      
-      const performUpdate = async () => {
-        try {
-          await this.$refs.editGroupFormRef.validate()
-          const { data: res } = await API.updateCmdbGroup({
-            ...this.groupInfo,
-            id: this.groupInfo.id
-          })
-          
-          if (res.code !== 200) {
-            throw new Error(res.message || '更新分组失败')
-          }
-          
-          this.editGroupDialogVisible = false
-          await this.getList()
-          this.$message.success("修改分组成功")
-          return true
-          
-        } catch (error) {
-          console.error('修改分组失败:', error)
-          if (retryCount < maxRetries) {
-            retryCount++
-            console.log(`重试第 ${retryCount} 次...`)
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            return performUpdate()
-          }
-          throw error
-        }
-      }
-      
-      try {
-        await performUpdate()
-      } catch (error) {
-        this.$message.error(`修改分组失败: ${error.message}`)
-      }
-    },
-    // 获取分组层级样式类
-    getGroupLevelClass(row) {
-      return row.parentId === 0 ? 'level-1-group' : 'level-2-group'
-    },
-
-    // 获取分组图标
-    getGroupIcon(row) {
-      return row.parentId === 0 ? 'FolderOpened' : 'Folder'
-    },
-
-    // 获取分组图标样式类
-    getGroupIconClass(row) {
-      return row.parentId === 0 ? 'level-1-icon' : 'level-2-icon'
-    },
-
-    // 获取分组名称样式类
-    getGroupNameClass(row) {
-      return row.parentId === 0 ? 'level-1-name' : 'level-2-name'
-    },
-
-    // 删除分组
-    async handleGroupDelete(row) {
-      if (row.id === this.DEFAULT_GROUP_ID) {
-        this.$message.warning('默认分组不能删除')
-        return
-      }
-      
-      try {
-        const confirmResult = await this.$confirm(
-          `是否确认删除分组"${row.name}"?`, 
-          '提示', 
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        ).catch(err => err)
-        
-        if (confirmResult !== 'confirm') {
-          return this.$message.info('已取消删除')
-        }
-        
-        const { data: res } = await API.deleteCmdbGroup(row.id)
-        if (res.code !== 200) {
-          this.$message.error(res.message)
-        } else {
-          // 删除成功后直接刷新列表
-          await this.getList()
-          this.$message.success('删除分组成功')
-        }
-      } catch (error) {
-        console.error('删除分组失败:', error)
-        this.$message.error('删除分组失败，请检查网络连接')
-      }
-    }
-  },
-  created() {
-    this.getList()
+  ]
+};
+function flatten(items: BusinessGroup[]): BusinessGroup[] {
+  return items.flatMap(item => [item, ...flatten(item.children || [])]);
+}
+const flatGroups = computed(() => flatten(groups.value));
+const hostCount = computed(() =>
+  groups.value.reduce((total, group) => total + (group.hostCount || 0), 0)
+);
+const filtered = computed(() => {
+  const keyword = search.value.trim().toLowerCase();
+  function select(items: BusinessGroup[]): BusinessGroup[] {
+    return items.flatMap(item => {
+      if (item.name.toLowerCase().includes(keyword)) return [item];
+      const children = select(item.children || []);
+      return children.length ? [{ ...item, children }] : [];
+    });
+  }
+  return keyword ? select(groups.value) : groups.value;
+});
+const shownCount = computed(() => flatten(filtered.value).length);
+const parentOptions = computed(() => {
+  const current = flatGroups.value.find(g => g.id === form.id);
+  const excluded = new Set(current ? flatten([current]).map(g => g.id) : []);
+  const mapOptions = (items: BusinessGroup[]): any[] =>
+    items.map(g => ({
+      id: g.id,
+      name: g.name,
+      disabled: g.id === DEFAULT_GROUP_ID || excluded.has(g.id),
+      children: mapOptions(g.children || [])
+    }));
+  return [{ id: 0, name: tr("顶级分组"), children: mapOptions(groups.value) }];
+});
+function annotate(
+  items: BusinessGroup[],
+  parents: string[] = []
+): BusinessGroup[] {
+  return items.map(item => ({
+    ...item,
+    hostCount: item.hostCount || 0,
+    depth: parents.length + 1,
+    path: [...parents, item.name].join(" / "),
+    children: annotate(item.children || [], [...parents, item.name])
+  }));
+}
+async function load() {
+  loading.value = true;
+  error.value = "";
+  try {
+    const { data } = await API.getAllCmdbGroups();
+    if (data.code !== 200)
+      throw new Error(data.message || tr("读取业务分组失败"));
+    groups.value = annotate(data.data || []);
+  } catch (e) {
+    error.value = (e as Error).message;
+  } finally {
+    loading.value = false;
   }
 }
+async function openForm(group?: BusinessGroup, parentId = 0) {
+  Object.assign(
+    form,
+    group
+      ? { id: group.id, name: group.name, parentId: group.parentId }
+      : { id: 0, name: "", parentId }
+  );
+  dialog.value = true;
+  await nextTick();
+  formRef.value?.clearValidate();
+}
+async function save() {
+  if (!(await formRef.value?.validate().catch(() => false))) return;
+  saving.value = true;
+  try {
+    const payload = { name: form.name.trim(), parentId: form.parentId };
+    const { data } = form.id
+      ? await API.updateCmdbGroup({ ...payload, id: form.id })
+      : await API.createCmdbGroup(payload);
+    if (data.code !== 200) throw new Error(data.message || tr("保存分组失败"));
+    dialog.value = false;
+    await load();
+    ElMessage.success(tr("业务分组已保存"));
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  } finally {
+    saving.value = false;
+  }
+}
+async function remove(group: BusinessGroup) {
+  try {
+    await ElMessageBox.confirm(
+      `${tr("确认删除业务分组")}「${group.name}」？`,
+      tr("删除分组"),
+      {
+        type: "warning",
+        confirmButtonText: tr("删除"),
+        cancelButtonText: tr("取消")
+      }
+    );
+  } catch {
+    return;
+  }
+  try {
+    const { data } = await API.deleteCmdbGroup(group.id);
+    if (data.code !== 200) throw new Error(data.message || tr("删除分组失败"));
+    await load();
+    ElMessage.success(tr("删除分组成功"));
+  } catch (e) {
+    ElMessage.error((e as Error).message);
+  }
+}
+function toggleExpand() {
+  expanded.value = !expanded.value;
+  tableVersion.value++;
+}
+onMounted(load);
 </script>
 
-<style scoped>
-.cmdb-group-management :deep(.el-card__body) { padding: 20px; }
-</style>
+<template>
+  <div class="business-groups-page">
+    <header class="business-header">
+      <div>
+        <span class="eyebrow">ASSET ORGANIZATION</span>
+        <h1>{{ $tr("业务分组") }}</h1>
+        <p>{{ $tr("按业务层级组织资产，为告警群组选择统一的业务线。") }}</p>
+      </div>
+      <el-button
+        v-authority="['cmdb:group:add']"
+        type="primary"
+        :icon="Plus"
+        @click="openForm()"
+        >{{ $tr("新建分组") }}</el-button
+      >
+    </header>
+    <div class="business-stats">
+      <div>
+        <span>{{ $tr("可见分组") }}</span
+        ><strong>{{ flatGroups.length }}</strong
+        ><small>{{ $tr("包含全部层级") }}</small>
+      </div>
+      <div>
+        <span>{{ $tr("顶级分组") }}</span
+        ><strong>{{ groups.length }}</strong
+        ><small>{{ $tr("当前可见范围") }}</small>
+      </div>
+      <div>
+        <span>{{ $tr("关联主机") }}</span
+        ><strong>{{ hostCount }}</strong
+        ><small>{{ $tr("按权限范围统计，包含子分组") }}</small>
+      </div>
+    </div>
+    <el-alert
+      v-if="error"
+      :title="error"
+      type="error"
+      show-icon
+      :closable="false"
+    />
+    <section class="business-surface">
+      <div class="business-toolbar">
+        <el-input
+          v-model="search"
+          :prefix-icon="Search"
+          clearable
+          :placeholder="$tr('搜索分组名称，保留上级层级')"
+          :aria-label="$tr('搜索业务分组')"
+        />
+        <div class="toolbar-actions">
+          <el-button :icon="Sort" @click="toggleExpand">{{
+            $tr(expanded ? "全部折叠" : "全部展开")
+          }}</el-button>
+          <el-button :icon="Refresh" :loading="loading" @click="load">{{
+            $tr("刷新")
+          }}</el-button>
+        </div>
+      </div>
+      <el-table
+        :key="`${tableVersion}-${search.trim()}`"
+        v-loading="loading"
+        :data="filtered"
+        row-key="id"
+        :default-expand-all="!!search.trim() || expanded"
+        :tree-props="{ children: 'children' }"
+        class="business-table"
+      >
+        <el-table-column prop="name" :label="$tr('分组名称')" min-width="310">
+          <template #default="{ row }"
+            ><span class="group-identity"
+              ><el-icon
+                ><component
+                  :is="row.children.length ? FolderOpened : Folder" /></el-icon
+              ><strong>{{ row.name }}</strong
+              ><el-tag
+                v-if="row.id === DEFAULT_GROUP_ID"
+                size="small"
+                type="info"
+                >{{ $tr("默认分组") }}</el-tag
+              ></span
+            ></template
+          >
+        </el-table-column>
+        <el-table-column
+          :label="$tr('分组路径')"
+          min-width="230"
+          show-overflow-tooltip
+          ><template #default="{ row }"
+            ><span class="group-path">{{ row.path }}</span></template
+          ></el-table-column
+        >
+        <el-table-column :label="$tr('关联主机')" width="140" align="center"
+          ><template #default="{ row }"
+            ><el-tag effect="plain">{{ row.hostCount }}</el-tag></template
+          ></el-table-column
+        >
+        <el-table-column
+          prop="createTime"
+          :label="$tr('创建时间')"
+          min-width="180"
+          ><template #default="{ row }">{{
+            row.createTime || "—"
+          }}</template></el-table-column
+        >
+        <el-table-column
+          :label="$tr('操作')"
+          width="148"
+          fixed="right"
+          align="center"
+        >
+          <template #default="{ row }"
+            ><div v-if="row.id !== DEFAULT_GROUP_ID" class="group-row-actions">
+              <el-tooltip :content="$tr('新建子分组')" placement="top"
+                ><el-button
+                  v-authority="['cmdb:group:add']"
+                  class="action-icon"
+                  :icon="Plus"
+                  :aria-label="$tr('新建子分组')"
+                  type="primary"
+                  link
+                  @click="openForm(undefined, row.id)"
+              /></el-tooltip>
+              <el-tooltip :content="$tr('编辑')" placement="top"
+                ><el-button
+                  v-authority="['cmdb:group:update']"
+                  class="action-icon"
+                  :icon="Edit"
+                  :aria-label="$tr('编辑')"
+                  type="primary"
+                  link
+                  @click="openForm(row)"
+              /></el-tooltip>
+              <el-tooltip :content="$tr('删除')" placement="top"
+                ><el-button
+                  v-authority="['cmdb:group:delete']"
+                  class="action-icon"
+                  :icon="Delete"
+                  :aria-label="$tr('删除')"
+                  type="danger"
+                  link
+                  @click="remove(row)"
+              /></el-tooltip>
+            </div>
+            <span v-else class="group-path">{{
+              $tr("系统保留")
+            }}</span></template
+          >
+        </el-table-column>
+        <template #empty
+          ><el-empty
+            :description="$tr(search ? '没有匹配的业务分组' : '暂无业务分组')"
+            :image-size="90"
+        /></template>
+      </el-table>
+      <div class="business-footer">
+        {{ $tr("当前显示") }} {{ shownCount }}
+        {{ $tr("个分组，主机数量包含子分组，不重复汇总。") }}
+      </div>
+    </section>
+    <el-dialog
+      v-model="dialog"
+      :title="$tr(form.id ? '编辑业务分组' : '新增业务分组')"
+      width="min(560px,94vw)"
+      :close-on-click-modal="!saving"
+      :close-on-press-escape="!saving"
+      :show-close="!saving"
+    >
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-position="top"
+        :disabled="saving"
+      >
+        <el-form-item :label="$tr('分组名称')" prop="name"
+          ><el-input
+            v-model="form.name"
+            maxlength="50"
+            show-word-limit
+            :placeholder="$tr('例如：支付业务、生产环境')"
+        /></el-form-item>
+        <el-form-item :label="$tr('父级分组')" prop="parentId"
+          ><el-tree-select
+            v-model="form.parentId"
+            :data="parentOptions"
+            :props="{ label: 'name', value: 'id' }"
+            node-key="id"
+            check-strictly
+            filterable
+            default-expand-all
+            :render-after-expand="false"
+            style="width: 100%"
+        /></el-form-item>
+        <p class="form-note">
+          {{ $tr("选择顶级分组可移至根层级；不能选择自身或下级分组。") }}
+        </p>
+      </el-form>
+      <template #footer
+        ><el-button :icon="Close" :disabled="saving" @click="dialog = false">{{
+          $tr("取消")
+        }}</el-button
+        ><el-button
+          type="primary"
+          :icon="Check"
+          :loading="saving"
+          @click="save"
+          >{{ $tr("保存") }}</el-button
+        ></template
+      >
+    </el-dialog>
+  </div>
+</template>
 
+<style scoped>
+.business-groups-page {
+  color: var(--text-primary);
+}
+.business-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.eyebrow {
+  color: var(--text-secondary);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+h1 {
+  margin: 8px 0;
+}
+.business-header p,
+.form-note {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+}
+.business-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.business-stats > div {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.business-stats span {
+  color: var(--text-regular);
+  font-size: 13px;
+}
+.business-stats strong {
+  font-size: 28px;
+  font-weight: 600;
+}
+.business-stats small {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.business-surface {
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel);
+}
+.business-toolbar {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.business-toolbar > .el-input {
+  width: min(360px, 100%);
+}
+.toolbar-actions,
+.group-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.group-row-actions {
+  gap: 4px;
+  justify-content: center;
+}
+.group-row-actions .el-button {
+  margin: 0;
+}
+.group-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+.group-identity > .el-icon {
+  color: var(--primary);
+  font-size: 18px;
+}
+.group-path,
+.business-footer {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.business-footer {
+  padding-top: 18px;
+}
+@media (max-width: 700px) {
+  .business-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .business-stats {
+    gap: 8px;
+  }
+  .business-stats > div {
+    padding: 12px;
+  }
+  .business-stats strong {
+    font-size: 24px;
+  }
+  .business-surface {
+    padding: 12px;
+  }
+}
+</style>

@@ -37,14 +37,14 @@ func (d *CmdbIDCDao) GetByID(id uint) (*model.CmdbIDC, error) {
 }
 
 // GetAll 获取所有机房
-func (d *CmdbIDCDao) GetAll() ([]model.CmdbIDC, error) {
+func (d *CmdbIDCDao) GetAll(scopes ...map[uint]bool) ([]model.CmdbIDC, error) {
 	var list []model.CmdbIDC
-	err := d.db.Order("name ASC").Find(&list).Error
+	err := ApplyAssetIDScope(d.db, scopes...).Order("name ASC").Find(&list).Error
 	return list, err
 }
 
 // GetList 分页查询机房
-func (d *CmdbIDCDao) GetList(query model.CmdbIDCQuery) ([]model.CmdbIDC, int64, error) {
+func (d *CmdbIDCDao) GetList(query model.CmdbIDCQuery, scopes ...map[uint]bool) ([]model.CmdbIDC, int64, error) {
 	var list []model.CmdbIDC
 	var total int64
 	db := d.db.Model(&model.CmdbIDC{})
@@ -56,7 +56,10 @@ func (d *CmdbIDCDao) GetList(query model.CmdbIDCQuery) ([]model.CmdbIDC, int64, 
 		db = db.Where("status = ?", query.Status)
 	}
 
-	db.Count(&total)
+	db = ApplyAssetIDScope(db, scopes...)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	page, size := query.Page, query.Size
 	if page <= 0 {
 		page = 1

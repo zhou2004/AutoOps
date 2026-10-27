@@ -4,7 +4,7 @@
     <div class="glass-card main-card">
       <template v-if="false"></template>
       <div class="card-header">
-        <span class="main-title">用户管理系统</span>
+        <span class="main-title">{{ $tr("用户管理系统") }}</span>
       </div>
       <!-- 左右布局容器 -->
       <div class="user-management-container">
@@ -12,7 +12,7 @@
         <div class="dept-tree-section">
           <div class="glass-card tree-card">
             <div class="card-header">
-              <h3 class="section-title">部门选择</h3>
+              <h3 class="section-title">{{ $tr("部门选择") }}</h3>
             </div>
             <el-tree
                 :data="deptList"
@@ -36,7 +36,7 @@
                   <template v-else>
                     <el-icon style="margin-right: 5px"><Folder /></el-icon>
                   </template>
-                  {{ node.label }}
+                  {{ $tr(node.label) }}
                 </span>
               </template>
             </el-tree>
@@ -48,33 +48,33 @@
           <!-- 搜索表单 -->
           <div class="glass-card search-card">
             <el-form :inline="true" :model="queryParams" class="modern-form">
-              <el-form-item label="用户账号" prop="username">
+              <el-form-item :label='$tr("用户账号")' prop="username">
                 <el-input
                     size="small"
-                    placeholder="请输入用户账号"
+                    :placeholder='$tr("请输入用户账号")'
                     clearable
                     v-model="queryParams.username"
                     @keyup.enter="handleQuery"
                     class="modern-input"
                 />
               </el-form-item>
-              <el-form-item label="账号状态" prop="status"  style="width: 150px;" >
-                <el-select size="small" placeholder="账号状态" v-model="queryParams.status" class="modern-select">
-                  <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+              <el-form-item :label='$tr("账号状态")' prop="status"  style="width: 150px;" >
+                <el-select size="small" :placeholder='$tr("账号状态")' v-model="queryParams.status" class="modern-select">
+                  <el-option v-for="item in statusList" :key="item.value" :label="$tr(item.label)" :value="item.value"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" size="small" @click="handleQuery" class="modern-btn primary-btn">
                   <el-icon><Search /></el-icon>
-                  搜索
+                  {{ $tr("搜索") }}
                 </el-button>
                 <el-button size="small" @click="resetQuery" class="modern-btn reset-btn">
                   <el-icon><Refresh /></el-icon>
-                  重置
+                  {{ $tr("重置") }}
                 </el-button>
                 <el-button type="success" size="small" @click="addDialogVisible = true" v-authority="['base:admin:add']" class="modern-btn success-btn">
                   <el-icon><Plus /></el-icon>
-                  新增
+                  {{ $tr("新增") }}
                 </el-button>
               </el-form-item>
             </el-form>
@@ -83,7 +83,7 @@
           <!-- 用户表格 -->
           <div class="glass-card table-card">
             <div class="card-header">
-              <h3 class="section-title">用户列表</h3>
+              <h3 class="section-title">{{ $tr("用户列表") }}</h3>
             </div>
             <el-table
                 v-loading="Loading"
@@ -93,25 +93,25 @@
             >
               <el-table-column label="ID" prop="id" v-if="false" />
 
-              <el-table-column label="用户账号" prop="username"  />
-              <el-table-column label="用户头像" prop="icon" >
+              <el-table-column :label='$tr("用户账号")' prop="username"  />
+              <el-table-column :label='$tr("用户头像")' prop="icon" >
                 <template v-slot="scope">
                   <el-avatar shape="circle" :src="scope.row.icon" class="modern-avatar"></el-avatar>
                 </template>
               </el-table-column>
-              <el-table-column label="用户昵称" prop="nickname" />
-              <el-table-column label="角色名称" prop="roleName" >
+              <el-table-column :label='$tr("用户昵称")' prop="nickname" />
+              <el-table-column :label='$tr("角色名称")' prop="roleName" >
                 <template v-slot="scope">
                   <el-tag type="success" class="modern-tag">{{ scope.row.roleName }}</el-tag>
                 </template>
               </el-table-column>
 
-              <el-table-column label="岗位" >
+              <el-table-column :label='$tr("岗位")' >
                 <template v-slot="scope">
                   <div class="modern-text">{{ scope.row.postName }}</div>
                 </template>
               </el-table-column>
-              <el-table-column label="账号状态" >
+              <el-table-column :label='$tr("账号状态")' >
                 <template v-slot="scope">
                   <el-switch
                       v-model="scope.row.status"
@@ -119,18 +119,18 @@
                       :inactive-value="2"
                       active-color="#67C23A"
                       inactive-color="#F56C6C"
-                      active-text="启用"
-                      inactive-text="停用"
+                      :active-text='$tr("启用")'
+                      :inactive-text='$tr("停用")'
                       @change="adminUpdateStatus(scope.row)"
                       class="modern-switch"
                   ></el-switch>
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" fixed="right" width="200">
+              <el-table-column :label='$tr("操作")' fixed="right" width="200">
                 <template v-slot="scope">
-                  <div class="operation-buttons">
-                    <el-tooltip content="编辑" placement="top">
+                  <div class="operation-buttons"><el-tooltip  :content='$tr("分配 Key")' placement="top"><el-button type="primary" size="small" circle @click="$router.push({ path: '/system/api-keys', query: { userId: scope.row.id } })"><el-icon><Key /></el-icon></el-button></el-tooltip>
+                    <el-tooltip :content='$tr("编辑")' placement="top">
                       <el-button
                         type="warning"
                         size="small"
@@ -141,7 +141,7 @@
                         <el-icon><Edit /></el-icon>
                       </el-button>
                     </el-tooltip>
-                    <el-tooltip content="删除" placement="top">
+                    <el-tooltip :content='$tr("删除")' placement="top">
                       <el-button
                         type="danger"
                         size="small"
@@ -152,7 +152,7 @@
                         <el-icon><Delete /></el-icon>
                       </el-button>
                     </el-tooltip>
-                    <el-tooltip content="重置密码" placement="top">
+                    <el-tooltip :content='$tr("重置密码")' placement="top">
                       <el-button
                         type="info"
                         size="small"
@@ -187,154 +187,154 @@
     </div>
 
     <!-- 新增用户对话框 -->
-    <el-dialog title="新增用户" v-model="addDialogVisible" width="40%" @close="addDialogClosed" class="modern-dialog">
+    <el-dialog :title='$tr("新增用户")' v-model="addDialogVisible" width="40%" @close="addDialogClosed" class="modern-dialog">
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRefForm" label-width="80px" class="modern-dialog-form">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户名称" prop="username">
-              <el-input v-model="addForm.username" placeholder="请输入英文名称" maxlength="30" class="modern-input" />
+            <el-form-item :label='$tr("用户名称")' prop="username">
+              <el-input v-model="addForm.username" :placeholder='$tr("请输入英文名称")' maxlength="30" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户密码" prop="password">
-              <el-input v-model="addForm.password" placeholder="请输入用户密码" type="password" maxlength="20" show-password class="modern-input" />
+            <el-form-item :label='$tr("用户密码")' prop="password">
+              <el-input v-model="addForm.password" :placeholder='$tr("请输入用户密码")' type="password" maxlength="20" show-password class="modern-input" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickname">
-              <el-input v-model="addForm.nickname" placeholder="请输入中文昵称" maxlength="30" class="modern-input" />
+            <el-form-item :label='$tr("用户昵称")' prop="nickname">
+              <el-input v-model="addForm.nickname" :placeholder='$tr("请输入中文昵称")' maxlength="30" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item size="small" label="归属部门" prop="deptId">
+            <el-form-item size="small" :label='$tr("归属部门")' prop="deptId">
               <treeselect v-model="addForm.deptId" :options="deptList" :show-count="true"
-                          placeholder="请选择归属部门" class="modern-treeselect" />
+                          :placeholder='$tr("请选择归属部门")' class="modern-treeselect" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="手机号码" prop="phone">
-              <el-input v-model="addForm.phone" placeholder="请输入手机号码" maxlength="11" class="modern-input" />
+            <el-form-item :label='$tr("手机号码")' prop="phone">
+              <el-input v-model="addForm.phone" :placeholder='$tr("请输入手机号码")' maxlength="11" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户邮箱" prop="email">
-              <el-input v-model="addForm.email" placeholder="请输入邮箱" maxlength="50" class="modern-input" />
+            <el-form-item :label='$tr("用户邮箱")' prop="email">
+              <el-input v-model="addForm.email" :placeholder='$tr("请输入邮箱")' maxlength="50" class="modern-input" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户状态" prop="status">
+            <el-form-item :label='$tr("用户状态")' prop="status">
               <el-radio-group v-model="addForm.status" class="modern-radio-group">
-                <el-radio :label="1" class="modern-radio">正常</el-radio>
-                <el-radio :label="2" class="modern-radio">停用</el-radio>
+                <el-radio :label="1" class="modern-radio">{{ $tr("正常") }}</el-radio>
+                <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户岗位" prop="postId">
-              <el-select placeholder="请选择岗位" v-model="addForm.postId" class="modern-select">
-                <el-option v-for="item in postList" :key="item.id" :label="item.postName" :value="item.id"></el-option>
+            <el-form-item :label='$tr("用户岗位")' prop="postId">
+              <el-select :placeholder='$tr("请选择岗位")' v-model="addForm.postId" class="modern-select">
+                <el-option v-for="item in postList" :key="item.id" :label="$tr(item.postName)" :value="item.id"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户角色" prop="roleId">
-              <el-select placeholder="请选择角色" v-model="addForm.roleId" class="modern-select">
-                <el-option v-for="item in roleList" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+            <el-form-item :label='$tr("用户角色")' prop="roleId">
+              <el-select :placeholder='$tr("请选择角色")' v-model="addForm.roleId" class="modern-select">
+                <el-option v-for="item in roleList" :key="item.id" :label="$tr(item.roleName)" :value="item.id"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="24">
-            <el-form-item label="个人简介" prop="note">
-              <el-input v-model="addForm.note" type="textarea" placeholder="请输入内容" class="modern-textarea"></el-input>
+            <el-form-item :label='$tr("个人简介")' prop="note">
+              <el-input v-model="addForm.note" type="textarea" :placeholder='$tr("请输入内容")' class="modern-textarea"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="addAdmin" class="modern-btn primary-btn">确 定</el-button>
-          <el-button type="info" @click="addDialogVisible = false" class="modern-btn secondary-btn">取 消</el-button>
+          <el-button type="primary" @click="addAdmin" class="modern-btn primary-btn">{{ $tr("确 定") }}</el-button>
+          <el-button type="info" @click="addDialogVisible = false" class="modern-btn secondary-btn">{{ $tr("取 消") }}</el-button>
         </span>
       </el-form>
     </el-dialog>
 
     <!-- 编辑用户对话框 -->
-    <el-dialog title="修改用户" v-model="editDialogVisible" width="40%" @close="editDialogClosed" class="modern-dialog">
+    <el-dialog :title='$tr("修改用户")' v-model="editDialogVisible" width="40%" @close="editDialogClosed" class="modern-dialog">
       <el-form :model="adminInfo" :rules="editFormRules" ref="editFormRefForm" label-width="80px" class="modern-dialog-form">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickname">
-              <el-input v-model="adminInfo.nickname" placeholder="请输入用户昵称" maxlength="30" class="modern-input" />
+            <el-form-item :label='$tr("用户昵称")' prop="nickname">
+              <el-input v-model="adminInfo.nickname" :placeholder='$tr("请输入用户昵称")' maxlength="30" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item size="small" label="归属部门" prop="deptId">
+            <el-form-item size="small" :label='$tr("归属部门")' prop="deptId">
               <treeselect v-model="adminInfo.deptId" :options="deptList" :show-count="true"
-                          placeholder="请选择归属部门" class="modern-treeselect" />
+                          :placeholder='$tr("请选择归属部门")' class="modern-treeselect" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="手机号码" prop="phone">
-              <el-input v-model="adminInfo.phone" placeholder="请输入手机号码" maxlength="11" class="modern-input" />
+            <el-form-item :label='$tr("手机号码")' prop="phone">
+              <el-input v-model="adminInfo.phone" :placeholder='$tr("请输入手机号码")' maxlength="11" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户邮箱" prop="email">
-              <el-input v-model="adminInfo.email" placeholder="请输入邮箱" maxlength="50" class="modern-input" />
+            <el-form-item :label='$tr("用户邮箱")' prop="email">
+              <el-input v-model="adminInfo.email" :placeholder='$tr("请输入邮箱")' maxlength="50" class="modern-input" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户名称" prop="username">
-              <el-input v-model="adminInfo.username" placeholder="请输入用户名称" maxlength="30" class="modern-input" />
+            <el-form-item :label='$tr("用户名称")' prop="username">
+              <el-input v-model="adminInfo.username" :placeholder='$tr("请输入用户名称")' maxlength="30" class="modern-input" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户状态" prop="status">
+            <el-form-item :label='$tr("用户状态")' prop="status">
               <el-radio-group v-model="adminInfo.status" class="modern-radio-group">
-                <el-radio :label="1" class="modern-radio">正常</el-radio>
-                <el-radio :label="2" class="modern-radio">停用</el-radio>
+                <el-radio :label="1" class="modern-radio">{{ $tr("正常") }}</el-radio>
+                <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户岗位" prop="postId">
-              <el-select placeholder="请选择岗位" v-model="adminInfo.postId" class="modern-select">
-                <el-option v-for="item in postList" :key="item.id" :label="item.postName" :value="item.id"></el-option>
+            <el-form-item :label='$tr("用户岗位")' prop="postId">
+              <el-select :placeholder='$tr("请选择岗位")' v-model="adminInfo.postId" class="modern-select">
+                <el-option v-for="item in postList" :key="item.id" :label="$tr(item.postName)" :value="item.id"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="用户角色" prop="roleId">
-              <el-select placeholder="请选择角色" v-model="adminInfo.roleId" class="modern-select">
-                <el-option v-for="item in roleList" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+            <el-form-item :label='$tr("用户角色")' prop="roleId">
+              <el-select :placeholder='$tr("请选择角色")' v-model="adminInfo.roleId" class="modern-select">
+                <el-option v-for="item in roleList" :key="item.id" :label="$tr(item.roleName)" :value="item.id"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="24">
-            <el-form-item label="个人简介" prop="note">
-              <el-input v-model="adminInfo.note" type="textarea" placeholder="请输入内容" class="modern-textarea"></el-input>
+            <el-form-item :label='$tr("个人简介")' prop="note">
+              <el-input v-model="adminInfo.note" type="textarea" :placeholder='$tr("请输入内容")' class="modern-textarea"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="editAdminInfo" class="modern-btn primary-btn">确 定</el-button>
-          <el-button type="info" @click="editDialogVisible = false" class="modern-btn secondary-btn">取 消</el-button>
+          <el-button type="primary" @click="editAdminInfo" class="modern-btn primary-btn">{{ $tr("确 定") }}</el-button>
+          <el-button type="info" @click="editDialogVisible = false" class="modern-btn secondary-btn">{{ $tr("取 消") }}</el-button>
         </span>
       </el-form>
     </el-dialog>
@@ -344,6 +344,8 @@
 
 
 <script>
+import { tr } from "@/locales";
+
 import Treeselect from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import {
@@ -392,27 +394,27 @@ export default {
         note: ''
       },
       addFormRules: {
-        deptId: [{required: true, message: '请选择部门', trigger: 'blur'}],
-        postId: [{required: true, message: '请选择岗位', trigger: 'blur'}],
-        roleId: [{required: true, message: '请选择角色', trigger: 'blur'}],
-        username: [{required: true, message: '请输入用户账号', trigger: 'blur'}],
-        password: [{required: true, message: '请输入用户密码', trigger: 'blur'}],
-        status: [{required: true, message: '请选择状态', trigger: 'blur'}],
-        email: [{required: true, message: '请输入用户邮箱', trigger: 'blur'}],
-        nickname: [{required: true, message: '请输入用户昵称', trigger: 'blur'}],
-        phone: [{required: true, message: '请输入用户手机', trigger: 'blur'}]
+        deptId: [{required: true, get message() { return tr('请选择部门'); }, trigger: 'blur'}],
+        postId: [{required: true, get message() { return tr('请选择岗位'); }, trigger: 'blur'}],
+        roleId: [{required: true, get message() { return tr('请选择角色'); }, trigger: 'blur'}],
+        username: [{required: true, get message() { return tr('请输入用户账号'); }, trigger: 'blur'}],
+        password: [{required: true, get message() { return tr('请输入用户密码'); }, trigger: 'blur'}],
+        status: [{required: true, get message() { return tr('请选择状态'); }, trigger: 'blur'}],
+        email: [{required: true, get message() { return tr('请输入用户邮箱'); }, trigger: 'blur'}],
+        nickname: [{required: true, get message() { return tr('请输入用户昵称'); }, trigger: 'blur'}],
+        phone: [{required: true, get message() { return tr('请输入用户手机'); }, trigger: 'blur'}]
       },
       editDialogVisible: false,
       adminInfo: {},
       editFormRules: {
-        deptId: [{required: true, message: '请选择部门', trigger: 'blur'}],
-        postId: [{required: true, message: '请选择岗位', trigger: 'blur'}],
-        roleId: [{required: true, message: '请选择角色', trigger: 'blur'}],
-        username: [{required: true, message: '请输入用户账号', trigger: 'blur'}],
-        status: [{required: true, message: '请选择状态', trigger: 'blur'}],
-        email: [{required: true, message: '请输入用户邮箱', trigger: 'blur'}],
-        nickname: [{required: true, message: '请输入用户昵称', trigger: 'blur'}],
-        phone: [{required: true, message: '请输入用户手机', trigger: 'blur'}]
+        deptId: [{required: true, get message() { return tr('请选择部门'); }, trigger: 'blur'}],
+        postId: [{required: true, get message() { return tr('请选择岗位'); }, trigger: 'blur'}],
+        roleId: [{required: true, get message() { return tr('请选择角色'); }, trigger: 'blur'}],
+        username: [{required: true, get message() { return tr('请输入用户账号'); }, trigger: 'blur'}],
+        status: [{required: true, get message() { return tr('请选择状态'); }, trigger: 'blur'}],
+        email: [{required: true, get message() { return tr('请输入用户邮箱'); }, trigger: 'blur'}],
+        nickname: [{required: true, get message() { return tr('请输入用户昵称'); }, trigger: 'blur'}],
+        phone: [{required: true, get message() { return tr('请输入用户手机'); }, trigger: 'blur'}]
       },
       defaultProps: {
         children: 'children',
@@ -498,7 +500,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getAdminList();
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
 
     // pageSize
@@ -516,21 +518,21 @@ export default {
     // 修改用户状态
     async adminUpdateStatus(row) {
       let text = row.status === 2 ? "停用" : "启用";
-      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.username + '"用户吗?', "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.username + '"用户吗?', tr("警告"), {
+        confirmButtonText: tr("确定"),
+        cancelButtonText: tr("取消"),
         type: "warning",
       }).catch(err => err);
 
       if (confirmResult !== 'confirm') {
         await this.getAdminList();
-        return this.$message.info('已取消删除');
+        return this.$message.info(tr('已取消删除'));
       }
 
       // 更新状态
       const { data: res } = await this.$api.updateAdminStatus(row.id, row.status);
       if (res.code === 200) {
-        this.$message.success(text + "成功");
+        this.$message.success(text + tr("成功"));
 
         // 手动更新当前行状态，避免重新加载整个列表
         const index = this.adminList.findIndex(item => item.id === row.id);
@@ -587,7 +589,7 @@ export default {
         if (res.code !== 200) {
           this.$message.error(res.message)
         } else {
-          this.$message.success('新增用户成功')
+          this.$message.success(tr('新增用户成功'))
           this.addDialogVisible = false
           await this.getAdminList()
         }
@@ -634,26 +636,26 @@ export default {
         } else {
           this.editDialogVisible = false
           await this.getAdminList()
-          this.$message.success('修改用户成功')
+          this.$message.success(tr('修改用户成功'))
         }
       })
     },
 
     // 删除
     async handleAdminDelete(row) {
-      const confirmResult = await this.$confirm('是否确认删除用户为"' + row.username + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除用户为"' + row.username + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const {data: res} = await this.$api.deleteAdmin(row.id) // [deleteAdmin](file:///Users/apple/Desktop/zhangfan/2025-06-30/gin-web/src/api/index.js#L373-L382)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getAdminList()
       }
     },
@@ -698,7 +700,7 @@ export default {
       }
       console.log('最终获取到的 deptId:', deptId);
       if (!deptId) {
-        this.$message.warning("无法获取部门ID");
+        this.$message.warning(tr("无法获取部门ID"));
         return;
       }
       this.currentDeptId = deptId;

@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -131,7 +133,7 @@ const fetchClusterList = async () => {
     }
   } catch (error) {
     console.error('获取集群列表失败:', error)
-    ElMessage.warning('无法获取集群列表，请检查后端服务')
+    ElMessage.warning(tr('无法获取集群列表，请检查后端服务'))
   }
 }
 
@@ -139,7 +141,7 @@ const handleQuery = async () => {
   try {
     // 检查是否选择了集群
     if (!selectedClusterId.value) {
-      ElMessage.warning('请选择一个集群')
+      ElMessage.warning(tr('请选择一个集群'))
       return
     }
     
@@ -181,7 +183,7 @@ const handleQuery = async () => {
       
       console.log('节点列表加载成功:', tableData.value)
     } else {
-      ElMessage.error(responseData.message || '获取节点列表失败')
+      ElMessage.error(responseData.message || tr('获取节点列表失败'))
       tableData.value = []
     }
   } catch (error) {
@@ -190,11 +192,11 @@ const handleQuery = async () => {
     if (error.code === 'ERR_NETWORK' || 
         error.message?.includes('ERR_CONNECTION_REFUSED') ||
         error.message?.includes('Failed to fetch')) {
-      ElMessage.warning('后端服务连接失败，请检查服务状态')
+      ElMessage.warning(tr('后端服务连接失败，请检查服务状态'))
     } else if (error.response?.status === 401) {
-      ElMessage.error('认证失败，请重新登录')
+      ElMessage.error(tr('认证失败，请重新登录'))
     } else if (error.response?.status === 403) {
-      ElMessage.error('权限不足，请联系管理员')
+      ElMessage.error(tr('权限不足，请联系管理员'))
     } else {
       console.warn('API调用异常，但可能数据已正确加载')
     }
@@ -330,7 +332,7 @@ const viewResources = async (row) => {
     }
   } catch (error) {
     console.error('获取资源详情失败:', error)
-    ElMessage.error('获取资源详情失败，请检查网络连接')
+    ElMessage.error(tr('获取资源详情失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -365,8 +367,8 @@ const toggleCordon = async (row) => {
       `确定要${action}节点 ${row.nodeName} 吗？`,
       `${action}节点确认`,
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -385,10 +387,10 @@ const toggleCordon = async (row) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消操作')
+      ElMessage.info(tr('已取消操作'))
     } else {
       console.error('节点封锁操作失败:', error)
-      ElMessage.error('操作失败，请检查网络连接')
+      ElMessage.error(tr('操作失败，请检查网络连接'))
     }
   }
 }
@@ -410,7 +412,7 @@ const submitTaintOperation = async () => {
     
     if (taintForm.operation === 'add') {
       if (!taintForm.key) {
-        ElMessage.warning('请输入污点键名')
+        ElMessage.warning(tr('请输入污点键名'))
         return
       }
       params = {
@@ -421,7 +423,7 @@ const submitTaintOperation = async () => {
     } else {
       // 移除操作
       if (!taintForm.selectedTaint) {
-        ElMessage.warning('请选择要移除的污点')
+        ElMessage.warning(tr('请选择要移除的污点'))
         return
       }
       params = {
@@ -441,15 +443,15 @@ const submitTaintOperation = async () => {
     const responseData = response.data || response
     
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success(`污点${taintForm.operation === 'add' ? '添加' : '移除'}成功`)
+      ElMessage.success(`污点${taintForm.operation === 'add' ? tr('添加') : tr('移除')}成功`)
       taintDialogVisible.value = false
       handleQuery()
     } else {
-      ElMessage.error(responseData.message || '操作失败')
+      ElMessage.error(responseData.message || tr('操作失败'))
     }
   } catch (error) {
     console.error('污点操作失败:', error)
-    ElMessage.error('操作失败，请检查网络连接')
+    ElMessage.error(tr('操作失败，请检查网络连接'))
   }
 }
 
@@ -460,7 +462,7 @@ const submitLabelOperation = async () => {
     
     if (labelForm.operation === 'add') {
       if (!labelForm.key) {
-        ElMessage.warning('请输入标签键名')
+        ElMessage.warning(tr('请输入标签键名'))
         return
       }
       params = {
@@ -470,7 +472,7 @@ const submitLabelOperation = async () => {
     } else {
       // 移除操作
       if (!labelForm.selectedLabel) {
-        ElMessage.warning('请选择要移除的标签')
+        ElMessage.warning(tr('请选择要移除的标签'))
         return
       }
       params = {
@@ -486,15 +488,15 @@ const submitLabelOperation = async () => {
     const responseData = response.data || response
     
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success(`标签${labelForm.operation === 'add' ? '添加' : '移除'}成功`)
+      ElMessage.success(`标签${labelForm.operation === 'add' ? tr('添加') : tr('移除')}成功`)
       labelDialogVisible.value = false
       handleQuery()
     } else {
-      ElMessage.error(responseData.message || '操作失败')
+      ElMessage.error(responseData.message || tr('操作失败'))
     }
   } catch (error) {
     console.error('标签操作失败:', error)
-    ElMessage.error('操作失败，请检查网络连接')
+    ElMessage.error(tr('操作失败，请检查网络连接'))
   }
 }
 
@@ -503,10 +505,10 @@ const submitDrainOperation = async () => {
   try {
     await ElMessageBox.confirm(
       `确定要驱逐节点 ${currentNode.value.nodeName} 上的所有Pod吗？这将会影响运行中的服务！`,
-      '驱逐节点确认',
+      tr('驱逐节点确认'),
       {
         confirmButtonText: '确定驱逐',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -523,10 +525,10 @@ const submitDrainOperation = async () => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消驱逐操作')
+      ElMessage.info(tr('已取消驱逐操作'))
     } else {
       console.error('节点驱逐失败:', error)
-      ElMessage.error('驱逐失败，请检查网络连接')
+      ElMessage.error(tr('驱逐失败，请检查网络连接'))
     }
   }
 }
@@ -603,7 +605,7 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
       document.execCommand('copy')
       ElMessage.success(successMessage)
     } catch (fallbackError) {
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
     document.body.removeChild(textArea)
   }
@@ -741,11 +743,11 @@ onMounted(async () => {
     <el-card shadow="hover" class="nodes-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 节点管理</span>
+          <span class="title">{{ $tr("K8s 节点管理") }}</span>
           <div class="header-actions">
             <el-select 
               v-model="selectedClusterId" 
-              placeholder="请选择集群"
+              :placeholder='$tr("请选择集群")'
               size="small" 
               style="width: 250px" 
               @change="handleClusterChange"
@@ -765,7 +767,7 @@ onMounted(async () => {
                     size="small"
                     class="cluster-status-tag"
                   >
-                    {{ getClusterStatusText(cluster.status) }}
+                    {{ $tr(getClusterStatusText(cluster.status)) }}
                   </el-tag>
                 </div>
               </el-option>
@@ -777,20 +779,20 @@ onMounted(async () => {
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="节点名称">
+          <el-form-item :label='$tr("节点名称")'>
             <el-input
               v-model="queryParams.nodeName"
-              placeholder="请输入节点名称"
+              :placeholder='$tr("请输入节点名称")'
               clearable
               size="small"
               style="width: 200px"
               @keyup.enter="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="节点状态">
+          <el-form-item :label='$tr("节点状态")'>
             <el-select
               v-model="queryParams.status"
-              placeholder="请选择状态"
+              :placeholder='$tr("请选择状态")'
               clearable
               size="small"
               style="width: 150px"
@@ -798,15 +800,15 @@ onMounted(async () => {
               <el-option
                 v-for="item in statusOptions"
                 :key="item.value"
-                :label="item.label"
+                :label="$tr(item.label)"
                 :value="item.value"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="节点角色">
+          <el-form-item :label='$tr("节点角色")'>
             <el-select
               v-model="queryParams.role"
-              placeholder="请选择角色"
+              :placeholder='$tr("请选择角色")'
               clearable
               size="small"
               style="width: 150px"
@@ -814,20 +816,20 @@ onMounted(async () => {
               <el-option
                 v-for="item in roleOptions"
                 :key="item.value"
-                :label="item.label"
+                :label="$tr(item.label)"
                 :value="item.value"
               />
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="handleQuery">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="resetQuery">
-              重置
+              {{ $tr("重置") }}
             </el-button>
             <el-button :icon="Monitor" type="success" size="small" @click="navigateToMonitoring">
-              监控仪表板
+              {{ $tr("监控仪表板") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -872,15 +874,15 @@ onMounted(async () => {
                   />
                 </div>
                 <div class="resource-details">
-                  <span>已分配: {{ nodeResources.cpu?.allocated || '0' }}</span>
-                  <span>总容量: {{ nodeResources.cpu?.allocatable || '0' }}</span>
+                  <span>{{ $tr("已分配:") }} {{ nodeResources.cpu?.allocated || '0' }}</span>
+                  <span>{{ $tr("总容量:") }} {{ nodeResources.cpu?.allocatable || '0' }}</span>
                 </div>
               </el-card>
             </el-col>
             <el-col :span="8">
               <el-card class="resource-card">
                 <div class="resource-header">
-                  <span class="resource-title">内存</span>
+                  <span class="resource-title">{{ $tr("内存") }}</span>
                   <span class="resource-unit">GB</span>
                 </div>
                 <div class="resource-progress">
@@ -890,8 +892,8 @@ onMounted(async () => {
                   />
                 </div>
                 <div class="resource-details">
-                  <span>已分配: {{ formatMemory(nodeResources.memory?.allocated || '0') }}</span>
-                  <span>总容量: {{ formatMemory(nodeResources.memory?.allocatable || '0') }}</span>
+                  <span>{{ $tr("已分配:") }} {{ formatMemory(nodeResources.memory?.allocated || '0') }}</span>
+                  <span>{{ $tr("总容量:") }} {{ formatMemory(nodeResources.memory?.allocatable || '0') }}</span>
                 </div>
               </el-card>
             </el-col>
@@ -899,7 +901,7 @@ onMounted(async () => {
               <el-card class="resource-card">
                 <div class="resource-header">
                   <span class="resource-title">Pod</span>
-                  <span class="resource-unit">个</span>
+                  <span class="resource-unit">{{ $tr("个") }}</span>
                 </div>
                 <div class="resource-progress">
                   <el-progress
@@ -908,8 +910,8 @@ onMounted(async () => {
                   />
                 </div>
                 <div class="resource-details">
-                  <span>运行中: {{ nodeResources.pods?.allocated || 0 }}</span>
-                  <span>最大容量: {{ nodeResources.pods?.allocatable || 0 }}</span>
+                  <span>{{ $tr("运行中:") }} {{ nodeResources.pods?.allocated || 0 }}</span>
+                  <span>{{ $tr("最大容量:") }} {{ nodeResources.pods?.allocatable || 0 }}</span>
                 </div>
               </el-card>
             </el-col>
@@ -918,26 +920,26 @@ onMounted(async () => {
         
         <!-- Pod列表 -->
         <div class="pods-section" v-if="nodeResources.podList && nodeResources.podList.length > 0">
-          <h4>Pod列表</h4>
+          <h4>{{ $tr("Pod列表") }}</h4>
           <el-table :data="nodeResources.podList" size="small" style="width: 100%">
-            <el-table-column prop="name" label="Pod名称" min-width="200" />
-            <el-table-column prop="namespace" label="命名空间" min-width="120" />
-            <el-table-column label="CPU请求" min-width="100">
+            <el-table-column prop="name" :label='$tr("Pod名称")' min-width="200" />
+            <el-table-column prop="namespace" :label='$tr("命名空间")' min-width="120" />
+            <el-table-column :label='$tr("CPU请求")' min-width="100">
               <template #default="{ row }">
                 <span>{{ row.requests?.cpu || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="内存请求" min-width="100">
+            <el-table-column :label='$tr("内存请求")' min-width="100">
               <template #default="{ row }">
                 <span>{{ row.requests?.memory || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="CPU限制" min-width="100">
+            <el-table-column :label='$tr("CPU限制")' min-width="100">
               <template #default="{ row }">
                 <span>{{ row.limits?.cpu || '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="内存限制" min-width="100">
+            <el-table-column :label='$tr("内存限制")' min-width="100">
               <template #default="{ row }">
                 <span>{{ row.limits?.memory || '-' }}</span>
               </template>
@@ -955,38 +957,38 @@ onMounted(async () => {
       class="taint-dialog"
     >
       <el-form :model="taintForm" label-width="100px">
-        <el-form-item label="操作类型" required>
+        <el-form-item :label='$tr("操作类型")' required>
           <el-radio-group v-model="taintForm.operation">
-            <el-radio label="add">添加污点</el-radio>
-            <el-radio label="remove">移除污点</el-radio>
+            <el-radio label="add">{{ $tr("添加污点") }}</el-radio>
+            <el-radio label="remove">{{ $tr("移除污点") }}</el-radio>
           </el-radio-group>
         </el-form-item>
         
         <!-- 添加污点的表单 -->
         <template v-if="taintForm.operation === 'add'">
-          <el-form-item label="污点键名" required>
+          <el-form-item :label='$tr("污点键名")' required>
             <el-input
               v-model="taintForm.key"
-              placeholder="请输入污点键名，如：maintenance"
+              :placeholder='$tr("请输入污点键名，如：maintenance")'
             />
           </el-form-item>
-          <el-form-item label="污点值">
+          <el-form-item :label='$tr("污点值")'>
             <el-input
               v-model="taintForm.value"
-              placeholder="请输入污点值，如：scheduled（可选）"
+              :placeholder='$tr("请输入污点值，如：scheduled（可选）")'
             />
           </el-form-item>
-          <el-form-item label="污点效果" required>
-            <el-select v-model="taintForm.effect" style="width: 100%" placeholder="请选择污点效果">
+          <el-form-item :label='$tr("污点效果")' required>
+            <el-select v-model="taintForm.effect" style="width: 100%" :placeholder='$tr("请选择污点效果")'>
               <el-option
                 v-for="option in effectOptions"
                 :key="option.value"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.value"
               >
                 <div class="effect-option">
-                  <div class="effect-label">{{ option.label }}</div>
-                  <div class="effect-description">{{ option.description }}</div>
+                  <div class="effect-label">{{ $tr(option.label) }}</div>
+                  <div class="effect-description">{{ $tr(option.description) }}</div>
                 </div>
               </el-option>
             </el-select>
@@ -995,30 +997,30 @@ onMounted(async () => {
         
         <!-- 移除污点的表单 -->
         <template v-else>
-          <el-form-item label="选择污点" required v-if="currentNodeTaints.length > 0">
+          <el-form-item :label='$tr("选择污点")' required v-if="currentNodeTaints.length > 0">
             <el-select 
               v-model="taintForm.selectedTaint" 
               style="width: 100%" 
-              placeholder="请选择要移除的污点"
+              :placeholder='$tr("请选择要移除的污点")'
               value-key="key"
             >
               <el-option
                 v-for="option in currentNodeTaints"
                 :key="option.label"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.taint"
               >
                 <div class="taint-option">
-                  <el-tag type="warning" size="small">{{ option.label }}</el-tag>
+                  <el-tag type="warning" size="small">{{ $tr(option.label) }}</el-tag>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
           <el-form-item v-else>
             <el-alert
-              title="该节点没有污点"
+              :title='$tr("该节点没有污点")'
               type="info"
-              description="当前节点没有污点，无需移除操作"
+              :description='$tr("当前节点没有污点，无需移除操作")'
               show-icon
               :closable="false"
             />
@@ -1027,13 +1029,13 @@ onMounted(async () => {
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="taintDialogVisible = false">取消</el-button>
+          <el-button @click="taintDialogVisible = false">{{ $tr("取消") }}</el-button>
           <el-button 
             type="primary" 
             @click="submitTaintOperation"
             :disabled="taintForm.operation === 'remove' && currentNodeTaints.length === 0"
           >
-            {{ taintForm.operation === 'add' ? '添加污点' : '移除污点' }}
+            {{ taintForm.operation === 'add' ? $tr('添加污点') : $tr('移除污点') }}
           </el-button>
         </span>
       </template>
@@ -1047,55 +1049,55 @@ onMounted(async () => {
       class="label-dialog"
     >
       <el-form :model="labelForm" label-width="100px">
-        <el-form-item label="操作类型" required>
+        <el-form-item :label='$tr("操作类型")' required>
           <el-radio-group v-model="labelForm.operation">
-            <el-radio label="add">添加标签</el-radio>
-            <el-radio label="remove">移除标签</el-radio>
+            <el-radio label="add">{{ $tr("添加标签") }}</el-radio>
+            <el-radio label="remove">{{ $tr("移除标签") }}</el-radio>
           </el-radio-group>
         </el-form-item>
         
         <!-- 添加标签的表单 -->
         <template v-if="labelForm.operation === 'add'">
-          <el-form-item label="标签键名" required>
+          <el-form-item :label='$tr("标签键名")' required>
             <el-input
               v-model="labelForm.key"
-              placeholder="请输入标签键名，如：environment"
+              :placeholder='$tr("请输入标签键名，如：environment")'
             />
           </el-form-item>
-          <el-form-item label="标签值" required>
+          <el-form-item :label='$tr("标签值")' required>
             <el-input
               v-model="labelForm.value"
-              placeholder="请输入标签值，如：production"
+              :placeholder='$tr("请输入标签值，如：production")'
             />
           </el-form-item>
         </template>
         
         <!-- 移除标签的表单 -->
         <template v-else>
-          <el-form-item label="选择标签" required v-if="currentNodeLabels.length > 0">
+          <el-form-item :label='$tr("选择标签")' required v-if="currentNodeLabels.length > 0">
             <el-select 
               v-model="labelForm.selectedLabel" 
               style="width: 100%" 
-              placeholder="请选择要移除的标签"
+              :placeholder='$tr("请选择要移除的标签")'
               value-key="key"
             >
               <el-option
                 v-for="option in currentNodeLabels"
                 :key="option.label"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.labelData"
               >
                 <div class="label-option">
-                  <el-tag type="info" size="small">{{ option.label }}</el-tag>
+                  <el-tag type="info" size="small">{{ $tr(option.label) }}</el-tag>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
           <el-form-item v-else>
             <el-alert
-              title="该节点没有可移除的标签"
+              :title='$tr("该节点没有可移除的标签")'
               type="info"
-              description="当前节点没有用户自定义标签，只有系统标签无法移除"
+              :description='$tr("当前节点没有用户自定义标签，只有系统标签无法移除")'
               show-icon
               :closable="false"
             />
@@ -1104,13 +1106,13 @@ onMounted(async () => {
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="labelDialogVisible = false">取消</el-button>
+          <el-button @click="labelDialogVisible = false">{{ $tr("取消") }}</el-button>
           <el-button 
             type="primary" 
             @click="submitLabelOperation"
             :disabled="labelForm.operation === 'remove' && currentNodeLabels.length === 0"
           >
-            {{ labelForm.operation === 'add' ? '添加标签' : '移除标签' }}
+            {{ labelForm.operation === 'add' ? $tr('添加标签') : $tr('移除标签') }}
           </el-button>
         </span>
       </template>
@@ -1124,44 +1126,44 @@ onMounted(async () => {
       class="drain-dialog"
     >
       <el-form :model="drainForm" label-width="120px">
-        <el-form-item label="强制驱逐">
+        <el-form-item :label='$tr("强制驱逐")'>
           <el-switch
             v-model="drainForm.force"
-            active-text="是"
-            inactive-text="否"
+            :active-text='$tr("是")'
+            :inactive-text='$tr("否")'
           />
-          <div class="form-tip">强制驱逐会删除不受控制器管理的Pod</div>
+          <div class="form-tip">{{ $tr("强制驱逐会删除不受控制器管理的Pod") }}</div>
         </el-form-item>
-        <el-form-item label="删除本地数据">
+        <el-form-item :label='$tr("删除本地数据")'>
           <el-switch
             v-model="drainForm.deleteLocalData"
-            active-text="是"
-            inactive-text="否"
+            :active-text='$tr("是")'
+            :inactive-text='$tr("否")'
           />
-          <div class="form-tip">删除使用emptyDir的Pod</div>
+          <div class="form-tip">{{ $tr("删除使用emptyDir的Pod") }}</div>
         </el-form-item>
-        <el-form-item label="忽略DaemonSet">
+        <el-form-item :label='$tr("忽略DaemonSet")'>
           <el-switch
             v-model="drainForm.ignoreDaemonSets"
-            active-text="是"
-            inactive-text="否"
+            :active-text='$tr("是")'
+            :inactive-text='$tr("否")'
           />
-          <div class="form-tip">忽略DaemonSet管理的Pod</div>
+          <div class="form-tip">{{ $tr("忽略DaemonSet管理的Pod") }}</div>
         </el-form-item>
-        <el-form-item label="优雅终止时间">
+        <el-form-item :label='$tr("优雅终止时间")'>
           <el-input-number
             v-model="drainForm.gracePeriodSeconds"
             :min="0"
             :max="300"
             style="width: 100%"
           />
-          <div class="form-tip">Pod优雅终止等待时间（秒）</div>
+          <div class="form-tip">{{ $tr("Pod优雅终止等待时间（秒）") }}</div>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="drainDialogVisible = false">取消</el-button>
-          <el-button type="danger" @click="submitDrainOperation">驱逐</el-button>
+          <el-button @click="drainDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="danger" @click="submitDrainOperation">{{ $tr("驱逐") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1176,7 +1178,7 @@ onMounted(async () => {
       <div class="labels-view-content" v-if="currentNode.labels">
         <!-- 用户自定义标签 -->
         <div class="labels-section" v-if="Object.keys(getUserLabels(currentNode.labels)).length > 0">
-          <h4>用户标签</h4>
+          <h4>{{ $tr("用户标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getUserLabels(currentNode.labels)"
@@ -1194,7 +1196,7 @@ onMounted(async () => {
         
         <!-- 系统标签 -->
         <div class="labels-section" v-if="Object.keys(getSystemLabels(currentNode.labels)).length > 0">
-          <h4>系统标签</h4>
+          <h4>{{ $tr("系统标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getSystemLabels(currentNode.labels)"
@@ -1212,7 +1214,7 @@ onMounted(async () => {
         
         <!-- 没有标签的提示 -->
         <div v-if="!currentNode.labels || Object.keys(currentNode.labels).length === 0" class="no-labels">
-          <el-empty description="该节点没有标签" :image-size="60" />
+          <el-empty :description='$tr("该节点没有标签")' :image-size="60" />
         </div>
       </div>
     </el-dialog>

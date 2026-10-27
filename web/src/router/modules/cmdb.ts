@@ -1,81 +1,108 @@
 const Layout = () => import("@/layout/index.vue");
 
 export default {
-    path: "/cmdb",
-    name: "Cmdb",
-    component: Layout,
-    redirect: "/cmdb/ecs",
-    meta: {
-        icon: "ep/monitor",
-        title: "资产管理",
-        rank: 10
+  path: "/cmdb",
+  name: "Cmdb",
+  component: Layout,
+  redirect: "/cmdb/ecs",
+  meta: {
+    icon: "ep/monitor",
+    title: "资产管理",
+    rank: 10
+  },
+  children: [
+    {
+      path: "/cmdb/remote",
+      name: "CmdbRemote",
+      component: () => import("@/views/cmdb/RemoteSession.vue"),
+      meta: {
+        title: "远程会话",
+        showLink: false,
+        keepAlive: false,
+        uiLayout: "canvas"
+      }
     },
-    children: [
-        {
-            path: "/cmdb/ecs",
-            name: "CmdbHost",
-            component: () => import("@/views/cmdb/cmdbHost.vue"),
-            meta: { title: "主机管理" }
-        },
-        {
-            path: "/cmdb/group",
-            name: "CmdbGroup",
-            component: () => import("@/views/cmdb/cmdbGroup.vue"),
-            meta: { title: "业务分组" }
-        },
-        {
-            path: "/cmdb/db",
-            name: "CmdbDb",
-            component: () => import("@/views/cmdb/cmdbDB.vue"),
-            meta: { title: "数据管理" }
-        },
-        {
-            path: "/cmdb/ssh",
-            name: "CmdbSsh",
-            component: () => import("@/views/cmdb/Host/SSH.vue"),
-            meta: { title: "终端登录", showLink: false }
-        },
-        {
-            path: "/cmdb/dbdetails",
-            name: "CmdbDbDetails",
-            component: () => import("@/views/cmdb/DBdetails.vue"),
-            meta: { title: "数据库操作", showLink: false }
-        },
-        {
-            path: "/cmdb/physical",
-            name: "CmdbPhysical",
-            component: () => import("@/views/cmdb/physicalMachine.vue"),
-            meta: { title: "物理机管理" }
-        },
-        {
-            path: "/cmdb/network",
-            name: "CmdbNetwork",
-            component: () => import("@/views/cmdb/networkDevice.vue"),
-            meta: { title: "网络设备管理" }
-        },
-        {
-            path: "/cmdb/asset-permission",
-            name: "CmdbAssetPermission",
-            component: () => import("@/views/cmdb/assetPermission.vue"),
-            meta: { title: "资产授权" }
-        },
-        {
-            path: "/cmdb/user-group",
-            name: "CmdbUserGroup",
-            component: () => import("@/views/cmdb/cmdbUserGroup.vue"),
-            meta: { title: "用户组管理" }
-        },
-        {
-            path: "/cmdb/credential-permission",
-            name: "CmdbCredentialPermission",
-            component: () => import("@/views/cmdb/credentialPermission.vue"),
-            meta: { title: "凭据授权" }
-        },
-        {
-            path: "/cmdb/my-assets",
-            name: "CmdbMyAssets",
-            component: () => import("@/views/cmdb/myAssetPermissions.vue"),
-            meta: { title: "我的授权资产" }
-        }
-    ]
+    {
+      path: "/cmdb/ecs",
+      name: "CmdbHost",
+      component: () => import("@/views/cmdb/cmdbHost.vue"),
+      meta: { title: "主机管理" }
+    },
+    {
+      path: "/cmdb/group",
+      name: "CmdbGroup",
+      component: () => import("@/views/cmdb/cmdbGroup.vue"),
+      meta: { title: "业务分组" }
+    },
+    {
+      path: "/cmdb/db",
+      name: "CmdbDb",
+      redirect: to => ({ path: "/database/sources", query: to.query }),
+      meta: { title: "数据源管理", showLink: false }
+    },
+    {
+      path: "/cmdb/docker",
+      name: "CmdbDocker",
+      redirect: to => ({ path: "/k8s/docker", query: to.query }),
+      meta: { title: "Docker管理", showLink: false }
+    },
+    {
+      path: "/cmdb/docker/terminal/:assetType/:assetId/:container",
+      name: "CmdbDockerTerminal",
+      redirect: to => ({
+        name: "K8sDockerTerminal",
+        params: to.params,
+        query: to.query
+      }),
+      meta: { title: "Docker容器终端", showLink: false }
+    },
+    {
+      path: "/cmdb/ssh",
+      name: "CmdbSsh",
+      component: () => import("@/views/cmdb/Host/SSH.vue"),
+      meta: { title: "终端登录", showLink: false, uiLayout: "canvas" }
+    },
+    {
+      path: "/cmdb/dbdetails",
+      name: "CmdbDbDetails",
+      redirect: to => ({ path: "/database/workbench", query: to.query }),
+      meta: { title: "数据库工作台", showLink: false }
+    },
+    {
+      path: "/cmdb/physical",
+      name: "CmdbPhysical",
+      component: () => import("@/views/cmdb/physicalMachine.vue"),
+      meta: { title: "物理机管理" }
+    },
+    {
+      path: "/cmdb/network",
+      name: "CmdbNetwork",
+      component: () => import("@/views/cmdb/networkDevice.vue"),
+      meta: { title: "网络设备管理" }
+    },
+    {
+      path: "/cmdb/asset-permission",
+      name: "CmdbAssetPermission",
+      redirect: { path: "/system/authorization", query: { tab: "assets" } },
+      meta: { title: "资产授权", showLink: false }
+    },
+    {
+      path: "/cmdb/user-group",
+      name: "CmdbUserGroup",
+      redirect: { path: "/system/authorization", query: { tab: "groups" } },
+      meta: { title: "用户组管理", showLink: false }
+    },
+    {
+      path: "/cmdb/credential-permission",
+      name: "CmdbCredentialPermission",
+      redirect: { path: "/system/authorization", query: { tab: "assets" } },
+      meta: { title: "授权管理", showLink: false }
+    },
+    {
+      path: "/cmdb/my-assets",
+      name: "CmdbMyAssets",
+      component: () => import("@/views/cmdb/myAssetPermissions.vue"),
+      meta: { title: "我的授权资产" }
+    }
+  ]
 };

@@ -1,0 +1,181 @@
+---
+# Opt-in test harness: restores into a fresh Unix-socket-only process and removes
+# that process/directory afterwards. It never restores over a managed instance.
+- name: Verify backup restoration in an isolated temporary instance
+  hosts: mysql_nodes[0]
+  become: true
+  gather_facts: false
+  vars_files: [../defaults.yml]
+  vars:
+    backup_dir: '/var/backups/autoops/{{ database_name }}/{{ database_run_id }}'
+  tasks:
+    - name: Read backup manifest
+      ansible.builtin.slurp:
+        src: '{{ backup_dir }}/manifest.json'
+      register: manifest_content
+    - name: Decode manifest
+      ansible.builtin.set_fact:
+        backup_manifest: '{{ manifest_content.content | b64decode | from_json }}'
+    - name: Verify stored backup digest
+      ansible.builtin.stat:
+        path: '{{ backup_manifest.file }}'
+        checksum_algorithm: sha256
+      register: stored_backup
+    - name: Require matching checksum
+      ansible.builtin.assert:
+        that:
+          - stored_backup.stat.checksum == backup_manifest.sha256
+          - stored_backup.stat.size == backup_manifest.size
+    - name: Create fresh restore workspace
+      ansible.builtin.tempfile:
+        state: directory
+        path: /var/tmp
+        prefix: autoops-restore-
+      register: restore_dir
+    - name: Restore and check test data
+      block:
+        - name: Assign workspace to database service user
+          ansible.builtin.file:
+            path: '{{ restore_dir.path }}'
+            owner: "{{ {'mysql':'mysql', 'postgresql':'postgres', 'redis':'root'}[database_engine] }}"
+            mode: '0700'
+        - name: Restore MySQL into a private socket
+          when: database_engine == 'mysql'
+          block:
+            - name: Initialize scratch MySQL
+              ansible.builtin.command:
+                argv: ['{{ mysql_install_dir }}/bin/mysqld', --no-defaults, --initialize-insecure, --user=mysql, '--datadir={{ restore_dir.path }}/data']
+            - name: Start scratch MySQL without a TCP listener
+              ansible.builtin.command:
+                argv:
+                  - '{{ mysql_install_dir }}/bin/mysqld'
+                  - --no-defaults
+                  - --user=mysql
+                  - '--datadir={{ restore_dir.path }}/data'
+                  - '--socket={{ restore_dir.path }}/mysql.sock'
+                  - '--pid-file={{ restore_dir.path }}/mysql.pid'
+                  - '--log-error={{ restore_dir.path }}/mysql.log'
+                  - --skip-networking
+                  - --mysqlx=OFF
+                  - --gtid-mode=ON
+                  - --enforce-gtid-consistency=ON
+                  - '--log-bin={{ restore_dir.path }}/binlog'
+                  - --innodb-buffer-pool-size=32M
+                  - --daemonize
+            - name: Import MySQL SQL backup
+              ansible.builtin.shell: '{{ mysql_install_dir }}/bin/mysql --no-defaults --socket={{ restore_dir.path }}/mysql.sock -u root < {{ backup_dir }}/mysql.sql'
+              no_log: true
+            - name: Write restore verification client credentials
+              ansible.builtin.copy:
+                dest: '{{ restore_dir.path }}/client.cnf'
+                content: |
+                  [client]
+                  user=root
+                  password={{ database_password }}
+                  socket={{ restore_dir.path }}/mysql.sock
+                mode: '0600'
+              no_log: true
+            - name: Check restored MySQL sentinel
+              ansible.builtin.command:
+                argv: ['{{ mysql_install_dir }}/bin/mysql', '--defaults-file={{ restore_dir.path }}/client.cnf', -NBe, 'SELECT payload FROM autoops_validation.restore_check WHERE id=1']
+              register: restored_mysql
+              changed_when: false
+            - name: Assert restored MySQL value
+              ansible.builtin.assert:
+                that: restored_mysql.stdout == validation_marker
+        - name: Restore PostgreSQL into a private socket
+          when: database_engine == 'postgresql'
+          block:
+            - name: Locate PostgreSQL binaries
+              ansible.builtin.command: pg_config --bindir
+              register: pg_bindir
+              changed_when: false
+            - name: Initialize scratch PostgreSQL with a separate bootstrap role
+              become_user: postgres
+              ansible.builtin.command:
+                argv: ['{{ pg_bindir.stdout }}/initdb', '-D', '{{ restore_dir.path }}/data', '-U', autoops_restore_admin, '--auth=trust']
+            - name: Start scratch PostgreSQL without a TCP listener
+              become_user: postgres
+              ansible.builtin.command:
+                argv: ['{{ pg_bindir.stdout }}/pg_ctl', '-D', '{{ restore_dir.path }}/data', '-l', '{{ restore_dir.path }}/postgres.log', '-o', "-c listen_addresses='' -c unix_socket_directories='{{ restore_dir.path }}' -p 25432", '-w', start]
+            - name: Import PostgreSQL cluster backup
+              ansible.builtin.command:
+                argv: [psql, '-h', '{{ restore_dir.path }}', '-p', '25432', '-U', autoops_restore_admin, '-d', postgres, '-v', ON_ERROR_STOP=1, '-f', '{{ backup_dir }}/postgresql.sql']
+              no_log: true
+            - name: Check restored PostgreSQL sentinel
+              ansible.builtin.command:
+                argv: [psql, '-h', '{{ restore_dir.path }}', '-p', '25432', '-U', autoops_restore_admin, '-d', postgres, '-Atc', 'SELECT payload FROM public.autoops_restore_check WHERE id=1']
+              register: restored_pg
+              changed_when: false
+            - name: Assert restored PostgreSQL value
+              ansible.builtin.assert:
+                that: restored_pg.stdout == validation_marker
+        - name: Restore Redis into a private socket
+          when: database_engine == 'redis'
+          block:
+            - name: Copy RDB backup to fresh directory
+              ansible.builtin.copy:
+                src: '{{ backup_dir }}/redis.rdb'
+                dest: '{{ restore_dir.path }}/dump.rdb'
+                remote_src: true
+                mode: '0600'
+            - name: Write scratch Redis configuration
+              ansible.builtin.copy:
+                dest: '{{ restore_dir.path }}/redis.conf'
+                content: |
+                  port 0
+                  unixsocket {{ restore_dir.path }}/redis.sock
+                  unixsocketperm 700
+                  dir {{ restore_dir.path }}
+                  dbfilename dump.rdb
+                  appendonly no
+                  daemonize yes
+                  pidfile {{ restore_dir.path }}/redis.pid
+                  logfile {{ restore_dir.path }}/redis.log
+                mode: '0600'
+            - name: Start scratch Redis
+              ansible.builtin.command:
+                argv: [redis-server, '{{ restore_dir.path }}/redis.conf']
+            - name: Wait for scratch Redis socket
+              ansible.builtin.wait_for:
+                path: '{{ restore_dir.path }}/redis.sock'
+                timeout: 10
+            - name: Check restored Redis sentinel
+              ansible.builtin.command:
+                argv: [redis-cli, '-s', '{{ restore_dir.path }}/redis.sock', GET, 'autoops:restore-check']
+              register: restored_redis
+              changed_when: false
+            - name: Assert restored Redis value
+              ansible.builtin.assert:
+                that: restored_redis.stdout == validation_marker
+      always:
+        - name: Stop only scratch database processes using their private PID files
+          ansible.builtin.shell: |
+            python3 - {{ restore_dir.path | quote }} <<'PY'
+            import os, pathlib, signal, sys, time
+            root = pathlib.Path(sys.argv[1])
+            for name in ['mysql.pid', 'redis.pid', 'data/postmaster.pid']:
+                file = root / name
+                if not file.exists():
+                    continue
+                pid = int(file.read_text().splitlines()[0])
+                proc = pathlib.Path('/proc') / str(pid)
+                if not proc.exists():
+                    continue
+                cwd = os.path.realpath(str(proc / 'cwd'))
+                cmd = (proc / 'cmdline').read_bytes().decode(errors='replace')
+                if str(root) not in cmd and not cwd.startswith(str(root)):
+                    raise RuntimeError('refusing to stop a process outside the restore workspace')
+                os.kill(pid, signal.SIGTERM)
+                for _ in range(100):
+                    if not proc.exists():
+                        break
+                    time.sleep(0.1)
+                else:
+                    raise RuntimeError('scratch database did not stop; directory preserved')
+            PY
+          changed_when: true
+        - name: Remove the temporary restore directory
+          ansible.builtin.file:
+            path: '{{ restore_dir.path }}'
+            state: absent

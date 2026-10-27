@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LanguageSwitch from "@/components/LanguageSwitch/index.vue";
 import { isAllEmpty } from "@pureadmin/utils";
 import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
@@ -83,7 +84,7 @@ watch(
           </div>
           <div :style="getDivStyle">
             <span class="select-none">
-              {{ route.meta.title }}
+              {{ $tr(route.meta.title) }}
             </span>
             <LaySidebarExtraIcon :extraIcon="route.meta.extraIcon" />
           </div>
@@ -91,6 +92,7 @@ watch(
       </el-menu-item>
     </el-menu>
     <div class="horizontal-header-right">
+      <LanguageSwitch />
       <!-- 菜单搜索 -->
       <LaySearch id="header-search" />
       <!-- 全屏 -->
@@ -110,14 +112,14 @@ watch(
                 :icon="LogoutCircleRLine"
                 style="margin: 5px"
               />
-              退出系统
+              {{ $tr("退出系统") }}
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
       <span
         class="set-icon navbar-bg-hover"
-        title="打开系统配置"
+        :title='$tr("打开系统配置")'
         @click="onPanel"
       >
         <IconifyIconOffline :icon="Setting" />

@@ -13,6 +13,7 @@ require (
 	github.com/gobwas/ws v1.4.0
 	github.com/gogf/gf v1.16.9
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
+	github.com/lib/pq v1.12.3
 	github.com/mojocn/base64Captcha v1.3.8
 	github.com/pkg/sftp v1.13.10
 	github.com/prometheus/client_golang v1.23.2

@@ -13,12 +13,12 @@
       v-loading="loading"
     >
       <!-- 版本选择 -->
-      <el-form-item label="选择版本" prop="version">
-        <el-select v-model="formData.version" placeholder="请选择版本" style="width: 100%">
+      <el-form-item :label='$tr("选择版本")' prop="version">
+        <el-select v-model="formData.version" :placeholder='$tr("请选择版本")' style="width: 100%">
           <el-option
             v-for="ver in service?.versions"
             :key="ver.id"
-            :label="ver.name"
+            :label="$tr(ver.name)"
             :value="ver.id"
           >
             <span>{{ ver.name }}</span>
@@ -28,17 +28,17 @@
               size="small"
               style="margin-left: 10px"
             >
-              推荐
+              {{ $tr("推荐") }}
             </el-tag>
           </el-option>
         </el-select>
       </el-form-item>
 
       <!-- 主机选择 -->
-      <el-form-item label="目标主机" prop="hostId">
+      <el-form-item :label='$tr("目标主机")' prop="hostId">
         <el-select
           v-model="formData.hostId"
-          placeholder="请选择主机"
+          :placeholder='$tr("请选择主机")'
           filterable
           style="width: 100%"
         >
@@ -60,7 +60,7 @@
       </el-form-item>
 
       <!-- 安装目录 -->
-      <el-form-item label="安装目录" prop="installDir">
+      <el-form-item :label='$tr("安装目录")' prop="installDir">
         <el-input
           v-model="formData.installDir"
           placeholder="/opt/data/mysql"
@@ -71,27 +71,27 @@
       <el-form-item
         v-for="envVar in service?.env_vars"
         :key="envVar.name"
-        :label="envVar.description"
+        :label="$tr(envVar.description)"
         :prop="`envVars.${envVar.name}`"
         :rules="envVar.required ? [{ required: true, message: '不能为空' }] : []"
       >
         <el-input
           v-model="formData.envVars[envVar.name]"
-          :placeholder="envVar.default"
+          :placeholder="$tr(envVar.default)"
           :type="envVar.name.includes('PASSWORD') ? 'password' : 'text'"
           show-password
         />
-        <div class="env-tip">默认值: {{ envVar.default || '无' }}</div>
+        <div class="env-tip">{{ $tr("默认值:") }} {{ envVar.default || '无' }}</div>
       </el-form-item>
 
       <!-- 自动启动 -->
-      <el-form-item label="自动启动">
+      <el-form-item :label='$tr("自动启动")'>
         <el-switch v-model="formData.autoStart" />
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="visible = false">取消</el-button>
+      <el-button @click="visible = false">{{ $tr("取消") }}</el-button>
       <el-button
         type="primary"
         @click="handleDeploy"
@@ -111,6 +111,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, watch, computed } from 'vue'
 import { createDeploy } from '@/api/tool'
 import cmdbAPI from '@/api/cmdb'
@@ -145,9 +147,9 @@ const formData = reactive({
 })
 
 const rules = {
-  version: [{ required: true, message: '请选择版本', trigger: 'change' }],
-  hostId: [{ required: true, message: '请选择主机', trigger: 'change' }],
-  installDir: [{ required: true, message: '请输入安装目录', trigger: 'blur' }]
+  version: [{ required: true, get message() { return tr('请选择版本'); }, trigger: 'change' }],
+  hostId: [{ required: true, get message() { return tr('请选择主机'); }, trigger: 'change' }],
+  installDir: [{ required: true, get message() { return tr('请输入安装目录'); }, trigger: 'blur' }]
 }
 
 // 加载主机列表（参考 Agent 页面，使用 Agent 列表以保证可部署性）
@@ -170,7 +172,7 @@ const loadHosts = async () => {
     }
   } catch (error) {
     console.error('加载主机列表失败:', error)
-    ElMessage.error('加载主机列表失败')
+    ElMessage.error(tr('加载主机列表失败'))
   } finally {
     loading.value = false
   }
@@ -224,13 +226,13 @@ const handleDeploy = async () => {
     deploying.value = false
 
     if (res.data?.code === 200) {
-      ElMessage.success('部署任务已创建')
+      ElMessage.success(tr('部署任务已创建'))
       deployId.value = res.data.data?.deployId
       progressVisible.value = true
       visible.value = false
       emit('deployed', res.data.data?.deployId)
     } else {
-      ElMessage.error(res.data?.message || '部署失败')
+      ElMessage.error(res.data?.message || tr('部署失败'))
     }
   } catch (error) {
     deploying.value = false

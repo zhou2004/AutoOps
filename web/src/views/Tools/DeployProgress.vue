@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="部署进度"
+    :title='$tr("部署进度")'
     width="800px"
     :close-on-click-modal="false"
     @close="handleClose"
@@ -20,13 +20,13 @@
         <div class="status-text">
           <h3>{{ deployInfo.serviceName }} {{ deployInfo.version }}</h3>
           <el-tag :type="statusTagType" size="large">
-            {{ deployInfo.statusText }}
+            {{ $tr(deployInfo.statusText) }}
           </el-tag>
           <p class="host-info">
-            主机: {{ deployInfo.hostName }} ({{ deployInfo.hostIp }})
+            {{ $tr("主机:") }} {{ deployInfo.hostName }} ({{ deployInfo.hostIp }})
           </p>
           <p class="install-dir">
-            安装目录: {{ deployInfo.installDir }}
+            {{ $tr("安装目录:") }} {{ deployInfo.installDir }}
           </p>
         </div>
       </div>
@@ -35,13 +35,13 @@
     <!-- 部署日志 -->
     <div class="deploy-log">
       <div class="log-header">
-        <h4>部署日志</h4>
+        <h4>{{ $tr("部署日志") }}</h4>
         <el-button
           size="small"
           @click="copyLog"
           icon="CopyDocument"
         >
-          复制日志
+          {{ $tr("复制日志") }}
         </el-button>
       </div>
       <div class="log-content" ref="logRef">
@@ -55,20 +55,22 @@
         type="info"
         disabled
       >
-        部署中，请稍候...
+        {{ $tr("部署中，请稍候...") }}
       </el-button>
       <el-button
         v-else
         type="primary"
         @click="visible = false"
       >
-        关闭
+        {{ $tr("关闭") }}
       </el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { getDeployStatus } from '@/api/tool'
 import { ElMessage } from 'element-plus'
@@ -150,9 +152,9 @@ const fetchDeployStatus = async () => {
         if (!hasNotifiedFinal) {
           hasNotifiedFinal = true
           if (res.data.data?.status === 1) {
-            ElMessage.success('部署成功！')
+            ElMessage.success(tr('部署成功！'))
           } else {
-            ElMessage.error('部署失败，请查看日志')
+            ElMessage.error(tr('部署失败，请查看日志'))
           }
         }
       }
@@ -186,7 +188,7 @@ const stopPolling = () => {
 const copyLog = () => {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(deployInfo.value.deployLog)
-    ElMessage.success('日志已复制到剪贴板')
+    ElMessage.success(tr('日志已复制到剪贴板'))
   }
 }
 

@@ -5,6 +5,14 @@
 天枢AutoOps运维管理系统(枢=枢纽+中心)是一个基于 Go + vue3 框架开发的企业级运维自动化平台，提供以下核心能力主机管理、配置中心、任务调度、K8s集群管理、监控告警等功能模块。统一平台，全栈治：打破 CI/CD、监控、CMDB、K8s、工单等系统孤岛，数据互通、策略统. 最终实现把常用的运维工具全部集成在一起，比如夜莺，jenkins，jumpserver，kuboard，cmdb，Archery，等等，实现运维自动化。
 ![alt text](assets/jg.png)
 
+## AI 运维与国际化
+
+支持中文 / English 切换，新增 AI 诊断工作台、模型连接、Skills、工作流与诊断记录。模型支持 DeepSeek Harness、OpenAI 兼容接口和 Ollama 本地服务；工作台支持持续对话、资产范围与限时操作授权，工作流支持内置多步骤、Dify 与 Webhook。基础管理提供真实角色权限配置，以及由管理员向指定用户分配的 API Token（API Key）。Token 实时继承用户的模块、资产与容器权限。
+
+权限配置、迁移与 JWT 签名密钥设置见 [统一权限与用户 API Token](docs/2026-10-21-platform-permissions-tokens.md)。
+
+配置与部署见 [Harness 与 API Key 接入指南](docs/2026-10-21-aiops-harness-api-keys.md)及 [AI 运维与国际化指南](docs/2026-10-20-aiops-i18n.md)。
+
 ## 功能清单
 
 
@@ -60,7 +68,7 @@
 | | 运维全局巡检报告 | 📋 规划中 |
 | | 优化运维仪表盘 | ✅ 完成 |
 | | 运维知识库开发-Markdown写入-展示 | 📋 规划中 |
-| | AI大模型分析功能 | 📋 规划中 |
+| | AI大模型分析功能（会话 / Harness 授权操作 / Skills / 工作流） | ✅ |
 
 
 ### 优势对比

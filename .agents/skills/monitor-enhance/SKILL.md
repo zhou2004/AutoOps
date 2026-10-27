@@ -249,3 +249,8 @@ API 函数统一在 `web/src/api/monitor.js` 中，路由注册在 `web/src/rout
 2. **创建告警规则** → 告警配置页面（选风格、填表达式、设约束、设标签、启用）
 3. **配置通知路由** → 告警通知页面（建模板、建路由、关联模板）
 4. **查看故障** → 故障管理大屏（监控统计、故障列表、解决/删除）
+## 告警配置业务分组（2026-10-24）
+
+告警群组表单不再接收 YAML。`MonitorAlertGroupRule.CmdbGroupID` 关联 CMDB 业务分组，`GET /monitor/alert/business-groups` 返回按当前用户资产分组 get 权限过滤的 id/parentId/name 元数据，保存时再次验证权限与存在性。旧记录保留 cmdb_group_id=0 和原标签，用户编辑时选择真实分组。
+
+编辑群组不得通过删除并重新导入 YAML 来重建子规则；只更新元数据，从现有规则生成内部 YAML，保留规则 ID、启用状态、告警状态和其他标签。规则列表的 dataSourceId/cmdbGroupId 在 DAO 中先过滤再分页。前端入口为 `web/src/views/monitor/Alarm-rules.vue`，API 客户端为 `web/src/api/monitor.ts`。详见 `docs/2026-10-24-alert-business-groups.md`。

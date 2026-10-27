@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -195,15 +197,15 @@ const handleRefresh = () => {
 // 创建 CR
 const handleCreateCr = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
   if (!selectedCrdName.value) {
-    ElMessage.warning('请先从列表中选择一个 CRD 类型')
+    ElMessage.warning(tr('请先从列表中选择一个 CRD 类型'))
     return
   }
 
@@ -323,8 +325,8 @@ const handleDeleteCr = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确认删除资源实例 "${rowName}" 吗？此操作不可逆。`,
-      '删除确认',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+      tr('删除确认'),
+      { confirmButtonText: tr('确定'), cancelButtonText: tr('取消'), type: 'warning' }
     )
     
     loading.value = true
@@ -337,15 +339,15 @@ const handleDeleteCr = async (row) => {
     const resData = res.data || res
     
     if (resData.code === 200 || resData.success) {
-      ElMessage.success('自定义资源删除成功')
+      ElMessage.success(tr('自定义资源删除成功'))
       loadCrList()
     } else {
-      ElMessage.error(resData.message || '删除失败')
+      ElMessage.error(resData.message || tr('删除失败'))
     }
   } catch (e) {
      if (e !== 'cancel') {
         console.error('删除异常', e)
-        ElMessage.error('删除异常')
+        ElMessage.error(tr('删除异常'))
      }
   } finally {
     loading.value = false
@@ -384,7 +386,7 @@ const handleSaveYaml = async (payload) => {
     }
   } catch(e) {
     console.error('保存失败', e)
-    ElMessage.error('保存操作异常')
+    ElMessage.error(tr('保存操作异常'))
   } finally {
     loading.value = false
   }
@@ -450,7 +452,7 @@ watch(selectedCrdName, (val) => {
     <el-card shadow="hover" class="config-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s CRD管理</span>
+          <span class="title">{{ $tr("K8s CRD管理") }}</span>
           <div class="header-actions">
             <ClusterSelector v-model="selectedClusterId" />
             <NamespaceSelector 
@@ -469,7 +471,7 @@ watch(selectedCrdName, (val) => {
               v-model="selectedGroup" 
               filterable 
               clearable 
-              placeholder="请选择组 (Group)" 
+              :placeholder='$tr("请选择组 (Group)")' 
               size="small" 
               style="width: 200px;"
             >
@@ -477,18 +479,18 @@ watch(selectedCrdName, (val) => {
               <el-option 
                 v-for="group in crdGroupList" 
                 :key="group.name || group"
-                :label="group.name || group" 
+                :label="$tr(group.name || group)" 
                 :value="group.name || group"
               />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="自定义资源类型">
+          <el-form-item :label='$tr("自定义资源类型")'>
             <el-select 
               v-model="selectedCrdName" 
               filterable 
               clearable 
-              placeholder="请输入或选择 CRD" 
+              :placeholder='$tr("请输入或选择 CRD")' 
               size="small" 
               style="width: 260px;"
               :disabled="!selectedGroup"
@@ -497,16 +499,16 @@ watch(selectedCrdName, (val) => {
               <el-option 
                 v-for="crd in crdList" 
                 :key="crd.name || crd.metadata?.name || crd"
-                :label="crd.name || crd.metadata?.name || crd" 
+                :label="$tr(crd.name || crd.metadata?.name || crd)" 
                 :value="crd.name || crd.metadata?.name || crd"
               />
             </el-select>
           </el-form-item>
 
-          <el-form-item label="实例名称">
+          <el-form-item :label='$tr("实例名称")'>
             <el-input
               v-model="searchKeyword"
-              placeholder="请输入检索名称，回车搜索"
+              :placeholder='$tr("请输入检索名称，回车搜索")'
               clearable
               size="small"
               style="width: 160px"
@@ -515,10 +517,10 @@ watch(selectedCrdName, (val) => {
             />
           </el-form-item>
 
-          <el-form-item label="标签">
+          <el-form-item :label='$tr("标签")'>
             <el-input
               v-model="searchLabels"
-              placeholder="例: app=nginx,env=prod 支持多标签"
+              :placeholder='$tr("例: app=nginx,env=prod 支持多标签")'
               clearable
               size="small"
               style="width: 220px"
@@ -529,10 +531,10 @@ watch(selectedCrdName, (val) => {
 
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="handleSearch">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="handleRefresh">
-              刷新
+              {{ $tr("刷新") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -540,11 +542,11 @@ watch(selectedCrdName, (val) => {
 
       <div class="content-header">
         <span class="resource-count">
-          当前选中 CRD: <el-tag type="info">{{ selectedCrdName || '未选择' }}</el-tag> 
-          &nbsp;| 共包含实例数: {{ total }}
+          {{ $tr("当前选中 CRD:") }} <el-tag type="info">{{ selectedCrdName || '未选择' }}</el-tag> 
+          {{ $tr("| 共包含实例数:") }} {{ total }}
         </span>
         <el-button type="primary" :icon="Plus" size="small" @click="handleCreateCr" :disabled="!selectedCrdName">
-          创建 {{ selectedCrdName ? selectedCrdName.split('.')[0] : '自定义资源' }}
+          {{ $tr("创建") }} {{ selectedCrdName ? selectedCrdName.split('.')[0] : $tr('自定义资源') }}
         </el-button>
       </div>
 
@@ -553,10 +555,10 @@ watch(selectedCrdName, (val) => {
         v-loading="loading"
         element-loading-text="加载数据中..."
         class="resource-table"
-        empty-text="暂无相关的自定义资源"
+        :empty-text='$tr("暂无相关的自定义资源")'
         height="calc(100vh - 290px)"
       >
-        <el-table-column label="名称" min-width="200">
+        <el-table-column :label='$tr("名称")' min-width="200">
           <template #default="{ row }">
             <div class="resource-name">
               <el-icon class="resource-icon"><Coin /></el-icon>
@@ -571,13 +573,13 @@ watch(selectedCrdName, (val) => {
           </template>
         </el-table-column>
 
-        <el-table-column label="类型" min-width="150" align="center">
+        <el-table-column :label='$tr("类型")' min-width="150" align="center">
           <template #default="{ row }">
             <el-tag size="small" type="success">{{ row.kind || '-' }}</el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="自定义标签" min-width="250" align="center">
+        <el-table-column :label='$tr("自定义标签")' min-width="250" align="center">
           <template #default="{ row }">
             <div class="labels-info">
               <template v-if="Object.keys(extractLabels(row)).length > 0">
@@ -613,21 +615,21 @@ watch(selectedCrdName, (val) => {
                   </div>
                 </el-popover>
               </template>
-              <span v-else class="no-labels">无标签</span>
+              <span v-else class="no-labels">{{ $tr("无标签") }}</span>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column label="创建时间" width="180" align="center">
+        <el-table-column :label='$tr("创建时间")' width="180" align="center">
           <template #default="{ row }">
             <span>{{ extractTime(row) }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="160" fixed="right" align="center">
+        <el-table-column :label='$tr("操作")' width="160" fixed="right" align="center">
           <template #default="{ row }">
             <div class="operation-buttons">
-              <el-tooltip content="查看 YAML" placement="top">
+              <el-tooltip :content='$tr("查看 YAML")' placement="top">
                 <el-button
                   :icon="View"
                   size="small"
@@ -636,7 +638,7 @@ watch(selectedCrdName, (val) => {
                   @click="handleViewCrYaml(row)"
                 />
               </el-tooltip>
-              <el-tooltip content="编辑 YAML" placement="top">
+              <el-tooltip :content='$tr("编辑 YAML")' placement="top">
                 <el-button
                   :icon="Edit"
                   size="small"
@@ -645,7 +647,7 @@ watch(selectedCrdName, (val) => {
                   @click="handleEditCrYaml(row)"
                 />
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip :content='$tr("删除")' placement="top">
                 <el-button
                   :icon="Delete"
                   size="small"

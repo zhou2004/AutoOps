@@ -1,31 +1,31 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="注册 K8s 集群"
+    :title='$tr("注册 K8s 集群")'
     width="600px"
     class="register-dialog"
     @closed="handleDialogClosed"
   >
     <el-form :model="form" label-width="120px" ref="formRef">
       <el-form-item 
-        label="集群名称" 
+        :label='$tr("集群名称")' 
         required
         prop="clusterName"
         :rules="[
-          { required: true, message: '请输入集群名称', trigger: 'blur' },
+          { required: true, message: $tr('请输入集群名称'), trigger: 'blur' },
           { min: 2, max: 50, message: '集群名称长度在 2 到 50 个字符', trigger: 'blur' }
         ]"
       >
         <el-input
           v-model="form.clusterName"
-          placeholder="请输入集群名称"
+          :placeholder='$tr("请输入集群名称")'
           clearable
           :disabled="loading"
         />
       </el-form-item>
       
       <el-form-item 
-        label="集群凭证" 
+        :label='$tr("集群凭证")' 
         required
         prop="credential"
         :rules="[
@@ -35,17 +35,17 @@
         <CredentialEditor
           v-model="form.credential"
           height="200px"
-          placeholder="请输入或上传集群凭证配置"
+          :placeholder='$tr("请输入或上传集群凭证配置")'
           :disabled="loading"
         />
       </el-form-item>
       
-      <el-form-item label="描述信息">
+      <el-form-item :label='$tr("描述信息")'>
         <el-input
           v-model="form.description"
           type="textarea"
           :rows="2"
-          placeholder="请输入集群描述"
+          :placeholder='$tr("请输入集群描述")'
           :disabled="loading"
           maxlength="200"
           show-word-limit
@@ -55,13 +55,13 @@
     
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleCancel" :disabled="loading">取消</el-button>
+        <el-button @click="handleCancel" :disabled="loading">{{ $tr("取消") }}</el-button>
         <el-button 
           type="primary" 
           @click="handleSubmit"
           :loading="loading"
         >
-          注册
+          {{ $tr("注册") }}
         </el-button>
       </span>
     </template>
@@ -69,6 +69,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
@@ -115,7 +117,7 @@ const handleSubmit = async () => {
   try {
     // 表单验证
     if (!formRef.value) {
-      ElMessage.error('表单验证失败')
+      ElMessage.error(tr('表单验证失败'))
       return
     }
     
@@ -137,7 +139,7 @@ const handleSubmit = async () => {
     console.log('注册集群API响应:', responseData)
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('集群注册成功，正在同步集群信息...')
+      ElMessage.success(tr('集群注册成功，正在同步集群信息...'))
       dialogVisible.value = false
       resetForm()
       emit('success', responseData)
@@ -149,13 +151,13 @@ const handleSubmit = async () => {
     
     // 根据错误类型给出更友好的提示
     if (error.response?.status === 400) {
-      ElMessage.error('请求参数错误，请检查集群信息')
+      ElMessage.error(tr('请求参数错误，请检查集群信息'))
     } else if (error.response?.status === 409) {
-      ElMessage.error('集群名称已存在，请使用其他名称')
+      ElMessage.error(tr('集群名称已存在，请使用其他名称'))
     } else if (error.code === 'ERR_NETWORK') {
-      ElMessage.error('网络连接失败，请检查网络状态')
+      ElMessage.error(tr('网络连接失败，请检查网络状态'))
     } else {
-      ElMessage.error('注册集群失败，请重试')
+      ElMessage.error(tr('注册集群失败，请重试'))
     }
   } finally {
     loading.value = false

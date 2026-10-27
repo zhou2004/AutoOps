@@ -14,10 +14,10 @@ import (
 
 // GlobalScheduler 全局定时调度器
 type GlobalScheduler struct {
-	cron     *cron.Cron
-	entries  map[uint]cron.EntryID // 任务ID -> EntryID映射
-	mutex    sync.RWMutex
-	running  bool
+	cron    *cron.Cron
+	entries map[uint]cron.EntryID // 任务ID -> EntryID映射
+	mutex   sync.RWMutex
+	running bool
 }
 
 // ScheduledTask 调度任务信息
@@ -337,9 +337,9 @@ func (gs *GlobalScheduler) LoadScheduledTasks() error {
 
 	// 统计计数器
 	var (
-		loadedCount   = 0
-		skippedCount  = 0
-		resumedCount  = 0
+		loadedCount  = 0
+		skippedCount = 0
+		resumedCount = 0
 	)
 
 	// 逐个处理定时任务
@@ -442,93 +442,21 @@ func (gs *GlobalScheduler) LoadScheduledTasks() error {
 // createScheduledTaskHandler 创建统一的定时任务回调函数
 func createScheduledTaskHandler(taskID uint) func() {
 	return func() {
-		log.Printf("\n=== 定时任务触发 (LoadScheduledTasks) ===")
-		log.Printf("触发时间: %v", time.Now().Format("2006-01-02 15:04:05"))
-		log.Printf("任务ID: %d", taskID)
-		log.Println("----------------------------")
-
-		// 获取任务服务
-		workService := NewTaskWorkService()
-		workDao := workService.(*TaskWorkServiceImpl).dao
-
-		// 执行前检查任务状态
+		log.Printf("定时任务触发: TaskID=%d, Time=%s", taskID, time.Now().Format("2006-01-02 15:04:05"))
 		taskService := NewTaskService(common.GetDB())
 		currentTask, err := taskService.GetTask(taskID)
 		if err != nil {
 			log.Printf("获取任务失败: TaskID=%d, Error=%v", taskID, err)
 			return
 		}
-		log.Printf("父任务状态: %d", currentTask.Status)
-
-		// 检查任务是否被暂停或停止
-		if currentTask.Status == model.TaskStatusPaused {
+		if currentTask.Status != model.TaskStatusRunning {
 			log.Printf("定时任务已被暂停，跳过执行: TaskID=%d", taskID)
 			return
 		}
-
-		if currentTask.Status == model.TaskStatusFailed {
-			log.Printf("定时任务状态异常，跳过执行: TaskID=%d", taskID)
-			return
+		workService := NewTaskWorkService()
+		if _, err := workService.RunNow(taskID, model.TaskTriggerScheduled, "System"); err != nil {
+			log.Printf("定时任务提交失败: TaskID=%d, Error=%v", taskID, err)
 		}
-
-		// 获取任务队列服务
-		taskQueue := GetTaskQueue()
-		if taskQueue == nil {
-			log.Printf("任务队列服务未初始化，跳过执行: TaskID=%d", taskID)
-			return
-		}
-		log.Printf("任务队列服务已就绪")
-
-		// 获取所有子任务
-		currentJobs, err := workDao.GetByTaskID(taskID)
-		if err != nil {
-			log.Printf("获取子任务失败: TaskID=%d, Error=%v", taskID, err)
-			return
-		}
-		log.Printf("获取到 %d 个子任务", len(currentJobs))
-
-		// 提交所有子任务到队列
-		submittedCount := 0
-		for _, currentJob := range currentJobs {
-			// 跳过已停止或已完成的任务
-			if currentJob.Status == 4 { // 异常
-				log.Printf("跳过异常状态的子任务: ID=%d, Status=%d", currentJob.ID, currentJob.Status)
-				continue
-			}
-			if currentJob.Status == 3 { // 已完成
-				log.Printf("跳过已完成的子任务: ID=%d, Status=%d", currentJob.ID, currentJob.Status)
-				continue
-			}
-			if currentJob.Status == 2 { // 运行中
-				log.Printf("子任务正在运行中，跳过: ID=%d", currentJob.ID)
-				continue
-			}
-
-			log.Printf("准备执行子任务: ID=%d, TemplateID=%d, 当前状态=%d",
-				currentJob.ID, currentJob.TemplateID, currentJob.Status)
-
-			// 更新状态为运行中
-			if err := workDao.UpdateStatus(currentJob.ID, 2); err != nil {
-				log.Printf("更新子任务状态失败: %v", err)
-				continue
-			}
-
-			// 提交到队列
-			priority := workService.(*TaskWorkServiceImpl).getTaskPriority(&currentJob)
-			if err := taskQueue.Enqueue(&currentJob, priority); err != nil {
-				log.Printf("提交定时任务到队列失败: %v", err)
-				// 回滚状态
-				workDao.UpdateStatus(currentJob.ID, 1)
-				continue
-			}
-
-			submittedCount++
-			log.Printf("定时任务已提交到队列: TaskID=%d, JobID=%d, Priority=%s",
-				currentJob.TaskID, currentJob.ID, priority)
-		}
-
-		log.Printf("共提交 %d 个子任务到队列", submittedCount)
-		log.Println("===================")
 	}
 }
 

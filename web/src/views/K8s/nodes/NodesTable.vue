@@ -8,7 +8,7 @@
       style="width: 100%"
       class="nodes-table"
     >
-      <el-table-column prop="nodeName" label="节点名称" min-width="180">
+      <el-table-column prop="nodeName" :label='$tr("节点名称")' min-width="180">
         <template #default="{ row }">
           <div class="node-name-container">
             <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
@@ -24,37 +24,37 @@
         </template>
       </el-table-column>
       
-      <el-table-column prop="status" label="状态" min-width="100">
+      <el-table-column prop="status" :label='$tr("状态")' min-width="100">
         <template #default="{ row }">
           <el-tag
             :type="getStatusTag(row.status)"
             size="small"
             effect="dark"
           >
-            {{ getStatusText(row.status) }}
+            {{ $tr(getStatusText(row.status)) }}
           </el-tag>
         </template>
       </el-table-column>
       
-      <el-table-column prop="role" label="角色" min-width="100">
+      <el-table-column prop="role" :label='$tr("角色")' min-width="100">
         <template #default="{ row }">
           <el-tag
             :type="getRoleTag(row.role)"
             size="small"
             effect="plain"
           >
-            {{ getRoleText(row.role) }}
+            {{ $tr(getRoleText(row.role)) }}
           </el-tag>
         </template>
       </el-table-column>
       
-      <el-table-column prop="version" label="Kubelet版本" min-width="120">
+      <el-table-column prop="version" :label='$tr("Kubelet版本")' min-width="120">
         <template #default="{ row }">
           <span class="version-text">{{ row.version }}</span>
         </template>
       </el-table-column>
       
-      <el-table-column label="标签" min-width="100" align="center">
+      <el-table-column :label='$tr("标签")' min-width="100" align="center">
         <template #default="{ row }">
           <div class="label-container">
             <el-badge :value="getLabelCount(row.labels)" :max="99" class="label-badge">
@@ -65,20 +65,20 @@
                 @click="viewNodeLabels(row)"
                 class="label-icon-button"
               >
-                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" :alt='$tr("标签")' width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
         </template>
       </el-table-column>
       
-      <el-table-column prop="age" label="运行时间" min-width="100">
+      <el-table-column prop="age" :label='$tr("运行时间")' min-width="100">
         <template #default="{ row }">
           <el-tag size="small" type="info">{{ row.age }}</el-tag>
         </template>
       </el-table-column>
       
-      <el-table-column label="CPU/内存" min-width="140">
+      <el-table-column :label='$tr("CPU/内存")' min-width="140">
         <template #default="{ row }">
           <div class="resource-info">
             <div class="resource-item">
@@ -93,13 +93,13 @@
         </template>
       </el-table-column>
       
-      <el-table-column prop="pods" label="Pod数量" min-width="100">
+      <el-table-column prop="pods" :label='$tr("Pod数量")' min-width="100">
         <template #default="{ row }">
           <el-tag size="small" type="warning">{{ row.pods }}</el-tag>
         </template>
       </el-table-column>
       
-      <el-table-column label="调度状态" min-width="100">
+      <el-table-column :label='$tr("调度状态")' min-width="100">
         <template #default="{ row }">
           <el-tag
             :type="row.schedulable ? 'success' : 'danger'"
@@ -111,7 +111,7 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="污点数量" min-width="90" align="center">
+      <el-table-column :label='$tr("污点数量")' min-width="90" align="center">
         <template #default="{ row }">
           <div class="taint-container">
             <el-badge :value="row.taints.length" :max="99" class="taint-badge">
@@ -121,11 +121,11 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="280" fixed="right">
+      <el-table-column :label='$tr("操作")' width="280" fixed="right">
         <template #default="{ row }">
           <div class="operation-buttons">
             
-            <el-tooltip content="资源详情" placement="top">
+            <el-tooltip :content='$tr("资源详情")' placement="top">
               <el-button
                 type="success"
                 :icon="Monitor"
@@ -136,7 +136,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip content="管理污点" placement="top">
+            <el-tooltip :content='$tr("管理污点")' placement="top">
               <el-button
                 type="warning"
                 :icon="Warning"
@@ -147,7 +147,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip content="管理标签" placement="top">
+            <el-tooltip :content='$tr("管理标签")' placement="top">
               <el-button
                 type="info"
                 :icon="Edit"
@@ -158,7 +158,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip :content="row.schedulable ? '封锁节点' : '解封节点'" placement="top">
+            <el-tooltip :content="$tr(row.schedulable ? '封锁节点' : '解封节点')" placement="top">
               <el-button
                 :type="row.schedulable ? 'danger' : 'success'"
                 :icon="row.schedulable ? Lock : Unlock"
@@ -169,7 +169,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip content="驱逐节点" placement="top">
+            <el-tooltip :content='$tr("驱逐节点")' placement="top">
               <el-button
                 type="danger"
                 :icon="SwitchButton"

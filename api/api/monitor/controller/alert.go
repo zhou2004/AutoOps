@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -216,13 +217,59 @@ func (c *AlertController) GetRecords(ctx *gin.Context) {
 }
 
 func (c *AlertController) CleanRecords(ctx *gin.Context) {
-	result.Success(ctx, "Records cleaned successfully")
+	if err := c.alertService.CleanAlertRecords(); err != nil {
+		result.Failed(ctx, http.StatusInternalServerError, "清空历史记录失败: "+err.Error())
+		return
+	}
+	result.Success(ctx, "历史记录已清空")
+}
+
+// DeleteRecords 删除通知历史（支持按ID列表批量删除或按时间删除）
+func (c *AlertController) DeleteRecords(ctx *gin.Context) {
+	var req model.DeleteRecordsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		result.Failed(ctx, http.StatusBadRequest, "参数解析失败: "+err.Error())
+		return
+	}
+
+	// 按ID列表批量删除
+	if len(req.Ids) > 0 {
+		if err := c.alertService.DeleteAlertRecordsByIds(req.Ids); err != nil {
+			result.Failed(ctx, http.StatusInternalServerError, "批量删除历史记录失败: "+err.Error())
+			return
+		}
+		result.Success(ctx, map[string]interface{}{
+			"message": "历史记录删除成功",
+			"deleted": len(req.Ids),
+		})
+		return
+	}
+
+	// 按时间删除
+	if req.BeforeTime != "" {
+		beforeTime, err := time.Parse(time.RFC3339, req.BeforeTime)
+		if err != nil {
+			result.Failed(ctx, http.StatusBadRequest, "时间格式错误: "+err.Error())
+			return
+		}
+		if err := c.alertService.DeleteAlertRecordsBefore(beforeTime); err != nil {
+			result.Failed(ctx, http.StatusInternalServerError, "按时间删除历史记录失败: "+err.Error())
+			return
+		}
+		result.Success(ctx, map[string]interface{}{
+			"message":    "历史记录删除成功",
+			"beforeTime": req.BeforeTime,
+		})
+		return
+	}
+
+	result.Failed(ctx, http.StatusBadRequest, "请提供要删除的记录ID列表(ids)或时间(beforeTime)")
 }
 
 type AlertRouterReq struct {
-	RouterId           interface{}                   `json:"RouterId"`
+	RouterId           interface{}              `json:"RouterId"`
 	RouterName         string                   `json:"RouterName"`
-	RouterTplId        interface{}                   `json:"RouterTplId"`
+	RouterTplId        interface{}              `json:"RouterTplId"`
 	RouterPurl         string                   `json:"RouterPurl"`
 	RouterPat          string                   `json:"RouterPat"`
 	RouterPatRR        bool                     `json:"RouterPatRR"`
@@ -336,28 +383,28 @@ func (ac *AlertController) HealthCheck(ctx *gin.Context) {
 }
 
 func getInt(v interface{}) int {
-switch val := v.(type) {
-case string:
-i, _ := strconv.Atoi(val)
-return i
-case float64:
-return int(val)
-case int:
-return val
-}
-return 0
+	switch val := v.(type) {
+	case string:
+		i, _ := strconv.Atoi(val)
+		return i
+	case float64:
+		return int(val)
+	case int:
+		return val
+	}
+	return 0
 }
 
 func (ac *AlertController) GetRouterById(ctx *gin.Context) {
-id, err := strconv.Atoi(ctx.Param("id"))
-if err != nil {
-result.Failed(ctx, http.StatusBadRequest, "非法ID")
-return
-}
-router, err := ac.alertService.GetAlertRouterById(id)
-if err != nil {
-result.Failed(ctx, http.StatusBadRequest, "获取失败或不存在")
-return
-}
-result.Success(ctx, router)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		result.Failed(ctx, http.StatusBadRequest, "非法ID")
+		return
+	}
+	router, err := ac.alertService.GetAlertRouterById(id)
+	if err != nil {
+		result.Failed(ctx, http.StatusBadRequest, "获取失败或不存在")
+		return
+	}
+	result.Success(ctx, router)
 }

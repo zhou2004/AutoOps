@@ -74,16 +74,17 @@ type CmdbGroupMemberVo struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-// CmdbCredentialPermission 凭据授权表 — 控制用户/用户组对SSH凭据的使用权限
+// CmdbCredentialPermission 凭据授权表 — 按来源控制 SSH 凭据或数据库账号的使用权限
 type CmdbCredentialPermission struct {
-	ID           uint      `gorm:"primaryKey;comment:'主键ID'" json:"id"`
-	Name         string    `gorm:"size:100;not null;comment:'授权规则名称'" json:"name"`
-	CredentialID uint      `gorm:"not null;comment:'凭据ID'" json:"credentialId"`
-	UserIDs      string    `gorm:"type:text;comment:'授权用户ID列表(JSON数组)'" json:"userIds"`
-	GroupIDs     string    `gorm:"type:text;comment:'授权用户组ID列表(JSON数组)'" json:"groupIds"`
-	IsActive     int       `gorm:"default:1;comment:'是否启用:0-禁用,1-启用'" json:"isActive"`
-	CreatedAt    time.Time `gorm:"autoCreateTime" json:"createdAt"`
-	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+	ID             uint      `gorm:"primaryKey;comment:'主键ID'" json:"id"`
+	Name           string    `gorm:"size:100;not null;comment:'授权规则名称'" json:"name"`
+	CredentialType string    `gorm:"size:16;not null;default:ssh;index;comment:'凭据来源:ssh/database'" json:"credentialType"`
+	CredentialID   uint      `gorm:"not null;comment:'凭据ID'" json:"credentialId"`
+	UserIDs        string    `gorm:"type:text;comment:'授权用户ID列表(JSON数组)'" json:"userIds"`
+	GroupIDs       string    `gorm:"type:text;comment:'授权用户组ID列表(JSON数组)'" json:"groupIds"`
+	IsActive       int       `gorm:"comment:'是否启用:0-禁用,1-启用'" json:"isActive"`
+	CreatedAt      time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 }
 
 func (CmdbCredentialPermission) TableName() string {
@@ -91,17 +92,19 @@ func (CmdbCredentialPermission) TableName() string {
 }
 
 type CmdbCredentialPermissionQuery struct {
-	Name         string `json:"name" form:"name"`
-	CredentialID uint   `json:"credentialId" form:"credentialId"`
-	IsActive     int    `json:"isActive" form:"isActive"`
-	Page         int    `json:"page" form:"page"`
-	Size         int    `json:"size" form:"size"`
+	Name           string `json:"name" form:"name"`
+	CredentialType string `json:"credentialType" form:"credentialType"`
+	CredentialID   uint   `json:"credentialId" form:"credentialId"`
+	IsActive       int    `json:"isActive" form:"isActive"`
+	Page           int    `json:"page" form:"page"`
+	Size           int    `json:"size" form:"size"`
 }
 
 type CmdbCredentialPermissionReq struct {
-	Name         string `json:"name" binding:"required"`
-	CredentialID uint   `json:"credentialId" binding:"required"`
-	UserIDs      []uint `json:"userIds"`
-	GroupIDs     []uint `json:"groupIds"`
-	IsActive     int    `json:"isActive"`
+	Name           string `json:"name" binding:"required"`
+	CredentialType string `json:"credentialType"`
+	CredentialID   uint   `json:"credentialId" binding:"required"`
+	UserIDs        []uint `json:"userIds"`
+	GroupIDs       []uint `json:"groupIds"`
+	IsActive       int    `json:"isActive"`
 }

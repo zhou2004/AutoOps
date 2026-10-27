@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="进程监控"
+    :title='$tr("进程监控")'
     v-model:visible="dialogVisible"
     width="80%"
     top="5vh"
@@ -12,7 +12,7 @@
     <div class="process-monitor-header">
       <div class="host-info">
         <span class="host-name">{{ processData.hostName || '未知主机' }}</span>
-        <span class="update-time">最后更新: {{ formatTime(processData.updateTime) }}</span>
+        <span class="update-time">{{ $tr("最后更新:") }} {{ formatTime(processData.updateTime) }}</span>
       </div>
       <el-button 
         type="primary" 
@@ -21,7 +21,7 @@
         :loading="loading"
         @click="fetchProcessData"
       >
-        手动刷新
+        {{ $tr("手动刷新") }}
       </el-button>
     </div>
 
@@ -29,8 +29,8 @@
       <el-col :span="12">
         <el-card class="chart-card">
           <div class="chart-header">
-            <h4>Top CPU 进程</h4>
-            <el-tag size="mini" type="info">CPU使用率 %</el-tag>
+            <h4>{{ $tr("Top CPU 进程") }}</h4>
+            <el-tag size="mini" type="info">{{ $tr("CPU使用率 %") }}</el-tag>
           </div>
           <div class="chart-container" ref="cpuChart"></div>
         </el-card>
@@ -38,8 +38,8 @@
       <el-col :span="12">
         <el-card class="chart-card">
           <div class="chart-header">
-            <h4>Top 内存 进程</h4>
-            <el-tag size="mini" type="warning">内存使用率 %</el-tag>
+            <h4>{{ $tr("Top 内存 进程") }}</h4>
+            <el-tag size="mini" type="warning">{{ $tr("内存使用率 %") }}</el-tag>
           </div>
           <div class="chart-container" ref="memoryChart"></div>
         </el-card>
@@ -49,6 +49,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import * as echarts from 'echarts'
 
 export default {
@@ -116,7 +118,7 @@ export default {
         }
       } catch (error) {
         console.error('获取进程数据失败:', error)
-        this.$message.error('获取进程数据失败')
+        this.$message.error(tr('获取进程数据失败'))
       } finally {
         this.loading = false
       }

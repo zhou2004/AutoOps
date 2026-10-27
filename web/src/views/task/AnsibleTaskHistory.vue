@@ -10,35 +10,35 @@
               @click="$router.back()" 
               style="margin-right: 15px; font-weight: 600"
             >
-              <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon> 返回
+              <el-icon style="margin-right: 4px"><ArrowLeft /></el-icon> {{ $tr("返回") }}
             </el-button>
-            <span class="title">任务执行历史 - {{ taskName }}</span>
+            <span class="title">{{ $tr("任务执行历史 -") }} {{ taskName }}</span>
           </div>
-          <el-button type="primary" size="small" icon="Refresh" @click="fetchHistory" :loading="loading">刷新列表</el-button>
+          <el-button type="primary" size="small" icon="Refresh" @click="fetchHistory" :loading="loading">{{ $tr("刷新列表") }}</el-button>
         </div>
       </template>
 
       <!-- 搜索栏 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="执行状态">
+          <el-form-item :label='$tr("执行状态")'>
             <el-select 
               v-model="queryParams.status" 
-              placeholder="请选择状态" 
+              :placeholder='$tr("请选择状态")' 
               clearable 
               style="width: 200px"
               size="small"
               @change="handleSearch"
             >
-              <el-option label="等待中" :value="1" />
-              <el-option label="运行中" :value="2" />
-              <el-option label="成功" :value="3" />
-              <el-option label="失败" :value="4" />
+              <el-option :label='$tr("等待中")' :value="1" />
+              <el-option :label='$tr("运行中")' :value="2" />
+              <el-option :label='$tr("成功")' :value="3" />
+              <el-option :label='$tr("失败")' :value="4" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleSearch">搜索</el-button>
-            <el-button type="warning" icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleSearch">{{ $tr("搜索") }}</el-button>
+            <el-button type="warning" icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -53,33 +53,33 @@
           style="width: 100%"
 
         >
-          <el-table-column prop="ID" label="执行ID" width="100" align="center">
+          <el-table-column prop="ID" :label='$tr("执行ID")' width="100" align="center">
             <template #default="{ row }">
               <span class="id-tag">#{{ row.ID }}</span>
             </template>
           </el-table-column>
           
-          <el-table-column prop="status" label="状态" width="130" align="center">
+          <el-table-column prop="status" :label='$tr("状态")' width="130" align="center">
             <template #default="{ row }">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                  <img 
                   :src="$getAssetUrl('@/assets/image/zhuangtai.svg')" 
-                  alt="状态"
+                  :alt='$tr("状态")'
                   style="width: 16px; height: 16px;"
                 />
                 <span :class="getStatusClass(row.status)">
-                  {{ getStatusText(row.status) }}
+                  {{ $tr(getStatusText(row.status)) }}
                 </span>
               </div>
             </template>
           </el-table-column>
           
-          <el-table-column prop="OperatorName" label="执行人" width="150" align="center">
+          <el-table-column prop="OperatorName" :label='$tr("执行人")' width="150" align="center">
             <template #default="{ row }">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                  <img 
                   :src="$getAssetUrl('@/assets/image/ren.svg')" 
-                  alt="用户"
+                  :alt='$tr("用户")'
                   style="width: 16px; height: 16px;"
                 />
                 <!-- 后端 OperatorName 可能为空，可以给个默认值 -->
@@ -88,24 +88,24 @@
             </template>
           </el-table-column>
           
-          <el-table-column prop="CreatedAt" label="开始时间" width="180" align="center">
+          <el-table-column prop="CreatedAt" :label='$tr("开始时间")' width="180" align="center">
             <template #default="{ row }">
               {{ formatTime(row.CreatedAt) }}
             </template>
           </el-table-column>
           
-          <el-table-column prop="FinishedAt" label="结束时间" width="180" align="center">
+          <el-table-column prop="FinishedAt" :label='$tr("结束时间")' width="180" align="center">
             <template #default="{ row }">
               {{ formatTime(row.FinishedAt) }}
             </template>
           </el-table-column>
           
-          <el-table-column prop="TotalDuration" label="耗时" width="120" align="center">
+          <el-table-column prop="TotalDuration" :label='$tr("耗时")' width="120" align="center">
             <template #default="{row}">
               <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                 <img 
                   :src="$getAssetUrl('@/assets/image/定时关闭.svg')" 
-                  alt="时间"
+                  :alt='$tr("时间")'
                   style="width: 16px; height: 16px;"
                 />
                 <span>{{ row.TotalDuration }}s</span>
@@ -113,10 +113,10 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" width="150" align="center" fixed="right">
+          <el-table-column :label='$tr("操作")' width="150" align="center" fixed="right">
             <template #default="{ row }">
               <div class="operation-buttons">
-                 <el-tooltip content="查看日志" placement="top">
+                 <el-tooltip :content='$tr("查看日志")' placement="top">
                   <el-button
                     type="primary"
                     :icon="Document"
@@ -148,7 +148,7 @@
     <!-- 历史详情流程弹窗 -->
     <el-dialog
       v-model="logDialogVisible"
-      title="任务执行详情"
+      :title='$tr("任务执行详情")'
       width="80%"
       top="5vh"
       destroy-on-close
@@ -162,13 +162,15 @@
           :history-mode="true"
           :history-id="currentHistoryId"
         />
-        <el-empty v-else description="暂无执行详情数据" />
+        <el-empty v-else :description='$tr("暂无执行详情数据")' />
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Search, Refresh, Document } from '@element-plus/icons-vue'
@@ -216,7 +218,7 @@ const fetchHistory = async () => {
     }
   } catch (error) {
     console.error('获取历史记录失败', error)
-    ElMessage.error('获取历史记录失败')
+    ElMessage.error(tr('获取历史记录失败'))
     historyList.value = []
     total.value = 0
   } finally {
@@ -325,7 +327,7 @@ const viewLog = async (row) => {
         duration: work.Duration || work.duration
       }))
     } else {
-        ElMessage.error('获取任务详情失败')
+        ElMessage.error(tr('获取任务详情失败'))
     }
   } finally {
     detailLoading.value = false

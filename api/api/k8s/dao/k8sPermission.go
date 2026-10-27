@@ -200,12 +200,12 @@ func (d *K8sPermissionDao) CheckPermission(userID, clusterID uint, namespace str
 // IsAdmin 检查用户是否为管理员（拥有所有权限）
 func (d *K8sPermissionDao) IsAdmin(userID uint) (bool, error) {
 	var count int64
-	// 通过角色判断是否为管理员 - 角色ID为1通常是管理员
-	d.db.Table("sys_admin_role").
+	// Only an enabled administrator role grants the system-wide bypass.
+	err := d.db.Table("sys_admin_role").
 		Joins("JOIN sys_role ON sys_role.id = sys_admin_role.role_id").
-		Where("sys_admin_role.admin_id = ? AND sys_role.role_key = ?", userID, "admin").
-		Count(&count)
-	return count > 0, nil
+		Where("sys_admin_role.admin_id = ? AND sys_role.role_key = ? AND sys_role.status = ?", userID, "admin", 1).
+		Count(&count).Error
+	return count > 0 && err == nil, err
 }
 
 // GetUserAllowedNamespaces 获取用户允许访问的命名空间列表（按集群分组）

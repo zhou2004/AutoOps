@@ -1,0 +1,473 @@
+/* AutoOps 公共界面规范。此文件在 Element Plus 后加载。
+ * 兼容历史 scoped 样式的覆盖集中在此处，业务页面不再定义按钮渐变和悬浮位移。
+ * 通过 body 作用域同时覆盖页面内组件和 teleport 弹窗。 */
+body.autoops-ui {
+  --ui-control-height: 36px;
+  --ui-control-small: 32px;
+  --ui-control-large: 44px;
+  --ui-radius-control: 6px;
+  --ui-radius-panel: 12px;
+  --ui-page-padding: 24px;
+  --el-color-primary: var(--primary);
+  --el-color-primary-light-3: color-mix(
+    in srgb,
+    var(--primary) 70%,
+    var(--bg-card)
+  );
+  --el-color-primary-light-5: color-mix(
+    in srgb,
+    var(--primary) 50%,
+    var(--bg-card)
+  );
+  --el-color-primary-light-7: color-mix(
+    in srgb,
+    var(--primary) 30%,
+    var(--bg-card)
+  );
+  --el-color-primary-light-8: color-mix(
+    in srgb,
+    var(--primary) 20%,
+    var(--bg-card)
+  );
+  --el-color-primary-light-9: var(--primary-light);
+  --el-color-primary-dark-2: var(--primary-dark);
+  --el-color-success: var(--success);
+  --el-color-success-light-3: color-mix(
+    in srgb,
+    var(--success) 70%,
+    var(--bg-card)
+  );
+  --el-color-success-light-5: color-mix(
+    in srgb,
+    var(--success) 50%,
+    var(--bg-card)
+  );
+  --el-color-success-light-7: color-mix(
+    in srgb,
+    var(--success) 30%,
+    var(--bg-card)
+  );
+  --el-color-success-light-8: color-mix(
+    in srgb,
+    var(--success) 20%,
+    var(--bg-card)
+  );
+  --el-color-success-light-9: color-mix(
+    in srgb,
+    var(--success) 10%,
+    var(--bg-card)
+  );
+  --el-color-warning: var(--warning);
+  --el-color-warning-light-3: color-mix(
+    in srgb,
+    var(--warning) 70%,
+    var(--bg-card)
+  );
+  --el-color-warning-light-5: color-mix(
+    in srgb,
+    var(--warning) 50%,
+    var(--bg-card)
+  );
+  --el-color-warning-light-7: color-mix(
+    in srgb,
+    var(--warning) 30%,
+    var(--bg-card)
+  );
+  --el-color-warning-light-8: color-mix(
+    in srgb,
+    var(--warning) 20%,
+    var(--bg-card)
+  );
+  --el-color-warning-light-9: color-mix(
+    in srgb,
+    var(--warning) 10%,
+    var(--bg-card)
+  );
+  --el-color-danger: var(--danger);
+  --el-color-danger-light-3: color-mix(
+    in srgb,
+    var(--danger) 70%,
+    var(--bg-card)
+  );
+  --el-color-danger-light-5: color-mix(
+    in srgb,
+    var(--danger) 50%,
+    var(--bg-card)
+  );
+  --el-color-danger-light-7: color-mix(
+    in srgb,
+    var(--danger) 30%,
+    var(--bg-card)
+  );
+  --el-color-danger-light-8: color-mix(
+    in srgb,
+    var(--danger) 20%,
+    var(--bg-card)
+  );
+  --el-color-danger-light-9: color-mix(
+    in srgb,
+    var(--danger) 10%,
+    var(--bg-card)
+  );
+  --el-color-info: var(--text-secondary);
+  --el-color-info-light-3: color-mix(
+    in srgb,
+    var(--text-secondary) 70%,
+    var(--bg-card)
+  );
+  --el-color-info-light-5: color-mix(
+    in srgb,
+    var(--text-secondary) 50%,
+    var(--bg-card)
+  );
+  --el-color-info-light-7: color-mix(
+    in srgb,
+    var(--text-secondary) 30%,
+    var(--bg-card)
+  );
+  --el-color-info-light-8: color-mix(
+    in srgb,
+    var(--text-secondary) 20%,
+    var(--bg-card)
+  );
+  --el-color-info-light-9: color-mix(
+    in srgb,
+    var(--text-secondary) 10%,
+    var(--bg-card)
+  );
+  --el-bg-color: var(--bg-card);
+  --el-bg-color-overlay: var(--bg-card);
+  --el-fill-color-blank: var(--bg-card);
+  --el-fill-color-light: var(--bg-card-alt);
+  --el-fill-color-lighter: var(--bg-card-alt);
+  --el-fill-color: var(--bg-hover);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-regular);
+  --el-text-color-secondary: var(--text-secondary);
+  --el-border-color: var(--border);
+  --el-border-color-light: var(--border);
+  --el-border-color-lighter: var(--border-light);
+  --el-border-radius-base: var(--ui-radius-control);
+  --el-component-size: var(--ui-control-height);
+  --el-component-size-small: var(--ui-control-small);
+  --el-component-size-large: var(--ui-control-large);
+}
+
+body.autoops-ui .app-page-content {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--ui-page-padding) !important;
+  margin: 0 !important;
+  color: var(--text-regular);
+}
+
+/* 主操作 primary、普通操作 default、危险操作 danger；状态颜色由组件 type 保留。 */
+body.autoops-ui .el-button {
+  height: var(--ui-control-height) !important;
+  min-height: var(--ui-control-height) !important;
+  padding: 0 14px !important;
+  border-radius: var(--ui-radius-control) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  line-height: 1 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+body.autoops-ui .el-button > .el-icon {
+  font-size: 16px !important;
+}
+body.autoops-ui .el-button:not(.is-text, .is-link) {
+  color: var(--el-button-text-color) !important;
+  background-color: var(--el-button-bg-color) !important;
+  border: 1px solid var(--el-button-border-color) !important;
+}
+body.autoops-ui .el-button:not(.is-text, .is-link, .is-disabled):hover {
+  color: var(--el-button-hover-text-color) !important;
+  background-color: var(--el-button-hover-bg-color) !important;
+  border-color: var(--el-button-hover-border-color) !important;
+}
+body.autoops-ui .el-button:not(.is-text, .is-link, .is-disabled):active {
+  color: var(--el-button-active-text-color) !important;
+  background-color: var(--el-button-active-bg-color) !important;
+  border-color: var(--el-button-active-border-color) !important;
+}
+body.autoops-ui .el-button.is-disabled:not(.is-text, .is-link) {
+  color: var(--el-button-disabled-text-color) !important;
+  background-color: var(--el-button-disabled-bg-color) !important;
+  border-color: var(--el-button-disabled-border-color) !important;
+}
+body.autoops-ui .el-button--small {
+  height: var(--ui-control-small) !important;
+  min-height: var(--ui-control-small) !important;
+  padding-inline: 10px !important;
+  font-size: 13px !important;
+}
+body.autoops-ui .el-button--large {
+  height: var(--ui-control-large) !important;
+  min-height: var(--ui-control-large) !important;
+  padding-inline: 18px !important;
+  font-size: 14px !important;
+}
+body.autoops-ui .el-button.is-circle {
+  width: var(--ui-control-height) !important;
+  min-width: var(--ui-control-height) !important;
+  padding: 0 !important;
+}
+body.autoops-ui .el-button--small.is-circle {
+  width: var(--ui-control-small) !important;
+  min-width: var(--ui-control-small) !important;
+}
+body.autoops-ui .el-button--large.is-circle {
+  width: var(--ui-control-large) !important;
+  min-width: var(--ui-control-large) !important;
+}
+body.autoops-ui .el-button:is(.is-text, .is-link) {
+  color: var(--el-button-text-color) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  padding-inline: 8px !important;
+}
+body.autoops-ui .el-button:is(.is-text, .is-link):not(.is-disabled):hover {
+  color: var(--el-button-hover-text-color) !important;
+  background: var(--bg-hover) !important;
+}
+body.autoops-ui .el-button:is(.is-text, .is-link).is-disabled {
+  color: var(--el-button-disabled-text-color) !important;
+}
+body.autoops-ui .el-button:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px;
+}
+
+/* 表格操作保持轻量；删除保留危险色，避免每一行出现成排实心按钮。 */
+body.autoops-ui .el-table .el-button {
+  height: var(--ui-control-small) !important;
+  min-height: var(--ui-control-small) !important;
+  padding-inline: 8px !important;
+  font-size: 13px !important;
+}
+body.autoops-ui .el-table .el-button:not(.is-disabled) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--primary) !important;
+}
+body.autoops-ui .el-table .el-button--danger:not(.is-disabled) {
+  color: var(--el-color-danger) !important;
+}
+body.autoops-ui .el-table .el-button:not(.is-disabled):hover {
+  background-color: var(--bg-hover) !important;
+}
+body.autoops-ui .el-table .el-button.is-circle {
+  width: var(--ui-control-small) !important;
+  min-width: var(--ui-control-small) !important;
+  padding: 0 !important;
+}
+body.autoops-ui .el-table .el-button + .el-button {
+  margin-left: 4px;
+}
+
+body.autoops-ui
+  :is(
+    .action-section,
+    .header-actions,
+    .asset-toolbar,
+    .table-toolbar,
+    .operation-buttons
+  ) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+body.autoops-ui
+  :is(
+    .action-section,
+    .header-actions,
+    .asset-toolbar,
+    .table-toolbar,
+    .operation-buttons
+  )
+  > .el-button
+  + .el-button {
+  margin-left: 0;
+}
+body.autoops-ui
+  :is(.action-section, .header-actions, .asset-toolbar, .table-toolbar) {
+  margin-bottom: 16px;
+}
+body.autoops-ui
+  :is(.page-header, .asset-page-header, .page-hero, .task-page-header)
+  :is(h1, h2),
+body.autoops-ui .app-page-content > h2 {
+  font-size: 22px !important;
+  line-height: 1.4;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentcolor;
+}
+body.autoops-ui
+  :is(.el-input__wrapper, .el-select__wrapper, .el-textarea__inner) {
+  border-radius: var(--ui-radius-control) !important;
+  background-color: var(--bg-card);
+}
+body.autoops-ui .el-card {
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-panel) !important;
+  background: var(--bg-card) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: none !important;
+}
+body.autoops-ui .el-card__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  background: var(--bg-card) !important;
+}
+body.autoops-ui .el-table {
+  --el-table-header-bg-color: var(--bg-card-alt);
+  --el-table-header-text-color: var(--text-regular);
+  --el-table-row-hover-bg-color: var(--bg-hover);
+  --el-table-border-color: var(--border-light);
+}
+body.autoops-ui .el-table th.el-table__cell {
+  background: var(--bg-card-alt) !important;
+  color: var(--text-regular) !important;
+  font-weight: 600;
+}
+body.autoops-ui .el-table .el-table__cell {
+  padding-block: 10px;
+  font-size: 13px;
+}
+body.autoops-ui :is(.el-dialog, .el-message-box, .el-drawer) {
+  --el-dialog-padding-primary: 24px;
+  background: var(--bg-card) !important;
+  color: var(--text-regular);
+}
+body.autoops-ui :is(.el-dialog:not(.is-fullscreen), .el-message-box) {
+  max-width: calc(100vw - 32px);
+  border-radius: var(--ui-radius-panel) !important;
+}
+body.autoops-ui :is(.el-dialog__header, .el-drawer__header) {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+body.autoops-ui :is(.el-dialog__title, .el-drawer__title) {
+  font-size: 17px !important;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+}
+body.autoops-ui :is(.el-dialog__footer, .el-drawer__footer) {
+  border-top: 1px solid var(--border-light);
+  padding-top: 16px;
+}
+
+@media (max-width: 768px) {
+  body.autoops-ui {
+    --ui-page-padding: 14px;
+  }
+  body.autoops-ui .el-form--inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body.autoops-ui .el-form--inline .el-form-item {
+    max-width: 100%;
+    margin-right: 0;
+  }
+  body.autoops-ui .el-pagination {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    max-width: 100%;
+  }
+  body.autoops-ui .el-card__body {
+    padding: 14px;
+  }
+  body.autoops-ui .el-dialog {
+    --el-dialog-padding-primary: 16px;
+  }
+}
+
+/* 筛选区遵循相同的边框、留白和换行规则。 */
+body.autoops-ui
+  :is(.search-area, .search-section, .asset-filters, .filter-section) {
+  background: var(--bg-card-alt) !important;
+  border-color: var(--border) !important;
+  border-radius: var(--ui-radius-control) !important;
+}
+body.autoops-ui
+  :is(.search-area, .search-section, .asset-filters, .filter-section)
+  .el-form--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+body.autoops-ui
+  :is(.search-area, .search-section, .asset-filters, .filter-section)
+  .el-form-item {
+  margin: 0;
+}
+/* 窄屏通过表格内部滚动浏览，固定操作列不再覆盖主要内容。 */
+@media (max-width: 768px) {
+  body.autoops-ui
+    .el-table
+    :is(.el-table-fixed-column--left, .el-table-fixed-column--right) {
+    position: static !important;
+  }
+  body.autoops-ui
+    .el-table
+    :is(.el-table-fixed-column--left, .el-table-fixed-column--right)::before {
+    display: none;
+  }
+}
+
+body.autoops-ui .el-button.btn-icon {
+  width: var(--ui-control-small) !important;
+  height: var(--ui-control-small) !important;
+  min-height: var(--ui-control-small) !important;
+  padding: 0 !important;
+}
+body.autoops-ui .el-button-group > .el-button:not(:first-child, :last-child) {
+  border-radius: 0 !important;
+}
+body.autoops-ui .el-button-group > .el-button:first-child:not(:last-child) {
+  border-radius: var(--ui-radius-control) 0 0 var(--ui-radius-control) !important;
+}
+body.autoops-ui .el-button-group > .el-button:last-child:not(:first-child) {
+  border-radius: 0 var(--ui-radius-control) var(--ui-radius-control) 0 !important;
+}
+
+body.autoops-ui
+  .el-card__header
+  .card-header
+  > :is(.title, .main-title, .section-title) {
+  color: var(--text-primary) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentcolor;
+}
+
+/* 图标操作保持 32px 点击区域，文字由 tooltip 提供。 */
+body.autoops-ui .action-icon-trigger {
+  display: inline-flex;
+  align-items: center;
+}
+body.autoops-ui .el-button.action-icon {
+  width: var(--ui-control-small) !important;
+  min-width: var(--ui-control-small) !important;
+  height: var(--ui-control-small) !important;
+  min-height: var(--ui-control-small) !important;
+  padding: 0 !important;
+}
+body.autoops-ui
+  .el-button.action-icon:is(.is-link, .is-text):not(.is-disabled):hover {
+  color: var(--el-button-text-color) !important;
+}

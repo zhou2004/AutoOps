@@ -3,24 +3,24 @@
     <el-card shadow="hover" class="taskansible-card">
       <template #header>
         <div class="card-header">
-          <span class="title">Ansible任务管理</span>
+          <span class="title">{{ $tr("Ansible任务管理") }}</span>
         </div>
       </template>
       
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form" ref="queryForm">
-      <el-form-item label="搜索模式">
+      <el-form-item :label='$tr("搜索模式")'>
         <el-radio-group v-model="searchMode" size="small" @change="handleSearchModeChange">
-          <el-radio-button label="all">全部</el-radio-button>
-          <el-radio-button label="name">按名称</el-radio-button>
-          <el-radio-button label="type">按类型</el-radio-button>
-          <el-radio-button label="view">按视图</el-radio-button>
+          <el-radio-button label="all">{{ $tr("全部") }}</el-radio-button>
+          <el-radio-button label="name">{{ $tr("按名称") }}</el-radio-button>
+          <el-radio-button label="type">{{ $tr("按类型") }}</el-radio-button>
+          <el-radio-button label="view">{{ $tr("按视图") }}</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="任务名称" v-if="searchMode === 'name' || searchMode === 'all'">
+      <el-form-item :label='$tr("任务名称")' v-if="searchMode === 'name' || searchMode === 'all'">
         <el-input
-          placeholder="请输入任务名称"
+          :placeholder='$tr("请输入任务名称")'
           size="small"
           clearable
           v-model="queryParams.name"
@@ -28,23 +28,23 @@
           :disabled="searchMode === 'type' || searchMode === 'view'"
         />
       </el-form-item>
-      <el-form-item label="任务类型" style="width: 200px;" v-if="searchMode === 'type' || searchMode === 'all'">
+      <el-form-item :label='$tr("任务类型")' style="width: 200px;" v-if="searchMode === 'type' || searchMode === 'all'">
         <el-select
           size="small"
-          placeholder="请选择任务类型"
+          :placeholder='$tr("请选择任务类型")'
           v-model="queryParams.type"
           @change="searchTasks"
           style="width: 100%"
           :disabled="searchMode === 'name' || searchMode === 'view'"
         >
-          <el-option label="手动任务" :value="1" />
-          <el-option label="自动任务" :value="2" />
+          <el-option :label='$tr("手动任务")' :value="1" />
+          <el-option :label='$tr("自动任务")' :value="2" />
         </el-select>
       </el-form-item>
-      <el-form-item label="视图分组" v-if="searchMode === 'view' || searchMode === 'all'">
+      <el-form-item :label='$tr("视图分组")' v-if="searchMode === 'view' || searchMode === 'all'">
         <el-select
           size="small"
-          placeholder="选择视图分组（留空=全部）"
+          :placeholder='$tr("选择视图分组（留空=全部）")'
           v-model="queryParams.viewName"
           @change="searchTasks"
           clearable
@@ -52,18 +52,19 @@
           style="width: 180px"
           :disabled="searchMode === 'name' || searchMode === 'type'"
         >
-          <el-option v-for="v in viewList" :key="v.ID" :label="v.Name" :value="v.Name" />
+          <el-option v-for="v in viewList" :key="v.ID" :label="$tr(v.Name)" :value="v.Name" />
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" size="small" @click="searchTasks">搜索</el-button>
-        <el-button type="warning" icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="Search" size="small" @click="searchTasks">{{ $tr("搜索") }}</el-button>
+        <el-button type="warning" icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
       </el-form-item>
         </el-form>
       </div>
 
       <!-- 操作按钮 -->
       <div class="action-section">
+        <el-button plain type="primary" :icon="Setting" size="small" @click="kubeaszVisible = true">{{ $tr("kubeasz 系统运维") }}</el-button>
         <el-button
           plain
           type="success"
@@ -71,7 +72,7 @@
           size="small"
           v-authority="['task:ansible:create']"
           @click="handleCreate"
-        >新增Ansible任务</el-button>
+        >{{ $tr("新增Ansible任务") }}</el-button>
         <el-button
           plain
           type="primary"
@@ -79,7 +80,7 @@
           size="small"
           @click="showViewManageDialog"
           style="margin-left: 8px;"
-        >管理视图分组</el-button>
+        >{{ $tr("管理视图分组") }}</el-button>
       </div>
     
       <!-- 列表区域 -->
@@ -92,7 +93,7 @@
       style="width: 100%"
 
     >
-      <el-table-column prop="name" label="任务名称" width="200">
+      <el-table-column prop="name" :label='$tr("任务名称")' width="200">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -105,7 +106,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="type" label="类型" width="130">
+      <el-table-column prop="type" :label='$tr("类型")' width="130">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -119,76 +120,76 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="130">
+      <el-table-column prop="status" :label='$tr("状态")' width="130">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
               :src="$getAssetUrl('@/assets/image/zhuangtai.svg')" 
-              alt="状态"
+              :alt='$tr("状态")'
               style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
             />
             <span :class="getStatusClass(row.status)">
-              {{ getStatusText(row.status) }}
+              {{ $tr(getStatusText(row.status)) }}
             </span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="taskCount" label="任务数量" >
+      <el-table-column prop="taskCount" :label='$tr("任务数量")' >
         <template #default="{row}">
           <span>{{ row.taskCount || 0 }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="totalDuration" label="执行耗时" width="150">
+      <el-table-column prop="totalDuration" :label='$tr("执行耗时")' width="150">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
               :src="$getAssetUrl('@/assets/image/定时关闭.svg')" 
-              alt="时间"
+              :alt='$tr("时间")'
               style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
             />
             <span>{{ formatDuration(row.totalDuration) }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="description" label="任务描述" >
+      <el-table-column prop="description" :label='$tr("任务描述")' >
         <template #default="{row}">
           <span :title="row.description" style="display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             {{ row.description || '暂无描述' }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="gitRepo" label="Git仓库"  v-if="queryParams.type === 2">
+      <el-table-column prop="gitRepo" :label='$tr("Git仓库")'  v-if="queryParams.type === 2">
         <template #default="{row}">
-          <span :title="row.gitRepo" style="display: inline-block;  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <span :title="$tr(row.gitRepo)" style="display: inline-block;  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             {{ row.gitRepo || '-' }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="createdAt" label="创建时间"  />
-      <el-table-column prop="updatedAt" label="更新时间"  />
-      <el-table-column prop="cron_expr" label="Cron表达式" width="150">
+      <el-table-column prop="createdAt" :label='$tr("创建时间")'  />
+      <el-table-column prop="updatedAt" :label='$tr("更新时间")'  />
+      <el-table-column prop="cron_expr" :label='$tr("Cron表达式")' width="150">
         <template #default="{ row }">
            <el-tag v-if="row.cron_expr" size="small" type="info">{{ row.cron_expr }}</el-tag>
            <span v-else style="color: var(--text-secondary);">-</span>
         </template>
       </el-table-column>
-      <el-table-column prop="is_recurring" label="定时开关" width="100" align="center">
+      <el-table-column prop="is_recurring" :label='$tr("定时开关")' width="100" align="center">
         <template #default="{ row }">
           <el-switch
             v-model="row.is_recurring"
             :active-value="1"
             :inactive-value="0"
             inline-prompt
-            active-text="开"
-            inactive-text="关"
+            :active-text='$tr("开")'
+            :inactive-text='$tr("关")'
             @change="handleRecurringChange(row)"
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column :label='$tr("操作")' width="120" fixed="right">
         <template #default="{row}">
           <div class="operation-buttons">
-            <el-tooltip content="启动任务" placement="top">
+            <el-tooltip :content='$tr("启动任务")' placement="top">
               <el-button
                 type="success"
                 :icon="VideoPlay"
@@ -198,7 +199,16 @@
                 @click="() => showStartTaskDialog(row)"
               />
             </el-tooltip>
-            <el-tooltip content="编辑" placement="top">
+            <el-tooltip v-if="row.status === 2" :content='$tr("停止任务")' placement="top">
+              <el-button
+                type="warning"
+                :icon="Delete"
+                size="small"
+                circle
+                @click="() => handleStopTask(row)"
+              />
+            </el-tooltip>
+            <el-tooltip :content='$tr("编辑")' placement="top">
               <el-button
                 type="primary"
                 icon="Edit"
@@ -207,7 +217,7 @@
                 @click="handleEdit(row)"
               />
             </el-tooltip>
-            <el-tooltip content="删除" placement="top">
+            <el-tooltip :content='$tr("删除")' placement="top">
               <el-button
                 type="danger"
                 :icon="Delete"
@@ -237,9 +247,13 @@
       </div>
     </el-card>
 
+    <el-dialog v-model="kubeaszVisible" :title='$tr("kubeasz 系统运维")' width="92%" top="4vh" destroy-on-close>
+      <KubeaszOperations v-if="kubeaszVisible" />
+    </el-dialog>
+
     <!-- Ansible任务表单对话框 -->
     <el-dialog
-      :title="isEdit ? '编辑Ansible任务' : '新增Ansible任务'"
+      :title="isEdit ? '编辑Ansible任务' : $tr('新增Ansible任务')"
       v-model="formVisible"
       v-authority="['task:ansible:create']"
       width="50%"
@@ -254,76 +268,76 @@
         :model="currentTask"
         :rules="taskRules"
       >
-        <el-form-item label="任务名称" prop="name">
-          <el-input v-model="currentTask.name" placeholder="请输入任务名称" />
+        <el-form-item :label='$tr("任务名称")' prop="name">
+          <el-input v-model="currentTask.name" :placeholder='$tr("请输入任务名称")' />
         </el-form-item>
         
-        <el-form-item label="任务描述">
+        <el-form-item :label='$tr("任务描述")'>
           <el-input
             v-model="currentTask.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入任务描述（可选）"
+            :placeholder='$tr("请输入任务描述（可选）")'
             maxlength="500"
             show-word-limit
           />
         </el-form-item>
         
-        <el-form-item label="任务类型" prop="type">
+        <el-form-item :label='$tr("任务类型")' prop="type">
           <el-radio-group v-model="currentTask.type">
-            <el-radio :label="1">手动任务</el-radio>
-            <el-radio :label="2">自动任务</el-radio>
+            <el-radio :label="1">{{ $tr("手动任务") }}</el-radio>
+            <el-radio :label="2">{{ $tr("自动任务") }}</el-radio>
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="使用配置中心">
-           <el-switch v-model="currentTask.use_config" :active-value="1" :inactive-value="0" active-text="开启" inactive-text="关闭" />
+        <el-form-item :label='$tr("使用配置中心")'>
+           <el-switch v-model="currentTask.use_config" :active-value="1" :inactive-value="0" :active-text='$tr("开启")' :inactive-text='$tr("关闭")' />
         </el-form-item>
 
         <!-- 使用配置中心时的选项 -->
         <template v-if="currentTask.use_config === 1">
-           <el-form-item label="Inventory配置" >
-             <el-select v-model="currentTask.inventory_config_id" placeholder="请选择Inventory配置" clearable filterable style="width: 100%">
-                <el-option v-for="item in configOptions.inventory" :key="item.ID" :label="item.Name" :value="item.ID" />
+           <el-form-item :label='$tr("Inventory配置")' >
+             <el-select v-model="currentTask.inventory_config_id" :placeholder='$tr("请选择Inventory配置")' clearable filterable style="width: 100%">
+                <el-option v-for="item in configOptions.inventory" :key="item.ID" :label="$tr(item.Name)" :value="item.ID" />
              </el-select>
            </el-form-item>
-           <el-form-item label="全局变量配置">
-             <el-select v-model="currentTask.global_vars_config_id" placeholder="请选择全局变量配置" clearable filterable style="width: 100%">
-                <el-option v-for="item in configOptions.globalVars" :key="item.ID" :label="item.Name" :value="item.ID" />
+           <el-form-item :label='$tr("全局变量配置")'>
+             <el-select v-model="currentTask.global_vars_config_id" :placeholder='$tr("请选择全局变量配置")' clearable filterable style="width: 100%">
+                <el-option v-for="item in configOptions.globalVars" :key="item.ID" :label="$tr(item.Name)" :value="item.ID" />
              </el-select>
            </el-form-item>
-           <el-form-item label="额外变量配置">
-             <el-select v-model="currentTask.extra_vars_config_id" placeholder="请选择额外变量配置" clearable filterable style="width: 100%">
-                <el-option v-for="item in configOptions.extraVars" :key="item.ID" :label="item.Name" :value="item.ID" />
+           <el-form-item :label='$tr("额外变量配置")'>
+             <el-select v-model="currentTask.extra_vars_config_id" :placeholder='$tr("请选择额外变量配置")' clearable filterable style="width: 100%">
+                <el-option v-for="item in configOptions.extraVars" :key="item.ID" :label="$tr(item.Name)" :value="item.ID" />
              </el-select>
            </el-form-item>
-           <el-form-item label="命令行参数配置">
-             <el-select v-model="currentTask.cli_args_config_id" placeholder="请选择命令行参数配置" clearable filterable style="width: 100%">
-                <el-option v-for="item in configOptions.cliArgs" :key="item.ID" :label="item.Name" :value="item.ID" />
+           <el-form-item :label='$tr("命令行参数配置")'>
+             <el-select v-model="currentTask.cli_args_config_id" :placeholder='$tr("请选择命令行参数配置")' clearable filterable style="width: 100%">
+                <el-option v-for="item in configOptions.cliArgs" :key="item.ID" :label="$tr(item.Name)" :value="item.ID" />
              </el-select>
            </el-form-item>
         </template>
 
         <!-- 手动任务配置 -->
         <template v-if="currentTask.type === 1">
-          <el-form-item label="主机分组" prop="hostGroups" v-if="currentTask.use_config === 0">
+          <el-form-item :label='$tr("主机分组")' prop="hostGroups" v-if="currentTask.use_config === 0">
             <div style="margin-bottom: 10px">
               <el-button
                 type="primary"
                 icon="Plus"
                 size="small"
                 @click="handleAddHostGroup"
-              >添加主机分组</el-button>
+              >{{ $tr("添加主机分组") }}</el-button>
             </div>
             <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
                  style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
-              <div style="color: var(--text-regular); margin-bottom: 8px">已配置分组:</div>
+              <div style="color: var(--text-regular); margin-bottom: 8px">{{ $tr("已配置分组:") }}</div>
               <div
                 v-for="(hosts, groupName) in currentTask.hostGroups"
                 :key="groupName"
                 style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px; margin-bottom: 5px"
               >
-                <span>{{ groupName }} ({{ hosts.length }}台主机)</span>
+                <span>{{ groupName }} ({{ hosts.length }}{{ $tr("台主机)") }}</span>
                 <el-button
                   type="danger"
                   icon="Close"
@@ -337,31 +351,31 @@
           </el-form-item>
 
           <template v-if="currentTask.use_config === 0">
-            <el-form-item label="全局变量">
+            <el-form-item :label='$tr("全局变量")'>
               <el-input
                 v-model="currentTask.variables"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入JSON格式的全局变量，如: {"name":"mysql-test","version":"5.7"}'
+                :placeholder='$tr("请输入JSON格式的全局变量，如: {\"name\":\"mysql-test\",\"version\":\"5.7\"}")'
               />
             </el-form-item>
-            <el-form-item label="额外变量">
+            <el-form-item :label='$tr("额外变量")'>
               <el-input
                 v-model="currentTask.extra_vars"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入YAML格式的额外变量，如: version: "1.0"\nname: mysql-test'
+                :placeholder='$tr("请输入YAML格式的额外变量，如: version: \"1.0\"\\nname: mysql-test")'
               />
             </el-form-item>
-            <el-form-item label="命令行参数">
+            <el-form-item :label='$tr("命令行参数")'>
               <el-input
                 v-model="currentTask.cli_args"
-                placeholder='请输入命令行参数'
+                :placeholder='$tr("请输入命令行参数")'
               />
             </el-form-item>
           </template>
 
-          <el-form-item label="Playbook文件" prop="playbooks">
+          <el-form-item :label='$tr("Playbook文件")' prop="playbooks">
             <el-upload
               ref="playbookUpload"
               :auto-upload="false"
@@ -370,14 +384,14 @@
               accept=".yml,.yaml"
               @change="handlePlaybookChange"
             >
-              <el-button size="small" type="primary" icon="Upload">选择Playbook</el-button>
+              <el-button size="small" type="primary" icon="Upload">{{ $tr("选择Playbook") }}</el-button>
               <template #tip>
-                <div class="el-upload__tip">只能上传yaml文件，且不超过10MB</div>
+                <div class="el-upload__tip">{{ $tr("只能上传yaml文件，且不超过10MB") }}</div>
               </template>
             </el-upload>
           </el-form-item>
 
-          <el-form-item label="Roles压缩包">
+          <el-form-item :label='$tr("Roles压缩包")'>
             <el-upload
               ref="rolesUpload"
               :auto-upload="false"
@@ -386,9 +400,9 @@
               accept=".zip"
               @change="handleRolesChange"
             >
-              <el-button size="small" type="primary" icon="Upload">选择Roles</el-button>
+              <el-button size="small" type="primary" icon="Upload">{{ $tr("选择Roles") }}</el-button>
               <template #tip>
-                <div class="el-upload__tip">只能上传zip文件，且不超过50MB</div>
+                <div class="el-upload__tip">{{ $tr("只能上传zip文件，且不超过50MB") }}</div>
               </template>
             </el-upload>
           </el-form-item>
@@ -396,24 +410,24 @@
 
         <!-- 自动任务配置 -->
         <template v-if="currentTask.type === 2">
-          <el-form-item label="主机分组" prop="hostGroups" v-if="currentTask.use_config === 0">
+          <el-form-item :label='$tr("主机分组")' prop="hostGroups" v-if="currentTask.use_config === 0">
             <div style="margin-bottom: 10px">
               <el-button
                 type="primary"
                 icon="Plus"
                 size="small"
                 @click="handleAddHostGroup"
-              >添加主机分组</el-button>
+              >{{ $tr("添加主机分组") }}</el-button>
             </div>
             <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
                  style="border: 1px solid var(--border); border-radius: 4px; padding: 10px; background: var(--bg-card-alt)">
-              <div style="color: var(--text-regular); margin-bottom: 8px">已配置分组:</div>
+              <div style="color: var(--text-regular); margin-bottom: 8px">{{ $tr("已配置分组:") }}</div>
               <div
                 v-for="(hosts, groupName) in currentTask.hostGroups"
                 :key="groupName"
                 style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-card); border-radius: 4px; margin-bottom: 5px"
               >
-                <span>{{ groupName }} ({{ hosts.length }}台主机)</span>
+                <span>{{ groupName }} ({{ hosts.length }}{{ $tr("台主机)") }}</span>
                 <el-button
                   type="danger"
                   icon="Close"
@@ -426,91 +440,91 @@
             </div>
           </el-form-item>
 
-          <el-form-item label="Git仓库地址" prop="gitRepo">
-            <el-input v-model="currentTask.gitRepo" placeholder="请输入Git仓库地址" />
+          <el-form-item :label='$tr("Git仓库地址")' prop="gitRepo">
+            <el-input v-model="currentTask.gitRepo" :placeholder='$tr("请输入Git仓库地址")' />
             <div style="margin-top: 4px; color: var(--text-secondary); font-size: 12px;">
-              <span>示例: git@gitee.com:zhang_fan1024/ansible-playbook.git</span>
+              <span>{{ $tr("示例: git@gitee.com:zhang_fan1024/ansible-playbook.git") }}</span>
             </div>
           </el-form-item>
 
-          <el-form-item label="Playbook路径">
+          <el-form-item :label='$tr("Playbook路径")'>
              <el-select
                 v-model="currentTask.playbook_paths"
                 multiple
                 filterable
                 allow-create
                 default-first-option
-                placeholder="请输入Playbook文件路径并回车"
+                :placeholder='$tr("请输入Playbook文件路径并回车")'
                 style="width: 100%"
               >
              </el-select>
-             <div style="font-size: 12px; color: #999; margin-top: 4px">输入如: site.yml, roles/db.yml</div>
+             <div style="font-size: 12px; color: #999; margin-top: 4px">{{ $tr("输入如: site.yml, roles/db.yml") }}</div>
           </el-form-item>
 
           <template v-if="currentTask.use_config === 0">
-            <el-form-item label="全局变量">
+            <el-form-item :label='$tr("全局变量")'>
                 <el-input
                 v-model="currentTask.variables"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入JSON格式的全局变量，如: {"name":"mysql-test","version":"5.7"}'
+                :placeholder='$tr("请输入JSON格式的全局变量，如: {\"name\":\"mysql-test\",\"version\":\"5.7\"}")'
                 />
             </el-form-item>
-            <el-form-item label="额外变量">
+            <el-form-item :label='$tr("额外变量")'>
                 <el-input
                 v-model="currentTask.extra_vars"
                 type="textarea"
                 :rows="3"
-                placeholder='请输入YAML格式的额外变量，如: version: "1.0"\nname: mysql-test'
+                :placeholder='$tr("请输入YAML格式的额外变量，如: version: \"1.0\"\\nname: mysql-test")'
                 />
             </el-form-item>
-            <el-form-item label="命令行参数">
+            <el-form-item :label='$tr("命令行参数")'>
                 <el-input
                 v-model="currentTask.cli_args"
-                placeholder='请输入命令行参数'
+                :placeholder='$tr("请输入命令行参数")'
                 />
             </el-form-item>
           </template>
 
         </template>
 
-        <el-form-item label="视图分组">
+        <el-form-item :label='$tr("视图分组")'>
           <el-select
             v-model="currentTask.view_id"
-            placeholder="选择视图分组（可选）"
+            :placeholder='$tr("选择视图分组（可选）")'
             clearable
             filterable
             style="width: 100%"
           >
-            <el-option v-for="v in viewList" :key="v.ID" :label="v.Name" :value="v.ID" />
+            <el-option v-for="v in viewList" :key="v.ID" :label="$tr(v.Name)" :value="v.ID" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="最大历史记录">
+        <el-form-item :label='$tr("最大历史记录")'>
                 <el-input
                 type="number"
                 v-model="currentTask.max_history_keep"
-                placeholder='保存的最大历史记录数，默认为3'
+                :placeholder='$tr("保存的最大历史记录数，默认为3")'
                 />
             </el-form-item>
         
         <!-- 周期任务配置 -->
-        <el-form-item label="周期性任务">
-           <el-switch v-model="currentTask.is_recurring" :active-value="1" :inactive-value="0" active-text="开启" inactive-text="关闭" />
+        <el-form-item :label='$tr("周期性任务")'>
+           <el-switch v-model="currentTask.is_recurring" :active-value="1" :inactive-value="0" :active-text='$tr("开启")' :inactive-text='$tr("关闭")' />
         </el-form-item>
-        <el-form-item label="Cron表达式" v-if="currentTask.is_recurring === 1" required>
-           <el-input v-model="currentTask.cron_expr" placeholder="例如: 0 0 * * * (每天零点执行)" />
+        <el-form-item :label='$tr("Cron表达式")' v-if="currentTask.is_recurring === 1" required>
+           <el-input v-model="currentTask.cron_expr" :placeholder='$tr("例如: 0 0 * * * (每天零点执行)")' />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
+        <el-button @click="formVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 主机分组选择对话框 -->
     <el-dialog
-      title="配置主机分组"
+      :title='$tr("配置主机分组")'
       v-model="hostGroupDialogVisible"
       width="50%"
       :modal="false"
@@ -518,10 +532,10 @@
       class="modern-dialog"
     >
       <el-form :inline="true" style="margin-bottom: 15px">
-        <el-form-item label="分组名称">
+        <el-form-item :label='$tr("分组名称")'>
           <el-input
             v-model="newGroupName"
-            placeholder="请输入分组名称（如：web、api、db）"
+            :placeholder='$tr("请输入分组名称（如：web、api、db）")'
             style="width: 250px"
           />
         </el-form-item>
@@ -531,14 +545,14 @@
             icon="Plus"
             @click="showHostSelector"
             :disabled="!newGroupName.trim()"
-          >选择主机</el-button>
+          >{{ $tr("选择主机") }}</el-button>
         </el-form-item>
       </el-form>
       
       <!-- 已配置的分组列表 -->
       <div v-if="Object.keys(currentTask.hostGroups).length > 0" 
            style="border: 1px solid var(--border); border-radius: 4px; padding: 15px; background: var(--bg-card-alt)">
-        <div style="color: var(--text-regular); margin-bottom: 10px; font-weight: 500">已配置分组:</div>
+        <div style="color: var(--text-regular); margin-bottom: 10px; font-weight: 500">{{ $tr("已配置分组:") }}</div>
         <div
           v-for="(hosts, groupName) in currentTask.hostGroups"
           :key="groupName"
@@ -547,14 +561,14 @@
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border)">
             <div>
               <el-tag type="primary" style="margin-right: 8px">{{ groupName }}</el-tag>
-              <span style="color: #666">{{ hosts.length }}台主机</span>
+              <span style="color: #666">{{ hosts.length }}{{ $tr("台主机") }}</span>
               <el-button 
                 type="text" 
                 size="small" 
                 @click="showGroupHosts(groupName, hosts)"
                 style="margin-left: 8px; color: #409EFF"
               >
-                查看详情
+                {{ $tr("查看详情") }}
               </el-button>
             </div>
             <el-button
@@ -569,7 +583,7 @@
           <!-- 主机详情展示 -->
           <div v-if="expandedGroups.includes(groupName)" 
                style="margin-top: 8px; padding: 8px; background: #fafafa; border-radius: 4px; border: 1px solid #eee">
-            <div style="color: #666; font-size: 12px; margin-bottom: 5px">主机 ID 列表:</div>
+            <div style="color: #666; font-size: 12px; margin-bottom: 5px">{{ $tr("主机 ID 列表:") }}</div>
             <el-tag 
               v-for="hostId in hosts" 
               :key="hostId" 
@@ -585,11 +599,11 @@
       
       <div v-else style="text-align: center; padding: 40px; color: #999">
         <el-icon size="48"><Connection /></el-icon>
-        <div style="margin-top: 16px">暂无主机分组，请点击上方按钮添加</div>
+        <div style="margin-top: 16px">{{ $tr("暂无主机分组，请点击上方按钮添加") }}</div>
       </div>
       
       <template #footer>
-        <el-button @click="hostGroupDialogVisible = false">关闭</el-button>
+        <el-button @click="hostGroupDialogVisible = false">{{ $tr("关闭") }}</el-button>
       </template>
     </el-dialog>
 
@@ -604,7 +618,7 @@
 
     <!-- ==================== 视图分组管理对话框 ==================== -->
     <el-dialog
-      title="管理视图分组"
+      :title='$tr("管理视图分组")'
       v-model="viewDialogVisible"
       width="500px"
       class="modern-dialog"
@@ -614,18 +628,18 @@
       <div style="margin-bottom: 16px; display: flex; gap: 8px;">
         <el-input
           v-model="viewForm.name"
-          placeholder="输入新视图名称"
+          :placeholder='$tr("输入新视图名称")'
           size="small"
           clearable
           @keyup.enter="handleCreateView"
         />
-        <el-button type="primary" size="small" :icon="Plus" @click="handleCreateView">新增</el-button>
+        <el-button type="primary" size="small" :icon="Plus" @click="handleCreateView">{{ $tr("新增") }}</el-button>
       </div>
       <el-table :data="viewList" v-loading="false" max-height="400">
         <el-table-column prop="ID" label="ID" width="60" />
-        <el-table-column prop="Name" label="视图名称" min-width="200" />
-        <el-table-column prop="CreatedAt" label="创建时间" width="170" />
-        <el-table-column label="操作" width="120" align="center">
+        <el-table-column prop="Name" :label='$tr("视图名称")' min-width="200" />
+        <el-table-column prop="CreatedAt" :label='$tr("创建时间")' width="170" />
+        <el-table-column :label='$tr("操作")' width="120" align="center">
           <template #default="{ row }">
             <el-button type="warning" size="small" @click="handleEditView(row)">
               <el-icon><Edit /></el-icon>
@@ -640,7 +654,7 @@
 
     <!-- ==================== 编辑视图对话框 ==================== -->
     <el-dialog
-      title="编辑视图名称"
+      :title='$tr("编辑视图名称")'
       v-model="viewEditDialogVisible"
       width="400px"
       class="modern-dialog"
@@ -648,13 +662,13 @@
       :append-to-body="true"
     >
       <el-form>
-        <el-form-item label="视图名称">
-          <el-input v-model="viewForm.name" placeholder="请输入视图名称" />
+        <el-form-item :label='$tr("视图名称")'>
+          <el-input v-model="viewForm.name" :placeholder='$tr("请输入视图名称")' />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="viewEditDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUpdateViewModal">确定</el-button>
+        <el-button @click="viewEditDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleUpdateViewModal">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
 
@@ -662,6 +676,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, shallowRef, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElInput } from 'element-plus'
@@ -673,6 +689,7 @@ import {
   UpdateAnsibleTask,
   GetAnsibleTaskById,
   StartAnsibleTask,
+  StopAnsibleTask,
   DeleteAnsibleTask,
   GetAnsibleTasksByName,
   GetAnsibleTasksByType,
@@ -684,9 +701,11 @@ import {
 } from '@/api/task'
 import cmdbAPI from '@/api/cmdb'
 
+import KubeaszOperations from './Job/KubeaszOperations.vue'
 import AnsibleJobFlow from './Job/AnsibleJobFlow.vue'
 import CreateTaskHost from './Job/CreateTaskHost.vue'
 
+const kubeaszVisible = ref(false)
 const router = useRouter()
 const tasks = ref([])
 const loading = ref(false)
@@ -815,17 +834,17 @@ const showViewManageDialog = () => {
 // 创建视图
 const handleCreateView = async () => {
   if (!viewForm.name.trim()) {
-    ElMessage.warning('请输入视图名称')
+    ElMessage.warning(tr('请输入视图名称'))
     return
   }
   try {
     const res = await CreateAnsibleView({ name: viewForm.name.trim() })
     if (res.data && res.data.code === 200) {
-      ElMessage.success('视图创建成功')
+      ElMessage.success(tr('视图创建成功'))
       viewForm.name = ''
       fetchViewList()
     } else {
-      ElMessage.error(res.data?.message || '创建失败')
+      ElMessage.error(res.data?.message || tr('创建失败'))
     }
   } catch (err) {
     ElMessage.error('创建视图失败: ' + (err.response?.data?.message || err.message))
@@ -843,13 +862,13 @@ const handleEditView = (row) => {
 // 更新视图
 const handleUpdateViewModal = async () => {
   if (!viewForm.name.trim()) {
-    ElMessage.warning('请输入视图名称')
+    ElMessage.warning(tr('请输入视图名称'))
     return
   }
   try {
     const res = await UpdateAnsibleView(editViewId.value, { name: viewForm.name.trim() })
     if (res.data && res.data.code === 200) {
-      ElMessage.success('视图更新成功')
+      ElMessage.success(tr('视图更新成功'))
       viewEditDialogVisible.value = false
       fetchViewList()
     } else {
@@ -864,21 +883,21 @@ const handleUpdateViewModal = async () => {
 const handleDeleteView = (row) => {
   ElMessageBox.confirm(
     `确定删除视图"${row.name}"吗？关联该视图的任务将会取消分组。`,
-    '确认删除',
+    tr('确认删除'),
     {
       confirmButtonText: '确定删除',
-      cancelButtonText: '取消',
+      cancelButtonText: tr('取消'),
       type: 'warning'
     }
   ).then(async () => {
     try {
       const res = await DeleteAnsibleView(row.ID)
       if (res.data && res.data.code === 200) {
-        ElMessage.success('视图删除成功')
+        ElMessage.success(tr('视图删除成功'))
         fetchViewList()
         fetchTasks()
       } else {
-        ElMessage.error(res.data?.message || '删除失败')
+        ElMessage.error(res.data?.message || tr('删除失败'))
       }
     } catch (err) {
       ElMessage.error('删除视图失败: ' + (err.response?.data?.message || err.message))
@@ -887,14 +906,14 @@ const handleDeleteView = (row) => {
 }
 
 const taskRules = reactive({
-  name: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择任务类型', trigger: 'change' }],
+  name: [{ required: true, get message() { return tr('请输入任务名称'); }, trigger: 'blur' }],
+  type: [{ required: true, get message() { return tr('请选择任务类型'); }, trigger: 'change' }],
   hostGroups: [{
     required: false,
     validator: (rule, value, callback) => {
       // 只有在不使用配置中心时，才校验手动的主机分组
       if (currentTask.value.use_config === 0 && Object.keys(currentTask.value.hostGroups).length === 0) {
-        callback(new Error('请至少配置一个主机分组'))
+        callback(new Error(tr('请至少配置一个主机分组')))
       } else {
         callback()
       }
@@ -920,7 +939,7 @@ const taskRules = reactive({
     required: false,
     validator: (rule, value, callback) => {
       if (currentTask.value.type === 2 && !currentTask.value.gitRepo) {
-        callback(new Error('请输入Git仓库地址'))
+        callback(new Error(tr('请输入Git仓库地址')))
       } else {
         callback()
       }
@@ -1036,7 +1055,7 @@ const fetchTasks = async () => {
         console.error('taskList不是数组:', taskList)
         tasks.value = []
         total.value = 0
-        ElMessage.warning('数据格式异常，请检查API返回格式')
+        ElMessage.warning(tr('数据格式异常，请检查API返回格式'))
       }
     } else {
       tasks.value = []
@@ -1129,7 +1148,7 @@ const handleEdit = async (row) => {
      }
   } catch (e) {
       console.error(e)
-      ElMessage.error('获取任务详情失败')
+      ElMessage.error(tr('获取任务详情失败'))
   }
 }
 
@@ -1196,7 +1215,7 @@ const handleSubmit = async () => {
     let response
     if (isEdit.value) {
       if (!editId.value) {
-        ElMessage.warning('编辑模式下缺少任务ID')
+        ElMessage.warning(tr('编辑模式下缺少任务ID'))
         return
       }
 
@@ -1206,7 +1225,7 @@ const handleSubmit = async () => {
         try {
            variablesData = JSON.parse(currentTask.value.variables)
         } catch (e) {
-           ElMessage.error('全局变量格式错误，请输入有效的JSON字符串')
+           ElMessage.error(tr('全局变量格式错误，请输入有效的JSON字符串'))
            submitting.value = false
            return
         }
@@ -1287,11 +1306,11 @@ const handleSubmit = async () => {
 const handleDelete = async (id) => {
   try {
     await ElMessageBox.confirm(
-      '确定要删除该Ansible任务吗？删除后将同时删除相关的子任务和执行记录。',
-      '删除确认',
+      tr('确定要删除该Ansible任务吗？删除后将同时删除相关的子任务和执行记录。'),
+      tr('删除确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
         dangerouslyUseHTMLString: false
       }
@@ -1301,7 +1320,7 @@ const handleDelete = async (id) => {
     const response = await DeleteAnsibleTask(id)
     
     if (response?.data?.code === 200 || response?.status === 200) {
-      ElMessage.success('任务删除成功')
+      ElMessage.success(tr('任务删除成功'))
       fetchTasks()
     } else {
       throw new Error(response?.data?.message || '删除任务失败')
@@ -1314,9 +1333,33 @@ const handleDelete = async (id) => {
   }
 }
 
-
-
-
+const handleStopTask = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要停止任务"${row.name}"吗？所有正在运行的子任务将被终止。`,
+      tr('停止确认'),
+      {
+        confirmButtonText: '确定停止',
+        cancelButtonText: tr('取消'),
+        type: 'warning'
+      }
+    )
+    
+    const response = await StopAnsibleTask(row.id)
+    
+    if (response?.data?.code === 200 || response?.status === 200) {
+      ElMessage.success(tr('任务停止成功'))
+      fetchTasks()
+    } else {
+      throw new Error(response?.data?.message || tr('停止任务失败'))
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('停止任务失败:', error)
+      ElMessage.error(`停止失败: ${error.response?.data?.message || error.message || '未知错误'}`)
+    }
+  }
+}
 
 const handleAddHostGroup = () => {
   newGroupName.value = ''
@@ -1325,7 +1368,7 @@ const handleAddHostGroup = () => {
 
 const showHostSelector = () => {
   if (!newGroupName.value.trim()) {
-    ElMessage.warning('请先输入分组名称')
+    ElMessage.warning(tr('请先输入分组名称'))
     return
   }
   showHostDialog.value = true
@@ -1333,12 +1376,12 @@ const showHostSelector = () => {
 
 const handleHostSelected = (hosts) => {
   if (!newGroupName.value.trim()) {
-    ElMessage.warning('请先输入分组名称')
+    ElMessage.warning(tr('请先输入分组名称'))
     return
   }
   
   if (hosts.length === 0) {
-    ElMessage.warning('请选择至少一台主机')
+    ElMessage.warning(tr('请选择至少一台主机'))
     return
   }
 
@@ -1390,7 +1433,7 @@ const handleRecurringChange = async (row) => {
     // 失败时回滚状态
     row.is_recurring = row.is_recurring === 1 ? 0 : 1
     console.error('更新定时状态失败:', error)
-    ElMessage.error('更新状态失败')
+    ElMessage.error(tr('更新状态失败'))
   }
 }
 

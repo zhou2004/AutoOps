@@ -25,20 +25,22 @@ func (MonitorAlertRule) TableName() string {
 
 // MonitorAlertRuleQuery 查询参数结构体
 type MonitorAlertRuleQuery struct {
-	Page        int    `form:"page" json:"page"`
-	PageSize    int    `form:"pageSize" json:"pageSize"`
-	GroupID     uint   `form:"groupId" json:"groupId"`
-	Alert       string `form:"alert" json:"alert"`
-	Expr        string `form:"expr" json:"expr"`
-	ForDuration string `form:"for_duration" json:"for_duration"`
-	Labels      string `form:"labels" json:"labels"`
-	Constraints string `form:"constraints" json:"constraints"`
-	Style       string `form:"style" json:"style"`
-	Severity    string `form:"severity" json:"severity"`
-	Summary     string `form:"summary" json:"summary"`
-	Description string `form:"description" json:"description"`
-	Status      string `form:"status" json:"status"`
-	Enabled     *int   `form:"enabled" json:"enabled"`
+	DataSourceID uint   `form:"dataSourceId" json:"dataSourceId"`
+	CmdbGroupID  uint   `form:"cmdbGroupId" json:"cmdbGroupId"`
+	Page         int    `form:"page" json:"page"`
+	PageSize     int    `form:"pageSize" json:"pageSize"`
+	GroupID      uint   `form:"groupId" json:"groupId"`
+	Alert        string `form:"alert" json:"alert"`
+	Expr         string `form:"expr" json:"expr"`
+	ForDuration  string `form:"for_duration" json:"for_duration"`
+	Labels       string `form:"labels" json:"labels"`
+	Constraints  string `form:"constraints" json:"constraints"`
+	Style        string `form:"style" json:"style"`
+	Severity     string `form:"severity" json:"severity"`
+	Summary      string `form:"summary" json:"summary"`
+	Description  string `form:"description" json:"description"`
+	Status       string `form:"status" json:"status"`
+	Enabled      *int   `form:"enabled" json:"enabled"`
 }
 
 // MonitorAlertRuleCheckReq 表达式健康检查请求参数

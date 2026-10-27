@@ -22,7 +22,7 @@
         :loading="refreshing"
       >
         <el-icon size="16"><Refresh /></el-icon>
-        <span style="margin-left: 6px;">刷新状态</span>
+        <span style="margin-left: 6px;">{{ $tr("刷新状态") }}</span>
       </el-button>
     </div>
     <svg class="connector-canvas" ref="connectorCanvas"></svg>
@@ -50,8 +50,8 @@
         <div class="status-text" :class="'status-' + step.status">
           {{
             step.status === 'completed' ? '完成' :
-            step.status === 'active' ? '运行中' :
-            step.status === 'error' ? '异常' : '等待'
+            step.status === 'active' ? $tr('运行中') :
+            step.status === 'error' ? $tr('异常') : '等待'
           }}
         </div>
         <h3 class="card-title">
@@ -60,32 +60,32 @@
 <path fill="#9C27B0" d="M341.33 426.67a42.67 42.67 0 100-85.34 42.67 42.67 0 000 85.34zM682.67 426.67a42.67 42.67 0 100-85.34 42.67 42.67 0 000 85.34z"/>
 <path fill="#9C27B0" d="M512 768c-117.82 0-213.33-95.51-213.33-213.33h426.66C725.33 672.49 629.82 768 512 768z"/>
           </svg>
-          {{ step.title }}
+          {{ $tr(step.title) }}
         </h3>
         <p class="card-content">{{ step.content }}</p>
         <div class="card-buttons">
-          <el-tooltip effect="dark" content="脚本" placement="top">
-            <button @click.stop="onDetailClick(step)" class="btn-icon">
+          <el-tooltip effect="dark" :content='$tr("脚本")' placement="top">
+            <el-button @click.stop="onDetailClick(step)" class="btn-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" fill="#1890ff"/>
                 <path d="M14 2V8H20" fill="#1890ff" fill-opacity="0.5"/>
                 <path d="M16 13H8V11H16V13ZM16 17H8V15H16V17ZM13 9V3.5L18.5 9H13Z" fill="white"/>
               </svg>
-            </button>
+            </el-button>
           </el-tooltip>
-          <el-tooltip effect="dark" content="日志" placement="top">
-            <button @click.stop="onLogClick(step)" class="btn-icon">
+          <el-tooltip effect="dark" :content='$tr("日志")' placement="top">
+            <el-button @click.stop="onLogClick(step)" class="btn-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 10H7M21 6H3M21 14H3M21 18H7" stroke="#722ed1" stroke-width="2" stroke-linecap="round"/>
               </svg>
-            </button>
+            </el-button>
           </el-tooltip>
-          <el-tooltip effect="dark" content="停止" placement="top">
-            <button v-authority="['task:job:jobstop']" @click.stop="onStopClick(step)" class="btn-icon" :loading="stopping">
+          <el-tooltip effect="dark" :content='$tr("停止")' placement="top">
+            <el-button v-authority="['task:job:jobstop']" @click.stop="onStopClick(step)" class="btn-icon" :loading="stopping">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="8" fill="#f5222d"/>
               </svg>
-            </button>
+            </el-button>
           </el-tooltip>
         </div>
       </div>
@@ -98,6 +98,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import { GetTemplateContent, GetTaskJobLog, StartJob, StopJob, GetTaskTemplates } from '@/api/task'
 import { VideoPlay, Refresh } from '@element-plus/icons-vue'
 import ScriptDialog from '@/views/task/Job/ScriptDialog.vue'
@@ -225,13 +227,13 @@ export default {
         console.log('Steps data:', this.steps);
         
         if (!this.taskId && (!this.steps || this.steps.length === 0)) {
-          throw new Error('任务ID未定义');
+          throw new Error(tr('任务ID未定义'));
         }
         
         // 优先使用steps中的task_id
         const apiTaskId = this.steps[0]?.task_id || this.taskId;
         if (!apiTaskId) {
-          throw new Error('无法获取有效的任务ID');
+          throw new Error(tr('无法获取有效的任务ID'));
         }
         
         console.log('Using task ID:', apiTaskId);
@@ -248,7 +250,7 @@ export default {
         // 设置已启动状态
         this.hasStarted = true;
 
-        this.$message.success('任务已启动');
+        this.$message.success(tr('任务已启动'));
         this.$emit('refresh');
       } catch (error) {
         console.error('启动任务失败:', error);
@@ -269,7 +271,7 @@ export default {
         console.log('API完整响应:', response);
 
         if (!response?.data?.data) {
-          throw new Error('无效的API响应');
+          throw new Error(tr('无效的API响应'));
         }
 
         // 深度拷贝API数据
@@ -329,7 +331,7 @@ export default {
           this.drawConnectors();
         });
 
-        this.$message.success('任务状态已刷新');
+        this.$message.success(tr('任务状态已刷新'));
       } catch (error) {
         console.error('刷新任务状态失败:', error);
         this.$message.error('刷新任务状态失败: ' + (error.message || '未知错误'));
@@ -359,7 +361,7 @@ export default {
         }
       } catch (error) {
         console.error('获取模板内容失败:', error);
-        this.$message.error('获取模板内容失败');
+        this.$message.error(tr('获取模板内容失败'));
       }
     },
     async onStopClick(step) {
@@ -369,7 +371,7 @@ export default {
           taskId: step.task_id,
           templateId: step.template_id
         });
-        this.$message.success('任务已停止');
+        this.$message.success(tr('任务已停止'));
         this.$emit('refresh');
       } catch (error) {
         console.error('停止任务失败:', error);
@@ -384,7 +386,7 @@ export default {
         console.log('Step data:', step);
         if (!step.task_id) {
           console.error('缺少任务ID，当前step:', step);
-          throw new Error('缺少任务ID，请确保步骤数据包含task_id');
+          throw new Error(tr('缺少任务ID，请确保步骤数据包含task_id'));
         }
         
         console.log('调用日志API参数:', { 

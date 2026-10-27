@@ -40,16 +40,16 @@
           <el-button type="text" @click="toggleCollapse" class="collapse-btn">
             <el-icon size="24"><component :is="collapseBtnClass" /></el-icon>
           </el-button>
-          <el-button type="text" @click="refreshMenu" class="collapse-btn" style="margin-left:8px" title="刷新菜单">
+          <el-button type="text" @click="refreshMenu" class="collapse-btn" style="margin-left:8px" :title='$tr("刷新菜单")'>
             <el-icon size="20"><Refresh /></el-icon>
           </el-button>
         </div>
         <div class="bread-btn">
           <!-- 面包屑 -->
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/dashboard' }">仪表盘</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="$route.meta && $route.meta.sTitle">{{ $route.meta.sTitle }}</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="$route.meta && $route.meta.tTitle">{{ $route.meta.tTitle }}</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/dashboard' }">{{ $tr("仪表盘") }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta && $route.meta.sTitle">{{ $tr($route.meta.sTitle) }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta && $route.meta.tTitle">{{ $tr($route.meta.tTitle) }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
@@ -57,20 +57,20 @@
           <el-dropdown trigger="click" @command="handleThemeChange">
             <span style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary)">
               <el-icon size="16"><Setting /></el-icon>
-              <span>{{ currentTheme === 'light' ? '经典白' : '深邃黑' }}</span>
+              <span>{{ currentTheme === 'light' ? $tr('经典白') : $tr('深邃黑') }}</span>
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="light">
                   <span :style="{ display:'inline-block', width:12, height:12, borderRadius:'50%', background:'#1677ff', marginRight:8 }"></span>
-                  经典白
-                  <el-tag v-if="currentTheme==='light'" size="mini" type="primary" style="margin-left:8px">当前</el-tag>
+                  {{ $tr("经典白") }}
+                  <el-tag v-if="currentTheme==='light'" size="mini" type="primary" style="margin-left:8px">{{ $tr("当前") }}</el-tag>
                 </el-dropdown-item>
                 <el-dropdown-item command="dark">
                   <span :style="{ display:'inline-block', width:12, height:12, borderRadius:'50%', background:'#1e2937', marginRight:8 }"></span>
-                  深邃黑
-                  <el-tag v-if="currentTheme==='dark'" size="mini" type="primary" style="margin-left:8px">当前</el-tag>
+                  {{ $tr("深邃黑") }}
+                  <el-tag v-if="currentTheme==='dark'" size="mini" type="primary" style="margin-left:8px">{{ $tr("当前") }}</el-tag>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -83,7 +83,7 @@
           :effect="item.title === ($route.meta?.tTitle || '仪表盘') ? 'dark' : 'plain'"
           size="small" closable :disable-transitions="false"
           @click="goTo(item.path)" @close="closeTag(index)">
-          {{ item.title }}
+          {{ $tr(item.title) }}
         </el-tag>
       </div>
       <el-main><router-view /></el-main>
@@ -92,6 +92,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 
 
 import storage from "@/utils/storage";
@@ -205,9 +207,9 @@ export default {
             this.leftMenuList = menuData
             // 手动补充内嵌子菜单（同 initMenuData 逻辑）
             this.supplementHardcodedMenus()
-            this.$message.success('菜单刷新成功')
+            this.$message.success(tr('菜单刷新成功'))
           } else {
-            this.$message.warning('菜单数据格式异常')
+            this.$message.warning(tr('菜单数据格式异常'))
           }
         } else {
           this.$message.error(res.data?.message || '获取菜单失败')
@@ -219,6 +221,10 @@ export default {
     // 补充固定子菜单（从 initMenuData 抽离公共逻辑）
     supplementHardcodedMenus() {
       if (!Array.isArray(this.leftMenuList)) return
+      const obsolete = ['cmdb/docker', 'cmdb/asset-permission', 'cmdb/user-group', 'cmdb/credential-permission', 'system/asset-permission', 'system/k8s-permission', 'system/role-permission']
+      this.leftMenuList.forEach(menu => {
+        if (menu.menuSvoList) menu.menuSvoList = menu.menuSvoList.filter(sub => !obsolete.includes((sub.url || '').replace(/^\//, '')))
+      })
       // 资产管理 → 补充子菜单
       const assetMenu = this.leftMenuList.find(item => item.menuName === '资产管理')
       if (assetMenu) {  
@@ -234,9 +240,13 @@ export default {
         })
       }
 
-      // 容器管理 → CRD管理
+      // 容器管理 → Docker 与 Kubernetes
       const k8sMenu = this.leftMenuList.find(item => item.menuName === '容器管理')
-      if (k8sMenu && k8sMenu.menuSvoList) {
+      if (k8sMenu) {
+        if (!k8sMenu.menuSvoList) k8sMenu.menuSvoList = []
+        if (!k8sMenu.menuSvoList.some(sub => sub.url.replace(/^\//, '') === 'k8s/docker')) {
+          k8sMenu.menuSvoList.unshift({ id: 99996, menuName: 'Docker管理', url: 'k8s/docker', icon: 'Box' })
+        }
         if (!k8sMenu.menuSvoList.some(sub => sub.url === 'k8s/crd')) {
           k8sMenu.menuSvoList.push({ id: 99999, menuName: 'CRD管理', url: 'k8s/crd', icon: 'Setting' })
         }
@@ -266,16 +276,20 @@ export default {
       }
 
     // 系统管理 → 基础管理
-      const systemMenu = this.leftMenuList.find(item => item.menuName === '系统管理')
+      const systemMenu = this.leftMenuList.find(item => ['系统管理', '基础管理'].includes(item.menuName))
       if (systemMenu) {
+        systemMenu.menuName = '基础管理'
         if (!systemMenu.menuSvoList) systemMenu.menuSvoList = []
+        systemMenu.menuSvoList.forEach(sub => {
+          if ((sub.url || '').replace(/^\//, '') === 'system/api-keys') sub.menuName = 'API Key'
+        })
         const systemSubs = [
           { name: '机房信息', url: 'system/machine', icon: 'OfficeBuilding' },
-          { name: '资产授权', url: 'system/asset-permission', icon: 'Lock' },
-          { name: '容器授权', url: 'system/k8s-permission', icon: 'Lock' }
+          { name: '授权管理', url: 'system/authorization', icon: 'Lock' },
+          { name: 'API Key', url: 'system/api-keys', icon: 'Key' }
         ]
         systemSubs.forEach(sub => {
-          if (!systemMenu.menuSvoList.some(s => s.url === sub.url)) {
+          if (!systemMenu.menuSvoList.some(s => (s.url || '').replace(/^\//, '') === sub.url)) {
             systemMenu.menuSvoList.push({ id: 99997, menuName: sub.name, url: sub.url, icon: sub.icon })
           }
         })

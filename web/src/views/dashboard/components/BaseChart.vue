@@ -1,52 +1,91 @@
 <template>
-  <div ref="chartRef" class="chart-container" :class="sizeClass"></div>
+  <div ref="chartRef" class="business-chart" :class="`chart-${size}`" />
 </template>
 
-<script>
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import * as echarts from 'echarts'
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import * as echarts from "echarts";
 
-export default {
-  name: 'BaseChart',
-  props: {
-    option: { type: Object, default: () => ({}) },
-    size: { type: String, default: 'md' } // sm, md, lg
-  },
-  setup(props) {
-    const chartRef = ref(null)
-    let chart = null
+const props = withDefaults(
+  defineProps<{ option: Record<string, unknown>; size?: string }>(),
+  { size: "md" }
+);
+const chartRef = ref<HTMLDivElement>();
+let chart: echarts.ECharts | undefined;
+let resizeObserver: ResizeObserver | undefined;
+let themeObserver: MutationObserver | undefined;
 
-    const sizeClass = {
-      sm: 'chart-container-sm',
-      md: '',
-      lg: 'chart-container-lg'
-    }[props.size] || ''
-
-    const getTheme = () => document.documentElement.getAttribute('data-theme') || 'light'
-
-    const initChart = () => {
-      if (!chartRef.value) return
-      if (chart) chart.dispose()
-      chart = echarts.init(chartRef.value, getTheme() === 'dark' ? 'dark' : undefined)
-      chart.setOption(props.option)
-    }
-
-    const resize = () => { chart?.resize() }
-
-    onMounted(() => {
-      nextTick(initChart)
-      window.addEventListener('resize', resize)
-    })
-
-    onUnmounted(() => {
-      window.removeEventListener('resize', resize)
-      chart?.dispose()
-    })
-
-    watch(() => props.option, () => { nextTick(initChart) }, { deep: true })
-    watch(() => props.theme, () => { nextTick(initChart) })
-
-    return { chartRef, sizeClass }
-  }
+function render() {
+  if (!chartRef.value) return;
+  const styles = getComputedStyle(document.documentElement);
+  const text = styles.getPropertyValue("--text-secondary").trim() || "#86909c";
+  const border = styles.getPropertyValue("--border").trim() || "#e5e6eb";
+  if (!chart) chart = echarts.init(chartRef.value);
+  const axisStyle = {
+    axisLabel: { color: text },
+    axisLine: { lineStyle: { color: border } },
+    splitLine: { lineStyle: { color: border, type: "dashed" as const } }
+  };
+  chart.setOption(
+    {
+      ...props.option,
+      backgroundColor: "transparent",
+      textStyle: { color: text },
+      animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      legend: {
+        textStyle: { color: text },
+        ...((props.option.legend as object) ?? {})
+      },
+      ...(props.option.xAxis
+        ? {
+            xAxis: echarts.util.merge(
+              echarts.util.clone(axisStyle),
+              props.option.xAxis,
+              true
+            )
+          }
+        : {}),
+      ...(props.option.yAxis
+        ? {
+            yAxis: echarts.util.merge(
+              echarts.util.clone(axisStyle),
+              props.option.yAxis,
+              true
+            )
+          }
+        : {})
+    },
+    { notMerge: true }
+  );
 }
+watch(() => props.option, render, { deep: true });
+onMounted(() => {
+  render();
+  resizeObserver = new ResizeObserver(() => chart?.resize());
+  if (chartRef.value) resizeObserver.observe(chartRef.value);
+  themeObserver = new MutationObserver(render);
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class"]
+  });
+});
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  themeObserver?.disconnect();
+  chart?.dispose();
+});
 </script>
+
+<style scoped>
+.business-chart {
+  width: 100%;
+  height: 280px;
+  min-width: 0;
+}
+.chart-sm {
+  height: 220px;
+}
+.chart-lg {
+  height: 350px;
+}
+</style>

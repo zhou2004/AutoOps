@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  工单申请
+  {{ $tr("工单申请") }}
 </template>
 
 <style scoped>

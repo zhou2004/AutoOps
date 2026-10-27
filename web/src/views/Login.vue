@@ -3,7 +3,7 @@
         <div class="login-card">
             <div class="card-header">
                 <h2 class="card-title">AutoOps</h2>
-                <span class="card-subtitle">运维管理系统</span>
+                <span class="card-subtitle">{{ $tr("运维管理系统") }}</span>
             </div>
 
             <!-- 表单 -->
@@ -11,7 +11,7 @@
                 <el-form-item prop="username">
                     <el-input
                         v-model="loginForm.username"
-                        placeholder="请输入账号"
+                        :placeholder='$tr("请输入账号")'
                         clearable
                         class="dark-input"
                     />
@@ -20,7 +20,7 @@
                 <el-form-item prop="password">
                     <el-input
                         v-model="loginForm.password"
-                        placeholder="请输入密码"
+                        :placeholder='$tr("请输入密码")'
                         type="password"
                         show-password
                         clearable
@@ -32,7 +32,7 @@
                     <div class="captcha-row">
                         <el-input
                             v-model="loginForm.image"
-                            placeholder="请输入验证码"
+                            :placeholder='$tr("请输入验证码")'
                             maxlength="6"
                             clearable
                             class="dark-input"
@@ -44,8 +44,8 @@
                 </el-form-item>
 
                 <el-form-item>
-                    <el-button class="login-btn" type="primary" @click="loginBtn">登 录</el-button>
-                    <el-button class="reset-btn" @click="resetLoginForm">重 置</el-button>
+                    <el-button class="login-btn" type="primary" @click="loginBtn">{{ $tr("登 录") }}</el-button>
+                    <el-button class="reset-btn" @click="resetLoginForm">{{ $tr("重 置") }}</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -53,15 +53,17 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 export default {
     name: "Login",
     data() {
         return {
             image: '',
             rules: {
-                username: [{ required: true, message: "请输入账号", trigger: "blur" }],
-                password: [{ required: true, message: "请输入密码", trigger: "blur" }],
-                image:    [{ required: true, message: "请输入验证码", trigger: "blur" }]
+                username: [{ required: true, get message() { return tr("请输入账号"); }, trigger: "blur" }],
+                password: [{ required: true, get message() { return tr("请输入密码"); }, trigger: "blur" }],
+                image:    [{ required: true, get message() { return tr("请输入验证码"); }, trigger: "blur" }]
             },
             loginForm: {
                 username: '',
@@ -88,7 +90,7 @@ export default {
                     if (res.code !== 200) {
                         this.$message.error(res.message)
                     } else {
-                        this.$message.success("登录成功")
+                        this.$message.success(tr("登录成功"))
                         this.$store.commit('saveSysAdmin', res.data.sysAdmin)
                         this.$store.commit('saveToken', res.data.token)
                         this.$store.commit('saveLeftMenuList', res.data.leftMenuList)

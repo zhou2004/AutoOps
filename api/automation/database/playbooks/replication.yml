@@ -1,0 +1,98 @@
+---
+- name: Wait for MySQL after service handler restart
+  community.mysql.mysql_info:
+    login_user: root
+    login_password: '{{ mysql_root_password }}'
+    login_host: 127.0.0.1
+    login_port: '{{ database_port }}'
+    filter: version
+  register: mysql_ready
+  until: mysql_ready is succeeded
+  retries: 15
+  delay: 2
+  no_log: true
+- name: Create replication and Orchestrator accounts locally
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: '{{ mysql_root_password }}'
+    login_host: 127.0.0.1
+    login_port: '{{ database_port }}'
+    name: '{{ item.name }}'
+    host: '%'
+    password: '{{ item.password }}'
+    priv: '{{ item.priv }}'
+    sql_log_bin: false
+    state: present
+  loop:
+    - {name: autoops_repl, password: '{{ repl_password }}', priv: '*.*:REPLICATION SLAVE,REPLICATION CLIENT'}
+    - {name: autoops_orc, password: '{{ orc_topology_pass }}', priv: '*.*:SUPER,PROCESS,REPLICATION SLAVE,REPLICATION CLIENT,RELOAD/mysql.*:SELECT'}
+  no_log: true
+
+- name: Configure replicas
+  when: database_mode == 'replication' and not database_primary
+  block:
+    - name: Read existing replication state
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: '{{ mysql_root_password }}'
+        login_host: 127.0.0.1
+        login_port: '{{ database_port }}'
+        mode: getreplica
+      register: replication_state
+      no_log: true
+    - name: Refuse to redirect an already configured replica
+      ansible.builtin.assert:
+        that: not (replication_state.Is_Replica | default(false)) or (replication_state.Source_Host | default(replication_state.Master_Host | default(''))) == database_primary_host
+        fail_msg: Existing replication points elsewhere; use Orchestrator to change topology
+    - name: Initialize GTID replication
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: '{{ mysql_root_password }}'
+        login_host: 127.0.0.1
+        login_port: '{{ database_port }}'
+        mode: changeprimary
+        primary_host: '{{ database_primary_host }}'
+        primary_port: '{{ database_port }}'
+        primary_user: autoops_repl
+        primary_password: '{{ repl_password }}'
+        primary_auto_position: true
+      when: not (replication_state.Is_Replica | default(false))
+      no_log: true
+    - name: Start replication
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: '{{ mysql_root_password }}'
+        login_host: 127.0.0.1
+        login_port: '{{ database_port }}'
+        mode: startreplica
+      no_log: true
+    - name: Wait for healthy IO and SQL replication threads
+      community.mysql.mysql_replication:
+        login_user: root
+        login_password: '{{ mysql_root_password }}'
+        login_host: 127.0.0.1
+        login_port: '{{ database_port }}'
+        mode: getreplica
+      register: replica_health
+      until: (replica_health.Replica_IO_Running | default(replica_health.Slave_IO_Running | default('No'))) == 'Yes' and (replica_health.Replica_SQL_Running | default(replica_health.Slave_SQL_Running | default('No'))) == 'Yes'
+      retries: 15
+      delay: 2
+      no_log: true
+
+- name: Keep replication members read-only on restart and standalone instances writable
+  ansible.builtin.lineinfile:
+    path: '{{ mysql_config_path }}'
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  loop:
+    - {regexp: '^read_only=', line: "read_only={{ 'ON' if database_mode == 'replication' else 'OFF' }}"}
+    - {regexp: '^super_read_only=', line: "super_read_only={{ 'ON' if database_mode == 'replication' else 'OFF' }}"}
+
+- name: Apply the initial runtime role
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: '{{ mysql_root_password }}'
+    login_host: 127.0.0.1
+    login_port: '{{ database_port }}'
+    query: "{{ ['SET GLOBAL super_read_only=OFF', 'SET GLOBAL read_only=OFF'] if database_primary else ['SET GLOBAL read_only=ON', 'SET GLOBAL super_read_only=ON'] }}"
+  no_log: true

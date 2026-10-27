@@ -47,7 +47,7 @@ const router = useRouter();
           }
         }"
       >
-        抱歉，你访问的页面不存在
+        {{ $tr("抱歉，你访问的页面不存在") }}
       </p>
       <el-button
         v-motion
@@ -66,7 +66,7 @@ const router = useRouter();
         }"
         @click="router.push('/')"
       >
-        返回首页
+        {{ $tr("返回首页") }}
       </el-button>
     </div>
   </div>

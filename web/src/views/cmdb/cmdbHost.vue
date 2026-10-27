@@ -1,6 +1,7 @@
 <template>
-  <div class="cmdb-host-management">
-    <el-card shadow="hover" class="host-card">
+  <div class="cmdb-host-management asset-page">
+    <header class="asset-page-header"><div><span class="asset-eyebrow">ASSET INVENTORY / HOSTS</span><h1>{{ $tr("主机资产") }}</h1><p>{{ $tr("统一接入 Linux 与 Windows，通过独立的 SSH、VNC 和 RDP 档案访问主机。") }}</p></div><div class="asset-header-count"><strong>{{ total }}</strong><span>{{ $tr("匹配主机") }}</span></div></header>
+    <el-card shadow="never" class="host-card asset-surface">
     <!-- 左右布局容器 -->
     <div class="host-management-container">
       <!-- 左侧分组树 -->
@@ -21,31 +22,31 @@
       <!-- 右侧主机管理区域 -->
       <div class="host-table-section">
         <!-- 搜索表单 -->
-        <div class="search-section">
+        <div class="search-section asset-filters">
           <el-form :inline="true" :model="queryParams" class="demo-form-inline">
-            <el-form-item label="主机名称" prop="hostName">
+            <el-form-item :label='$tr("主机名称")' prop="hostName">
               <el-input
                   size="small"
-                  placeholder="请输入主机名称"
+                  :placeholder='$tr("请输入主机名称")'
                   clearable
                   v-model="queryParams.hostName"
                   @keyup.enter="handleQuery"
                   style="width: 160px;"
               />
             </el-form-item>
-            <el-form-item label="IP地址" prop="ip">
+            <el-form-item :label='$tr("IP地址")' prop="ip">
               <el-input
                   size="small"
-                  placeholder="请输入IP地址"
+                  :placeholder='$tr("请输入IP地址")'
                   clearable  
                   v-model="queryParams.ip"
                   @keyup.enter="handleQuery"
                   style="width: 120px;"
               />
             </el-form-item>
-            <el-form-item label="主机状态" prop="status">
-              <el-select size="small" placeholder="请选择状态" v-model="queryParams.status" style="width: 120px;">
-                <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value"></el-option>
+            <el-form-item :label='$tr("主机状态")' prop="status">
+              <el-select size="small" :placeholder='$tr("请选择状态")' v-model="queryParams.status" style="width: 120px;">
+                <el-option v-for="item in statusList" :key="item.value" :label="$tr(item.label)" :value="item.value"></el-option>
               </el-select>
             </el-form-item>
             <!-- 操作按钮 -->
@@ -55,13 +56,13 @@
                 <!-- 搜索按钮 - 蓝色 -->
                 <el-button type="primary" size="small" @click="handleQuery" style="margin-right: 10px">
                   <el-icon><Search /></el-icon>
-                  <span style="margin-left: 4px">搜索</span>
+                  <span style="margin-left: 4px">{{ $tr("搜索") }}</span>
                 </el-button>
                 
                 <!-- 重置按钮 - 黄色 -->
-                <el-button type="warning" size="small" @click="resetQuery" style="margin-right: 10px">
+                <el-button size="small" @click="resetQuery" style="margin-right: 10px">
                   <el-icon><Refresh /></el-icon>
-                  <span style="margin-left: 4px">重置</span>
+                  <span style="margin-left: 4px">{{ $tr("重置") }}</span>
                 </el-button>
                 
                 <!--新建主机 - 绿色-->
@@ -73,19 +74,19 @@
                   trigger="click"
                   placement="bottom-start">
                   <el-button
-                    type="success"
+                    type="primary"
                     size="small"
                     style="margin-right: 10px"
                     @click.stop="handleCreateClick">
                     <el-icon><Plus /></el-icon>
-                    <span style="margin-left: 4px">新建</span>
+                    <span style="margin-left: 4px">{{ $tr("新建") }}</span>
                     <el-icon class="el-icon--right"><ArrowDown /></el-icon>
                   </el-button>
                   <template #dropdown>
                     <el-dropdown-menu>
-                      <el-dropdown-item command="importHost"><el-icon color="#409EFC" :size="20"><Edit /></el-icon>导入主机</el-dropdown-item>
-                      <el-dropdown-item command="excelImport"><el-icon color="#409EFC" :size="20"><Folder /></el-icon>Excel导入</el-dropdown-item>
-                      <el-dropdown-item command="cloudHost"><el-icon color="#409EFC" :size="21"><MostlyCloudy /></el-icon>云主机</el-dropdown-item>
+                      <el-dropdown-item command="importHost"><el-icon color="#409EFC" :size="20"><Edit /></el-icon>{{ $tr("导入主机") }}</el-dropdown-item>
+                      <el-dropdown-item command="excelImport"><el-icon color="#409EFC" :size="20"><Folder /></el-icon>{{ $tr("Excel导入") }}</el-dropdown-item>
+                      <el-dropdown-item command="cloudHost"><el-icon color="#409EFC" :size="21"><MostlyCloudy /></el-icon>{{ $tr("云主机") }}</el-dropdown-item>
                     </el-dropdown-menu>
                   </template>
                 </el-dropdown>
@@ -110,7 +111,7 @@
         />
 
         <!-- 分页 -->
-        <div class="pagination-section">
+        <div class="pagination-section asset-pagination">
           <el-pagination
               @size-change="handleSizeChange"
               @current-change="handleCurrentChange"
@@ -161,15 +162,15 @@
     />
 
     <!-- 文件上传对话框 -->
-    <el-dialog title="文件上传" v-model="uploadDialogVisible" width="25%">
+    <el-dialog :title='$tr("文件上传")' v-model="uploadDialogVisible" width="25%">
       <el-form :model="uploadForm" :rules="uploadRules" ref="uploadFormRef" label-width="100px">
-        <el-form-item label="目标主机">
+        <el-form-item :label='$tr("目标主机")'>
           <el-input v-model="currentUploadHost.hostName" disabled />
         </el-form-item>
-        <el-form-item label="目标路径" prop="targetPath">
-          <el-input v-model="uploadForm.targetPath" placeholder="请输入目标路径" />
+        <el-form-item :label='$tr("目标路径")' prop="targetPath">
+          <el-input v-model="uploadForm.targetPath" :placeholder='$tr("请输入目标路径")' />
         </el-form-item>
-        <el-form-item label="上传文件" prop="file">
+        <el-form-item :label='$tr("上传文件")' prop="file">
           <el-upload
             class="upload-demo"
             :auto-upload="false"
@@ -177,10 +178,10 @@
             :on-remove="handleFileRemove"
             :show-file-list="false"
           >
-            <el-button type="primary">选择文件</el-button>
+            <el-button type="primary">{{ $tr("选择文件") }}</el-button>
             <template #tip>
               <div class="el-upload__tip" v-if="uploadForm.file">
-                已选择: {{ uploadForm.file.name }}
+                {{ $tr("已选择:") }} {{ uploadForm.file.name }}
                 <el-button
                   type="danger"
                   text
@@ -192,7 +193,7 @@
                 />
               </div>
               <div class="el-upload__tip" style="color: #999; margin-top: 15px">
-                提示：请上传小于5MB的文件
+                {{ $tr("提示：请上传小于5MB的文件") }}
               </div>
             </template>
           </el-upload>
@@ -204,14 +205,14 @@
         />
       </el-form>
       <template #footer>
-        <el-button @click="uploadDialogVisible = false">取消</el-button>
+        <el-button @click="uploadDialogVisible = false">{{ $tr("取消") }}</el-button>
         <el-button 
           type="primary" 
           @click="handleUpload"
           :loading="isUploading"
           :disabled="!uploadForm.file || !uploadForm.hostId"
         >
-          开始上传
+          {{ $tr("开始上传") }}
         </el-button>
       </template>
     </el-dialog>
@@ -220,7 +221,7 @@
     <!-- 主机详情抽屉 -->
     <el-drawer
       v-model="detailDrawer"
-      title="主机详情"
+      :title='$tr("主机详情")'
       direction="rtl"
       size="40%"
       :before-close="handleDetailClose">
@@ -235,22 +236,22 @@
       </div>
 
       <!-- 基本信息部分 -->
-      <h3 style="margin: 5px 0 10px 0">基本信息</h3>
+      <h3 style="margin: 5px 0 10px 0">{{ $tr("基本信息") }}</h3>
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="主机名称">{{ hostDetail.hostName }}</el-descriptions-item>
-        <el-descriptions-item label="主机分组">{{ getGroupName(hostDetail.groupId) }}</el-descriptions-item>
-        <el-descriptions-item label="连接地址">
+        <el-descriptions-item :label='$tr("主机名称")'>{{ hostDetail.hostName }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("主机分组")'>{{ getGroupName(hostDetail.groupId) }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("连接地址")'>
           {{ hostDetail.sshName }}@{{ hostDetail.sshIp }}:{{ hostDetail.sshPort }}
         </el-descriptions-item>
-        <el-descriptions-item label="认证类型">
+        <el-descriptions-item :label='$tr("认证类型")'>
           {{ getAuthTypeName(hostDetail.sshKeyId) }}
         </el-descriptions-item>
-        <el-descriptions-item label="描述信息">{{ hostDetail.remark }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("描述信息")'>{{ hostDetail.remark }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 扩展信息部分 -->
       <div style="margin: 20px 0 10px 0; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0">扩展信息</h3>
+        <h3 style="margin: 0">{{ $tr("扩展信息") }}</h3>
         <el-button 
           type="primary" 
           size="mini" 
@@ -262,40 +263,40 @@
         </el-button>
       </div>
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="实例ID">{{ hostDetail.instanceId }}</el-descriptions-item>
-        <el-descriptions-item label="实例名称">{{ hostDetail.name }}</el-descriptions-item>
-        <el-descriptions-item label="操作系统">{{ hostDetail.os }}</el-descriptions-item>
-        <el-descriptions-item label="CPU">{{ hostDetail.cpu }}核</el-descriptions-item>
-        <el-descriptions-item label="内存">{{ hostDetail.memory }}G</el-descriptions-item>
-        <el-descriptions-item label="磁盘">{{ hostDetail.disk }}GB</el-descriptions-item>
-        <el-descriptions-item label="内网IP">{{ hostDetail.privateIp }}</el-descriptions-item>
-        <el-descriptions-item label="公网IP">{{ hostDetail.publicIp || '无' }}</el-descriptions-item>
-        <el-descriptions-item label="实例计费方式">{{ hostDetail.billingType }}</el-descriptions-item>
-        <el-descriptions-item label="网络计费方式">{{ hostDetail.networkBillingType || '按流量计费' }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ hostDetail.createTime }}</el-descriptions-item>
-        <el-descriptions-item label="到期时间">{{ hostDetail.expireTime || '无' }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ hostDetail.updateTime }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("实例ID")'>{{ hostDetail.instanceId }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("实例名称")'>{{ hostDetail.name }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("操作系统")'>{{ hostDetail.os }}</el-descriptions-item>
+        <el-descriptions-item label="CPU">{{ hostDetail.cpu }}{{ $tr("核") }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("内存")'>{{ hostDetail.memory }}G</el-descriptions-item>
+        <el-descriptions-item :label='$tr("磁盘")'>{{ hostDetail.disk }}GB</el-descriptions-item>
+        <el-descriptions-item :label='$tr("内网IP")'>{{ hostDetail.privateIp }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("公网IP")'>{{ hostDetail.publicIp || '无' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("实例计费方式")'>{{ hostDetail.billingType }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("网络计费方式")'>{{ hostDetail.networkBillingType || '按流量计费' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("创建时间")'>{{ hostDetail.createTime }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("到期时间")'>{{ hostDetail.expireTime || '无' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("更新时间")'>{{ hostDetail.updateTime }}</el-descriptions-item>
       </el-descriptions>
     </el-drawer>
 
     <!-- 命令执行对话框 -->
     <el-dialog
       v-if="commandDialog"
-      title="执行命令"
+      :title='$tr("执行命令")'
       v-model="commandDialog.visible"
       width="40%"
       :before-close="() => commandDialog.visible = false"
     >
       <el-form>
-        <el-form-item label="主机名称">
+        <el-form-item :label='$tr("主机名称")'>
           <el-input v-model="commandDialog.hostName" disabled />
         </el-form-item>
-        <el-form-item label="执行命令">
+        <el-form-item :label='$tr("执行命令")'>
           <el-input
             type="textarea"
             :rows="3"
             v-model="commandDialog.command"
-            placeholder="请输入要执行的命令"
+            :placeholder='$tr("请输入要执行的命令")'
             clearable
           />
         </el-form-item>
@@ -306,7 +307,7 @@
             @click="submitCommand"
             :loading="commandDialog.loading"
           >
-            执行
+            {{ $tr("执行") }}
           </el-button>
           <el-tag 
             v-if="commandDialog.status"
@@ -337,7 +338,7 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="commandDialog.visible = false">关闭</el-button>
+        <el-button @click="commandDialog.visible = false">{{ $tr("关闭") }}</el-button>
       </template>
     </el-dialog>
   </el-card>
@@ -345,8 +346,9 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import * as echarts from 'echarts'
-import configApi from '@/api/config'
 import cmdbApi from '@/api/cmdb'
 import CreateCloud from './Host/CreateCloud.vue'
 import HostSSH from './Host/SSH.vue'
@@ -407,21 +409,21 @@ export default {
         remark: ''
       },
       addFormRules: {
-        hostName: [{ required: true, message: '请输入主机名称', trigger: 'blur' }],
-        ip: [{ required: true, message: '请输入IP地址', trigger: 'blur' }],
-        port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
-        username: [{ required: true, message: '请输入连接用户名', trigger: 'blur' }],
-        authId: [{ required: true, message: '请选择认证凭据', trigger: 'change' }],
-        groupId: [{ required: true, message: '请选择所属分组', trigger: 'change' }]
+        hostName: [{ required: true, get message() { return tr('请输入主机名称'); }, trigger: 'blur' }],
+        ip: [{ required: true, get message() { return tr('请输入IP地址'); }, trigger: 'blur' }],
+        port: [{ required: true, get message() { return tr('请输入端口号'); }, trigger: 'blur' }],
+        username: [{ required: true, get message() { return tr('请输入连接用户名'); }, trigger: 'blur' }],
+        authId: [{ required: true, get message() { return tr('请选择认证凭据'); }, trigger: 'change' }],
+        groupId: [{ required: true, get message() { return tr('请选择所属分组'); }, trigger: 'change' }]
       },
       hostInfo: {},
       editFormRules: {
-        hostName: [{ required: true, message: '请输入主机名称', trigger: 'blur' }],
-        ip: [{ required: true, message: '请输入IP地址', trigger: 'blur' }],
-        port: [{ required: true, message: '请输入端口号', trigger: 'blur' }],
-        username: [{ required: true, message: '请输入连接用户名', trigger: 'blur' }],
-        authId: [{ required: true, message: '请选择认证凭据', trigger: 'change' }],
-        groupId: [{ required: true, message: '请选择所属分组', trigger: 'change' }]
+        hostName: [{ required: true, get message() { return tr('请输入主机名称'); }, trigger: 'blur' }],
+        ip: [{ required: true, get message() { return tr('请输入IP地址'); }, trigger: 'blur' }],
+        port: [{ required: true, get message() { return tr('请输入端口号'); }, trigger: 'blur' }],
+        username: [{ required: true, get message() { return tr('请输入连接用户名'); }, trigger: 'blur' }],
+        authId: [{ required: true, get message() { return tr('请选择认证凭据'); }, trigger: 'change' }],
+        groupId: [{ required: true, get message() { return tr('请选择所属分组'); }, trigger: 'change' }]
       },
     // SSH终端对话框相关
     sshDialogVisible: false,
@@ -435,16 +437,16 @@ export default {
     },
     currentUploadHost: null,
     uploadRules: {
-      file: [{ required: true, message: '请选择上传文件', trigger: 'change' }],
+      file: [{ required: true, get message() { return tr('请选择上传文件'); }, trigger: 'change' }],
       targetPath: [{ 
         required: true, 
-        message: '请输入目标路径', 
+        get message() { return tr('请输入目标路径'); }, 
         trigger: ['blur', 'change'],
         validator: (rule, value, callback) => {
           if (value === '/tmp' || (value && value.trim() !== '')) {
             callback()
           } else {
-            callback(new Error('请输入目标路径'))
+            callback(new Error(tr('请输入目标路径')))
           }
         }
       }]
@@ -586,7 +588,7 @@ export default {
             })
           } else {
             console.warn('未找到匹配分组的路径')
-            this.$message.warning('未找到匹配的分组路径')
+            this.$message.warning(tr('未找到匹配的分组路径'))
           }
         } else {
           console.warn('未找到匹配分组')
@@ -600,10 +602,7 @@ export default {
     // 获取认证凭据列表
     async getAuthList() {
       try {
-        const response = await configApi.getEcsAuthList({
-          page: 1,
-          pageSize: 100  // 获取认证凭据，用于下拉选择
-        })
+        const response = await cmdbApi.getConnectionCredentials()
         
         if (response && response.data) {
           const res = response.data
@@ -616,7 +615,7 @@ export default {
           }
         } else {
           console.error('无效的响应格式:', response)
-          this.$message.error('获取认证凭据失败: 无效的响应格式')
+          this.$message.error(tr('获取认证凭据失败: 无效的响应格式'))
         }
       } catch (error) {
         console.error('获取认证凭据异常:', error)
@@ -662,23 +661,23 @@ export default {
         
         // 严格检查响应格式
         if (!axiosResponse || typeof axiosResponse !== 'object') {
-          throw new Error('API返回无效响应格式')
+          throw new Error(tr('API返回无效响应格式'))
         }
 
         // 检查响应数据
         const res = axiosResponse.data
         if (!res || typeof res !== 'object') {
-          throw new Error('无效的响应数据结构')
+          throw new Error(tr('无效的响应数据结构'))
         }
 
         // 检查响应码
         if (res.code === undefined || res.code !== 200) {
-          throw new Error(res.message || '获取主机列表失败')
+          throw new Error(res.message || tr('获取主机列表失败'))
         }
 
         // 确保data存在，即使为空数组
         if (res.data === undefined) {
-          throw new Error('响应缺少data字段')
+          throw new Error(tr('响应缺少data字段'))
         }
 
         // 处理响应数据 - 适配不同API返回格式
@@ -771,7 +770,7 @@ export default {
       }
       
       if (!groupId) {
-        this.$message.warning("无法获取分组ID")
+        this.$message.warning(tr("无法获取分组ID"))
         return
       }
       
@@ -847,7 +846,7 @@ export default {
         const { data: res } = await this.$api.createCmdbHost(requestData)
 
         if (res.code === 200) {
-          this.$message.success('新增主机成功，正在同步主机信息...')
+          this.$message.success(tr('新增主机成功，正在同步主机信息...'))
           this.addDialogVisible = false
 
           // 立即刷新一次列表显示新创建的主机
@@ -856,7 +855,7 @@ export default {
           // 等待3秒让后端同步主机状态信息，然后再次刷新
           setTimeout(async () => {
             await this.getHostList()
-            this.$message.success('主机信息同步完成')
+            this.$message.success(tr('主机信息同步完成'))
           }, 3000)
         } else if (res.code === 426) {
           this.$message.error(`认证凭据不存在(凭据ID: ${requestData.sshKeyId})，请检查后重试`)
@@ -876,6 +875,7 @@ export default {
       const { data: res } = await this.$api.getCmdbHostById(id)
       if (res.code === 200) {
         this.hostInfo = {
+          ...res.data,
           id: res.data.id,
           hostName: res.data.hostName,
           groupId: res.data.groupId,
@@ -899,20 +899,20 @@ export default {
       try {
         // 验证凭据是否存在
         const authExists = this.authList.some(auth => auth.id === requestData.sshKeyId)
-        if (!authExists) {
-          this.$message.error('选择的认证凭据不存在，请刷新凭据列表后重试')
+        if (!requestData.skipSSH && !authExists) {
+          this.$message.error(tr('选择的认证凭据不存在，请刷新凭据列表后重试'))
           return false
         }
 
         // 确保端口为数字
         const port = Number(requestData.sshPort)
-        if (isNaN(port) || port < 1 || port > 65535) {
-          this.$message.error('端口号必须为1-65535之间的数字')
+        if (!requestData.skipSSH && (isNaN(port) || port < 1 || port > 65535)) {
+          this.$message.error(tr('端口号必须为1-65535之间的数字'))
           return false
         }
         const { data: res } = await this.$api.updateCmdbHost(requestData)
         if (res.code === 200) {
-          this.$message.success('修改主机成功')
+          this.$message.success(tr('修改主机成功'))
           this.editDialogVisible = false
           this.getHostList()
           return true
@@ -1038,7 +1038,7 @@ export default {
     // 连接SSH终端
     handleHostSSH() {
       if (!this.hostList.length) {
-        this.$message.warning('请先选择主机')
+        this.$message.warning(tr('请先选择主机'))
         return
       }
       const selectedHost = this.hostList[0] // 默认选择第一个主机
@@ -1085,7 +1085,7 @@ export default {
         console.log('权限检查结果:', hasPermission)
 
         if (!hasPermission) {
-          this.$message.warning('您没有新建主机的权限')
+          this.$message.warning(tr('您没有新建主机的权限'))
           // 阻止下拉框显示
           this.$nextTick(() => {
             this.$refs.createDropdown?.hide()
@@ -1169,7 +1169,7 @@ export default {
       
       if (!this.commandDialog.command) {
         console.warn('未输入命令')
-        this.$message.warning('请输入要执行的命令')
+        this.$message.warning(tr('请输入要执行的命令'))
         return
       }
 
@@ -1204,17 +1204,17 @@ export default {
         await this.$refs.uploadFormRef.validate()
         
         if (!this.uploadForm.file) {
-          return this.$message.warning('请选择上传文件')
+          return this.$message.warning(tr('请选择上传文件'))
         }
 
         // 检查文件大小 (5MB限制)
         if (this.uploadForm.file.size > 5 * 1024 * 1024) {
-          return this.$message.warning('文件大小不能超过5MB')
+          return this.$message.warning(tr('文件大小不能超过5MB'))
         }
 
         // 检查是否已有上传在进行
         if (this.isUploading) {
-          return this.$message.warning('已有文件正在上传，请等待完成')
+          return this.$message.warning(tr('已有文件正在上传，请等待完成'))
         }
 
         this.isUploading = true
@@ -1249,7 +1249,7 @@ export default {
         )
 
         if (res.code === 200) {
-          this.$message.success('文件上传成功')
+          this.$message.success(tr('文件上传成功'))
           this.uploadDialogVisible = false
           this.resetUploadForm()
         } else {
@@ -1278,19 +1278,19 @@ export default {
 
     // 删除主机
     async handleHostDelete(row) {
-      const confirmResult = await this.$confirm('是否确认删除主机"' + row.hostName + '"?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除主机"' + row.hostName + '"?', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       
       const { data: res } = await this.$api.deleteCmdbHost(row.id)
       if (res.code === 200) {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         this.getHostList()
       }
     },
@@ -1308,7 +1308,7 @@ export default {
         }
         
         if (!hostId) {
-          this.$message.warning('请先选择要同步的主机')
+          this.$message.warning(tr('请先选择要同步的主机'))
           return
         }
         
@@ -1326,7 +1326,7 @@ export default {
             }
           }, 3000)
         } else {
-          this.$message.error(res.message || '同步失败')
+          this.$message.error(res.message || tr('同步失败'))
         }
       } catch (error) {
         console.error('同步主机配置失败:', error)
@@ -1343,7 +1343,7 @@ export default {
         const { data: res } = await cmdbApi.createCmdbGroup(groupData)
         
         if (res.code === 200) {
-          this.$message.success('创建分组成功')
+          this.$message.success(tr('创建分组成功'))
           // 刷新分组列表
           await this.getAllGroups()
         } else {
@@ -1362,7 +1362,7 @@ export default {
         const { data: res } = await cmdbApi.updateCmdbGroup(groupData)
         
         if (res.code === 200) {
-          this.$message.success('更新分组成功')
+          this.$message.success(tr('更新分组成功'))
           // 刷新分组列表
           await this.getAllGroups()
         } else {
@@ -1381,7 +1381,7 @@ export default {
         const { data: res } = await cmdbApi.deleteCmdbGroup(groupId)
 
         if (res.code === 200) {
-          this.$message.success('删除分组成功')
+          this.$message.success(tr('删除分组成功'))
           // 刷新分组列表
           await this.getAllGroups()
           // 如果删除的是当前选中的分组，重置选择

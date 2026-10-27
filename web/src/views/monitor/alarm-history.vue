@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  报警历史
+  {{ $tr("报警历史") }}
 </template>
 
 <style scoped>

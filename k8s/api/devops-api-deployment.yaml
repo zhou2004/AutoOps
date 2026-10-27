@@ -32,6 +32,16 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            - name: AUTOOPS_DATABASE_AUTOMATION_DIR
+              value: /app/automation/database
+            - name: AUTOOPS_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: autoops-auth
+                  key: jwt-secret
+                  optional: true
+            - name: AIOPS_KEY_FILE
+              value: /app/data/aiops.key
             - name: TZ
               value: Asia/Shanghai
             - name: IMAGE_HOST
@@ -51,6 +61,8 @@ spec:
             - name: REDIS_PASSWORD
               value: zhangfan@123
           volumeMounts:
+            - mountPath: /app/data
+              name: aiops-state
             - mountPath: /app/config.yaml
               name: devops-api-cm0
               subPath: config.yaml
@@ -62,6 +74,9 @@ spec:
               name: devops-api-cm3
               subPath: host.xlsx
       volumes:
+        - name: aiops-state
+          persistentVolumeClaim:
+            claimName: aiops-state
         - name: devops-api-cm0
           configMap:
             name: devops-api-cm0

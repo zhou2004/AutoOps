@@ -112,6 +112,7 @@ func (d *K8sUserGroupDao) GetUserGroupIDs(userID uint) ([]uint, error) {
 	var ids []uint
 	err := d.db.Model(&model.K8sUserGroupMember{}).
 		Select("DISTINCT group_id").
+		Joins("JOIN k8s_user_group g ON g.id = k8s_user_group_member.group_id AND g.status = 1").
 		Where("user_id = ?", userID).
 		Pluck("group_id", &ids).Error
 	return ids, err

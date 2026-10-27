@@ -2,28 +2,28 @@
   <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.2s' }">
     <div class="section-title">
       <span class="title-bar"></span>
-      <span>🚀 服务上线</span>
+      <span>{{ $tr("🚀 服务上线") }}</span>
       <div style="margin-left:auto;display:flex;gap:6px">
-        <el-tag :type="deployRange==='week'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='week'">本周</el-tag>
-        <el-tag :type="deployRange==='month'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='month'">本月</el-tag>
-        <el-tag :type="deployRange==='year'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='year'">本年</el-tag>
+        <el-tag :type="deployRange==='week'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='week'">{{ $tr("本周") }}</el-tag>
+        <el-tag :type="deployRange==='month'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='month'">{{ $tr("本月") }}</el-tag>
+        <el-tag :type="deployRange==='year'?'primary':''" size="small" style="cursor:pointer" @click="deployRange='year'">{{ $tr("本年") }}</el-tag>
       </div>
     </div>
 
     <div class="dashboard-grid dashboard-grid-4" style="margin-bottom:16px">
-      <StatCard icon="📦" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="deployStats.total" label="上线总次数" :trend="12" />
-      <StatCard icon="✅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="deployStats.success" label="成功次数" />
-      <StatCard icon="❌" iconBg="linear-gradient(135deg,#fff2f0,#ffd8d2)" :value="deployStats.fail" label="失败次数" />
-      <StatCard icon="📊" iconBg="linear-gradient(135deg,#f9f0ff,#efdbff)" :value="deployStats.successRate" label="成功率" unit="%" />
+      <StatCard icon="📦" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="deployStats.total" :label='$tr("上线总次数")' :trend="12" />
+      <StatCard icon="✅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="deployStats.success" :label='$tr("成功次数")' />
+      <StatCard icon="❌" iconBg="linear-gradient(135deg,#fff2f0,#ffd8d2)" :value="deployStats.fail" :label='$tr("失败次数")' />
+      <StatCard icon="📊" iconBg="linear-gradient(135deg,#f9f0ff,#efdbff)" :value="deployStats.successRate" :label='$tr("成功率")' unit="%" />
     </div>
 
     <div class="dashboard-grid dashboard-grid-2">
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">各业务线上线统计</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("各业务线上线统计") }}</div>
         <BaseChart :option="businessOption" size="sm" />
       </div>
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">同环比趋势</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("同环比趋势") }}</div>
         <BaseChart :option="trendOption" size="sm" />
       </div>
     </div>

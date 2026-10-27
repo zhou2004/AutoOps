@@ -1,6 +1,6 @@
 <template>
 <el-dialog 
-  title="任务流程" 
+  :title='$tr("任务流程")' 
   v-model="dialogVisible" 
   width="80%"
   top="5vh"
@@ -11,12 +11,14 @@
       <task-flow ref="taskFlowRef" :steps="steps" :task-id="currentTaskId" />
     </div>
     <template #footer>
-      <el-button @click="dialogVisible = false">关闭</el-button>
+      <el-button @click="dialogVisible = false">{{ $tr("关闭") }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed } from 'vue'
 import { GetTaskTemplates } from '@/api/task'
 import TaskFlow from './TaskFlowTemp.vue'
@@ -72,7 +74,7 @@ const templatesData = ref([])
       try {
         console.log('Received taskId:', taskId);
         if (!taskId) {
-          throw new Error('任务ID未定义');
+          throw new Error(tr('任务ID未定义'));
         }
         
         // 重置当前数据
@@ -83,7 +85,7 @@ const templatesData = ref([])
         console.log('获取模板响应:', response);
         
         if (!response?.data?.data) {
-          throw new Error('无效的API响应数据');
+          throw new Error(tr('无效的API响应数据'));
         }
         
         // 深度拷贝API数据
@@ -102,7 +104,7 @@ const templatesData = ref([])
         // 从API响应中获取实际的task_id
         const apiTaskId = templatesData.value[0]?.task_id;
         if (!apiTaskId) {
-          throw new Error('API响应中未包含task_id');
+          throw new Error(tr('API响应中未包含task_id'));
         }
         
         // 更新currentTaskId为API返回的task_id

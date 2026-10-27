@@ -1,0 +1,86 @@
+---
+- name: Install managed database nodes
+  hosts: mysql_nodes
+  any_errors_fatal: true
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../defaults.yml
+  pre_tasks:
+    - name: Validate supported operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family in ['Debian', 'RedHat']
+          - database_engine in ['mysql', 'postgresql', 'redis']
+    - name: Verify this host is not claimed by another deployment
+      ansible.builtin.stat:
+        path: /etc/autoops-{{ database_engine }}-owner
+      register: db_owner
+    - name: Read existing deployment marker
+      ansible.builtin.slurp:
+        src: /etc/autoops-{{ database_engine }}-owner
+      register: db_owner_content
+      when: db_owner.stat.exists
+    - name: Reject conflicting installation
+      ansible.builtin.assert:
+        that: not db_owner.stat.exists or (db_owner_content.content | default('') | b64decode | trim) == database_name
+        fail_msg: Host already has a managed database installation
+    - name: Refuse to adopt an occupied database port
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: '{{ database_port }}'
+        state: stopped
+        timeout: 1
+      when: not db_owner.stat.exists
+    - name: Check existing native database data
+      ansible.builtin.stat:
+        path: "{{ {'mysql': '/var/lib/autoops-mysql', 'postgresql': '/var/lib/postgresql', 'redis': '/var/lib/redis'}[database_engine] }}"
+      register: existing_db_data
+    - name: Refuse to overwrite unmanaged database data
+      ansible.builtin.assert:
+        that: db_owner.stat.exists or not existing_db_data.stat.exists
+        fail_msg: Existing database data must be registered or migrated explicitly
+    - name: Claim this isolated installation before package changes
+      ansible.builtin.copy:
+        dest: /etc/autoops-{{ database_engine }}-owner
+        content: '{{ database_name }}'
+        mode: '0600'
+  tasks:
+    - name: Install MySQL using the adapted Ansible-Mysql role
+      ansible.builtin.include_role:
+        name: mysql_install
+      when: database_engine == 'mysql'
+    - name: Install PostgreSQL
+      ansible.builtin.include_tasks: postgresql.yml
+      when: database_engine == 'postgresql'
+    - name: Install Redis
+      ansible.builtin.include_tasks: redis.yml
+      when: database_engine == 'redis'
+    - name: Record database installation ownership
+      ansible.builtin.copy:
+        dest: /etc/autoops-{{ database_engine }}-owner
+        content: '{{ database_name }}'
+        mode: '0600'
+
+- name: Configure MySQL GTID replication and monitoring
+  hosts: mysql_nodes
+  any_errors_fatal: true
+  become: true
+  gather_facts: false
+  vars_files:
+    - ../defaults.yml
+  tasks:
+    - name: Configure replication
+      ansible.builtin.include_tasks: replication.yml
+      when: database_engine == 'mysql'
+
+- name: Install Orchestrator management servers
+  hosts: orc_manager
+  any_errors_fatal: true
+  become: true
+  gather_facts: true
+  vars_files:
+    - ../defaults.yml
+  tasks:
+    - name: Install Orchestrator
+      ansible.builtin.include_tasks: orchestrator.yml

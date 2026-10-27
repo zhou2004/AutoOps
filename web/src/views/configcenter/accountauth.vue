@@ -3,106 +3,193 @@
     <el-card shadow="hover" class="accountauth-card">
       <template #header>
         <div class="card-header">
-          <span class="title">账号认证管理</span>
+          <span class="title">{{ $tr("账号认证管理") }}</span>
         </div>
       </template>
-      
+
       <!-- 搜索表单 -->
       <div class="search-section">
-        <el-form :model="queryParams" :inline="true" class="search-form" ref="queryForm">
-      <el-form-item label="账号别名" prop="alias">
-        <el-input placeholder="请输入账号别名" clearable size="small" v-model="queryParams.alias"
-                  @keyup.enter.native="handleQuery" />
-      </el-form-item>
-      <el-form-item label="账号类型" prop="type" style="width: 200px">
-        <el-select v-model="queryParams.type" placeholder="请选择账号类型" size="small" clearable>
-          <el-option label="Mysql" :value="1" />
-          <el-option label="Postgre" :value="2" />
-          <el-option label="Redis" :value="3" />
-          <el-option label="Jenkins" :value="4" />
-          <el-option label="通用账号" :value="5" />
-        </el-select>
-      </el-form-item>
+        <el-form
+          :model="queryParams"
+          :inline="true"
+          class="search-form"
+          ref="queryForm"
+        >
+          <el-form-item :label='$tr("账号别名")' prop="alias">
+            <el-input
+              :placeholder='$tr("请输入账号别名")'
+              clearable
+              size="small"
+              v-model="queryParams.alias"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item :label='$tr("账号类型")' prop="type" style="width: 200px">
+            <el-select
+              v-model="queryParams.type"
+              :placeholder='$tr("请选择账号类型")'
+              size="small"
+              clearable
+            >
+              <el-option label="Mysql" :value="1" />
+              <el-option label="Postgre" :value="2" />
+              <el-option label="Redis" :value="3" />
+              <el-option label="Jenkins" :value="4" />
+              <el-option :label='$tr("通用账号")' :value="5" />
+            </el-select>
+          </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button
+              type="primary"
+              icon="Search"
+              size="small"
+              @click="handleQuery"
+              >{{ $tr("搜索") }}</el-button
+            >
+            <el-button icon="Refresh" size="small" @click="resetQuery"
+              >{{ $tr("重置") }}</el-button
+            >
           </el-form-item>
         </el-form>
       </div>
-    
+
       <!-- 操作按钮 -->
       <div class="action-section">
-        <el-button type="success" v-authority="['config:common:add']" plain icon="Plus" size="small"
-                   @click="showAddDialog">新增账号</el-button>
-                   
+        <el-button
+          type="success"
+          v-authority="['config:common:add']"
+          plain
+          icon="Plus"
+          size="small"
+          @click="showAddDialog"
+          >{{ $tr("新增账号") }}</el-button
+        >
       </div>
-    
+
       <!-- 列表区域 -->
       <div class="table-section">
-        <el-table stripe v-loading="loading" :data="accountList" class="accountauth-table">
-      <el-table-column label="账号别名" prop="alias">
-        <template v-slot="scope">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img :src="$getAssetUrl('@/assets/image/账号.svg')" style="width: 16px; height: 16px"/>
-            <span>{{ scope.row.alias }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="服务地址" prop="host">
-        <template v-slot="scope">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img :src="$getAssetUrl('@/assets/image/url.svg')" style="width: 16px; height: 16px"/>
-            <span>{{ scope.row.host }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="端口" prop="port" width="100">
-        <template v-slot="scope">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img :src="$getAssetUrl('@/assets/image/端口.svg')" style="width: 16px; height: 16px"/>
-            <span>{{ scope.row.port }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="用户名" prop="name">
-        <template v-slot="scope">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img :src="$getAssetUrl('@/assets/image/ren.svg')" style="width: 16px; height: 16px"/>
-            <span>{{ scope.row.name }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="账号类型" width="120">
-        <template v-slot="scope">
-          <el-tag :type="scope.row.type === 1 ? 'success' : 
-                         (scope.row.type === 2 ? 'warning' : 
-                         (scope.row.type === 3 ? 'danger' : 'info'))">
-            {{ scope.row.type === 1 ? 'Mysql' : 
-               (scope.row.type === 2 ? 'Postgre' : 
-               (scope.row.type === 3 ? 'Redis' : 
-               (scope.row.type === 4 ? 'Jenkins' : 
-               (scope.row.type === 5 ? 'Zabbix' : '通用账号')))) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" prop="createdAt" />
-      <el-table-column label="更新时间" prop="updatedAt" />
-      <el-table-column label="备注" prop="remark" />
-      <el-table-column label="操作" class-name="small-padding fixed-width" width="240">
-        <template v-slot="scope">
-          <div class="operation-buttons">
-            <el-tooltip content="修改" placement="top">
-              <el-button size="small" v-authority="['config:common:edit']" type="primary" icon="Edit" circle @click="showEditDialog(scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="删除" placement="top">
-              <el-button size="small" v-authority="['config:common:delete']" type="danger" icon="Delete" circle @click="handleDelete(scope.row)" />
-            </el-tooltip>
-            <el-tooltip content="解密" placement="top">
-              <el-button size="small" v-authority="['config:common:decrypt']" type="warning" icon="Key" circle @click="handleDecrypt(scope.row)" />
-            </el-tooltip>
-          </div>
-        </template>
-      </el-table-column>
+        <el-table
+          stripe
+          v-loading="loading"
+          :data="accountList"
+          class="accountauth-table"
+        >
+          <el-table-column :label='$tr("账号别名")' prop="alias">
+            <template v-slot="scope">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img
+                  :src="$getAssetUrl('@/assets/image/账号.svg')"
+                  style="width: 16px; height: 16px"
+                />
+                <span>{{ scope.row.alias }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column :label='$tr("服务地址")' prop="host">
+            <template v-slot="scope">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img
+                  :src="$getAssetUrl('@/assets/image/url.svg')"
+                  style="width: 16px; height: 16px"
+                />
+                <span>{{ scope.row.host }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column :label='$tr("端口")' prop="port" width="100">
+            <template v-slot="scope">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img
+                  :src="$getAssetUrl('@/assets/image/端口.svg')"
+                  style="width: 16px; height: 16px"
+                />
+                <span>{{ scope.row.port }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column :label='$tr("用户名")' prop="name">
+            <template v-slot="scope">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img
+                  :src="$getAssetUrl('@/assets/image/ren.svg')"
+                  style="width: 16px; height: 16px"
+                />
+                <span>{{ scope.row.name }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column :label='$tr("账号类型")' width="120">
+            <template v-slot="scope">
+              <el-tag
+                :type="
+                  scope.row.type === 1
+                    ? 'success'
+                    : scope.row.type === 2
+                      ? 'warning'
+                      : scope.row.type === 3
+                        ? 'danger'
+                        : 'info'
+                "
+              >
+                {{
+                  scope.row.type === 1
+                    ? "Mysql"
+                    : scope.row.type === 2
+                      ? "Postgre"
+                      : scope.row.type === 3
+                        ? "Redis"
+                        : scope.row.type === 4
+                          ? "Jenkins"
+                          : scope.row.type === 5
+                            ? "Zabbix"
+                            : $tr("通用账号")
+                }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label='$tr("创建时间")' prop="createdAt" />
+          <el-table-column :label='$tr("更新时间")' prop="updatedAt" />
+          <el-table-column :label='$tr("备注")' prop="remark" />
+          <el-table-column
+            :label='$tr("操作")'
+            class-name="small-padding fixed-width"
+            width="240"
+          >
+            <template v-slot="scope">
+              <div class="operation-buttons">
+                <el-tooltip :content='$tr("修改")' placement="top">
+                  <el-button
+                    size="small"
+                    v-authority="['config:common:edit']"
+                    type="primary"
+                    icon="Edit"
+                    circle
+                    @click="showEditDialog(scope.row)"
+                  />
+                </el-tooltip>
+                <el-tooltip :content='$tr("删除")' placement="top">
+                  <el-button
+                    size="small"
+                    v-authority="['config:common:delete']"
+                    type="danger"
+                    icon="Delete"
+                    circle
+                    @click="handleDelete(scope.row)"
+                  />
+                </el-tooltip>
+                <el-tooltip :content='$tr("解密")' placement="top">
+                  <el-button
+                    size="small"
+                    v-authority="['config:common:decrypt']"
+                    type="warning"
+                    icon="Key"
+                    circle
+                    @click="handleDecrypt(scope.row)"
+                  />
+                </el-tooltip>
+              </div>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
@@ -118,65 +205,111 @@
           :total="total"
         />
       </div>
-    
-    <!--新增/编辑对话框-->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="30%" :modal="false">
-      <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
-        <el-form-item label="账号别名" prop="alias">
-          <el-input v-model="formData.alias" placeholder="请输入账号别名"></el-input>
-        </el-form-item>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="服务地址" prop="host">
-              <el-input v-model="formData.host" placeholder="192.168.1.1:3306 (无需协议)"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="服务类型" prop="type">
-              <el-select v-model="formData.type" placeholder="请选择服务类型">
-                <el-option label="Mysql" :value="1" />
-                <el-option label="Postgre" :value="2" />
-                <el-option label="Redis" :value="3" />
-                <el-option label="Jenkins" :value="4" />
-                <el-option label="Zabbix" :value="5" />
-                <el-option label="通用账号" :value="6" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="用户名" prop="name">
-              <el-input v-model="formData.name" placeholder="请输入用户名"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="formData.password" show-password placeholder="请输入密码"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="formData.remark" type="textarea" placeholder="请输入备注信息"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="dialogVisible = false">取 消</el-button>
-      </span>
-    </el-dialog>
+
+      <!--新增/编辑对话框-->
+      <el-dialog
+        :title="$tr(dialogTitle)"
+        v-model="dialogVisible"
+        width="30%"
+        :modal="false"
+      >
+        <el-form
+          :model="formData"
+          :rules="formRules"
+          ref="formRef"
+          label-width="100px"
+        >
+          <el-form-item :label='$tr("账号别名")' prop="alias">
+            <el-input
+              v-model="formData.alias"
+              :placeholder='$tr("请输入账号别名")'
+            ></el-input>
+          </el-form-item>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item :label='$tr("服务地址")' prop="host">
+                <el-input
+                  v-model="formData.host"
+                  :placeholder='$tr("IP 或域名，无需协议和端口")'
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item :label='$tr("服务类型")' prop="type">
+                <el-select
+                  v-model="formData.type"
+                  :placeholder='$tr("请选择服务类型")'
+                  @change="setDefaultPort"
+                >
+                  <el-option label="Mysql" :value="1" />
+                  <el-option label="Postgre" :value="2" />
+                  <el-option label="Redis" :value="3" />
+                  <el-option label="Jenkins" :value="4" />
+                  <el-option label="Zabbix" :value="5" />
+                  <el-option :label='$tr("通用账号")' :value="6" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item :label='$tr("服务端口")' prop="port">
+                <el-input-number
+                  v-model="formData.port"
+                  :min="1"
+                  :max="65535"
+                  controls-position="right"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item :label='$tr("用户名")' prop="name">
+                <el-input
+                  v-model="formData.name"
+                  :placeholder='$tr("请输入用户名")'
+                ></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item :label='$tr("密码")' prop="password">
+                <el-input
+                  v-model="formData.password"
+                  show-password
+                  :placeholder='$tr("请输入密码")'
+                ></el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item :label='$tr("备注")' prop="remark">
+            <el-input
+              v-model="formData.remark"
+              type="textarea"
+              :placeholder='$tr("请输入备注信息")'
+            ></el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitForm">{{ $tr("确 定") }}</el-button>
+          <el-button @click="dialogVisible = false">{{ $tr("取 消") }}</el-button>
+        </span>
+      </el-dialog>
     </el-card>
   </div>
 </template>
 
 <script>
-import API from '@/api/config'
+import { tr } from "@/locales";
+
+import API from "@/api/config";
 
 export default {
   data() {
     return {
       queryParams: {
-        alias: '',
+        alias: "",
         type: undefined,
         pageNum: 1,
         pageSize: 10
@@ -185,212 +318,248 @@ export default {
       accountList: [],
       total: 0,
       dialogVisible: false,
-      dialogTitle: '',
+      dialogTitle: "",
       formData: {
-        id: '',
-        alias: '',
-        host: '',
-        name: '',
-        password: '',
+        id: "",
+        alias: "",
+        host: "",
+        port: undefined,
+        name: "",
+        password: "",
         type: undefined,
-        remark: ''
+        remark: ""
       },
       formRules: {
-        alias: [{ required: true, message: '请输入账号别名', trigger: 'blur' }],
-        host: [{ required: true, message: '请输入服务地址(格式: IP或域名:端口)', trigger: 'blur' }],
-        name: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-        type: [{ required: true, message: '请选择服务类型', trigger: 'change' }]
+        alias: [{ required: true, get message() { return tr("请输入账号别名"); }, trigger: "blur" }],
+        host: [
+          {
+            required: true,
+            get message() { return tr("请输入服务地址(格式: IP或域名:端口)"); },
+            trigger: "blur"
+          }
+        ],
+        name: [{ required: true, get message() { return tr("请输入用户名"); }, trigger: "blur" }],
+        port: [
+          { required: true, get message() { return tr("请输入服务端口"); }, trigger: "change" }
+        ],
+        type: [{ required: true, get message() { return tr("请选择服务类型"); }, trigger: "change" }]
       }
-    }
+    };
   },
   methods: {
     // 获取账号列表
     async getList() {
-      this.loading = true
+      this.loading = true;
       try {
         const { data: res } = await API.listAccountAuth({
           page: this.queryParams.pageNum,
           pageSize: this.queryParams.pageSize,
           alias: this.queryParams.alias || undefined,
           type: this.queryParams.type || undefined
-        })
+        });
         if (res.code === 200) {
-          this.accountList = res.data?.list || []
-          this.total = res.data?.total || 0
+          this.accountList = res.data?.list || [];
+          this.total = res.data?.total || 0;
         } else {
-          this.$message.error(res.message || '获取账号列表失败')
+          this.$message.error(res.message || tr("获取账号列表失败"));
         }
       } catch (error) {
-        console.error('获取账号列表失败:', error)
-        this.$message.error('获取账号列表失败')
+        console.error("获取账号列表失败:", error);
+        this.$message.error(tr("获取账号列表失败"));
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
-    
+
     // 搜索
     async handleQuery() {
-      this.queryParams.pageNum = 1  // 重置到第一页
-      this.getList()
+      this.queryParams.pageNum = 1; // 重置到第一页
+      this.getList();
     },
-    
+
     // 重置搜索
     resetQuery() {
       this.queryParams = {
-        alias: '',
+        alias: "",
         type: undefined,
         pageNum: 1,
         pageSize: 10
-      }
-      this.getList()
+      };
+      this.getList();
     },
-    
+
     // 分页处理
     handleSizeChange(val) {
-      this.queryParams.pageSize = val
-      this.queryParams.pageNum = 1
-      this.getList()
+      this.queryParams.pageSize = val;
+      this.queryParams.pageNum = 1;
+      this.getList();
     },
-    
+
     handleCurrentChange(val) {
-      this.queryParams.pageNum = val
-      this.getList()
+      this.queryParams.pageNum = val;
+      this.getList();
     },
-    
+
     // 显示新增对话框
     showAddDialog() {
-      this.dialogTitle = '创建账号'
+      this.dialogTitle = "创建账号";
       this.$nextTick(() => {
         this.formData = {
-          id: '',
-          alias: '',
-          host: '',
-          name: '',
-          password: '',
+          id: "",
+          alias: "",
+          host: "",
+          port: undefined,
+          name: "",
+          password: "",
           type: undefined,
-          remark: ''
-        }
-        this.dialogVisible = true
-      })
+          remark: ""
+        };
+        this.dialogVisible = true;
+      });
     },
-    
+
     // 显示编辑对话框
     showEditDialog(row) {
-      this.dialogTitle = '修改账号'
+      this.dialogTitle = "修改账号";
       this.$nextTick(() => {
         this.formData = {
           id: row.id,
           alias: row.alias,
           host: row.host,
+          port: Number(row.port),
           name: row.name,
-          password: '',
+          password: "",
           type: row.type,
           remark: row.remark,
-          createdAt: row.createdAt,  // 保留创建时间
-          updatedAt: row.updatedAt   // 保留更新时间
-        }
-        this.dialogVisible = true
-      })
+          createdAt: row.createdAt, // 保留创建时间
+          updatedAt: row.updatedAt // 保留更新时间
+        };
+        this.dialogVisible = true;
+      });
     },
-    
+
     // 提交表单
     async submitForm() {
       try {
-        await this.$refs.formRef.validate()
+        await this.$refs.formRef.validate();
+        if (!this.formData.id && !this.formData.password) {
+          this.$message.error(tr("创建账号时密码不能为空"));
+          return;
+        }
 
         const formData = {
           ...this.formData,
           type: Number(this.formData.type),
+          port: Number(this.formData.port),
           id: this.formData.id ? Number(this.formData.id) : undefined,
           createdAt: this.formData.createdAt, // 保留创建时间
-          updatedAt: this.formData.updatedAt  // 保留更新时间
-        }
+          updatedAt: this.formData.updatedAt // 保留更新时间
+        };
 
-        let res
+        let res;
         if (formData.id) {
           // 更新 - 仅发送可修改字段
-          const { createdAt, updatedAt, ...updateData } = formData
+          const { createdAt, updatedAt, ...updateData } = formData;
           res = await API.updateAccountAuth({
             id: updateData.id,
             alias: updateData.alias,
             host: updateData.host,
+            port: updateData.port,
             name: updateData.name,
             password: updateData.password,
             type: updateData.type,
             remark: updateData.remark
-          })
+          });
         } else {
           // 新增 - 确保不发送ID字段
-          const { id, ...createData } = formData
-          res = await API.createAccountAuth(createData)
+          const { id, ...createData } = formData;
+          res = await API.createAccountAuth(createData);
         }
 
         if (res.data.code === 200) {
-          this.$message.success(formData.id ? '修改成功' : '创建成功')
-          this.dialogVisible = false
-          await this.getList()
+          this.$message.success(formData.id ? tr("修改成功") : tr("创建成功"));
+          this.dialogVisible = false;
+          await this.getList();
         } else {
-          this.$message.error(res.data.message || (formData.id ? '修改失败' : '创建失败'))
+          this.$message.error(
+            res.data.message || (formData.id ? tr("修改失败") : tr("创建失败"))
+          );
         }
       } catch (error) {
-        console.error('操作失败:', error)
-        this.$message.error('操作失败: ' + error.message)
+        console.error("操作失败:", error);
+        this.$message.error("操作失败: " + error.message);
       }
     },
-    
+
+    setDefaultPort(type) {
+      if (
+        !this.formData.port ||
+        [3306, 5432, 6379].includes(this.formData.port)
+      )
+        this.formData.port = { 1: 3306, 2: 5432, 3: 6379 }[type] || undefined;
+    },
+
     // 删除账号
     // 解密密码
     async handleDecrypt(row) {
       try {
-        const res = await API.decryptPassword({}, {
-          params: { id: row.id }
-        })
+        const res = await API.decryptPassword(
+          {},
+          {
+            params: { id: row.id }
+          }
+        );
         if (res.data.code === 200) {
-          this.$alert(`
+          this.$alert(
+            `
             <div>
               <p>账号: ${row.alias}</p>
               <p>密码: <span style="color: #1890ff; font-weight: bold; font-size: 18px;">${res.data.data.password}</span></p>
             </div>
-          `, '解密结果', {
-            confirmButtonText: '确定',
-            customClass: 'decrypt-result-alert',
-            dangerouslyUseHTMLString: true
-          })
+          `,
+            tr("解密结果"),
+            {
+              confirmButtonText: tr("确定"),
+              customClass: "decrypt-result-alert",
+              dangerouslyUseHTMLString: true
+            }
+          );
         } else {
-          this.$message.error(res.data.message || '解密失败')
+          this.$message.error(res.data.message || "解密失败");
         }
       } catch (error) {
-        console.error('解密失败:', error)
-        this.$message.error('解密失败: ' + (error.response?.data?.message || error.message))
+        console.error("解密失败:", error);
+        this.$message.error(
+          "解密失败: " + (error.response?.data?.message || error.message)
+        );
       }
     },
 
     // 删除账号
     async handleDelete(row) {
       try {
-        await this.$confirm(`确定删除账号"${row.alias}"?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        const res = await API.deleteAccountAuth(row.id)
+        await this.$confirm(`确定删除账号"${row.alias}"?`, tr("提示"), {
+          confirmButtonText: tr("确定"),
+          cancelButtonText: tr("取消"),
+          type: "warning"
+        });
+
+        const res = await API.deleteAccountAuth(row.id);
         if (res.data.code === 200) {
-          this.$message.success('删除成功')
-          this.getList()
+          this.$message.success(tr("删除成功"));
+          this.getList();
         } else {
-          this.$message.error(res.data.message || '删除失败')
+          this.$message.error(res.data.message || tr("删除失败"));
         }
       } catch (error) {
-        console.error('删除失败:', error)
+        console.error("删除失败:", error);
       }
     }
   },
   created() {
-    this.getList()
+    this.getList();
   }
-}
+};
 </script>
 
 <style scoped>

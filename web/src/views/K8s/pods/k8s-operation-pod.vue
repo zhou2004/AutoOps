@@ -4,7 +4,7 @@
     <div class="operation-buttons">
       <!-- 第一行：4个按钮 -->
       <div class="button-row">
-        <el-tooltip :content="canScale ? '伸缩' : '不支持伸缩'" placement="top">
+        <el-tooltip :content="$tr(canScale ? '伸缩' : '不支持伸缩')" placement="top">
           <el-button
             type="primary"
             size="small"
@@ -16,7 +16,7 @@
           </el-button>
         </el-tooltip>
         
-        <el-tooltip :content="canRestart ? '重启' : '不支持重启'" placement="top">
+        <el-tooltip :content="canRestart ? $tr('重启') : '不支持重启'" placement="top">
           <el-button
             type="warning"
             :icon="RefreshRight"
@@ -27,7 +27,7 @@
           />
         </el-tooltip>
         
-        <el-tooltip content="回滚" placement="top">
+        <el-tooltip :content='$tr("回滚")' placement="top">
           <el-button
             type="info"
             :icon="Document"
@@ -37,7 +37,7 @@
           />
         </el-tooltip>
         
-        <el-tooltip content="编辑YAML" placement="top">
+        <el-tooltip :content='$tr("编辑YAML")' placement="top">
           <el-button
             type="primary"
             :icon="Edit"
@@ -50,7 +50,7 @@
       
       <!-- 第二行：4个按钮 -->
       <div class="button-row">
-        <el-tooltip content="更新Pod配置" placement="top">
+        <el-tooltip :content='$tr("更新Pod配置")' placement="top">
           <el-button
             type="success"
             :icon="Setting"
@@ -60,7 +60,7 @@
           />
         </el-tooltip>
         
-        <el-tooltip content="更新调度" placement="top">
+        <el-tooltip :content='$tr("更新调度")' placement="top">
           <el-button
             type="info"
             :icon="Monitor"
@@ -70,7 +70,7 @@
           />
         </el-tooltip>
         
-        <el-tooltip content="更新工作负载" placement="top">
+        <el-tooltip :content='$tr("更新工作负载")' placement="top">
           <el-button
             type="success"
             :icon="RefreshRight"
@@ -80,7 +80,7 @@
           />
         </el-tooltip>
         
-        <el-tooltip content="删除工作负载" placement="top">
+        <el-tooltip :content='$tr("删除工作负载")' placement="top">
           <el-button
             type="danger"
             :icon="Delete"
@@ -101,22 +101,22 @@
     >
       <div class="log-controls">
         <el-form inline>
-          <el-form-item label="容器">
+          <el-form-item :label='$tr("容器")'>
             <el-select v-model="logParams.container" style="width: 200px;">
               <el-option 
                 v-for="container in currentPod.containers" 
                 :key="container.name" 
-                :label="container.name" 
+                :label="$tr(container.name)" 
                 :value="container.name"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="行数">
+          <el-form-item :label='$tr("行数")'>
             <el-input-number v-model="logParams.lines" :min="10" :max="1000" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="refreshPodLogs">刷新日志</el-button>
-            <el-button @click="copyToClipboard(currentPodLogs, '日志已复制')">复制日志</el-button>
+            <el-button type="primary" @click="refreshPodLogs">{{ $tr("刷新日志") }}</el-button>
+            <el-button @click="copyToClipboard(currentPodLogs, '日志已复制')">{{ $tr("复制日志") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -133,7 +133,7 @@
       class="yaml-dialog"
     >
       <div class="yaml-controls">
-        <el-button @click="copyToClipboard(currentPodYaml, 'YAML已复制')">复制YAML</el-button>
+        <el-button @click="copyToClipboard(currentPodYaml, 'YAML已复制')">{{ $tr("复制YAML") }}</el-button>
       </div>
       <div class="yaml-content">
         <CodeEditor 
@@ -153,10 +153,10 @@
       class="scale-dialog"
     >
       <el-form>
-        <el-form-item label="当前副本数">
+        <el-form-item :label='$tr("当前副本数")'>
           <el-input :value="workload.totalReplicas" readonly />
         </el-form-item>
-        <el-form-item label="目标副本数">
+        <el-form-item :label='$tr("目标副本数")'>
           <el-input-number 
             v-model="scaleForm.replicas" 
             :min="0" 
@@ -166,14 +166,16 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="scaleDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitScale" :loading="scaleLoading">确定</el-button>
+        <el-button @click="scaleDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="submitScale" :loading="scaleLoading">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -285,7 +287,7 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
     ElMessage.success(successMessage)
   } catch (error) {
     console.error('复制失败:', error)
-    ElMessage.error('复制失败')
+    ElMessage.error(tr('复制失败'))
   }
 }
 
@@ -333,7 +335,7 @@ const viewPodLogs = async (pod) => {
     }
   } catch (error) {
     console.error('获取Pod日志失败:', error)
-    ElMessage.error('获取Pod日志失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod日志失败，请检查网络连接'))
   } finally {
     logLoading.value = false
   }
@@ -359,7 +361,7 @@ const viewPodYaml = async (pod) => {
     }
   } catch (error) {
     console.error('获取Pod YAML失败:', error)
-    ElMessage.error('获取Pod YAML失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod YAML失败，请检查网络连接'))
   }
 }
 
@@ -367,10 +369,10 @@ const deletePod = async (pod) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除Pod "${pod.name}" 吗？`,
-      '删除Pod确认',
+      tr('删除Pod确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -387,21 +389,21 @@ const deletePod = async (pod) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     } else {
       console.error('删除Pod失败:', error)
-      ElMessage.error('删除Pod失败，请检查网络连接')
+      ElMessage.error(tr('删除Pod失败，请检查网络连接'))
     }
   }
 }
 
 const editWorkload = () => {
-  ElMessage.info('编辑功能开发中...')
+  ElMessage.info(tr('编辑功能开发中...'))
 }
 
 const scaleWorkload = () => {
   if (!canScale.value) {
-    ElMessage.warning('该工作负载不支持扩缩容操作')
+    ElMessage.warning(tr('该工作负载不支持扩缩容操作'))
     return
   }
   emit('scale-workload', props.workload)
@@ -430,7 +432,7 @@ const submitScale = async () => {
     }
   } catch (error) {
     console.error('扩缩容失败:', error)
-    ElMessage.error('扩缩容失败，请检查网络连接')
+    ElMessage.error(tr('扩缩容失败，请检查网络连接'))
   } finally {
     scaleLoading.value = false
   }
@@ -438,7 +440,7 @@ const submitScale = async () => {
 
 const restartWorkload = async () => {
   if (!canRestart.value) {
-    ElMessage.warning('该工作负载不支持重启操作')
+    ElMessage.warning(tr('该工作负载不支持重启操作'))
     return
   }
   emit('restart-workload', props.workload)
@@ -446,10 +448,10 @@ const restartWorkload = async () => {
   try {
     await ElMessageBox.confirm(
       `确定要重启 ${props.workload.type} "${props.workload.name}" 吗？`,
-      '重启确认',
+      tr('重启确认'),
       {
         confirmButtonText: '确定重启',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
@@ -465,10 +467,10 @@ const restartWorkload = async () => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消重启操作')
+      ElMessage.info(tr('已取消重启操作'))
     } else {
       console.error('重启失败:', error)
-      ElMessage.error('重启失败，请检查网络连接')
+      ElMessage.error(tr('重启失败，请检查网络连接'))
     }
   }
 }
@@ -497,18 +499,18 @@ const originalDeleteWorkload = async () => {
   try {
     await ElMessageBox.confirm(
       `确定要删除 ${props.workload.type} "${props.workload.name}" 吗？此操作不可撤销！`,
-      '删除确认',
+      tr('删除确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
       }
     )
     
-    ElMessage.info('删除功能开发中...')
+    ElMessage.info(tr('删除功能开发中...'))
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     }
   }
 }

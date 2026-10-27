@@ -12,7 +12,7 @@
       style="width: 100%"
       size="small"
     >
-      <el-table-column prop="name" label="Pod名称" min-width="200">
+      <el-table-column prop="name" :label='$tr("Pod名称")' min-width="200">
         <template #default="{ row }">
           <div class="pod-name-container">
             <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
@@ -21,19 +21,19 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="status" label="状态" min-width="100">
+      <el-table-column prop="status" :label='$tr("状态")' min-width="100">
         <template #default="{ row }">
           <el-tag
             :type="getPodStatusTag(row.status)"
             size="small"
             effect="dark"
           >
-            {{ getPodStatusText(row.status) }}
+            {{ $tr(getPodStatusText(row.status)) }}
           </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column prop="restartCount" label="重启次数" min-width="100">
+      <el-table-column prop="restartCount" :label='$tr("重启次数")' min-width="100">
         <template #default="{ row }">
           <el-tag size="small" :type="row.restartCount > 0 ? 'warning' : 'success'">
             {{ row.restartCount }}
@@ -41,13 +41,13 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="nodeName" label="节点" min-width="150">
+      <el-table-column prop="nodeName" :label='$tr("节点")' min-width="150">
         <template #default="{ row }">
           <el-tag size="small" type="info">{{ row.nodeName }}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="IP地址" min-width="140">
+      <el-table-column :label='$tr("IP地址")' min-width="140">
         <template #default="{ row }">
           <div class="ip-info">
             <div class="ip-item">
@@ -62,7 +62,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="资源" min-width="140">
+      <el-table-column :label='$tr("资源")' min-width="140">
         <template #default="{ row }">
           <div class="resource-info">
             <div class="resource-item">
@@ -77,21 +77,21 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="age" label="运行时间" min-width="120">
+      <el-table-column prop="age" :label='$tr("运行时间")' min-width="120">
         <template #default="{ row }">
           <div class="time-info">
             <el-tag size="small" type="info">{{ row.age }}</el-tag>
             <div v-if="row.runningTime" class="running-time">
-              运行: {{ formatRunningTime(row.runningTime) }}
+              {{ $tr("运行:") }} {{ formatRunningTime(row.runningTime) }}
             </div>
           </div>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column :label='$tr("操作")' width="200" fixed="right">
         <template #default="{ row }">
           <div class="operation-buttons">
-            <el-tooltip content="日志" placement="top">
+            <el-tooltip :content='$tr("日志")' placement="top">
               <el-button
                 type="primary"
                 :icon="Document"
@@ -111,7 +111,7 @@
               />
             </el-tooltip>
 
-            <el-tooltip content="重构" placement="top">
+            <el-tooltip :content='$tr("重构")' placement="top">
               <el-button
                 type="warning"
                 size="small"
@@ -119,18 +119,18 @@
                 v-authority="['k8s:workload:restart']"
                 @click="$emit('rebuild-pod', row)"
               >
-                <img :src="$getAssetUrl('@/assets/image/重构.svg')" alt="重构" width="14" height="14" style="filter: brightness(0) invert(1);" />
+                <img :src="$getAssetUrl('@/assets/image/重构.svg')" :alt='$tr("重构")' width="14" height="14" style="filter: brightness(0) invert(1);" />
               </el-button>
             </el-tooltip>
 
-            <el-tooltip content="事件" placement="top">
+            <el-tooltip :content='$tr("事件")' placement="top">
               <el-button
                 type="danger"
                 size="small"
                 circle
                 @click="$emit('view-events', row)"
               >
-                <img :src="$getAssetUrl('@/assets/image/事件.svg')" alt="事件" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/事件.svg')" :alt='$tr("事件")' width="14" height="14" />
               </el-button>
             </el-tooltip>
           </div>

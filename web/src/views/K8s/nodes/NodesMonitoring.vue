@@ -18,7 +18,7 @@
                   :class="['status-tag', node.status.toLowerCase()]"
                 >
                   <i class="status-dot"></i>
-                  {{ getNodeStatusText(node.status) }}
+                  {{ $tr(getNodeStatusText(node.status)) }}
                 </el-tag>
               </div>
             </div>
@@ -30,7 +30,7 @@
             <div class="metric-item">
               <div class="metric-header">
                 <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="metric-icon" />
-                <span class="metric-label">CPU使用率</span>
+                <span class="metric-label">{{ $tr("CPU使用率") }}</span>
                 <span class="metric-value">{{ getCpuUsageRate(nodeMetrics[node.name]) }}%</span>
               </div>
               <div class="metric-progress">
@@ -52,7 +52,7 @@
             <div class="metric-item">
               <div class="metric-header">
                 <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon" />
-                <span class="metric-label">内存使用率</span>
+                <span class="metric-label">{{ $tr("内存使用率") }}</span>
                 <span class="metric-value">{{ getMemoryUsageRate(nodeMetrics[node.name]) }}%</span>
               </div>
               <div class="metric-progress">
@@ -77,7 +77,7 @@
                   <i class="icon-dot"></i>
                 </div>
                 <div class="stat-content">
-                  <span class="stat-label">Pod数量</span>
+                  <span class="stat-label">{{ $tr("Pod数量") }}</span>
                   <span class="stat-value">{{ nodeMetrics[node.name].podCount || 0 }}</span>
                 </div>
               </div>
@@ -86,7 +86,7 @@
                   <i class="icon-pulse"></i>
                 </div>
                 <div class="stat-content">
-                  <span class="stat-label">更新时间</span>
+                  <span class="stat-label">{{ $tr("更新时间") }}</span>
                   <span class="stat-value">{{ formatTimestamp(nodeMetrics[node.name].timestamp) }}</span>
                 </div>
               </div>
@@ -99,26 +99,26 @@
               <div class="loading-dot"></div>
               <div class="loading-dot"></div>
             </div>
-            <span class="no-data-text">正在获取监控数据...</span>
+            <span class="no-data-text">{{ $tr("正在获取监控数据...") }}</span>
           </div>
 
           <!-- 操作按钮 -->
           <div class="node-actions">
-            <button 
-              class="action-btn primary-btn" 
+            <el-button
+              type="primary" class="action-btn primary-btn"
               @click="viewNodeDetail(node)"
             >
               <View class="btn-icon" />
-              <span>详细信息</span>
-              <div class="btn-glow"></div>
-            </button>
-            <button 
-              class="action-btn secondary-btn" 
+              <span>{{ $tr("详细信息") }}</span>
+
+            </el-button>
+            <el-button
+              class="action-btn secondary-btn"
               @click="refreshNodeMetrics(node.name)"
             >
               <Refresh class="btn-icon refresh-icon" />
-              <span>刷新</span>
-            </button>
+              <span>{{ $tr("刷新") }}</span>
+            </el-button>
           </div>
         </div>
       </el-col>
@@ -137,7 +137,7 @@
             <div class="resource-card">
               <div class="card-header-detail">
                 <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="Resource" class="header-icon" />
-                <h3>资源使用情况</h3>
+                <h3>{{ $tr("资源使用情况") }}</h3>
               </div>
               <div class="resource-metrics">
                 <div class="metric-row-detail">
@@ -163,7 +163,7 @@
                 <div class="metric-row-detail">
                   <div class="metric-info">
                     <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon-detail" />
-                    <span class="metric-name">内存:</span>
+                    <span class="metric-name">{{ $tr("内存:") }}</span>
                     <span class="metric-percentage">{{ getMemoryUsageRate(selectedNodeMetrics) }}%</span>
                   </div>
                   <div class="progress-container">
@@ -185,19 +185,19 @@
           </el-col>
           <el-col :span="12">
             <el-card>
-              <template #header>系统信息</template>
+              <template #header>{{ $tr("系统信息") }}</template>
               <div v-if="selectedNodeMetrics.systemInfo" class="system-info">
                 <el-descriptions :column="1" size="small">
-                  <el-descriptions-item label="操作系统">
+                  <el-descriptions-item :label='$tr("操作系统")'>
                     {{ selectedNodeMetrics.systemInfo.osImage }}
                   </el-descriptions-item>
-                  <el-descriptions-item label="内核版本">
+                  <el-descriptions-item :label='$tr("内核版本")'>
                     {{ selectedNodeMetrics.systemInfo.kernelVersion }}
                   </el-descriptions-item>
-                  <el-descriptions-item label="Kubelet版本">
+                  <el-descriptions-item :label='$tr("Kubelet版本")'>
                     {{ selectedNodeMetrics.systemInfo.kubeletVersion }}
                   </el-descriptions-item>
-                  <el-descriptions-item label="容器运行时">
+                  <el-descriptions-item :label='$tr("容器运行时")'>
                     {{ selectedNodeMetrics.systemInfo.containerRuntimeVersion }}
                   </el-descriptions-item>
                 </el-descriptions>
@@ -212,17 +212,17 @@
             <div class="pod-icon">
               <i class="icon-pod"></i>
             </div>
-            <h3>运行的Pod ({{ getFormattedPodCount(selectedNodeMetrics) }})</h3>
+            <h3>{{ $tr("运行的Pod (") }}{{ getFormattedPodCount(selectedNodeMetrics) }})</h3>
           </div>
           <div class="pod-table-container">
             <div v-if="getFormattedPodList(selectedNodeMetrics).length > 0" class="pod-table">
               <div class="pod-header">
-                <div class="pod-col pod-name">Pod名称</div>
-                <div class="pod-col pod-namespace">命名空间</div>
-                <div class="pod-col pod-cpu">CPU使用</div>
-                <div class="pod-col pod-memory">内存使用</div>
-                <div class="pod-col pod-cpu-rate">CPU使用率</div>
-                <div class="pod-col pod-memory-rate">内存使用率</div>
+                <div class="pod-col pod-name">{{ $tr("Pod名称") }}</div>
+                <div class="pod-col pod-namespace">{{ $tr("命名空间") }}</div>
+                <div class="pod-col pod-cpu">{{ $tr("CPU使用") }}</div>
+                <div class="pod-col pod-memory">{{ $tr("内存使用") }}</div>
+                <div class="pod-col pod-cpu-rate">{{ $tr("CPU使用率") }}</div>
+                <div class="pod-col pod-memory-rate">{{ $tr("内存使用率") }}</div>
               </div>
               <div class="pod-body">
                 <div 
@@ -274,21 +274,23 @@
               <div class="no-pods-icon">
                 <i class="icon-empty"></i>
               </div>
-              <p class="no-pods-text">暂无运行中的Pod</p>
+              <p class="no-pods-text">{{ $tr("暂无运行中的Pod") }}</p>
             </div>
           </div>
         </div>
       </div>
       
       <template #footer>
-        <el-button @click="nodeDetailVisible = false">关闭</el-button>
-        <el-button type="primary" @click="refreshNodeDetail">刷新数据</el-button>
+        <el-button @click="nodeDetailVisible = false">{{ $tr("关闭") }}</el-button>
+        <el-button type="primary" @click="refreshNodeDetail">{{ $tr("刷新数据") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
@@ -444,8 +446,7 @@ const getCpuUsageRate = (metrics) => {
     console.error('CPU使用率计算错误:', error)
   }
   
-  // 返回模拟数据
-  return Math.floor(Math.random() * 50) + 15
+  return 0
 }
 
 // 获取内存使用率
@@ -492,8 +493,7 @@ const getMemoryUsageRate = (metrics) => {
     console.error('内存使用率计算错误:', error)
   }
   
-  // 返回模拟数据
-  return Math.floor(Math.random() * 60) + 20
+  return 0
 }
 
 // 格式化Pod数量
@@ -510,8 +510,7 @@ const getFormattedPodCount = (metrics) => {
     return metrics.podCount
   }
   
-  // 返回模拟数据
-  return Math.floor(Math.random() * 8) + 3
+  return 0
 }
 
 // 获取格式化的Pod列表
@@ -528,42 +527,13 @@ const getFormattedPodList = (metrics) => {
         memory: formatMemoryValue(pod.usage?.memory || '0Mi')
       },
       usageRate: {
-        cpuRate: pod.usageRate?.cpuRate || Math.floor(Math.random() * 60) + 10,
-        memoryRate: pod.usageRate?.memoryRate || Math.floor(Math.random() * 70) + 15
+        cpuRate: pod.usageRate?.cpuRate || 0,
+        memoryRate: pod.usageRate?.memoryRate || 0
       }
     }))
   }
   
-  // 生成模拟Pod数据
-  const podCount = getFormattedPodCount(metrics)
-  const mockPods = []
-  
-  const namespaces = ['default', 'kube-system', 'monitoring', 'ingress-nginx', 'cert-manager']
-  const podPrefixes = ['nginx', 'redis', 'mysql', 'app', 'web', 'api', 'worker', 'scheduler']
-  
-  for (let i = 0; i < podCount; i++) {
-    const prefix = podPrefixes[Math.floor(Math.random() * podPrefixes.length)]
-    const namespace = namespaces[Math.floor(Math.random() * namespaces.length)]
-    const cpuUsage = Math.floor(Math.random() * 500) + 50 // 50-550m
-    const memoryUsage = Math.floor(Math.random() * 512) + 128 // 128-640Mi
-    const cpuRate = Math.floor(Math.random() * 60) + 10 // 10-70%
-    const memoryRate = Math.floor(Math.random() * 70) + 15 // 15-85%
-    
-    mockPods.push({
-      podName: `${prefix}-${Math.random().toString(36).substr(2, 8)}`,
-      namespace: namespace,
-      usage: {
-        cpu: cpuUsage + 'm',
-        memory: memoryUsage + 'Mi'
-      },
-      usageRate: {
-        cpuRate: cpuRate,
-        memoryRate: memoryRate
-      }
-    })
-  }
-  
-  return mockPods
+  return []
 }
 
 const getProgressColor = (percentage) => {
@@ -605,7 +575,7 @@ const fetchNodesList = async () => {
     }
   } catch (error) {
     console.error('获取节点列表失败:', error)
-    ElMessage.error('获取节点列表失败')
+    ElMessage.error(tr('获取节点列表失败'))
   } finally {
     nodesLoading.value = false
   }
@@ -626,12 +596,12 @@ const fetchNodeMetrics = async (nodeName) => {
           memory: metrics.usage?.memory || '0Mi'
         },
         capacity: {
-          cpu: metrics.capacity?.cpu || '0',
-          memory: metrics.capacity?.memory || '0Gi'
+          cpu: metrics.capacity?.cpu || metrics.allocatable?.cpu || '0',
+          memory: metrics.capacity?.memory || metrics.allocatable?.memory || '0Gi'
         },
         usageRate: {
-          cpuRate: parseFloat(metrics.cpuUsageRate) || 0,
-          memoryRate: parseFloat(metrics.memoryUsageRate) || 0
+          cpuRate: metrics.usageRate?.cpuRate || 0,
+          memoryRate: metrics.usageRate?.memoryRate || 0
         },
         podCount: metrics.podCount || 0,
         timestamp: metrics.timestamp || Date.now(),
@@ -674,7 +644,7 @@ const refreshNodeDetail = async () => {
   if (selectedNode.value) {
     await fetchNodeMetrics(selectedNode.value.name)
     selectedNodeMetrics.value = nodeMetrics.value[selectedNode.value.name]
-    ElMessage.success('监控数据已刷新')
+    ElMessage.success(tr('监控数据已刷新'))
   }
 }
 

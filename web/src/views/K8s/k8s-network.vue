@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -256,7 +258,7 @@ const fetchServiceList = async () => {
     }
   } catch (error) {
     console.error('获取 Service 列表失败:', error)
-    ElMessage.error('获取 Service 列表失败，请检查网络连接')
+    ElMessage.error(tr('获取 Service 列表失败，请检查网络连接'))
     serviceList.value = [] // 异常时确保是空数组
   } finally {
     serviceLoading.value = false
@@ -329,11 +331,11 @@ const handleTabChange = (tab) => {
 // Service 操作
 const handleCreateService = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
 
@@ -368,11 +370,11 @@ const handleViewService = async (row) => {
       currentServiceForDetail.value = responseData.data || row
       serviceDetailDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Service 详情失败')
+      ElMessage.error(responseData.message || tr('获取 Service 详情失败'))
     }
   } catch (error) {
     console.error('获取 Service 详情失败:', error)
-    ElMessage.error('获取 Service 详情失败')
+    ElMessage.error(tr('获取 Service 详情失败'))
   }
 }
 
@@ -400,11 +402,11 @@ const handleEditServiceYaml = async (row) => {
       currentServiceForDetail.value = row
       serviceYamlDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Service YAML 失败')
+      ElMessage.error(responseData.message || tr('获取 Service YAML 失败'))
     }
   } catch (error) {
     console.error('获取 Service YAML 失败:', error)
-    ElMessage.error('获取 Service YAML 失败')
+    ElMessage.error(tr('获取 Service YAML 失败'))
   } finally {
     loading.value = false
   }
@@ -421,7 +423,7 @@ const handleViewServiceEvents = async (row) => {
       serviceEvents.value = responseData.data || []
     } else {
       serviceEvents.value = []
-      ElMessage.warning('暂无事件数据')
+      ElMessage.warning(tr('暂无事件数据'))
     }
     serviceEventsDialogVisible.value = true
   } catch (error) {
@@ -449,7 +451,7 @@ const handleEditService = async (row) => {
       editServiceDialogVisible.value = true
     }
   } catch (error) {
-    ElMessage.error('获取 Service 详情失败')
+    ElMessage.error(tr('获取 Service 详情失败'))
   }
 }
 
@@ -457,10 +459,10 @@ const handleDeleteService = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除 Service "${row.name}" 吗？此操作不可恢复。`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     )
@@ -469,14 +471,14 @@ const handleDeleteService = async (row) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Service 删除成功')
+      ElMessage.success(tr('Service 删除成功'))
       fetchServiceList()
     } else {
-      ElMessage.error(responseData.message || 'Service 删除失败')
+      ElMessage.error(responseData.message || tr('Service 删除失败'))
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Service 删除失败')
+      ElMessage.error(tr('Service 删除失败'))
     }
   }
 }
@@ -484,11 +486,11 @@ const handleDeleteService = async (row) => {
 // Ingress 操作
 const handleCreateIngress = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
 
@@ -524,11 +526,11 @@ const handleViewIngress = async (row) => {
       currentIngressForDetail.value = responseData.data || row
       ingressDetailDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Ingress 详情失败')
+      ElMessage.error(responseData.message || tr('获取 Ingress 详情失败'))
     }
   } catch (error) {
     console.error('获取 Ingress 详情失败:', error)
-    ElMessage.error('获取 Ingress 详情失败')
+    ElMessage.error(tr('获取 Ingress 详情失败'))
   }
 }
 
@@ -556,11 +558,11 @@ const handleEditIngressYaml = async (row) => {
       currentIngressForDetail.value = row
       ingressYamlDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Ingress YAML 失败')
+      ElMessage.error(responseData.message || tr('获取 Ingress YAML 失败'))
     }
   } catch (error) {
     console.error('获取 Ingress YAML 失败:', error)
-    ElMessage.error('获取 Ingress YAML 失败')
+    ElMessage.error(tr('获取 Ingress YAML 失败'))
   } finally {
     loading.value = false
   }
@@ -577,7 +579,7 @@ const handleViewIngressEvents = async (row) => {
       ingressEvents.value = responseData.data || []
     } else {
       ingressEvents.value = []
-      ElMessage.warning('暂无事件数据')
+      ElMessage.warning(tr('暂无事件数据'))
     }
     ingressEventsDialogVisible.value = true
   } catch (error) {
@@ -607,19 +609,19 @@ const handleTestIngress = async (row) => {
     ingressTestDialogVisible.value = true
   } catch (error) {
     console.error('打开测试对话框失败:', error)
-    ElMessage.error('打开测试对话框失败')
+    ElMessage.error(tr('打开测试对话框失败'))
   }
 }
 
 // 执行 Ingress 后端测试
 const executeIngressTest = async () => {
   if (!ingressTestForm.serviceName) {
-    ElMessage.warning('请输入服务名称')
+    ElMessage.warning(tr('请输入服务名称'))
     return
   }
 
   if (!ingressTestForm.servicePort) {
-    ElMessage.warning('请输入服务端口')
+    ElMessage.warning(tr('请输入服务端口'))
     return
   }
 
@@ -646,9 +648,9 @@ const executeIngressTest = async () => {
       ingressTestResult.value = responseData.data || responseData
 
       if (responseData.data?.success || responseData.success) {
-        ElMessage.success('后端服务测试完成')
+        ElMessage.success(tr('后端服务测试完成'))
       } else {
-        ElMessage.warning('后端服务测试发现问题,请查看详细信息')
+        ElMessage.warning(tr('后端服务测试发现问题,请查看详细信息'))
       }
     } else {
       ElMessage.error(responseData.message || '测试失败')
@@ -703,11 +705,11 @@ const handleServiceYamlSave = async (data) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success(isCreating ? 'Service 创建成功' : 'Service YAML 更新成功')
+      ElMessage.success(isCreating ? tr('Service 创建成功') : 'Service YAML 更新成功')
       serviceYamlDialogVisible.value = false
       fetchServiceList() // 刷新列表
     } else {
-      ElMessage.error(responseData.message || (isCreating ? 'Service 创建失败' : 'Service YAML 更新失败'))
+      ElMessage.error(responseData.message || (isCreating ? tr('Service 创建失败') : 'Service YAML 更新失败'))
     }
   } catch (error) {
     console.error('Service 操作失败:', error)
@@ -734,11 +736,11 @@ const handleIngressYamlSave = async (data) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success(isCreating ? 'Ingress 创建成功' : 'Ingress YAML 更新成功')
+      ElMessage.success(isCreating ? tr('Ingress 创建成功') : 'Ingress YAML 更新成功')
       ingressYamlDialogVisible.value = false
       fetchIngressList() // 刷新列表
     } else {
-      ElMessage.error(responseData.message || (isCreating ? 'Ingress 创建失败' : 'Ingress YAML 更新失败'))
+      ElMessage.error(responseData.message || (isCreating ? tr('Ingress 创建失败') : 'Ingress YAML 更新失败'))
     }
   } catch (error) {
     console.error('Ingress 操作失败:', error)
@@ -763,7 +765,7 @@ const handleEditIngress = async (row) => {
       editIngressDialogVisible.value = true
     }
   } catch (error) {
-    ElMessage.error('获取 Ingress 详情失败')
+    ElMessage.error(tr('获取 Ingress 详情失败'))
   }
 }
 
@@ -771,10 +773,10 @@ const handleDeleteIngress = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除 Ingress "${row.name}" 吗？此操作不可恢复。`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     )
@@ -783,14 +785,14 @@ const handleDeleteIngress = async (row) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Ingress 删除成功')
+      ElMessage.success(tr('Ingress 删除成功'))
       fetchIngressList()
     } else {
-      ElMessage.error(responseData.message || 'Ingress 删除失败')
+      ElMessage.error(responseData.message || tr('Ingress 删除失败'))
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('Ingress 删除失败')
+      ElMessage.error(tr('Ingress 删除失败'))
     }
   }
 }
@@ -856,14 +858,14 @@ const submitServiceForm = async () => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Service 创建成功')
+      ElMessage.success(tr('Service 创建成功'))
       serviceDialogVisible.value = false
       fetchServiceList()
     } else {
-      ElMessage.error(responseData.message || 'Service 创建失败')
+      ElMessage.error(responseData.message || tr('Service 创建失败'))
     }
   } catch (error) {
-    ElMessage.error('Service 创建失败')
+    ElMessage.error(tr('Service 创建失败'))
   }
 }
 
@@ -873,14 +875,14 @@ const submitEditServiceForm = async () => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Service 更新成功')
+      ElMessage.success(tr('Service 更新成功'))
       editServiceDialogVisible.value = false
       fetchServiceList()
     } else {
-      ElMessage.error(responseData.message || 'Service 更新失败')
+      ElMessage.error(responseData.message || tr('Service 更新失败'))
     }
   } catch (error) {
-    ElMessage.error('Service 更新失败')
+    ElMessage.error(tr('Service 更新失败'))
   }
 }
 
@@ -890,14 +892,14 @@ const submitIngressForm = async () => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Ingress 创建成功')
+      ElMessage.success(tr('Ingress 创建成功'))
       ingressDialogVisible.value = false
       fetchIngressList()
     } else {
-      ElMessage.error(responseData.message || 'Ingress 创建失败')
+      ElMessage.error(responseData.message || tr('Ingress 创建失败'))
     }
   } catch (error) {
-    ElMessage.error('Ingress 创建失败')
+    ElMessage.error(tr('Ingress 创建失败'))
   }
 }
 
@@ -907,14 +909,14 @@ const submitEditIngressForm = async () => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Ingress 更新成功')
+      ElMessage.success(tr('Ingress 更新成功'))
       editIngressDialogVisible.value = false
       fetchIngressList()
     } else {
-      ElMessage.error(responseData.message || 'Ingress 更新失败')
+      ElMessage.error(responseData.message || tr('Ingress 更新失败'))
     }
   } catch (error) {
-    ElMessage.error('Ingress 更新失败')
+    ElMessage.error(tr('Ingress 更新失败'))
   }
 }
 
@@ -935,7 +937,7 @@ const copyToClipboard = async (text, resourceType = '资源') => {
       document.body.removeChild(textArea)
       ElMessage.success(`${resourceType}名称已复制到剪贴板`)
     } catch (fallbackError) {
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
   }
 }
@@ -951,7 +953,7 @@ onMounted(async () => {
     <el-card shadow="hover" class="network-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 网络管理</span>
+          <span class="title">{{ $tr("K8s 网络管理") }}</span>
           <div class="header-actions">
             <ClusterSelector
               v-model="selectedClusterId"
@@ -969,10 +971,10 @@ onMounted(async () => {
       <!-- 搜索表单和资源类型选择 -->
       <div class="search-section">
         <el-form :inline="true" class="search-form">
-          <el-form-item label="网络资源名称">
+          <el-form-item :label='$tr("网络资源名称")'>
             <el-input
               v-model="searchKeyword"
-              placeholder="搜索资源..."
+              :placeholder='$tr("搜索资源...")'
               clearable
               size="small"
               style="width: 200px"
@@ -980,10 +982,10 @@ onMounted(async () => {
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="handleRefresh">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="handleRefresh">
-              刷新
+              {{ $tr("刷新") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -1011,7 +1013,7 @@ onMounted(async () => {
               size="small"
               @click="handleCreateService"
             >
-              创建 Service
+              {{ $tr("创建 Service") }}
             </el-button>
             <el-button
               v-if="activeTab === 'ingress'"
@@ -1020,7 +1022,7 @@ onMounted(async () => {
               size="small"
               @click="handleCreateIngress"
             >
-              创建 Ingress
+              {{ $tr("创建 Ingress") }}
             </el-button>
           </div>
         </div>
@@ -1036,14 +1038,14 @@ onMounted(async () => {
             v-loading="serviceLoading"
             element-loading-text="加载中..."
             class="resource-table"
-            empty-text="暂无 Service 资源"
+            :empty-text='$tr("暂无 Service 资源")'
           >
-              <el-table-column prop="name" label="名称" min-width="180">
+              <el-table-column prop="name" :label='$tr("名称")' min-width="180">
                 <template #default="{ row }">
                   <div class="resource-name">
                     <el-icon class="resource-icon"><Connection /></el-icon>
                     <span class="resource-name-link" @click="handleViewService(row)">{{ row.name }}</span>
-                    <el-tooltip content="复制名称" placement="top">
+                    <el-tooltip :content='$tr("复制名称")' placement="top">
                       <el-button
                         :icon="CopyDocument"
                         size="small"
@@ -1056,7 +1058,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column prop="type" label="类型" width="120">
+              <el-table-column prop="type" :label='$tr("类型")' width="120">
                 <template #default="{ row }">
                   <el-tag
                     :type="row.type === 'ClusterIP' ? 'success' : row.type === 'NodePort' ? 'warning' : 'primary'"
@@ -1067,9 +1069,9 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column prop="clusterIP" label="集群 IP" width="140" />
+              <el-table-column prop="clusterIP" :label='$tr("集群 IP")' width="140" />
 
-              <el-table-column label="端口" min-width="200">
+              <el-table-column :label='$tr("端口")' min-width="200">
                 <template #default="{ row }">
                   <div class="ports-info">
                     <el-tag
@@ -1088,7 +1090,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="选择器" min-width="150">
+              <el-table-column :label='$tr("选择器")' min-width="150">
                 <template #default="{ row }">
                   <div class="selector-info">
                     <el-tag
@@ -1104,16 +1106,16 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="创建时间" width="160">
+              <el-table-column :label='$tr("创建时间")' width="160">
                 <template #default="{ row }">
                   {{ row.createdAt ? new Date(row.createdAt).toLocaleString() : '-' }}
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="300" fixed="right">
+              <el-table-column :label='$tr("操作")' width="300" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-tooltip content="编辑 Service" placement="top">
+                    <el-tooltip :content='$tr("编辑 Service")' placement="top">
                       <el-button
                         type="warning"
                         :icon="Edit"
@@ -1123,7 +1125,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="编辑 YAML" placement="top">
+                    <el-tooltip :content='$tr("编辑 YAML")' placement="top">
                       <el-button
                         type="primary"
                         :icon="Document"
@@ -1133,7 +1135,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="查看事件" placement="top">
+                    <el-tooltip :content='$tr("查看事件")' placement="top">
                       <el-button
                         type="info"
                         :icon="Monitor"
@@ -1143,7 +1145,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="删除 Service" placement="top">
+                    <el-tooltip :content='$tr("删除 Service")' placement="top">
                       <el-button
                         type="danger"
                         :icon="Delete"
@@ -1178,14 +1180,14 @@ onMounted(async () => {
             v-loading="ingressLoading"
             element-loading-text="加载中..."
             class="resource-table"
-            empty-text="暂无 Ingress 资源"
+            :empty-text='$tr("暂无 Ingress 资源")'
           >
-              <el-table-column prop="name" label="名称" min-width="200">
+              <el-table-column prop="name" :label='$tr("名称")' min-width="200">
                 <template #default="{ row }">
                   <div class="resource-name">
                     <el-icon class="resource-icon"><Monitor /></el-icon>
                     <span class="resource-name-link" @click="handleViewIngress(row)">{{ row.name }}</span>
-                    <el-tooltip content="复制名称" placement="top">
+                    <el-tooltip :content='$tr("复制名称")' placement="top">
                       <el-button
                         :icon="CopyDocument"
                         size="small"
@@ -1198,7 +1200,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="类型" width="120">
+              <el-table-column :label='$tr("类型")' width="120">
                 <template #default="{ row }">
                   <el-tag type="primary" size="small">
                     {{ row.type || '-' }}
@@ -1206,7 +1208,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="访问 IP" width="140">
+              <el-table-column :label='$tr("访问 IP")' width="140">
                 <template #default="{ row }">
                   <span v-if="row.loadBalancer && row.loadBalancer.ingress && row.loadBalancer.ingress.length > 0">
                     {{ row.loadBalancer.ingress[0].ip || row.loadBalancer.ingress[0].hostname || '-' }}
@@ -1215,7 +1217,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="Service:端口" min-width="200">
+              <el-table-column :label='$tr("Service:端口")' min-width="200">
                 <template #default="{ row }">
                   <div class="services-info">
                     <template v-for="(rule, ruleIndex) in (row.rules || [])" :key="ruleIndex">
@@ -1233,7 +1235,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="Ingress 域名" min-width="250">
+              <el-table-column :label='$tr("Ingress 域名")' min-width="250">
                 <template #default="{ row }">
                   <div class="endpoints-info">
                     <template v-if="row.endpoints && row.endpoints.length > 0">
@@ -1245,7 +1247,7 @@ onMounted(async () => {
                         <a :href="endpoint" target="_blank" class="endpoint-link">
                           {{ endpoint }}
                         </a>
-                        <el-tooltip content="复制链接" placement="top">
+                        <el-tooltip :content='$tr("复制链接")' placement="top">
                           <el-button
                             :icon="CopyDocument"
                             size="small"
@@ -1278,28 +1280,28 @@ onMounted(async () => {
                     type="success"
                     size="small"
                   >
-                    启用
+                    {{ $tr("启用") }}
                   </el-tag>
                   <el-tag
                     v-else
                     type="info"
                     size="small"
                   >
-                    未启用
+                    {{ $tr("未启用") }}
                   </el-tag>
                 </template>
               </el-table-column>
 
-              <el-table-column label="创建时间" width="160">
+              <el-table-column :label='$tr("创建时间")' width="160">
                 <template #default="{ row }">
                   {{ row.createdAt ? new Date(row.createdAt).toLocaleString() : '-' }}
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="300" fixed="right">
+              <el-table-column :label='$tr("操作")' width="300" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-tooltip content="编辑 Ingress" placement="top">
+                    <el-tooltip :content='$tr("编辑 Ingress")' placement="top">
                       <el-button
                         type="warning"
                         :icon="Edit"
@@ -1309,7 +1311,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="编辑 YAML" placement="top">
+                    <el-tooltip :content='$tr("编辑 YAML")' placement="top">
                       <el-button
                         type="primary"
                         :icon="Document"
@@ -1319,7 +1321,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="测试后端服务" placement="top">
+                    <el-tooltip :content='$tr("测试后端服务")' placement="top">
                       <el-button
                         type="success"
                         :icon="Link"
@@ -1329,7 +1331,7 @@ onMounted(async () => {
                       />
                     </el-tooltip>
 
-                    <el-tooltip content="删除 Ingress" placement="top">
+                    <el-tooltip :content='$tr("删除 Ingress")' placement="top">
                       <el-button
                         type="danger"
                         :icon="Delete"
@@ -1361,24 +1363,24 @@ onMounted(async () => {
     <!-- Service 详情对话框 -->
     <el-dialog
       v-model="serviceDetailDialogVisible"
-      title="Service 详情"
+      :title='$tr("Service 详情")'
       width="800px"
       class="detail-dialog"
     >
       <div class="detail-content">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="名称">{{ currentServiceForDetail.name }}</el-descriptions-item>
-          <el-descriptions-item label="命名空间">{{ currentServiceForDetail.namespace }}</el-descriptions-item>
-          <el-descriptions-item label="类型">
+          <el-descriptions-item :label='$tr("名称")'>{{ currentServiceForDetail.name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("命名空间")'>{{ currentServiceForDetail.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("类型")'>
             <el-tag :type="currentServiceForDetail.type === 'ClusterIP' ? 'success' : 'primary'">
               {{ currentServiceForDetail.type }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="集群IP">{{ currentServiceForDetail.clusterIP }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">
+          <el-descriptions-item :label='$tr("集群IP")'>{{ currentServiceForDetail.clusterIP }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("创建时间")' :span="2">
             {{ currentServiceForDetail.createdAt ? new Date(currentServiceForDetail.createdAt).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="标签" :span="2">
+          <el-descriptions-item :label='$tr("标签")' :span="2">
             <div class="labels-info">
               <el-tag
                 v-for="(value, key) in (currentServiceForDetail.labels || {})"
@@ -1391,7 +1393,7 @@ onMounted(async () => {
               </el-tag>
             </div>
           </el-descriptions-item>
-          <el-descriptions-item label="端口" :span="2">
+          <el-descriptions-item :label='$tr("端口")' :span="2">
             <div class="ports-info">
               <el-tag
                 v-for="(port, index) in (currentServiceForDetail.ports || [])"
@@ -1426,27 +1428,27 @@ onMounted(async () => {
     <!-- Service 事件对话框 -->
     <el-dialog
       v-model="serviceEventsDialogVisible"
-      title="Service 事件"
+      :title='$tr("Service 事件")'
       width="1000px"
       class="events-dialog"
     >
       <div class="events-content">
         <el-table :data="serviceEvents" stripe style="width: 100%">
-          <el-table-column prop="type" label="类型" width="80">
+          <el-table-column prop="type" :label='$tr("类型")' width="80">
             <template #default="{ row }">
               <el-tag :type="row.type === 'Warning' ? 'warning' : 'success'" size="small">
                 {{ row.type }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="reason" label="原因" width="120" />
-          <el-table-column prop="message" label="消息" min-width="300" />
-          <el-table-column prop="firstTimestamp" label="首次时间" width="160">
+          <el-table-column prop="reason" :label='$tr("原因")' width="120" />
+          <el-table-column prop="message" :label='$tr("消息")' min-width="300" />
+          <el-table-column prop="firstTimestamp" :label='$tr("首次时间")' width="160">
             <template #default="{ row }">
               {{ row.firstTimestamp ? new Date(row.firstTimestamp).toLocaleString() : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="count" label="次数" width="80" />
+          <el-table-column prop="count" :label='$tr("次数")' width="80" />
         </el-table>
       </div>
     </el-dialog>
@@ -1454,23 +1456,23 @@ onMounted(async () => {
     <!-- Ingress 详情对话框 -->
     <el-dialog
       v-model="ingressDetailDialogVisible"
-      title="Ingress 详情"
+      :title='$tr("Ingress 详情")'
       width="800px"
       class="detail-dialog"
     >
       <div class="detail-content">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="名称">{{ currentIngressForDetail.name }}</el-descriptions-item>
-          <el-descriptions-item label="命名空间">{{ currentIngressForDetail.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("名称")'>{{ currentIngressForDetail.name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("命名空间")'>{{ currentIngressForDetail.namespace }}</el-descriptions-item>
           <el-descriptions-item label="TLS" :span="2">
             <el-tag :type="currentIngressForDetail.tls && currentIngressForDetail.tls.length > 0 ? 'success' : 'info'" size="small">
-              {{ currentIngressForDetail.tls && currentIngressForDetail.tls.length > 0 ? '启用' : '未启用' }}
+              {{ currentIngressForDetail.tls && currentIngressForDetail.tls.length > 0 ? $tr('启用') : '未启用' }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">
+          <el-descriptions-item :label='$tr("创建时间")' :span="2">
             {{ currentIngressForDetail.createdAt ? new Date(currentIngressForDetail.createdAt).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="规则" :span="2">
+          <el-descriptions-item :label='$tr("规则")' :span="2">
             <div class="rules-info">
               <div v-for="(rule, index) in (currentIngressForDetail.rules || [])" :key="index" style="margin-bottom: 8px;">
                 <strong>{{ rule.host || '*' }}</strong>
@@ -1500,27 +1502,27 @@ onMounted(async () => {
     <!-- Ingress 事件对话框 -->
     <el-dialog
       v-model="ingressEventsDialogVisible"
-      title="Ingress 事件"
+      :title='$tr("Ingress 事件")'
       width="1000px"
       class="events-dialog"
     >
       <div class="events-content">
         <el-table :data="ingressEvents" stripe style="width: 100%">
-          <el-table-column prop="type" label="类型" width="80">
+          <el-table-column prop="type" :label='$tr("类型")' width="80">
             <template #default="{ row }">
               <el-tag :type="row.type === 'Warning' ? 'warning' : 'success'" size="small">
                 {{ row.type }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="reason" label="原因" width="120" />
-          <el-table-column prop="message" label="消息" min-width="300" />
-          <el-table-column prop="firstTimestamp" label="首次时间" width="160">
+          <el-table-column prop="reason" :label='$tr("原因")' width="120" />
+          <el-table-column prop="message" :label='$tr("消息")' min-width="300" />
+          <el-table-column prop="firstTimestamp" :label='$tr("首次时间")' width="160">
             <template #default="{ row }">
               {{ row.firstTimestamp ? new Date(row.firstTimestamp).toLocaleString() : '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="count" label="次数" width="80" />
+          <el-table-column prop="count" :label='$tr("次数")' width="80" />
         </el-table>
       </div>
     </el-dialog>
@@ -1528,37 +1530,37 @@ onMounted(async () => {
     <!-- 创建 Service 对话框 -->
     <el-dialog
       v-model="serviceDialogVisible"
-      title="创建 Service"
+      :title='$tr("创建 Service")'
       width="700px"
       class="create-dialog compact-dialog"
     >
       <el-form :model="currentService" label-width="90px" class="compact-form">
         <div class="form-row">
-          <el-form-item label="名称" required class="form-item-half">
+          <el-form-item :label='$tr("名称")' required class="form-item-half">
             <el-input
               v-model="currentService.name"
-              placeholder="请输入 Service 名称"
+              :placeholder='$tr("请输入 Service 名称")'
               size="small"
             />
           </el-form-item>
-          <el-form-item label="类型" required class="form-item-half">
+          <el-form-item :label='$tr("类型")' required class="form-item-half">
             <el-select v-model="currentService.type" style="width: 100%" size="small">
               <el-option
                 v-for="option in serviceTypeOptions"
                 :key="option.value"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.value"
               >
                 <div class="option-content">
-                  <span>{{ option.label }}</span>
-                  <span class="option-desc">{{ option.description }}</span>
+                  <span>{{ $tr(option.label) }}</span>
+                  <span class="option-desc">{{ $tr(option.description) }}</span>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
         </div>
 
-        <el-form-item label="端口配置" required>
+        <el-form-item :label='$tr("端口配置")' required>
           <div class="ports-config">
             <div
               v-for="(port, index) in currentService.ports"
@@ -1568,7 +1570,7 @@ onMounted(async () => {
               <div class="port-fields">
                 <el-input
                   v-model="port.name"
-                  placeholder="端口d(可选)"
+                  :placeholder='$tr("端口d(可选)")'
                   size="small"
                   style="width: 120px;"
                 />
@@ -1576,7 +1578,7 @@ onMounted(async () => {
                   v-model="port.port"
                   :min="1"
                   :max="65535"
-                  placeholder="端口"
+                  :placeholder='$tr("端口")'
                   size="small"
                   style="width: 100px;"
                 />
@@ -1584,7 +1586,7 @@ onMounted(async () => {
                   v-model="port.targetPort"
                   :min="1"
                   :max="65535"
-                  placeholder="目标端口"
+                  :placeholder='$tr("目标端口")'
                   size="small"
                   style="width: 100px;"
                 />
@@ -1592,7 +1594,7 @@ onMounted(async () => {
                   <el-option
                     v-for="protocol in protocolOptions"
                     :key="protocol.value"
-                    :label="protocol.label"
+                    :label="$tr(protocol.label)"
                     :value="protocol.value"
                   />
                 </el-select>
@@ -1607,25 +1609,25 @@ onMounted(async () => {
               </div>
             </div>
             <el-button type="primary" :icon="Plus" size="small" @click="addServicePort">
-              添加端口
+              {{ $tr("添加端口") }}
             </el-button>
           </div>
         </el-form-item>
 
-        <el-form-item label="描述">
+        <el-form-item :label='$tr("描述")'>
           <el-input
             v-model="currentService.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入服务描述"
+            :placeholder='$tr("请输入服务描述")'
             size="small"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="serviceDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitServiceForm">创建</el-button>
+          <el-button @click="serviceDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitServiceForm">{{ $tr("创建") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1633,37 +1635,37 @@ onMounted(async () => {
     <!-- 编辑 Service 对话框 -->
     <el-dialog
       v-model="editServiceDialogVisible"
-      title="编辑 Service"
+      :title='$tr("编辑 Service")'
       width="700px"
       class="edit-dialog compact-dialog"
     >
       <el-form :model="currentService" label-width="90px" class="compact-form">
         <div class="form-row">
-          <el-form-item label="名称" class="form-item-half">
+          <el-form-item :label='$tr("名称")' class="form-item-half">
             <el-input
               v-model="currentService.name"
               disabled
               size="small"
             />
           </el-form-item>
-          <el-form-item label="类型" required class="form-item-half">
+          <el-form-item :label='$tr("类型")' required class="form-item-half">
             <el-select v-model="currentService.type" style="width: 100%" size="small">
               <el-option
                 v-for="option in serviceTypeOptions"
                 :key="option.value"
-                :label="option.label"
+                :label="$tr(option.label)"
                 :value="option.value"
               >
                 <div class="option-content">
-                  <span>{{ option.label }}</span>
-                  <span class="option-desc">{{ option.description }}</span>
+                  <span>{{ $tr(option.label) }}</span>
+                  <span class="option-desc">{{ $tr(option.description) }}</span>
                 </div>
               </el-option>
             </el-select>
           </el-form-item>
         </div>
 
-        <el-form-item label="端口配置" required>
+        <el-form-item :label='$tr("端口配置")' required>
           <div class="ports-config">
             <div
               v-for="(port, index) in currentService.ports"
@@ -1673,7 +1675,7 @@ onMounted(async () => {
               <div class="port-fields">
                 <el-input
                   v-model="port.name"
-                  placeholder="端口名称(可选)"
+                  :placeholder='$tr("端口名称(可选)")'
                   size="small"
                   style="width: 120px;"
                 />
@@ -1681,7 +1683,7 @@ onMounted(async () => {
                   v-model="port.port"
                   :min="1"
                   :max="65535"
-                  placeholder="端口"
+                  :placeholder='$tr("端口")'
                   size="small"
                   style="width: 100px;"
                 />
@@ -1689,7 +1691,7 @@ onMounted(async () => {
                   v-model="port.targetPort"
                   :min="1"
                   :max="65535"
-                  placeholder="目标端口"
+                  :placeholder='$tr("目标端口")'
                   size="small"
                   style="width: 100px;"
                 />
@@ -1697,7 +1699,7 @@ onMounted(async () => {
                   <el-option
                     v-for="protocol in protocolOptions"
                     :key="protocol.value"
-                    :label="protocol.label"
+                    :label="$tr(protocol.label)"
                     :value="protocol.value"
                   />
                 </el-select>
@@ -1712,25 +1714,25 @@ onMounted(async () => {
               </div>
             </div>
             <el-button type="primary" :icon="Plus" size="small" @click="addServicePort">
-              添加端口
+              {{ $tr("添加端口") }}
             </el-button>
           </div>
         </el-form-item>
 
-        <el-form-item label="描述">
+        <el-form-item :label='$tr("描述")'>
           <el-input
             v-model="currentService.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入服务描述"
+            :placeholder='$tr("请输入服务描述")'
             size="small"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="editServiceDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitEditServiceForm">更新</el-button>
+          <el-button @click="editServiceDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitEditServiceForm">{{ $tr("更新") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1738,21 +1740,21 @@ onMounted(async () => {
     <!-- 创建 Ingress 对话框 -->
     <el-dialog
       v-model="ingressDialogVisible"
-      title="创建 Ingress"
+      :title='$tr("创建 Ingress")'
       width="800px"
       class="create-dialog compact-dialog"
     >
       <el-form :model="currentIngress" label-width="90px" class="compact-form">
-        <el-form-item label="名称" required>
+        <el-form-item :label='$tr("名称")' required>
           <el-input
             v-model="currentIngress.name"
-            placeholder="请输入 Ingress 名称"
+            :placeholder='$tr("请输入 Ingress 名称")'
             size="small"
             style="width: 300px;"
           />
         </el-form-item>
 
-        <el-form-item label="规则配置" required>
+        <el-form-item :label='$tr("规则配置")' required>
           <div class="rules-config">
             <div
               v-for="(rule, ruleIndex) in currentIngress.rules"
@@ -1762,7 +1764,7 @@ onMounted(async () => {
               <div class="rule-header">
                 <el-input
                   v-model="rule.host"
-                  placeholder="主机名 (如: example.com)"
+                  :placeholder='$tr("主机名 (如: example.com)")'
                   size="small"
                   style="width: 250px;"
                 />
@@ -1774,7 +1776,7 @@ onMounted(async () => {
                   @click="removeIngressRule(ruleIndex)"
                   :disabled="currentIngress.rules.length === 1"
                 >
-                  删除规则
+                  {{ $tr("删除规则") }}
                 </el-button>
               </div>
 
@@ -1787,7 +1789,7 @@ onMounted(async () => {
                   <div class="path-fields">
                     <el-input
                       v-model="path.path"
-                      placeholder="路径"
+                      :placeholder='$tr("路径")'
                       size="small"
                       style="width: 120px;"
                     />
@@ -1795,18 +1797,18 @@ onMounted(async () => {
                       <el-option
                         v-for="pathType in pathTypeOptions"
                         :key="pathType.value"
-                        :label="pathType.label"
+                        :label="$tr(pathType.label)"
                         :value="pathType.value"
                       >
                         <div class="option-content">
-                          <span>{{ pathType.label }}</span>
-                          <span class="option-desc">{{ pathType.description }}</span>
+                          <span>{{ $tr(pathType.label) }}</span>
+                          <span class="option-desc">{{ $tr(pathType.description) }}</span>
                         </div>
                       </el-option>
                     </el-select>
                     <el-input
                       v-model="path.serviceName"
-                      placeholder="服务名"
+                      :placeholder='$tr("服务名")'
                       size="small"
                       style="width: 120px;"
                     />
@@ -1814,7 +1816,7 @@ onMounted(async () => {
                       v-model="path.servicePort"
                       :min="1"
                       :max="65535"
-                      placeholder="端口"
+                      :placeholder='$tr("端口")'
                       size="small"
                       style="width: 100px;"
                     />
@@ -1834,30 +1836,30 @@ onMounted(async () => {
                   size="small"
                   @click="addIngressPath(ruleIndex)"
                 >
-                  添加路径
+                  {{ $tr("添加路径") }}
                 </el-button>
               </div>
             </div>
             <el-button type="success" :icon="Plus" size="small" @click="addIngressRule">
-              添加规则
+              {{ $tr("添加规则") }}
             </el-button>
           </div>
         </el-form-item>
 
-        <el-form-item label="描述">
+        <el-form-item :label='$tr("描述")'>
           <el-input
             v-model="currentIngress.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入 Ingress 描述"
+            :placeholder='$tr("请输入 Ingress 描述")'
             size="small"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="ingressDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitIngressForm">创建</el-button>
+          <el-button @click="ingressDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitIngressForm">{{ $tr("创建") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1865,12 +1867,12 @@ onMounted(async () => {
     <!-- 编辑 Ingress 对话框 -->
     <el-dialog
       v-model="editIngressDialogVisible"
-      title="编辑 Ingress"
+      :title='$tr("编辑 Ingress")'
       width="800px"
       class="edit-dialog compact-dialog"
     >
       <el-form :model="currentIngress" label-width="90px" class="compact-form">
-        <el-form-item label="名称">
+        <el-form-item :label='$tr("名称")'>
           <el-input
             v-model="currentIngress.name"
             disabled
@@ -1879,7 +1881,7 @@ onMounted(async () => {
           />
         </el-form-item>
 
-        <el-form-item label="规则配置" required>
+        <el-form-item :label='$tr("规则配置")' required>
           <div class="rules-config">
             <div
               v-for="(rule, ruleIndex) in currentIngress.rules"
@@ -1889,7 +1891,7 @@ onMounted(async () => {
               <div class="rule-header">
                 <el-input
                   v-model="rule.host"
-                  placeholder="主机名 (如: example.com)"
+                  :placeholder='$tr("主机名 (如: example.com)")'
                   size="small"
                   style="width: 250px;"
                 />
@@ -1901,7 +1903,7 @@ onMounted(async () => {
                   @click="removeIngressRule(ruleIndex)"
                   :disabled="currentIngress.rules.length === 1"
                 >
-                  删除规则
+                  {{ $tr("删除规则") }}
                 </el-button>
               </div>
 
@@ -1914,7 +1916,7 @@ onMounted(async () => {
                   <div class="path-fields">
                     <el-input
                       v-model="path.path"
-                      placeholder="路径"
+                      :placeholder='$tr("路径")'
                       size="small"
                       style="width: 120px;"
                     />
@@ -1922,18 +1924,18 @@ onMounted(async () => {
                       <el-option
                         v-for="pathType in pathTypeOptions"
                         :key="pathType.value"
-                        :label="pathType.label"
+                        :label="$tr(pathType.label)"
                         :value="pathType.value"
                       >
                         <div class="option-content">
-                          <span>{{ pathType.label }}</span>
-                          <span class="option-desc">{{ pathType.description }}</span>
+                          <span>{{ $tr(pathType.label) }}</span>
+                          <span class="option-desc">{{ $tr(pathType.description) }}</span>
                         </div>
                       </el-option>
                     </el-select>
                     <el-input
                       v-model="path.serviceName"
-                      placeholder="服务名"
+                      :placeholder='$tr("服务名")'
                       size="small"
                       style="width: 120px;"
                     />
@@ -1941,7 +1943,7 @@ onMounted(async () => {
                       v-model="path.servicePort"
                       :min="1"
                       :max="65535"
-                      placeholder="端口"
+                      :placeholder='$tr("端口")'
                       size="small"
                       style="width: 100px;"
                     />
@@ -1961,30 +1963,30 @@ onMounted(async () => {
                   size="small"
                   @click="addIngressPath(ruleIndex)"
                 >
-                  添加路径
+                  {{ $tr("添加路径") }}
                 </el-button>
               </div>
             </div>
             <el-button type="success" :icon="Plus" size="small" @click="addIngressRule">
-              添加规则
+              {{ $tr("添加规则") }}
             </el-button>
           </div>
         </el-form-item>
 
-        <el-form-item label="描述">
+        <el-form-item :label='$tr("描述")'>
           <el-input
             v-model="currentIngress.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入 Ingress 描述"
+            :placeholder='$tr("请输入 Ingress 描述")'
             size="small"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="editIngressDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitEditIngressForm">更新</el-button>
+          <el-button @click="editIngressDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitEditIngressForm">{{ $tr("更新") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1992,7 +1994,7 @@ onMounted(async () => {
     <!-- Ingress 测试对话框 -->
     <el-dialog
       v-model="ingressTestDialogVisible"
-      title="测试 Ingress 后端服务"
+      :title='$tr("测试 Ingress 后端服务")'
       width="900px"
       class="test-dialog"
       @close="resetTestForm"
@@ -2001,21 +2003,21 @@ onMounted(async () => {
         <el-form :model="ingressTestForm" label-width="100px" class="test-form">
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="服务名称" required>
+              <el-form-item :label='$tr("服务名称")' required>
                 <el-input
                   v-model="ingressTestForm.serviceName"
-                  placeholder="请输入Service名称"
+                  :placeholder='$tr("请输入Service名称")'
                   size="small"
                 />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="服务端口" required>
+              <el-form-item :label='$tr("服务端口")' required>
                 <el-input-number
                   v-model="ingressTestForm.servicePort"
                   :min="1"
                   :max="65535"
-                  placeholder="请输入端口"
+                  :placeholder='$tr("请输入端口")'
                   size="small"
                   style="width: 100%;"
                 />
@@ -2025,19 +2027,19 @@ onMounted(async () => {
 
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="测试路径">
+              <el-form-item :label='$tr("测试路径")'>
                 <el-input
                   v-model="ingressTestForm.path"
-                  placeholder="请输入测试路径,如:/api/health"
+                  :placeholder='$tr("请输入测试路径,如:/api/health")'
                   size="small"
                 />
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="Host域名">
+              <el-form-item :label='$tr("Host域名")'>
                 <el-input
                   v-model="ingressTestForm.host"
-                  placeholder="请输入Host域名(可选)"
+                  :placeholder='$tr("请输入Host域名(可选)")'
                   size="small"
                 />
               </el-form-item>
@@ -2046,7 +2048,7 @@ onMounted(async () => {
 
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="请求方法">
+              <el-form-item :label='$tr("请求方法")'>
                 <el-select v-model="ingressTestForm.method" size="small" style="width: 100%;">
                   <el-option label="GET" value="GET" />
                   <el-option label="POST" value="POST" />
@@ -2056,7 +2058,7 @@ onMounted(async () => {
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="超时时间(秒)">
+              <el-form-item :label='$tr("超时时间(秒)")'>
                 <el-input-number
                   v-model="ingressTestForm.timeout"
                   :min="1"
@@ -2081,10 +2083,10 @@ onMounted(async () => {
 
         <!-- 测试结果显示区域 -->
         <div v-if="ingressTestResult" class="test-result">
-          <el-divider content-position="left">测试结果</el-divider>
+          <el-divider content-position="left">{{ $tr("测试结果") }}</el-divider>
 
           <el-alert
-            :title="ingressTestResult.status || '测试完成'"
+            :title="$tr(ingressTestResult.status || '测试完成')"
             :type="ingressTestResult.success ? 'success' : 'error'"
             :closable="false"
             show-icon
@@ -2093,29 +2095,29 @@ onMounted(async () => {
               <div class="result-message">
                 <p><strong>{{ ingressTestResult.message }}</strong></p>
                 <p v-if="ingressTestResult.suggestion" class="suggestion">
-                  💡 建议: {{ ingressTestResult.suggestion }}
+                  {{ $tr("💡 建议:") }} {{ ingressTestResult.suggestion }}
                 </p>
               </div>
             </template>
           </el-alert>
 
           <el-descriptions :column="2" border class="result-details" v-if="ingressTestResult.details">
-            <el-descriptions-item label="服务名称">
+            <el-descriptions-item :label='$tr("服务名称")'>
               {{ ingressTestResult.details.serviceName || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="服务端口">
+            <el-descriptions-item :label='$tr("服务端口")'>
               {{ ingressTestResult.details.servicePort || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="测试路径">
+            <el-descriptions-item :label='$tr("测试路径")'>
               {{ ingressTestResult.details.testPath || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="Host域名">
+            <el-descriptions-item :label='$tr("Host域名")'>
               {{ ingressTestResult.details.testHost || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="请求方法">
+            <el-descriptions-item :label='$tr("请求方法")'>
               {{ ingressTestResult.details.method || '-' }}
             </el-descriptions-item>
-            <el-descriptions-item label="HTTP状态码">
+            <el-descriptions-item :label='$tr("HTTP状态码")'>
               <el-tag
                 :type="ingressTestResult.statusCode >= 200 && ingressTestResult.statusCode < 300 ? 'success' : 'danger'"
                 size="small"
@@ -2123,7 +2125,7 @@ onMounted(async () => {
                 {{ ingressTestResult.statusCode || '-' }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="响应时间">
+            <el-descriptions-item :label='$tr("响应时间")'>
               <el-tag
                 :type="ingressTestResult.responseTime < 1000 ? 'success' : 'warning'"
                 size="small"
@@ -2131,14 +2133,14 @@ onMounted(async () => {
                 {{ ingressTestResult.responseTime }}ms
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="Endpoints状态">
-              {{ ingressTestResult.details.endpointsReady || 0 }} / {{ ingressTestResult.details.endpointsTotal || 0 }} 就绪
+            <el-descriptions-item :label='$tr("Endpoints状态")'>
+              {{ ingressTestResult.details.endpointsReady || 0 }} / {{ ingressTestResult.details.endpointsTotal || 0 }} {{ $tr("就绪") }}
             </el-descriptions-item>
           </el-descriptions>
 
           <!-- 显示已测试的Pod列表 -->
           <div v-if="ingressTestResult.details?.podsTested && ingressTestResult.details.podsTested.length > 0" class="pods-tested">
-            <h4>已测试的Pod:</h4>
+            <h4>{{ $tr("已测试的Pod:") }}</h4>
             <el-tag
               v-for="pod in ingressTestResult.details.podsTested"
               :key="pod"
@@ -2152,7 +2154,7 @@ onMounted(async () => {
 
           <!-- 显示响应头 -->
           <div v-if="ingressTestResult.details?.responseHeaders" class="response-headers">
-            <el-divider content-position="left">响应头</el-divider>
+            <el-divider content-position="left">{{ $tr("响应头") }}</el-divider>
             <el-scrollbar max-height="200px">
               <pre class="code-block">{{ JSON.stringify(ingressTestResult.details.responseHeaders, null, 2) }}</pre>
             </el-scrollbar>
@@ -2160,7 +2162,7 @@ onMounted(async () => {
 
           <!-- 显示响应体 -->
           <div v-if="ingressTestResult.details?.responseBody" class="response-body">
-            <el-divider content-position="left">响应体</el-divider>
+            <el-divider content-position="left">{{ $tr("响应体") }}</el-divider>
             <el-scrollbar max-height="300px">
               <pre class="code-block">{{ ingressTestResult.details.responseBody }}</pre>
             </el-scrollbar>
@@ -2170,9 +2172,9 @@ onMounted(async () => {
 
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="ingressTestDialogVisible = false">关闭</el-button>
+          <el-button @click="ingressTestDialogVisible = false">{{ $tr("关闭") }}</el-button>
           <el-button type="primary" :loading="ingressTestLoading" @click="executeIngressTest">
-            重新测试
+            {{ $tr("重新测试") }}
           </el-button>
         </span>
       </template>

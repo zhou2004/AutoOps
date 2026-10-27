@@ -3,42 +3,42 @@
     <div class="glass-card main-card">
       <!-- 卡片标题 -->
       <div class="card-header">
-        <h1 class="gradient-title">快速发布</h1>
+        <h1 class="gradient-title">{{ $tr("快速发布") }}</h1>
         <el-button type="primary" size="small" v-authority="['app:quick-release:add']"  @click="handleCreateRelease" class="modern-btn">
           <el-icon><Plus /></el-icon>
-          新建发布计划
+          {{ $tr("新建发布计划") }}
         </el-button>
       </div>
 
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-          <el-form-item label="发布标题" prop="title">
+          <el-form-item :label='$tr("发布标题")' prop="title">
             <el-input
-              placeholder="请输入发布标题"
+              :placeholder='$tr("请输入发布标题")'
               clearable
               size="small"
               class="modern-input"
               v-model="queryParams.title">
             </el-input>
           </el-form-item>
-          <el-form-item label="环境" prop="environment">
+          <el-form-item :label='$tr("环境")' prop="environment">
             <el-select
               v-model="queryParams.environment"
-              placeholder="请选择环境"
+              :placeholder='$tr("请选择环境")'
               size="small"
               style="width: 150px;"
               class="modern-select"
               clearable>
-              <el-option label="测试环境" value="test" />
-              <el-option label="预发环境" value="staging" />
-              <el-option label="生产环境" value="prod" />
+              <el-option :label='$tr("测试环境")' value="test" />
+              <el-option :label='$tr("预发环境")' value="staging" />
+              <el-option :label='$tr("生产环境")' value="prod" />
             </el-select>
           </el-form-item>
-          <el-form-item label="状态" prop="status">
+          <el-form-item :label='$tr("状态")' prop="status">
             <el-select
               v-model="queryParams.status"
-              placeholder="发布状态"
+              :placeholder='$tr("发布状态")'
               size="small"
               style="width: 150px;"
               class="modern-select"
@@ -46,14 +46,14 @@
               <el-option
                 v-for="item in statusOptions"
                 :key="item.value"
-                :label="item.label"
+                :label="$tr(item.label)"
                 :value="item.value"/>
             </el-select>
           </el-form-item>
-          <el-form-item label="业务组" prop="business_group_id">
+          <el-form-item :label='$tr("业务组")' prop="business_group_id">
             <el-select
               v-model="queryParams.business_group_id"
-              placeholder="请选择业务组"
+              :placeholder='$tr("请选择业务组")'
               size="small"
               style="width: 150px;"
               class="modern-select"
@@ -61,7 +61,7 @@
               <el-option
                 v-for="group in businessGroups"
                 :key="group.id"
-                :label="group.name"
+                :label="$tr(group.name)"
                 :value="group.id"/>
             </el-select>
           </el-form-item>
@@ -72,14 +72,14 @@
               @click="handleQuery"
               class="modern-btn primary-btn">
               <el-icon><Search /></el-icon>
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button
               size="small"
               @click="resetQuery"
               class="modern-btn reset-btn">
               <el-icon><Refresh /></el-icon>
-              重置
+              {{ $tr("重置") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -92,15 +92,15 @@
           v-loading="loading"
           class="modern-table"
           stripe>
-          <el-table-column prop="title" label="发布标题" show-overflow-tooltip>
+          <el-table-column prop="title" :label='$tr("发布标题")' show-overflow-tooltip>
             <template #default="{ row }">
               <div class="table-cell-with-icon">
-                <img :src="$getAssetUrl('@/assets/image/renwu.svg')" width="16" height="16" alt="任务" />
+                <img :src="$getAssetUrl('@/assets/image/renwu.svg')" width="16" height="16" :alt='$tr("任务")' />
                 <span>{{ row.title }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="applications" label="发布服务">
+          <el-table-column prop="applications" :label='$tr("发布服务")'>
             <template #default="{ row }">
               <div class="services-cell">
                 <template v-if="row.tasks && row.tasks.length > 0">
@@ -110,7 +110,7 @@
                     class="service-item">
                     <span class="service-name">{{ task.app_name }}</span>
                     <div class="environment-wrapper">
-                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" alt="环境" />
+                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" :alt='$tr("环境")' />
                       <span class="environment-tag" :class="getEnvironmentClass(task.environment)">
                         {{ task.environment }}
                       </span>
@@ -124,7 +124,7 @@
                     class="service-item">
                     <span class="service-name">{{ app.app_name || `服务${app.app_id}` }}</span>
                     <div class="environment-wrapper" v-if="app.environment">
-                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" alt="环境" />
+                      <img :src="$getAssetUrl('@/assets/image/环境.svg')" width="12" height="12" :alt='$tr("环境")' />
                       <span class="environment-tag" :class="getEnvironmentClass(app.environment)">
                         {{ app.environment }}
                       </span>
@@ -135,36 +135,36 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态">
+          <el-table-column prop="status" :label='$tr("状态")'>
             <template #default="{ row }">
               <el-tag :type="getStatusType(row.status)" size="small">
-                {{ getStatusText(row.status) }}
+                {{ $tr(getStatusText(row.status)) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="duration" label="耗时">
+          <el-table-column prop="duration" :label='$tr("耗时")'>
             <template #default="{ row }">
               <div class="table-cell-with-icon">
-                <img :src="$getAssetUrl('@/assets/image/shijian.svg')" width="16" height="16" alt="时间" />
+                <img :src="$getAssetUrl('@/assets/image/shijian.svg')" width="16" height="16" :alt='$tr("时间")' />
                 <span>{{ formatDuration(row.duration) }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="creator_name" label="创建人">
+          <el-table-column prop="creator_name" :label='$tr("创建人")'>
             <template #default="{ row }">
               <span>{{ row.creator_username || row.creator_name || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="created_at" label="创建时间">
+          <el-table-column prop="created_at" :label='$tr("创建时间")'>
             <template #default="{ row }">
               <span>{{ formatDateTime(row.created_at) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" fixed="right">
+          <el-table-column :label='$tr("操作")' fixed="right">
             <template #default="{ row }">
               <div class="operation-buttons">
-                <el-tooltip v-if="!executedReleases.has(row.id)" content="服务上线" placement="top">
+                <el-tooltip v-if="!executedReleases.has(row.id)" :content='$tr("服务上线")' placement="top">
                   <el-button :icon="VideoPlay" v-authority="['app:quick-release:start']" size="small" type="primary" circle @click="handleExecute(row)" />
                 </el-tooltip>
                 <el-tooltip :content="row.status === 2 ? '发布中的任务不能删除' : '删除任务'" placement="top">
@@ -201,23 +201,23 @@
     <!-- 新建发布对话框 -->
     <el-dialog
       v-model="createDialogVisible"
-      title="新建快速发布"
+      :title='$tr("新建快速发布")'
       width="800px"
       class="modern-dialog">
       <el-form :model="createForm" :rules="createRules" ref="createFormRef" label-width="120px" class="modern-form">
-        <el-form-item label="发布标题" prop="title" required>
+        <el-form-item :label='$tr("发布标题")' prop="title" required>
           <el-input
             v-model="createForm.title"
-            placeholder="请输入发布标题"
+            :placeholder='$tr("请输入发布标题")'
             clearable
           />
         </el-form-item>
         <div class="form-row">
-          <el-form-item label="业务组" prop="business_group_id" required class="form-item-half">
+          <el-form-item :label='$tr("业务组")' prop="business_group_id" required class="form-item-half">
             <el-cascader
               v-model="createForm.business_group_id"
               :options="cascaderBusinessGroups"
-              placeholder="请选择业务组"
+              :placeholder='$tr("请选择业务组")'
               style="width: 100%"
               @change="handleGroupChange"
               :props="{
@@ -228,10 +228,10 @@
               }"
             />
           </el-form-item>
-          <el-form-item label="业务部门" prop="business_dept_id" required class="form-item-half">
+          <el-form-item :label='$tr("业务部门")' prop="business_dept_id" required class="form-item-half">
             <el-select
               v-model="createForm.business_dept_id"
-              placeholder="请选择业务部门"
+              :placeholder='$tr("请选择业务部门")'
               style="width: 100%"
               size="small"
               filterable
@@ -240,19 +240,19 @@
               <el-option
                 v-for="dept in businessDepts"
                 :key="dept.id"
-                :label="dept.deptName"
+                :label="$tr(dept.deptName)"
                 :value="dept.id" />
             </el-select>
           </el-form-item>
         </div>
-        <el-form-item label="应用配置" required>
+        <el-form-item :label='$tr("应用配置")' required>
           <div class="applications-section">
             <div class="applications-header">
               <el-button type="primary" size="small" @click="showAppSelectionDialog" icon="Plus">
-                添加应用
+                {{ $tr("添加应用") }}
               </el-button>
               <span class="app-count" v-if="createForm.applications.length > 0">
-                已选择 {{ createForm.applications.length }} 个应用
+                {{ $tr("已选择") }} {{ createForm.applications.length }} {{ $tr("个应用") }}
               </span>
             </div>
 
@@ -269,14 +269,14 @@
                 <div class="app-environment">
                   <el-select
                     v-model="app.environment"
-                    placeholder="选择环境"
+                    :placeholder='$tr("选择环境")'
                     size="small"
                     style="width: 120px;"
                     @change="handleEnvironmentChange(app)">
                     <el-option
                       v-for="env in app.available_environments || []"
                       :key="env.value"
-                      :label="env.label"
+                      :label="$tr(env.label)"
                       :value="env.value" />
                   </el-select>
                 </div>
@@ -297,7 +297,7 @@
                     type="danger"
                     icon="Delete"
                     @click="removeApplication(index)">
-                    移除
+                    {{ $tr("移除") }}
                   </el-button>
                 </div>
               </div>
@@ -305,7 +305,7 @@
 
             <!-- 空状态提示 -->
             <div class="empty-apps" v-if="createForm.applications.length === 0">
-              <el-empty :image-size="100" description="请添加要发布的应用">
+              <el-empty :image-size="100" :description='$tr("请添加要发布的应用")'>
                 <template #image>
                   <el-icon size="100" color="#ccc"><Document /></el-icon>
                 </template>
@@ -313,27 +313,27 @@
             </div>
           </div>
         </el-form-item>
-        <el-form-item label="发布描述" prop="description" required>
-          <el-input v-model="createForm.description" type="textarea" rows="3" placeholder="请输入发布描述" />
+        <el-form-item :label='$tr("发布描述")' prop="description" required>
+          <el-input v-model="createForm.description" type="textarea" rows="3" :placeholder='$tr("请输入发布描述")' />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleCreateSubmit" :loading="creating">创建发布</el-button>
+        <el-button @click="createDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleCreateSubmit" :loading="creating">{{ $tr("创建发布") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 应用选择弹框 -->
     <el-dialog
       v-model="appSelectionDialogVisible"
-      title="选择应用"
+      :title='$tr("选择应用")'
       width="1000px"
       class="modern-dialog app-selection-dialog">
       <div class="host-selection-layout">
         <!-- 左侧业务树 -->
         <div class="tree-section">
           <div class="tree-header">
-            <h4>业务树</h4>
+            <h4>{{ $tr("业务树") }}</h4>
           </div>
           <el-tree
             :data="businessTreeData"
@@ -351,7 +351,7 @@
                   <component :is="node.expanded ? 'FolderOpened' : 'Folder'" />
                 </el-icon>
                 <el-icon v-else><Document /></el-icon>
-                {{ node.label }}
+                {{ $tr(node.label) }}
               </span>
             </template>
           </el-tree>
@@ -360,7 +360,7 @@
         <!-- 右侧应用表格 -->
         <div class="services-section">
           <div class="services-header">
-            <h4>应用列表</h4>
+            <h4>{{ $tr("应用列表") }}</h4>
             <span v-if="currentBusinessGroup" class="selected-group">{{ currentBusinessGroup.name }}</span>
           </div>
 
@@ -376,7 +376,7 @@
               width="55"
               :selectable="(row) => row.status === 2"
             />
-            <el-table-column prop="name" label="应用名称" min-width="150">
+            <el-table-column prop="name" :label='$tr("应用名称")' min-width="150">
               <template #default="{ row }">
                 <div class="app-name-cell">
                   <el-icon><Document /></el-icon>
@@ -384,19 +384,19 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="code" label="应用代码" width="120">
+            <el-table-column prop="code" :label='$tr("应用代码")' width="120">
               <template #default="{ row }">
                 <el-tag type="info" size="small">{{ row.code }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" width="100">
+            <el-table-column prop="status" :label='$tr("状态")' width="100">
               <template #default="{ row }">
                 <el-tag :type="row.status === 2 ? 'success' : 'danger'" size="small">
-                  {{ row.status === 2 ? '已激活' : '未激活' }}
+                  {{ row.status === 2 ? $tr('已激活') : $tr('未激活') }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="jenkins_envs" label="支持环境" min-width="200">
+            <el-table-column prop="jenkins_envs" :label='$tr("支持环境")' min-width="200">
               <template #default="{ row }">
                 <div class="environments-cell">
                   <el-tag
@@ -405,10 +405,10 @@
                     size="small"
                     type="warning"
                     style="margin-right: 4px; margin-bottom: 2px;">
-                    {{ getEnvironmentText(env.env_name) }}
+                    {{ $tr(getEnvironmentText(env.env_name)) }}
                   </el-tag>
                   <span v-if="!row.jenkins_envs || row.jenkins_envs.length === 0" class="no-env">
-                    暂无环境配置
+                    {{ $tr("暂无环境配置") }}
                   </span>
                 </div>
               </template>
@@ -416,7 +416,7 @@
           </el-table>
 
           <div class="empty-state" v-if="!currentBusinessGroup">
-            <el-empty :image-size="100" description="请选择左侧业务组查看应用">
+            <el-empty :image-size="100" :description='$tr("请选择左侧业务组查看应用")'>
               <template #image>
                 <el-icon size="100" color="#ccc"><Document /></el-icon>
               </template>
@@ -426,9 +426,9 @@
       </div>
 
       <template #footer>
-        <el-button @click="appSelectionDialogVisible = false">取消</el-button>
+        <el-button @click="appSelectionDialogVisible = false">{{ $tr("取消") }}</el-button>
         <el-button type="primary" @click="confirmAppSelection" :disabled="selectedAppsTemp.length === 0">
-          确认选择 ({{ selectedAppsTemp.length }})
+          {{ $tr("确认选择 (") }}{{ selectedAppsTemp.length }})
         </el-button>
       </template>
     </el-dialog>
@@ -443,7 +443,7 @@
     >
       <el-card shadow="hover" v-loading="jenkinsParamsLoading">
         <div v-if="jenkinsJobParameters.length === 0" class="no-params">
-          <el-empty description="该任务无需参数，可直接发布" />
+          <el-empty :description='$tr("该任务无需参数，可直接发布")' />
         </div>
 
         <el-form v-else label-width="150px" class="params-form">
@@ -451,7 +451,7 @@
             <!-- String 类型 -->
             <el-form-item
               v-if="param.type === 'String'"
-              :label="param.name"
+              :label="$tr(param.name)"
               :required="param.required"
             >
               <el-input
@@ -459,13 +459,13 @@
                 :placeholder="param.description || `请输入${param.name}`"
                 clearable
               />
-              <span v-if="param.description" class="param-description">{{ param.description }}</span>
+              <span v-if="param.description" class="param-description">{{ $tr(param.description) }}</span>
             </el-form-item>
 
             <!-- Choice 类型(单选) -->
             <el-form-item
               v-else-if="param.type === 'Choice' && param.choices && param.choices.length > 0"
-              :label="param.name"
+              :label="$tr(param.name)"
               :required="param.required"
             >
               <el-select
@@ -477,29 +477,29 @@
                 <el-option
                   v-for="choice in param.choices"
                   :key="choice"
-                  :label="choice"
+                  :label="$tr(choice)"
                   :value="choice"
                 />
               </el-select>
-              <span v-if="param.description" class="param-description">{{ param.description }}</span>
+              <span v-if="param.description" class="param-description">{{ $tr(param.description) }}</span>
             </el-form-item>
 
             <!-- Boolean 类型 -->
             <el-form-item
               v-else-if="param.type === 'Boolean'"
-              :label="param.name"
+              :label="$tr(param.name)"
             >
               <el-switch
                 v-model="jenkinsParamValues[param.name]"
-                :active-text="param.description || '是'"
-                inactive-text="否"
+                :active-text="$tr(param.description || '是')"
+                :inactive-text='$tr("否")'
               />
             </el-form-item>
 
             <!-- Text 类型 -->
             <el-form-item
               v-else-if="param.type === 'Text'"
-              :label="param.name"
+              :label="$tr(param.name)"
               :required="param.required"
             >
               <el-input
@@ -508,13 +508,13 @@
                 :rows="5"
                 :placeholder="param.description || `请输入${param.name}`"
               />
-              <span v-if="param.description" class="param-description">{{ param.description }}</span>
+              <span v-if="param.description" class="param-description">{{ $tr(param.description) }}</span>
             </el-form-item>
 
             <!-- Password 类型 -->
             <el-form-item
               v-else-if="param.type === 'Password'"
-              :label="param.name"
+              :label="$tr(param.name)"
               :required="param.required"
             >
               <el-input
@@ -524,13 +524,13 @@
                 show-password
                 clearable
               />
-              <span v-if="param.description" class="param-description">{{ param.description }}</span>
+              <span v-if="param.description" class="param-description">{{ $tr(param.description) }}</span>
             </el-form-item>
 
             <!-- 默认类型(Text输入) -->
             <el-form-item
               v-else
-              :label="param.name"
+              :label="$tr(param.name)"
               :required="param.required"
             >
               <el-input
@@ -538,7 +538,7 @@
                 :placeholder="param.description || `请输入${param.name}`"
                 clearable
               />
-              <span v-if="param.description" class="param-description">{{ param.description }}</span>
+              <span v-if="param.description" class="param-description">{{ $tr(param.description) }}</span>
             </el-form-item>
           </div>
         </el-form>
@@ -546,10 +546,10 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="closeParamsDialog">取消</el-button>
+          <el-button @click="closeParamsDialog">{{ $tr("取消") }}</el-button>
           <el-button type="primary" @click="saveJenkinsParams">
             <el-icon><Check /></el-icon>
-            保存配置
+            {{ $tr("保存配置") }}
           </el-button>
         </div>
       </template>
@@ -558,6 +558,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -635,17 +637,17 @@ const createForm = reactive({
 })
 
 const createRules = {
-  title: [{ required: true, message: '请输入发布标题', trigger: 'blur' }],
-  business_group_id: [{ required: true, message: '请选择业务组', trigger: 'change' }],
-  business_dept_id: [{ required: true, message: '请选择业务部门', trigger: 'change' }],
-  description: [{ required: true, message: '请输入发布描述', trigger: 'blur' }],
+  title: [{ required: true, get message() { return tr('请输入发布标题'); }, trigger: 'blur' }],
+  business_group_id: [{ required: true, get message() { return tr('请选择业务组'); }, trigger: 'change' }],
+  business_dept_id: [{ required: true, get message() { return tr('请选择业务部门'); }, trigger: 'change' }],
+  description: [{ required: true, get message() { return tr('请输入发布描述'); }, trigger: 'blur' }],
   applications: [
     {
       validator: (rule, value, callback) => {
         if (!value || value.length === 0) {
-          callback(new Error('请至少添加一个应用'))
+          callback(new Error(tr('请至少添加一个应用')))
         } else if (value.some(app => !app.environment)) {
-          callback(new Error('请为所有应用选择环境'))
+          callback(new Error(tr('请为所有应用选择环境')))
         } else {
           callback()
         }
@@ -734,11 +736,11 @@ const fetchReleaseList = async () => {
       releaseList.value = response.data.data.list || []
       pagination.total = response.data.data.total || 0
     } else {
-      ElMessage.error(response.data.message || '获取发布列表失败')
+      ElMessage.error(response.data.message || tr('获取发布列表失败'))
     }
   } catch (error) {
     console.error('获取发布列表失败:', error)
-    ElMessage.error('获取发布列表失败')
+    ElMessage.error(tr('获取发布列表失败'))
   } finally {
     loading.value = false
   }
@@ -909,7 +911,7 @@ const loadBusinessGroupApps = async (businessGroupId) => {
     }
   } catch (error) {
     console.error('获取业务组应用失败:', error)
-    ElMessage.error('获取业务组应用失败')
+    ElMessage.error(tr('获取业务组应用失败'))
   } finally {
     loadingApps.value = false
   }
@@ -961,7 +963,7 @@ const handleEnvironmentChange = async (app) => {
 // 配置应用的Jenkins参数
 const handleConfigParams = async (app, index) => {
   if (!app.environment) {
-    ElMessage.warning('请先选择环境')
+    ElMessage.warning(tr('请先选择环境'))
     return
   }
 
@@ -974,7 +976,7 @@ const handleConfigParams = async (app, index) => {
     const jenkinsEnv = app.jenkins_envs?.find(env => env.env_name === app.environment)
 
     if (!jenkinsEnv || !jenkinsEnv.jenkins_server_id || !jenkinsEnv.job_name) {
-      ElMessage.warning('该应用在当前环境未配置 Jenkins 任务')
+      ElMessage.warning(tr('该应用在当前环境未配置 Jenkins 任务'))
       return
     }
 
@@ -1012,7 +1014,7 @@ const saveJenkinsParams = () => {
   if (currentAppIndex.value >= 0 && createForm.applications[currentAppIndex.value]) {
     // 保存参数到应用对象
     createForm.applications[currentAppIndex.value].parameters = { ...jenkinsParamValues.value }
-    ElMessage.success('参数配置已保存')
+    ElMessage.success(tr('参数配置已保存'))
     closeParamsDialog()
   }
 }
@@ -1053,7 +1055,7 @@ const handleCreateSubmit = async () => {
     await createFormRef.value.validate()
 
     if (createForm.applications.length === 0) {
-      ElMessage.warning('请至少添加一个应用')
+      ElMessage.warning(tr('请至少添加一个应用'))
       return
     }
 
@@ -1102,16 +1104,16 @@ const handleCreateSubmit = async () => {
 
     const response = await appApi.createQuickDeployment(submitData)
     if (response.data.code === 200) {
-      ElMessage.success('发布创建成功')
+      ElMessage.success(tr('发布创建成功'))
       createDialogVisible.value = false
       resetCreateForm()
       fetchReleaseList()
     } else {
-      ElMessage.error(response.data.message || '创建发布失败')
+      ElMessage.error(response.data.message || tr('创建发布失败'))
     }
   } catch (error) {
     console.error('创建发布失败:', error)
-    ElMessage.error('创建发布失败')
+    ElMessage.error(tr('创建发布失败'))
   } finally {
     creating.value = false
   }
@@ -1139,16 +1141,16 @@ const handleDelete = async (row) => {
   try {
     // 检查发布状态，发布中不允许删除
     if (row.status === 2) {
-      ElMessage.warning('发布中的任务不允许删除')
+      ElMessage.warning(tr('发布中的任务不允许删除'))
       return
     }
 
     await ElMessageBox.confirm(
       `确定要删除发布任务"${row.title}"吗？此操作将同时删除所有相关的子任务记录，且无法恢复。`,
-      '确认删除',
+      tr('确认删除'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'warning',
         dangerouslyUseHTMLString: false
       }
@@ -1157,16 +1159,16 @@ const handleDelete = async (row) => {
     // 调用删除API
     const response = await appApi.deleteDeployment(row.id)
     if (response.data.code === 200) {
-      ElMessage.success('删除成功')
+      ElMessage.success(tr('删除成功'))
       // 刷新列表
       fetchReleaseList()
     } else {
-      ElMessage.error(response.data.message || '删除失败')
+      ElMessage.error(response.data.message || tr('删除失败'))
     }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
-      ElMessage.error(error.response?.data?.message || '删除失败')
+      ElMessage.error(error.response?.data?.message || tr('删除失败'))
     }
   }
 }

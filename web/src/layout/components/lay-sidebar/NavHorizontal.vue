@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LanguageSwitch from "@/components/LanguageSwitch/index.vue";
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
@@ -54,7 +55,7 @@ onMounted(() => {
   >
     <div v-if="showLogo" class="horizontal-header-left" @click="backTopMenu">
       <img :src="getLogo()" alt="logo" />
-      <span>{{ title }}</span>
+      <span>{{ $tr(title) }}</span>
     </div>
     <el-menu
       ref="menuRef"
@@ -71,6 +72,7 @@ onMounted(() => {
       />
     </el-menu>
     <div class="horizontal-header-right">
+      <LanguageSwitch />
       <!-- 菜单搜索 -->
       <LaySearch id="header-search" />
       <!-- 全屏 -->
@@ -90,14 +92,14 @@ onMounted(() => {
                 :icon="LogoutCircleRLine"
                 style="margin: 5px"
               />
-              退出系统
+              {{ $tr("退出系统") }}
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
       <span
         class="set-icon navbar-bg-hover"
-        title="打开系统配置"
+        :title='$tr("打开系统配置")'
         @click="onPanel"
       >
         <IconifyIconOffline :icon="Setting" />

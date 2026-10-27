@@ -1,7 +1,7 @@
 <template>
   <el-select
     :model-value="modelValue"
-    placeholder="请选择集群"
+    :placeholder='$tr("请选择集群")'
     size="small"
     style="width: 200px; margin-right: 12px"
     @change="handleChange"
@@ -21,7 +21,7 @@
           size="small"
           class="cluster-status-tag"
         >
-          {{ getClusterStatusText(cluster.status) }}
+          {{ $tr(getClusterStatusText(cluster.status)) }}
         </el-tag>
       </div>
     </el-option>
@@ -29,6 +29,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
@@ -71,7 +73,7 @@ const fetchClusterList = async () => {
     }
   } catch (error) {
     console.error('获取集群列表失败:', error)
-    ElMessage.warning('无法获取集群列表，请检查后端服务')
+    ElMessage.warning(tr('无法获取集群列表，请检查后端服务'))
   }
 }
 

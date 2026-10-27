@@ -1,6 +1,6 @@
 <template>
   <div class="process-node" :class="data?.status">
-    <div class="node-label">{{ data?.label }}</div>
+    <div class="node-label">{{ $tr(data?.label) }}</div>
   </div>
 </template>
 <script setup lang="ts">

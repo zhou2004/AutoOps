@@ -3,32 +3,32 @@
     <div class="glass-card main-card">
       <!-- 卡片标题 -->
       <div class="card-header">
-        <h1 class="gradient-title">岗位管理</h1>
+        <h1 class="gradient-title">{{ $tr("岗位管理") }}</h1>
       </div>
       
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-        <el-form-item label="岗位名称" prop="postName">
+        <el-form-item :label='$tr("岗位名称")' prop="postName">
           <el-input 
-            placeholder="请输入岗位名称" 
+            :placeholder='$tr("请输入岗位名称")' 
             clearable 
             size="small"
             class="modern-input"
             v-model="queryParams.postName">
           </el-input>
         </el-form-item>
-        <el-form-item label="岗位状态" prop="postStatus">
+        <el-form-item :label='$tr("岗位状态")' prop="postStatus">
           <el-select 
             v-model="queryParams.postStatus" 
-            placeholder="岗位状态" 
+            :placeholder='$tr("岗位状态")' 
             size="small"
             style="width: 150px;" 
             class="modern-select">
             <el-option
                 v-for="item in postStatusList" 
                 :key="item.value" 
-                :label="item.label" 
+                :label="$tr(item.label)" 
                 :value="item.value"/>
           </el-select>
         </el-form-item>
@@ -39,14 +39,14 @@
             @click="handleQuery"
             class="modern-btn primary-btn">
             <el-icon><Search /></el-icon>
-            搜索
+            {{ $tr("搜索") }}
           </el-button>
           <el-button 
             size="small"
             @click="resetQuery"
             class="modern-btn reset-btn">
             <el-icon><Refresh /></el-icon>
-            重置
+            {{ $tr("重置") }}
           </el-button>
         </el-form-item>
         </el-form>
@@ -62,7 +62,7 @@
             v-authority="['base:post:add']"
             class="modern-btn success-btn">
             <el-icon><Plus /></el-icon>
-            新增
+            {{ $tr("新增") }}
           </el-button>
           <el-button 
             type="danger" 
@@ -72,7 +72,7 @@
             v-authority="['base:post:delete']"
             class="modern-btn danger-btn">
             <el-icon><Delete /></el-icon>
-            删除
+            {{ $tr("删除") }}
           </el-button>
         </div>
       </div>
@@ -86,9 +86,9 @@
         @selection-change="handleSelectionChange">
         <el-table-column type="selection" />
         <el-table-column label="ID" v-if="false" prop="id" />
-        <el-table-column label="岗位名称" prop="postName" />
-        <el-table-column label="岗位编码" prop="postCode" />
-        <el-table-column label="岗位状态" prop="postStatus">
+        <el-table-column :label='$tr("岗位名称")' prop="postName" />
+        <el-table-column :label='$tr("岗位编码")' prop="postCode" />
+        <el-table-column :label='$tr("岗位状态")' prop="postStatus">
           <template v-slot="scope">
             <el-switch 
               v-model="scope.row.postStatus" 
@@ -96,19 +96,19 @@
               :inactive-value="2" 
               active-color="#667eea"
               inactive-color="#F5222D" 
-              active-text="启用" 
-              inactive-text="停用" 
+              :active-text='$tr("启用")' 
+              :inactive-text='$tr("停用")' 
               class="modern-switch"
               @change="postUpdateStatus(scope.row)">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" prop="createTime" />
-        <el-table-column label="描述" prop="remark" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column :label='$tr("创建时间")' prop="createTime" />
+        <el-table-column :label='$tr("描述")' prop="remark" />
+        <el-table-column :label='$tr("操作")' width="120" fixed="right">
           <template v-slot="scope">
             <div class="operation-buttons">
-              <el-tooltip content="编辑" placement="top">
+              <el-tooltip :content='$tr("编辑")' placement="top">
                 <el-button
                   type="warning"
                   size="small"
@@ -119,7 +119,7 @@
                   <el-icon><Edit /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip :content='$tr("删除")' placement="top">
                 <el-button
                   type="danger"
                   size="small"
@@ -151,7 +151,7 @@
 
     <!--新增对话框-->
     <el-dialog 
-      title="新增岗位" 
+      :title='$tr("新增岗位")' 
       v-model="addPostDialogVisible" 
       width="30%" 
       class="modern-dialog"
@@ -162,27 +162,27 @@
         :rules="addPostFormRules" 
         :model="addPostForm"
         class="dialog-form">
-        <el-form-item label="岗位名称" prop="postName">
+        <el-form-item :label='$tr("岗位名称")' prop="postName">
           <el-input 
-            placeholder="请输入岗位名称" 
+            :placeholder='$tr("请输入岗位名称")' 
             class="modern-input"
             v-model="addPostForm.postName" />
         </el-form-item>
-        <el-form-item label="岗位编码" prop="postCode">
+        <el-form-item :label='$tr("岗位编码")' prop="postCode">
           <el-input 
-            placeholder="请输入岗位编码" 
+            :placeholder='$tr("请输入岗位编码")' 
             class="modern-input"
             v-model="addPostForm.postCode" />
         </el-form-item>
-        <el-form-item label="岗位状态" prop="postStatus">
+        <el-form-item :label='$tr("岗位状态")' prop="postStatus">
           <el-radio-group v-model="addPostForm.postStatus" class="modern-radio-group">
-            <el-radio :label="1" class="modern-radio">启用</el-radio>
-            <el-radio :label="2" class="modern-radio">停用</el-radio>
+            <el-radio :label="1" class="modern-radio">{{ $tr("启用") }}</el-radio>
+            <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="岗位描述" prop="remark">
+        <el-form-item :label='$tr("岗位描述")' prop="remark">
           <el-input 
-            placeholder="请输入岗位描述" 
+            :placeholder='$tr("请输入岗位描述")' 
             class="modern-input"
             v-model="addPostForm.remark" />
         </el-form-item>
@@ -192,17 +192,17 @@
           <el-button 
             type="primary" 
             class="modern-btn primary-btn"
-            @click="addPost">确定</el-button>
+            @click="addPost">{{ $tr("确定") }}</el-button>
           <el-button 
             class="modern-btn secondary-btn"
-            @click="addPostDialogVisible = false">取消</el-button>
+            @click="addPostDialogVisible = false">{{ $tr("取消") }}</el-button>
         </div>
       </template>
     </el-dialog>
 
     <!--编辑对话框-->
     <el-dialog 
-      title="编辑岗位" 
+      :title='$tr("编辑岗位")' 
       v-model="editPostDialogVisible" 
       width="30%" 
       class="modern-dialog"
@@ -213,27 +213,27 @@
         :rules="editPostFormRules" 
         :model="editPostForm"
         class="dialog-form">
-        <el-form-item label="岗位名称" prop="postName">
+        <el-form-item :label='$tr("岗位名称")' prop="postName">
           <el-input 
-            placeholder="请输入岗位名称" 
+            :placeholder='$tr("请输入岗位名称")' 
             class="modern-input"
             v-model="editPostForm.postName" />
         </el-form-item>
-        <el-form-item label="岗位编码" prop="postCode">
+        <el-form-item :label='$tr("岗位编码")' prop="postCode">
           <el-input 
-            placeholder="请输入岗位编码" 
+            :placeholder='$tr("请输入岗位编码")' 
             class="modern-input"
             v-model="editPostForm.postCode" />
         </el-form-item>
-        <el-form-item label="岗位状态" prop="postStatus">
+        <el-form-item :label='$tr("岗位状态")' prop="postStatus">
           <el-radio-group v-model="editPostForm.postStatus" class="modern-radio-group">
-            <el-radio :label="1" class="modern-radio">启用</el-radio>
-            <el-radio :label="2" class="modern-radio">停用</el-radio>
+            <el-radio :label="1" class="modern-radio">{{ $tr("启用") }}</el-radio>
+            <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="岗位描述" prop="remark">
+        <el-form-item :label='$tr("岗位描述")' prop="remark">
           <el-input 
-            placeholder="请输入岗位描述" 
+            :placeholder='$tr("请输入岗位描述")' 
             class="modern-input"
             v-model="editPostForm.remark" />
         </el-form-item>
@@ -243,10 +243,10 @@
           <el-button 
             type="primary" 
             class="modern-btn primary-btn"
-            @click="editPost">确定</el-button>
+            @click="editPost">{{ $tr("确定") }}</el-button>
           <el-button 
             class="modern-btn secondary-btn"
-            @click="editPostDialogVisible = false">取消</el-button>
+            @click="editPostDialogVisible = false">{{ $tr("取消") }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -254,6 +254,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import {
   Search,
   Refresh,
@@ -285,9 +287,9 @@ export default {
       total: 0,
       addPostDialogVisible: false,
       addPostFormRules: {
-        postName: [{ required: true, message: '请输入岗位名称', trigger: 'blur' }],
-        postCode: [{ required: true, message: '请输入岗位标识', trigger: 'blur' }],
-        postStatus: [{ required: true, message: '请输入岗位状态', trigger: 'blur' }]
+        postName: [{ required: true, get message() { return tr('请输入岗位名称'); }, trigger: 'blur' }],
+        postCode: [{ required: true, get message() { return tr('请输入岗位标识'); }, trigger: 'blur' }],
+        postStatus: [{ required: true, get message() { return tr('请输入岗位状态'); }, trigger: 'blur' }]
       },
       addPostForm: {
         postName: '',
@@ -298,9 +300,9 @@ export default {
       editPostDialogVisible: false,
       editPostForm: {},
       editPostFormRules: {
-        postName: [{ required: true, message: '请输入岗位名称', trigger: 'blur' }],
-        postCode: [{ required: true, message: '请输入岗位标识', trigger: 'blur' }],
-        postStatus: [{ required: true, message: '请输入岗位状态', trigger: 'blur' }]
+        postName: [{ required: true, get message() { return tr('请输入岗位名称'); }, trigger: 'blur' }],
+        postCode: [{ required: true, get message() { return tr('请输入岗位标识'); }, trigger: 'blur' }],
+        postStatus: [{ required: true, get message() { return tr('请输入岗位状态'); }, trigger: 'blur' }]
       },
       ids: [],
       single: true,
@@ -334,7 +336,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getPostList()
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // pageSize
     handleSizeChange(newSize) {
@@ -349,17 +351,17 @@ export default {
     // 岗位状态修改
     async postUpdateStatus(row) {
       let text = row.postStatus === 2 ? "停用" : "启用"
-      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.postName + '"岗位吗?', "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.postName + '"岗位吗?', tr("警告"), {
+        confirmButtonText: tr("确定"),
+        cancelButtonText: tr("取消"),
         type: "warning",
       }).catch(err => err)
       if (confirmResult != 'confirm') {
         await this.getPostList()
-        return this.$message.info('已取消修改')
+        return this.$message.info(tr('已取消修改'))
       }
       await this.$api.updatePostStatus(row.id, row.postStatus)
-      return this.$message.success(text + "成功")
+      return this.$message.success(text + tr("成功"))
       // eslint-disable-next-line no-unreachable
       await this.getPostList()
     },
@@ -376,7 +378,7 @@ export default {
         if (res.code !== 200) {
           this.$message.error(res.message)
         } else {
-          this.$message.success("新增岗位成功")
+          this.$message.success(tr("新增岗位成功"))
           this.addPostDialogVisible = false
           await this.getPostList()
         }
@@ -404,7 +406,7 @@ export default {
         if (res.code !== 200) {
           this.$message.error(res.message)
         } else {
-          this.$message.success("修改岗位成功")
+          this.$message.success(tr("修改岗位成功"))
           this.editPostDialogVisible = false
           await this.getPostList()
         }
@@ -412,19 +414,19 @@ export default {
     },
     // 删除岗位
     async handleDelete(id) {
-      const confirmResult = await this.$confirm('是否确认删除岗位编号为"' + id + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除岗位编号为"' + id + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.deleteSysPost(id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getPostList()
       }
     },
@@ -437,19 +439,19 @@ export default {
     // 批量删除
     async batchHandleDelete() {
       const postIds = this.ids
-      const confirmResult = await this.$confirm('是否确认删除岗位编号为"' + postIds + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除岗位编号为"' + postIds + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.batchDeleteSysPost(postIds)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getPostList()
       }
     }

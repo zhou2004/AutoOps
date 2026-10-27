@@ -90,13 +90,11 @@ func (s *SysRoleServiceImpl) QueryRoleMenuIdList(c *gin.Context, Id int) {
 
 // 分配权限
 func (s *SysRoleServiceImpl) AssignPermissions(c *gin.Context, menu model.RoleMenu) {
-	// 立即返回成功响应
+	if err := dao.AssignPermissions(menu); err != nil {
+		result.Failed(c, 500, "保存角色菜单权限失败")
+		return
+	}
 	result.Success(c, true)
-	
-	// 异步处理权限分配
-	go func() {
-		dao.AssignPermissions(menu)
-	}()
 }
 
 var sysRoleService = SysRoleServiceImpl{}

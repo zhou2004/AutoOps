@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"dodevops-api/api/dashboard/controller"
+	"dodevops-api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,8 +14,9 @@ func RegisterDashboardRoutes(router *gin.RouterGroup) {
 	// 看板路由组
 	dashboardGroup := router.Group("/dashboard")
 	{
-		dashboardGroup.GET("/stats", dashboardController.GetDashboardStats) // 获取看板统计数据
+		dashboardGroup.GET("/overview", middleware.NewK8sPermissionMiddleware().FilterAllowedClusters(), dashboardController.GetOverview)
+		dashboardGroup.GET("/stats", dashboardController.GetDashboardStats)                            // 获取看板统计数据
 		dashboardGroup.GET("/business-distribution", dashboardController.GetBusinessDistributionStats) // 获取业务分布统计数据
-		dashboardGroup.GET("/assets", dashboardController.GetAssetStats) // 获取资产统计数据
+		dashboardGroup.GET("/assets", dashboardController.GetAssetStats)                               // 获取资产统计数据
 	}
 }

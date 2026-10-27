@@ -271,12 +271,12 @@ func (c *TaskAnsibleController) DeleteTask(ctx *gin.Context) {
 
 // StartTask 启动Ansible任务
 // @Summary 启动Ansible任务
-// @Description 启动指定的Ansible任务，支持传入调查参数(survey_vars)临时覆盖全局变量和扩展参数
+// @Description 启动指定的Ansible任务，支持传入调查参数(survey_vars)、启动命令行参数(startup_cli_args)和主机清单(inventory_content)
 // @Tags 任务作业
 // @Accept json
 // @Produce json
 // @Param id path int true "任务ID"
-// @Param request body service.StartJobRequest false "启动任务参数(可选)，survey_vars用于临时覆盖变量"
+// @Param request body service.StartJobRequest false "启动任务参数(可选)，包含survey_vars、startup_cli_args、inventory_content"
 // @Success 200 {object} result.Result
 // @Router /api/v1/task/ansible/{id}/start [post]
 // @Security ApiKeyAuth
@@ -287,11 +287,13 @@ func (c *TaskAnsibleController) StartTask(ctx *gin.Context) {
 		return
 	}
 
-	// 解析可选的调查参数(survey_vars)和启动命令行参数(startup_cli_args)，允许请求体为空
+	// 解析可选的调查参数(survey_vars)和启动命令行参数(startup_cli_args)和主机清单(inventory_content)，允许请求体为空
 	var surveyVars map[string]string
 	var surveyEnabled bool
 	var startupCliArgs string
 	var cliArgsEnabled bool
+	var inventoryContent string
+	var inventoryEnabled bool
 	bodyBytes, err := io.ReadAll(ctx.Request.Body)
 	if err == nil && len(bodyBytes) > 0 {
 		var req service.StartJobRequest
@@ -300,10 +302,32 @@ func (c *TaskAnsibleController) StartTask(ctx *gin.Context) {
 			surveyEnabled = req.SurveyEnabled
 			startupCliArgs = req.StartupCliArgs
 			cliArgsEnabled = req.CliArgsEnabled
+			inventoryContent = req.InventoryContent
+			inventoryEnabled = req.InventoryEnabled
 		}
 	}
 
-	c.service.StartJob(ctx, uint(id), surveyVars, surveyEnabled, startupCliArgs, cliArgsEnabled)
+	c.service.StartJob(ctx, uint(id), surveyVars, surveyEnabled, startupCliArgs, cliArgsEnabled, inventoryContent, inventoryEnabled)
+}
+
+// StopTask 停止Ansible任务
+// @Summary 停止Ansible任务
+// @Description 停止正在运行的Ansible任务及其所有子任务
+// @Tags 任务作业
+// @Accept json
+// @Produce json
+// @Param id path int true "任务ID"
+// @Success 200 {object} result.Result
+// @Router /api/v1/task/ansible/{id}/stop [post]
+// @Security ApiKeyAuth
+func (c *TaskAnsibleController) StopTask(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		result.Failed(ctx, http.StatusBadRequest, "无效的任务ID")
+		return
+	}
+
+	c.service.StopTask(ctx, uint(id))
 }
 
 // GetJobLog 获取任务日志(SSE实现)

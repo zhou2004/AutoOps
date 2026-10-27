@@ -15,22 +15,22 @@ const { title, getLogo } = useNav();
       <router-link
         v-if="collapse"
         key="collapse"
-        :title="title"
+        :title="$tr(title)"
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
         <img :src="getLogo()" alt="logo" />
-        <span class="sidebar-title">{{ title }}</span>
+        <span class="sidebar-title">{{ $tr(title) }}</span>
       </router-link>
       <router-link
         v-else
         key="expand"
-        :title="title"
+        :title="$tr(title)"
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
         <img :src="getLogo()" alt="logo" />
-        <span class="sidebar-title">{{ title }}</span>
+        <span class="sidebar-title">{{ $tr(title) }}</span>
       </router-link>
     </transition>
   </div>

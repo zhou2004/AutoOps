@@ -10,12 +10,12 @@
       <CountUp :value="value" :duration="1.5" />
       <span v-if="unit" class="card-unit">{{ unit }}</span>
     </div>
-    <div class="card-label">{{ label }}</div>
+    <div class="card-label">{{ $tr(label) }}</div>
     <div class="card-trend" v-if="trend !== undefined">
       <span :style="{ color: trend >= 0 ? 'var(--success)' : 'var(--danger)' }">
         {{ trend >= 0 ? '↑' : '↓' }} {{ Math.abs(trend) }}%
       </span>
-      <span class="text-secondary">同比昨日</span>
+      <span class="text-secondary">{{ $tr("同比昨日") }}</span>
     </div>
   </div>
 </template>

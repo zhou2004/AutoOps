@@ -70,6 +70,7 @@ func UpdateSysRole(dto model.UpdateSysRoleDto) (sysRole model.SysRole) {
 func DeleteSysRoleById(dto model.SysRoleIdDto) {
 	Db.Table("sys_role").Delete(&model.SysRole{}, dto.Id)
 	Db.Table("sys_role_menu").Where("role_id = ?", dto.Id).Delete(&model.SysRoleMenu{})
+	Db.Where("role_id = ?", dto.Id).Delete(&model.RolePermission{})
 }
 
 // 角色状态启用/停用
@@ -123,7 +124,7 @@ func AssignPermissions(menu model.RoleMenu) (err error) {
 		if err := tx.Table("sys_role_menu").Where("role_id = ?", menu.Id).Delete(&model.SysRoleMenu{}).Error; err != nil {
 			return err
 		}
-		
+
 		// 批量插入新权限
 		if len(menu.MenuIds) > 0 {
 			var entities []model.SysRoleMenu

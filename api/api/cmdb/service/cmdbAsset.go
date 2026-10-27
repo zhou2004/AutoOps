@@ -2,7 +2,11 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"sort"
+	"strings"
+	"time"
 
 	"dodevops-api/api/cmdb/dao"
 	"dodevops-api/api/cmdb/model"
@@ -100,7 +104,7 @@ func (s *CmdbIDCServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *CmdbIDCServiceImpl) GetList(c *gin.Context, query model.CmdbIDCQuery) {
-	list, total, err := s.dao.GetList(query)
+	list, total, err := s.dao.GetList(query, assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询机房失败: "+err.Error())
 		return
@@ -109,7 +113,7 @@ func (s *CmdbIDCServiceImpl) GetList(c *gin.Context, query model.CmdbIDCQuery) {
 }
 
 func (s *CmdbIDCServiceImpl) GetAll(c *gin.Context) {
-	list, err := s.dao.GetAll()
+	list, err := s.dao.GetAll(assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询机房失败: "+err.Error())
 		return
@@ -205,7 +209,7 @@ func (s *CmdbCabinetServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *CmdbCabinetServiceImpl) GetList(c *gin.Context, query model.CmdbCabinetQuery) {
-	list, total, err := s.dao.GetList(query)
+	list, total, err := s.dao.GetList(query, assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询机柜失败: "+err.Error())
 		return
@@ -214,7 +218,7 @@ func (s *CmdbCabinetServiceImpl) GetList(c *gin.Context, query model.CmdbCabinet
 }
 
 func (s *CmdbCabinetServiceImpl) GetByIDC(c *gin.Context, idcID uint) {
-	list, err := s.dao.GetByIDC(idcID)
+	list, err := s.dao.GetByIDC(idcID, assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询机柜失败: "+err.Error())
 		return
@@ -342,48 +346,25 @@ func (s *CmdbPhysicalMachineServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *CmdbPhysicalMachineServiceImpl) GetList(c *gin.Context, query model.CmdbPhysicalMachineQuery) {
-	list, total, err := s.dao.GetList(query)
+	list, total, err := s.dao.GetList(query, assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询物理机失败: "+err.Error())
 		return
-	}
-	// 按权限过滤
-	allowedIDs, _ := c.Get("cmdb_allowed_asset_ids")
-	if idSet, ok := allowedIDs.(map[uint]bool); ok && len(idSet) > 0 {
-		var filtered []model.CmdbPhysicalMachine
-		for _, item := range list {
-			if idSet[item.ID] {
-				filtered = append(filtered, item)
-			}
-		}
-		list = filtered
-		total = int64(len(filtered))
 	}
 	result.Success(c, gin.H{"list": list, "total": total})
 }
 
 func (s *CmdbPhysicalMachineServiceImpl) GetAll(c *gin.Context) {
-	list, err := s.dao.GetAll()
+	list, err := s.dao.GetAll(assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询物理机失败: "+err.Error())
 		return
-	}
-	// 按权限过滤
-	allowedIDs, _ := c.Get("cmdb_allowed_asset_ids")
-	if idSet, ok := allowedIDs.(map[uint]bool); ok && len(idSet) > 0 {
-		var filtered []model.CmdbPhysicalMachine
-		for _, item := range list {
-			if idSet[item.ID] {
-				filtered = append(filtered, item)
-			}
-		}
-		list = filtered
 	}
 	result.Success(c, gin.H{"list": list, "total": len(list)})
 }
 
 func (s *CmdbPhysicalMachineServiceImpl) GetStats(c *gin.Context) {
-	stats := s.dao.GetStats()
+	stats := s.dao.GetStats(assetIDScope(c))
 	result.Success(c, stats)
 }
 
@@ -489,42 +470,19 @@ func (s *CmdbNetworkDeviceServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *CmdbNetworkDeviceServiceImpl) GetList(c *gin.Context, query model.CmdbNetworkDeviceQuery) {
-	list, total, err := s.dao.GetList(query)
+	list, total, err := s.dao.GetList(query, assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询网络设备失败: "+err.Error())
 		return
-	}
-	// 按权限过滤
-	allowedIDs, _ := c.Get("cmdb_allowed_asset_ids")
-	if idSet, ok := allowedIDs.(map[uint]bool); ok && len(idSet) > 0 {
-		var filtered []model.CmdbNetworkDevice
-		for _, item := range list {
-			if idSet[item.ID] {
-				filtered = append(filtered, item)
-			}
-		}
-		list = filtered
-		total = int64(len(filtered))
 	}
 	result.Success(c, gin.H{"list": list, "total": total})
 }
 
 func (s *CmdbNetworkDeviceServiceImpl) GetAll(c *gin.Context) {
-	list, err := s.dao.GetAll()
+	list, err := s.dao.GetAll(assetIDScope(c))
 	if err != nil {
 		result.Failed(c, http.StatusInternalServerError, "查询网络设备失败: "+err.Error())
 		return
-	}
-	// 按权限过滤
-	allowedIDs, _ := c.Get("cmdb_allowed_asset_ids")
-	if idSet, ok := allowedIDs.(map[uint]bool); ok && len(idSet) > 0 {
-		var filtered []model.CmdbNetworkDevice
-		for _, item := range list {
-			if idSet[item.ID] {
-				filtered = append(filtered, item)
-			}
-		}
-		list = filtered
 	}
 	result.Success(c, gin.H{"list": list, "total": len(list)})
 }
@@ -579,13 +537,47 @@ func NewCmdbAssetPermissionService(db *gorm.DB) ICmdbAssetPermissionService {
 	}
 }
 
-// getUserAllGroupIDs 获取用户的所有分组ID（系统角色组 + CMDB用户组）
+// CMDB groups and system roles have separate IDs.
 func (s *CmdbAssetPermissionServiceImpl) getUserAllGroupIDs(userID uint) []uint {
-	// CMDB用户组
-	cmdbGroupIDs, _ := s.cmdbUserGroupDao.GetUserGroupIDs(userID)
-	// 系统角色组（兼容旧数据）
-	sysGroupIDs, _ := s.groupDao.GetUserGroupIDs(userID)
-	return append(cmdbGroupIDs, sysGroupIDs...)
+	ids, _ := s.dao.UserGroupIDs(userID)
+	return ids
+}
+
+func validateAssetPermission(req *CmdbAssetPermissionReq) error {
+	if strings.TrimSpace(req.Name) == "" {
+		return fmt.Errorf("授权名称不能为空")
+	}
+	if len(req.UserIDs)+len(req.GroupIDs) == 0 {
+		return fmt.Errorf("请选择授权用户或用户组")
+	}
+	if len(req.AssetTypes) == 0 || len(req.PermissionActions) == 0 {
+		return fmt.Errorf("请选择资产类型和操作权限")
+	}
+	for _, action := range req.PermissionActions {
+		if !dao.ValidPermissionAction(action) {
+			return fmt.Errorf("未知权限操作: %s", action)
+		}
+	}
+	validTypes := map[string]bool{"host": true, "physical": true, "network": true, "database": true, "idc": true, "cabinet": true, "group": true, "*": true}
+	for _, kind := range req.AssetTypes {
+		if !validTypes[kind] {
+			return fmt.Errorf("未知资产类型: %s", kind)
+		}
+	}
+	if req.IsActive != 0 && req.IsActive != 1 {
+		return fmt.Errorf("授权状态必须为0或1")
+	}
+	for _, date := range []string{req.DateStart, req.DateExpired} {
+		if date != "" {
+			if _, err := time.Parse("2006-01-02", date); err != nil {
+				return fmt.Errorf("有效期必须为YYYY-MM-DD")
+			}
+		}
+	}
+	if req.DateStart != "" && req.DateExpired != "" && req.DateStart > req.DateExpired {
+		return fmt.Errorf("有效期开始不能晚于结束")
+	}
+	return nil
 }
 
 func toJSONStr(v interface{}) string {
@@ -594,6 +586,10 @@ func toJSONStr(v interface{}) string {
 }
 
 func (s *CmdbAssetPermissionServiceImpl) Create(c *gin.Context, req *CmdbAssetPermissionReq) {
+	if err := validateAssetPermission(req); err != nil {
+		result.Failed(c, http.StatusBadRequest, err.Error())
+		return
+	}
 	data := &model.CmdbAssetPermission{
 		Name:              req.Name,
 		Description:       req.Description,
@@ -611,12 +607,6 @@ func (s *CmdbAssetPermissionServiceImpl) Create(c *gin.Context, req *CmdbAssetPe
 		DateStart:         req.DateStart,
 		DateExpired:       req.DateExpired,
 	}
-	if data.IsActive == 0 {
-		data.IsActive = 1
-	}
-	if len(data.PermissionActions) <= 3 { // default: ["connect"]
-		data.PermissionActions = `["connect"]`
-	}
 	if err := s.dao.Create(data); err != nil {
 		result.Failed(c, http.StatusInternalServerError, "创建授权规则失败: "+err.Error())
 		return
@@ -625,6 +615,10 @@ func (s *CmdbAssetPermissionServiceImpl) Create(c *gin.Context, req *CmdbAssetPe
 }
 
 func (s *CmdbAssetPermissionServiceImpl) Update(c *gin.Context, id uint, req *CmdbAssetPermissionReq) {
+	if err := validateAssetPermission(req); err != nil {
+		result.Failed(c, http.StatusBadRequest, err.Error())
+		return
+	}
 	data, err := s.dao.GetByID(id)
 	if err != nil {
 		result.Failed(c, http.StatusNotFound, "授权规则不存在")
@@ -678,175 +672,73 @@ func (s *CmdbAssetPermissionServiceImpl) GetList(c *gin.Context, query model.Cmd
 	result.Success(c, gin.H{"list": list, "total": total})
 }
 
-// GetMyAssets 获取当前用户拥有的资产授权
+// GetMyAssets preserves scope per asset, so UI actions cannot be stitched across rules.
 func (s *CmdbAssetPermissionServiceImpl) GetMyAssets(c *gin.Context) {
 	admin, err := jwt.GetAdmin(c)
 	if err != nil {
 		result.Failed(c, http.StatusUnauthorized, "未授权")
 		return
 	}
-
-	// 获取用户所属用户组
-	userGroupIDs, _ := s.groupDao.GetUserGroupIDs(admin.ID)
-
-	// 获取有效授权
-	perms, err := s.dao.GetUserPermissions(admin.ID, userGroupIDs)
-	if err != nil || len(perms) == 0 {
-		result.Success(c, gin.H{
-			"allowedHostIds":     []uint{},
-			"allowedPhysicalIds": []uint{},
-			"allowedNetworkIds":  []uint{},
-			"permissionActions":  []string{},
-		})
+	isAdmin, err := s.dao.IsAdministrator(admin.ID)
+	if err != nil {
+		result.Failed(c, http.StatusInternalServerError, "权限校验失败")
 		return
 	}
-
-	// 合并所有授权中的资产ID和操作权限
-	hostIDSet := make(map[uint]bool)
-	physicalIDSet := make(map[uint]bool)
-	networkIDSet := make(map[uint]bool)
-	dbIDSet := make(map[uint]bool)
-	hostGroupIDSet := make(map[uint]bool)
-	actionSet := make(map[string]bool)
-
-	for _, p := range perms {
-		var actions []string
-		json.Unmarshal([]byte(p.PermissionActions), &actions)
-		for _, a := range actions {
-			actionSet[a] = true
-		}
-		// 具体主机ID
-		var hostIDs []uint
-		json.Unmarshal([]byte(p.HostIDs), &hostIDs)
-		for _, id := range hostIDs {
-			hostIDSet[id] = true
-		}
-		// 具体物理机ID
-		var phIDs []uint
-		json.Unmarshal([]byte(p.PhysicalIDs), &phIDs)
-		for _, id := range phIDs {
-			physicalIDSet[id] = true
-		}
-		// 具体网络设备ID
-		var netIDs []uint
-		json.Unmarshal([]byte(p.NetworkIDs), &netIDs)
-		for _, id := range netIDs {
-			networkIDSet[id] = true
-		}
-		// 主机分组 (需要解析为ID集)
-		var hgIDs []uint
-		json.Unmarshal([]byte(p.HostGroupIDs), &hgIDs)
-		for _, id := range hgIDs {
-			hostGroupIDSet[id] = true
-		}
-		// 从主机分组加载所有主机
-		for _, gid := range hgIDs {
-			hosts := s.hostDao.GetCmdbHostsByGroupId(gid)
-			for _, h := range hosts {
-				hostIDSet[h.ID] = true
+	perms, err := s.dao.EffectivePermissions(admin.ID)
+	if err != nil {
+		result.Failed(c, http.StatusInternalServerError, "权限查询失败")
+		return
+	}
+	fields := map[string]string{"host": "allowedHostIds", "physical": "allowedPhysicalIds", "network": "allowedNetworkIds", "database": "allowedDatabaseIds", "group": "allowedHostGroupIds"}
+	response := gin.H{"isAdmin": isAdmin, "permissionActions": []string{}, "assetPermissions": []gin.H{}}
+	allActions := map[string]bool{}
+	entries := []gin.H{}
+	for _, kind := range []string{"host", "physical", "network", "database", "group"} {
+		assetActions := map[uint][]string{}
+		for _, action := range dao.PermissionActions {
+			ids, err := s.dao.AllowedAssetIDs(perms, kind, action)
+			if err != nil {
+				result.Failed(c, http.StatusInternalServerError, "资产范围查询失败")
+				return
+			}
+			for id := range ids {
+				assetActions[id] = append(assetActions[id], action)
+				allActions[action] = true
 			}
 		}
-		// 数据库
-		var dIDs []uint
-		json.Unmarshal([]byte(p.DatabaseIDs), &dIDs)
-		for _, id := range dIDs {
-			dbIDSet[id] = true
+		ids := make([]uint, 0, len(assetActions))
+		for id := range assetActions {
+			ids = append(ids, id)
+		}
+		sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+		response[fields[kind]] = ids
+		for _, id := range ids {
+			entries = append(entries, gin.H{"assetType": kind, "assetId": id, "actions": assetActions[id]})
 		}
 	}
-
-	var actions []string
-	for a := range actionSet {
-		actions = append(actions, a)
+	actions := []string{}
+	for _, action := range dao.PermissionActions {
+		if allActions[action] {
+			actions = append(actions, action)
+		}
 	}
-	var hostIDs, physicalIDs, networkIDs, dbIDs []uint
-	for id := range hostIDSet {
-		hostIDs = append(hostIDs, id)
-	}
-	for id := range physicalIDSet {
-		physicalIDs = append(physicalIDs, id)
-	}
-	for id := range networkIDSet {
-		networkIDs = append(networkIDs, id)
-	}
-	for id := range dbIDSet {
-		dbIDs = append(dbIDs, id)
-	}
-
-	result.Success(c, gin.H{
-		"allowedHostGroupIds": hostGroupIDSet,
-		"allowedHostIds":      hostIDs,
-		"allowedPhysicalIds":  physicalIDs,
-		"allowedNetworkIds":   networkIDs,
-		"allowedDatabaseIds":  dbIDs,
-		"permissionActions":   actions,
-	})
+	response["permissionActions"] = actions
+	response["assetPermissions"] = entries
+	result.Success(c, response)
 }
 
-// CheckUserAssetPermission 检查用户是否有指定资产的权限
 func (s *CmdbAssetPermissionServiceImpl) CheckUserAssetPermission(c *gin.Context, assetType string, assetID uint) bool {
 	admin, err := jwt.GetAdmin(c)
 	if err != nil {
 		return false
 	}
-
-	// 管理员拥有所有权限
-	isAdmin, _ := s.groupDao.IsAdmin(admin.ID)
-	if isAdmin {
-		return true
-	}
-
-	userGroupIDs, _ := s.groupDao.GetUserGroupIDs(admin.ID)
-	perms, err := s.dao.GetUserPermissions(admin.ID, userGroupIDs)
-	if err != nil || len(perms) == 0 {
-		return false
-	}
-
-	for _, p := range perms {
-		switch assetType {
-		case "host":
-			// 检查具体主机
-			var hostIDs []uint
-			json.Unmarshal([]byte(p.HostIDs), &hostIDs)
-			for _, id := range hostIDs {
-				if id == assetID {
-					return true
-				}
-			}
-			// 检查主机分组
-			var hgIDs []uint
-			json.Unmarshal([]byte(p.HostGroupIDs), &hgIDs)
-			for _, gid := range hgIDs {
-				hosts := s.hostDao.GetCmdbHostsByGroupId(gid)
-				for _, h := range hosts {
-					if h.ID == assetID {
-						return true
-					}
-				}
-			}
-		case "physical":
-			var ids []uint
-			json.Unmarshal([]byte(p.PhysicalIDs), &ids)
-			for _, id := range ids {
-				if id == assetID {
-					return true
-				}
-			}
-		case "network":
-			var ids []uint
-			json.Unmarshal([]byte(p.NetworkIDs), &ids)
-			for _, id := range ids {
-				if id == assetID {
-					return true
-				}
-			}
-		}
-	}
-	return false
+	allowed, err := s.dao.CanUserAccess(admin.ID, assetType, assetID, c.DefaultQuery("action", "get"))
+	return err == nil && allowed
 }
 
 // GetUserGroupIDs 辅助函数，返回用户组ID列表
 func (s *CmdbAssetPermissionServiceImpl) GetUserGroupIDs(userID uint) ([]uint, error) {
-	return s.groupDao.GetUserGroupIDs(userID)
+	return s.dao.UserGroupIDs(userID)
 }
 
 func (s *CmdbAssetPermissionServiceImpl) GetMyAllowedAssets(c *gin.Context) {
@@ -855,7 +747,7 @@ func (s *CmdbAssetPermissionServiceImpl) GetMyAllowedAssets(c *gin.Context) {
 		result.Failed(c, http.StatusUnauthorized, "未授权")
 		return
 	}
-	userGroupIDs, _ := s.groupDao.GetUserGroupIDs(admin.ID)
+	userGroupIDs, _ := s.dao.UserGroupIDs(admin.ID)
 	perms, err := s.dao.GetUserPermissions(admin.ID, userGroupIDs)
 	if err != nil || len(perms) == 0 {
 		result.Success(c, gin.H{

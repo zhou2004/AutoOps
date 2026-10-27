@@ -1,0 +1,21 @@
+# ============================================================
+# TopoLVM 存储功能验证 Pod（基于 alpine，镜像源可快速拉取）
+# 挂载独立 PVC test-pvc-topolvm，验证数据写入/读取持久化
+# ============================================================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: topolvm-test-pod
+  namespace: test-pv
+spec:
+  containers:
+    - name: alpine
+      image: docker.io/library/alpine:latest
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: test-pvc-topolvm

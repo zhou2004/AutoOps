@@ -3,20 +3,20 @@
     <!-- 搜索表单 -->
     <div class="search-section">
       <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="集群名称">
+        <el-form-item :label='$tr("集群名称")'>
           <el-input
             v-model="queryParams.clusterName"
-            placeholder="请输入集群名称"
+            :placeholder='$tr("请输入集群名称")'
             clearable
             size="small"
             style="width: 200px"
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="集群状态">
+        <el-form-item :label='$tr("集群状态")'>
           <el-select
             v-model="queryParams.status"
-            placeholder="请选择状态"
+            :placeholder='$tr("请选择状态")'
             clearable
             size="small"
             style="width: 150px"
@@ -24,15 +24,15 @@
             <el-option
               v-for="item in statusOptions"
               :key="item.value"
-              :label="item.label"
+              :label="$tr(item.label)"
               :value="item.value"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="集群版本">
+        <el-form-item :label='$tr("集群版本")'>
           <el-input
             v-model="queryParams.version"
-            placeholder="请输入版本"
+            :placeholder='$tr("请输入版本")'
             clearable
             size="small"
             style="width: 150px"
@@ -41,10 +41,10 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" size="small" @click="handleQuery">
-            搜索
+            {{ $tr("搜索") }}
           </el-button>
           <el-button :icon="Refresh" size="small" @click="resetQuery">
-            重置
+            {{ $tr("重置") }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -59,7 +59,7 @@
         style="width: 100%"
         class="cluster-table"
       >
-        <el-table-column prop="clusterName" label="集群名称" min-width="180">
+        <el-table-column prop="clusterName" :label='$tr("集群名称")' min-width="180">
           <template #default="{ row }">
             <div class="cluster-name-container">
               <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
@@ -71,7 +71,7 @@
               >
                 {{ row.clusterName }}
               </el-button>
-              <el-tooltip content="复制集群名称" placement="top">
+              <el-tooltip :content='$tr("复制集群名称")' placement="top">
                 <el-button
                   type="info"
                   :icon="DocumentCopy"
@@ -84,7 +84,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="version" label="集群版本" min-width="140">
+        <el-table-column prop="version" :label='$tr("集群版本")' min-width="140">
           <template #default="{ row }">
             <div class="version-container">
             <img :src="$getAssetUrl('@/assets/image/k8s-io.svg')" alt="k8s-io" class="k8s-io-icon" />
@@ -93,28 +93,28 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="nodeCount" label="节点数量" min-width="110">
+        <el-table-column prop="nodeCount" :label='$tr("节点数量")' min-width="110">
           <template #default="{ row }">
             <el-tag size="small" type="info">
-              {{ row.nodeCount }} 个
+              {{ row.nodeCount }} {{ $tr("个") }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="集群状态" min-width="110">
+        <el-table-column prop="status" :label='$tr("集群状态")' min-width="110">
           <template #default="{ row }">
             <el-tag
               :type="getStatusTag(row.status)"
               size="small"
               effect="dark"
             >
-              {{ getStatusText(row.status) }}
+              {{ $tr(getStatusText(row.status)) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="集群凭证" width="100" align="center">
+        <el-table-column :label='$tr("集群凭证")' width="100" align="center">
           <template #default="{ row }">
             <el-tooltip 
-              content="查看集群凭证" 
+              :content='$tr("查看集群凭证")' 
               placement="top"
               v-if="row.credential && row.credential.trim()"
             >
@@ -126,14 +126,14 @@
                 @click="viewCredential(row)"
               />
             </el-tooltip>
-            <el-tag v-else size="small" type="info">未设置</el-tag>
+            <el-tag v-else size="small" type="info">{{ $tr("未设置") }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="备注信息" min-width="160">
+        <el-table-column prop="description" :label='$tr("备注信息")' min-width="160">
           <template #default="{ row }">
             <div class="description-container">
               <el-tooltip 
-                :content="row.description || '暂无备注'"
+                :content="row.description || $tr('暂无备注')"
                 placement="top"
                 :disabled="!row.description || row.description.length <= 20"
               >
@@ -144,12 +144,12 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="createTime" :label='$tr("创建时间")' min-width="180" />
+        <el-table-column :label='$tr("操作")' width="200" fixed="right">
           <template #default="{ row }">
             <div class="operation-buttons">
               <el-tooltip 
-                :content="row.credential && row.credential.trim() ? '同步集群' : '未配置凭证，无法同步'" 
+                :content="$tr(row.credential && row.credential.trim() ? '同步集群' : '未配置凭证，无法同步')" 
                 placement="top"
               >
                 <el-button
@@ -162,7 +162,7 @@
                   @click="handleSync(row)"
                 />
               </el-tooltip>
-              <el-tooltip content="修改" placement="top">
+              <el-tooltip :content='$tr("修改")' placement="top">
                 <el-button
                   type="warning"
                   :icon="Edit"
@@ -172,7 +172,7 @@
                   @click="handleEdit(row)"
                 />
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip :content='$tr("删除")' placement="top">
                 <el-button
                   type="danger"
                   :icon="Delete"
@@ -191,6 +191,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -274,11 +276,11 @@ const handleQuery = async () => {
     if (error.code === 'ERR_NETWORK' || 
         error.message?.includes('ERR_CONNECTION_REFUSED') ||
         error.message?.includes('Failed to fetch')) {
-      ElMessage.warning('后端服务连接失败，请检查服务状态')
+      ElMessage.warning(tr('后端服务连接失败，请检查服务状态'))
     } else if (error.response?.status === 401) {
-      ElMessage.error('认证失败，请重新登录')
+      ElMessage.error(tr('认证失败，请重新登录'))
     } else if (error.response?.status === 403) {
-      ElMessage.error('权限不足，请联系管理员')
+      ElMessage.error(tr('权限不足，请联系管理员'))
     } else {
       // 只在真正异常时才显示错误
       console.warn('API调用异常，但可能数据已正确加载')
@@ -333,7 +335,7 @@ const copyClusterName = async (row) => {
       ElMessage.success(`集群名称 "${row.clusterName}" 已复制到剪贴板`)
     } catch (fallbackError) {
       console.error('降级复制也失败:', fallbackError)
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
   }
 }
@@ -342,7 +344,7 @@ const handleSync = async (row) => {
   try {
     // 检查是否有集群凭证
     if (!row.credential || !row.credential.trim()) {
-      ElMessage.warning('该集群没有配置凭证，无法进行同步操作')
+      ElMessage.warning(tr('该集群没有配置凭证，无法进行同步操作'))
       return
     }
     
@@ -380,13 +382,13 @@ const handleSync = async (row) => {
           await handleQuery()
         }, 1000) // 1秒后再次刷新
       } else {
-        ElMessage.error(responseData.message || '同步失败')
+        ElMessage.error(responseData.message || tr('同步失败'))
       }
       
       // 触发父组件刷新
       emit('cluster-sync', row)
     } else {
-      ElMessage.error(responseData.message || '同步失败')
+      ElMessage.error(responseData.message || tr('同步失败'))
       // 即使失败也要刷新，可能状态有变化
       await handleQuery()
       emit('cluster-sync', row)
@@ -408,7 +410,7 @@ const handleSync = async (row) => {
         await handleQuery()
       }, 1000)
     } else {
-      ElMessage.error('同步集群失败，请检查网络连接')
+      ElMessage.error(tr('同步集群失败，请检查网络连接'))
     }
     
     emit('cluster-sync', row)
@@ -426,10 +428,10 @@ const viewCredential = (row) => {
 const handleDelete = (row) => {
   ElMessageBox.confirm(
     `确定要删除集群 ${row.clusterName} 吗？此操作不可逆！`,
-    '删除确认',
+    tr('删除确认'),
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning',
     }
   )
@@ -446,15 +448,15 @@ const handleDelete = (row) => {
         emit('cluster-delete', row)
         handleQuery() // 刷新列表
       } else {
-        ElMessage.error(responseData.message || '删除失败')
+        ElMessage.error(responseData.message || tr('删除失败'))
       }
     } catch (error) {
       console.error('删除集群失败:', error)
-      ElMessage.error('删除集群失败，请检查网络连接')
+      ElMessage.error(tr('删除集群失败，请检查网络连接'))
     }
   })
   .catch(() => {
-    ElMessage.info('已取消删除')
+    ElMessage.info(tr('已取消删除'))
   })
 }
 

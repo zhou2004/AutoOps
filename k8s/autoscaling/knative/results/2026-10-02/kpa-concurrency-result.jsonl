@@ -1,0 +1,45 @@
+{"time": "2026-10-01T16:40:04Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:09Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:14Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:20Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:25Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:30Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:40:35Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:40:40Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:40:45Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:40:50Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:40:55Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:41:01Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:41:07Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 0}
+{"time": "2026-10-01T16:41:11Z", "event": "cold-start", "seconds": 4.753}
+{"time": "2026-10-01T16:41:12Z", "event": "replicas", "phase": "traffic", "desired": 2, "ready": 2, "pods": 2}
+{"time": "2026-10-01T16:41:17Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:29Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:34Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:40Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:45Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:50Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:41:55Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:00Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:05Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:10Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:15Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:20Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:26Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:31Z", "event": "traffic-completed", "peak_ready": 3, "ok": 1992, "errors": 0}
+{"time": "2026-10-01T16:42:31Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:36Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:41Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:46Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:51Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:42:56Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:43:01Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:07Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:12Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:17Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:22Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:27Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:43:32Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 0}
+{"time": "2026-10-01T16:43:43Z", "event": "cold-restart", "seconds": 10.662}
+{"time": "2026-10-01T16:43:43Z", "event": "passed", "namespace": "autoops-kpa-e2e-20261002", "metric": "concurrency", "peak_ready": 3, "ok": 1992, "errors": 0}
+{"time": "2026-10-01T16:43:43Z", "event": "cleanup-requested", "namespace": "autoops-kpa-e2e-20261002"}

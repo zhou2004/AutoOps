@@ -1,0 +1,23 @@
+# Run from the repository root with both compose files. guacd has no published
+# port: the protocol has no authentication and is reachable only by the API.
+services:
+  guacd:
+    image: guacamole/guacd:1.6.0
+    restart: unless-stopped
+    environment:
+      GUACD_LOG_LEVEL: warning
+    networks:
+      - devops-network
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  devops-api:
+    environment:
+      CMDB_GUACD_ADDR: guacd:4822
+      CMDB_REMOTE_ORIGINS: ${CMDB_REMOTE_ORIGINS:-}
+      CMDB_CONFIG_ENCRYPTION_KEY: ${CMDB_CONFIG_ENCRYPTION_KEY:-}
+    depends_on:
+      guacd:
+        condition: service_started

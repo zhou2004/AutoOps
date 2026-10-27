@@ -5,6 +5,10 @@ description: "K8s 权限管理模块实现了对 Kubernetes 集群资源的细�
 
 # K8s 权限管理模块 (k8s-permission)
 
+## 2026-10-24 入口整合
+
+容器授权统一嵌入 `web/src/views/system/AuthorizationManagement.vue` 的 `/system/authorization?tab=containers` 页签。旧 `/system/k8s-permission` 隐藏重定向；Kubernetes 权限 API、RBAC 语义保持不变。`k8s-permission.vue` 支持 `embedded` 属性隐藏重复页头，`section="permissions"` 显示授权页签，`section="groups"` 仅显示用户组管理。容器用户组入口已移至 `/system/authorization?tab=groups&groupType=containers`，由 `AuthorizationUserGroups.vue` 与资产用户组统一呈现；原数据和 API 保留。Docker 菜单位于容器管理 `/k8s/docker`，Docker 动作权限归所属资产，在资产授权页签配置。
+
 ## 概述
 
 K8s 权限管理模块实现了对 Kubernetes 集群资源的细粒度访问控制，支持 **双权限模型**：

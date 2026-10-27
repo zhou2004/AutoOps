@@ -1,20 +1,20 @@
 package controller
 
 import (
-	"net/http"
-	"strconv"
 	cmdbService "dodevops-api/api/cmdb/service"
+	"dodevops-api/api/task/dao"
 	"dodevops-api/api/task/model"
 	"dodevops-api/api/task/service"
-	"dodevops-api/api/task/dao"
 	"dodevops-api/common"
 	"dodevops-api/common/result"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
 )
 
 var (
-	hostSSHService = func() cmdbService.CmdbHostSSHServiceInterface { return nil }
-	taskTemplateDao = func() dao.TaskTemplateDaoInterface { return nil }
+	hostSSHService      = func() cmdbService.CmdbHostSSHServiceInterface { return nil }
+	taskTemplateDao     = func() dao.TaskTemplateDaoInterface { return nil }
 	taskTemplateService *service.TaskService
 )
 
@@ -191,7 +191,7 @@ func GetTemplatesByName(ctx *gin.Context) {
 // @Tags 任务中心
 // @Accept json
 // @Produce json
-// @Param type query int true "模板类型(1=shell, 2=python, 3=ansible)"
+// @Param type query int true "模板类型(1=shell,2=python,3=ansible,4=javascript,5=powershell,6=go,7=ruby,8=php,9=perl,10=command)"
 // @Success 200 {object} result.Result
 // @Router /api/v1/template/query/type [get]
 // @Security ApiKeyAuth

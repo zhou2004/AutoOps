@@ -1,6 +1,6 @@
 <template>
   <el-dialog 
-    title="Ansible任务流程" 
+    :title='$tr("Ansible任务流程")' 
     v-model="dialogVisible" 
     width="80%"
     top="5vh"
@@ -16,12 +16,14 @@
       />
     </div>
     <template #footer>
-      <el-button @click="dialogVisible = false">关闭</el-button>
+      <el-button @click="dialogVisible = false">{{ $tr("关闭") }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed } from 'vue'
 import { GetAnsibleTaskDetail } from '@/api/task'
 import AnsibleFlow from './AnsibleFlowTemp.vue'
@@ -81,7 +83,7 @@ const showFlow = async (taskId) => {
   try {
     console.log('Received Ansible taskId:', taskId);
     if (!taskId) {
-      throw new Error('Ansible任务ID未定义');
+      throw new Error(tr('Ansible任务ID未定义'));
     }
     
     // 重置当前数据
@@ -93,7 +95,7 @@ const showFlow = async (taskId) => {
     console.log('获取Ansible任务详情响应:', response);
     
     if (!response?.data?.data?.task_info) {
-      throw new Error('无效的API响应数据');
+      throw new Error(tr('无效的API响应数据'));
     }
     
     // 深度拷贝API数据

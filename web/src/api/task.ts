@@ -173,6 +173,65 @@ export function GetNextExecutionTime(params) {
   })
 }
 
+// 手动立即触发任务（普通任务和定时任务均可）
+export function RunTaskNow(id) {
+  return request({
+    url: `task/${id}/run`,
+    method: 'post'
+  })
+}
+
+// 启用任务的 Cron 调度
+export function ScheduleTask(id) {
+  return request({
+    url: `task/${id}/schedule`,
+    method: 'post'
+  })
+}
+
+export function PauseTaskExecution(id) {
+  return request({
+    url: `task/${id}/execution/pause`,
+    method: 'post'
+  })
+}
+
+export function ResumeTaskExecution(id) {
+  return request({
+    url: `task/${id}/execution/resume`,
+    method: 'post'
+  })
+}
+
+export function StopTaskExecution(id) {
+  return request({
+    url: `task/${id}/execution/stop`,
+    method: 'post'
+  })
+}
+
+export function GetTaskExecutionHistory(id, params) {
+  return request({
+    url: `task/${id}/history`,
+    method: 'get',
+    params
+  })
+}
+
+export function GetTaskExecutionHistoryDetail(id, historyId) {
+  return request({
+    url: `task/${id}/history/${historyId}`,
+    method: 'get'
+  })
+}
+
+export function RollbackTaskExecution(id, historyId) {
+  return request({
+    url: `task/${id}/history/${historyId}/rollback`,
+    method: 'post'
+  })
+}
+
 // 新增获取任务模板接口
 export function GetTaskTemplates(params) {
   console.log('获取任务模板参数:', params)
@@ -580,7 +639,7 @@ export function GetAnsibleTaskDetail(id) {
 }
 
 // 启动Ansible任务
-export function StartAnsibleTaskFlow(id, surveyVars = null, surveyEnabled = false, startupCliArgs = '', cliArgsEnabled = false) {
+export function StartAnsibleTaskFlow(id, surveyVars = null, surveyEnabled = false, startupCliArgs = '', cliArgsEnabled = false, inventoryContent = '', inventoryEnabled = false) {
   return request({
     url: `task/ansible/${id}/start`,
     method: 'post',
@@ -588,8 +647,22 @@ export function StartAnsibleTaskFlow(id, surveyVars = null, surveyEnabled = fals
       survey_vars: surveyVars || {},
       survey_enabled: surveyEnabled,
       startup_cli_args: startupCliArgs || '',
-      cli_args_enabled: cliArgsEnabled
+      cli_args_enabled: cliArgsEnabled,
+      inventory_content: inventoryContent || '',
+      inventory_enabled: inventoryEnabled
     },
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+// 停止Ansible任务
+export function StopAnsibleTask(id) {
+  return request({
+    url: `task/ansible/${id}/stop`,
+    method: 'post',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

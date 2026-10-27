@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-02",
+  "timezone": "Asia/Shanghai",
+  "kubernetes": "v1.34.3",
+  "runtime": "containerd 2.1.4",
+  "platform": "Debian 12 / linux amd64 / Calico",
+  "serving_version": "1.23.0",
+  "kourier_version": "1.23.0",
+  "install_profile": "bounded-lab-20261002",
+  "upstream_manifest_sha256": {
+    "serving-crds.yaml": "b172ff4901ed50f8e4e09ff8616e54d22e264df7086ce8cb74f513a04812fe74",
+    "serving-core.yaml": "be3f16c9c0ac9276cc173ef04871aaeac78537f9edb116310caa02f016e9cbc2",
+    "kourier.yaml": "cded0c3c1d7669b1aa9f7484234b454ff3940a2b54a27d5ec4825c2d4003d01d"
+  },
+  "component_images": [
+    "docker.io/envoyproxy/envoy@sha256:3e5f1b892f15d46a2674ffc81b9f86f4d0df7794e3ef49e92ee7062871b87be1",
+    "gcr.io/knative-releases/knative.dev/net-kourier/cmd/kourier@sha256:eedfe3938f1efa93230863099f96400a0567909d383a585021f8727fa3a6cf0b",
+    "gcr.io/knative-releases/knative.dev/serving/cmd/activator@sha256:e5ab46f3b73fa2e3898fe47f6a3a0c2bd765596f4fb36ceb4c28c35d0a74b2e5",
+    "gcr.io/knative-releases/knative.dev/serving/cmd/autoscaler@sha256:879da127b23db65d862cafa6b23fb987381d0e44150f0027d44e1f5aee83bde2",
+    "gcr.io/knative-releases/knative.dev/serving/cmd/controller@sha256:ca5062ece0329d002a81940cf4268d7898866434d70049bb93f27d3a786d3292",
+    "gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:a3cc71ce80dbc6df8781f15eac2cf3531a4c9815271799afd8776bef9e6aeaf2",
+    "gcr.io/knative-releases/knative.dev/serving/cmd/webhook@sha256:3846e9a416665c5b9ec2e4de246cfcb5c4ab0d01ba19348aa008caf30144b650"
+  ],
+  "runs": [
+    {
+      "metric": "concurrency",
+      "target": 1,
+      "duration_seconds": 75,
+      "concurrency": 8,
+      "functional_result": "passed",
+      "functional_passed_at": "2026-10-01T16:43:43Z",
+      "namespace": "autoops-kpa-e2e-20261002",
+      "peak_ready": 3,
+      "successful_load_requests": 1992,
+      "failed_load_requests": 0,
+      "first_cold_start_seconds": 4.753,
+      "second_cold_start_seconds": 10.662,
+      "raw_events": "kpa-concurrency-result.jsonl",
+      "script_sha256": null,
+      "script_provenance": "Hash was not captured before this run. This version used assert for HTTP response checks (Python optimization was not enabled) and sequential Service/namespace deletion. Those two sections were hardened before RPS."
+    },
+    {
+      "metric": "rps",
+      "target": 5,
+      "duration_seconds": 45,
+      "concurrency": 8,
+      "functional_result": "passed",
+      "functional_passed_at": "2026-10-01T16:47:31Z",
+      "namespace": "autoops-kpa-e2e-rps-20261002",
+      "peak_ready": 3,
+      "successful_load_requests": 1352,
+      "failed_load_requests": 0,
+      "first_cold_start_seconds": 2.868,
+      "second_cold_start_seconds": 2.737,
+      "raw_events": "kpa-rps-result.jsonl",
+      "script_sha256": "d1c75f6d680084bd6ea8216991be5f25a5b2e21239e1973dbcb38b0ae3ad61b9",
+      "script_provenance": "Exact RPS executed source preserved as kpa-e2e-rps-executed.py; hash independently read from master."
+    },
+    {
+      "run": "final-script-verification",
+      "metric": "rps",
+      "target": 5,
+      "duration_seconds": 30,
+      "concurrency": 8,
+      "functional_result": "passed",
+      "final_result": "passed",
+      "exit_code": 0,
+      "namespace": "autoops-kpa-e2e-final-20261002",
+      "peak_ready": 3,
+      "successful_load_requests": 896,
+      "failed_load_requests": 0,
+      "first_cold_start_seconds": 2.626,
+      "second_cold_start_seconds": 2.626,
+      "script_sha256": "6e75f30dddc19766e0cdfaefdb7548badd86840bd87a08db71709a21f6901453",
+      "source_snapshot": "kpa-e2e-final-executed.py",
+      "raw_events": "kpa-final-result.jsonl",
+      "full_stdout": "kpa-final-result.log",
+      "functional_passed_at": "2026-10-01T16:57:11Z",
+      "cleanup_confirmed_at": "2026-10-01T16:57:49Z",
+      "final_passed_at": "2026-10-01T16:57:49Z"
+    }
+  ],
+  "cleanup": {
+    "independently_confirmed_absent": [
+      "autoops-kpa-e2e-20261002",
+      "autoops-kpa-e2e-rps-20261002",
+      "autoops-kpa-e2e-final-20261002"
+    ],
+    "confirmed_at": "2026-10-01T16:58:34.645901+00:00",
+    "method": "kubectl wait --for=delete then independent kubectl get namespace --ignore-not-found; no namespace finalizer forced",
+    "knative_components_retained": true
+  },
+  "post_run_script_changes": [
+    "Namespace and Knative Service deletion now use recorded UID preconditions.",
+    "Service deletion uses foreground propagation and waits before namespace deletion.",
+    "Namespace deletion is awaited; future final passed event occurs only after cleanup-confirmed."
+  ],
+  "final_script_sha256": "6e75f30dddc19766e0cdfaefdb7548badd86840bd87a08db71709a21f6901453",
+  "final_script_validation": "Exact final source re-run live with 30 seconds RPS load; UID-guarded foreground Service deletion and namespace removal completed before final passed; process exited 0. Independently confirmed all three test namespaces absent."
+}

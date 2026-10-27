@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 )
 
 const (
@@ -22,8 +21,6 @@ const (
 // AESEncrypt 使用AES加密字符串
 func AESEncrypt(plaintext string) (string, error) {
 	key := []byte(aesKey)
-	fmt.Fprintf(os.Stderr, "DEBUG: Using AES key: '%s' with length: %d\n", aesKey, len(key))
-	fmt.Fprintf(os.Stderr, "DEBUG: Key in hex: %x\n", key)
 	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
 		return "", fmt.Errorf("invalid AES key size: %d", len(key))
 	}
@@ -55,7 +52,6 @@ func AESDecrypt(ciphertext string) (string, error) {
 	var err error
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Fprintf(os.Stderr, "Recovered from AES decryption panic: %v\n", r)
 			err = fmt.Errorf("解密失败: %v", r)
 		}
 	}()

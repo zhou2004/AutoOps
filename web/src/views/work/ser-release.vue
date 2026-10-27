@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <h2>服务发布</h2>
+  <h2>{{ $tr("服务发布") }}</h2>
 </template>
 
 <style scoped>

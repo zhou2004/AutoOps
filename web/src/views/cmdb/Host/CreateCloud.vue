@@ -2,13 +2,13 @@
   <el-dialog
     :model-value="modelValue"
     width="40%"
-    title="导入云主机"
+    :title='$tr("导入云主机")'
     @update:model-value="val => $emit('update:modelValue', val)"
     @close="dialogClose"
   >
     <el-steps :active="active" align-center style="margin-bottom: 10%">
-      <el-step title="选择云服务商" />
-      <el-step title="输入凭据并确认" />
+      <el-step :title='$tr("选择云服务商")' />
+      <el-step :title='$tr("输入凭据并确认")' />
     </el-steps>
 
     <el-form :model="form" ref="formRef" :rules="formRules" label-position="right" label-width="155px">
@@ -29,23 +29,25 @@
         </el-form-item>
         <el-form-item label="AccessKey Secret：" prop="secret_key">
           <el-input v-model="form.secret_key" clearable></el-input>
-          <el-link v-if="form.cloud == 'aliyun'" href="https://ram.console.aliyun.com/manage/ak" target="_blank" type="primary">如何获取AccessKey？</el-link>
-          <el-link v-if="form.cloud == 'tencent'" href="https://console.cloud.tencent.com/cam/capi" target="_blank" type="primary">如何获取AccessKey？</el-link>
+          <el-link v-if="form.cloud == 'aliyun'" href="https://ram.console.aliyun.com/manage/ak" target="_blank" type="primary">{{ $tr("如何获取AccessKey？") }}</el-link>
+          <el-link v-if="form.cloud == 'tencent'" href="https://console.cloud.tencent.com/cam/capi" target="_blank" type="primary">{{ $tr("如何获取AccessKey？") }}</el-link>
         </el-form-item>
       </div>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogClose" class="cancel-btn">取消</el-button>
-        <el-button type="primary" @click="dialogToggle('pre')" v-if="active > 1">上一步</el-button>
-        <el-button type="primary" @click="submit" v-if="active == 2">确认导入</el-button>
-        <el-button type="primary" @click="dialogToggle('next')" v-if="active < 2">下一步</el-button>
+        <el-button @click="dialogClose" class="cancel-btn">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="dialogToggle('pre')" v-if="active > 1">{{ $tr("上一步") }}</el-button>
+        <el-button type="primary" @click="submit" v-if="active == 2">{{ $tr("确认导入") }}</el-button>
+        <el-button type="primary" @click="dialogToggle('next')" v-if="active < 2">{{ $tr("下一步") }}</el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 export default {
   name: "CreateCloud",
   props: {
@@ -63,15 +65,15 @@ export default {
       },
       formRules: {
         cloud: [
-          {required: true, message: '请选择', trigger: 'blur'}
+          {required: true, get message() { return tr('请选择'); }, trigger: 'blur'}
         ],
         secret_id: [
-          {required: true, message: '请输入密钥ID', trigger: 'blur'},
-          {min: 20, message: '密钥ID长度应不小于20个字符', trigger: 'blur'}
+          {required: true, get message() { return tr('请输入密钥ID'); }, trigger: 'blur'},
+          {min: 20, get message() { return tr('密钥ID长度应不小于20个字符'); }, trigger: 'blur'}
         ],
         secret_key: [
-          {required: true, message: '请输入密钥Key', trigger: 'blur'},
-          {min: 20, message: '密钥Key长度应不小于20个字符', trigger: 'blur'}
+          {required: true, get message() { return tr('请输入密钥Key'); }, trigger: 'blur'},
+          {min: 20, get message() { return tr('密钥Key长度应不小于20个字符'); }, trigger: 'blur'}
         ]
       },
       // 腾讯云API参数映射
@@ -105,7 +107,7 @@ export default {
         }
       } else if (action === 'next') {
         if (this.active === 1 && !this.form.cloud) {
-          this.$message.warning('请先选择云服务商')
+          this.$message.warning(tr('请先选择云服务商'))
           return
         }
         if (this.active++ > 2) {
@@ -119,24 +121,24 @@ export default {
         
         // 验证AccessKey和SecretKey是否输入
         if (!this.form.secret_id || !this.form.secret_id.trim()) {
-          this.$message.warning('请输入正确的AccessKey ID')
+          this.$message.warning(tr('请输入正确的AccessKey ID'))
           return
         }
         
         if (!this.form.secret_key || !this.form.secret_key.trim()) {
-          this.$message.warning('请输入正确的AccessKey Secret')
+          this.$message.warning(tr('请输入正确的AccessKey Secret'))
           return
         }
         
         // 验证AccessKey ID长度
         if (this.form.secret_id.trim().length < 16) {
-          this.$message.warning('请输入正确的AccessKey ID（长度不能少于16个字符）')
+          this.$message.warning(tr('请输入正确的AccessKey ID（长度不能少于16个字符）'))
           return
         }
         
         // 验证AccessKey Secret长度
         if (this.form.secret_key.trim().length < 20) {
-          this.$message.warning('请输入正确的AccessKey Secret（长度不能少于20个字符）')
+          this.$message.warning(tr('请输入正确的AccessKey Secret（长度不能少于20个字符）'))
           return
         }
         
@@ -157,7 +159,7 @@ export default {
           res = await this.$api.hostcloudcreatetencent(tencentParams)
         }
 
-        this.$message.success('导入成功')
+        this.$message.success(tr('导入成功'))
         console.log('[CreateCloud] 导入成功，重置表单状态...')
         this.resetForm()
         console.log('[CreateCloud] 触发success事件...')

@@ -33,7 +33,7 @@ func (d *CmdbCabinetDao) GetByID(id uint) (*model.CmdbCabinet, error) {
 	return &data, err
 }
 
-func (d *CmdbCabinetDao) GetList(query model.CmdbCabinetQuery) ([]model.CmdbCabinet, int64, error) {
+func (d *CmdbCabinetDao) GetList(query model.CmdbCabinetQuery, scopes ...map[uint]bool) ([]model.CmdbCabinet, int64, error) {
 	var list []model.CmdbCabinet
 	var total int64
 	db := d.db.Model(&model.CmdbCabinet{}).Preload("IDC")
@@ -48,7 +48,10 @@ func (d *CmdbCabinetDao) GetList(query model.CmdbCabinetQuery) ([]model.CmdbCabi
 		db = db.Where("cmdb_cabinet.status = ?", query.Status)
 	}
 
-	db.Count(&total)
+	db = ApplyAssetIDScope(db, scopes...)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	page, size := query.Page, query.Size
 	if page <= 0 {
 		page = 1
@@ -61,15 +64,15 @@ func (d *CmdbCabinetDao) GetList(query model.CmdbCabinetQuery) ([]model.CmdbCabi
 }
 
 // GetByIDC 根据机房ID获取机柜列表
-func (d *CmdbCabinetDao) GetByIDC(idcID uint) ([]model.CmdbCabinet, error) {
+func (d *CmdbCabinetDao) GetByIDC(idcID uint, scopes ...map[uint]bool) ([]model.CmdbCabinet, error) {
 	var list []model.CmdbCabinet
-	err := d.db.Where("idc_id = ?", idcID).Order("name ASC").Find(&list).Error
+	err := ApplyAssetIDScope(d.db, scopes...).Where("idc_id = ?", idcID).Order("name ASC").Find(&list).Error
 	return list, err
 }
 
 // GetAll 获取所有机柜
-func (d *CmdbCabinetDao) GetAll() ([]model.CmdbCabinet, error) {
+func (d *CmdbCabinetDao) GetAll(scopes ...map[uint]bool) ([]model.CmdbCabinet, error) {
 	var list []model.CmdbCabinet
-	err := d.db.Preload("IDC").Order("name ASC").Find(&list).Error
+	err := ApplyAssetIDScope(d.db, scopes...).Preload("IDC").Order("name ASC").Find(&list).Error
 	return list, err
 }

@@ -34,7 +34,7 @@ func (d *CmdbNetworkDeviceDao) GetByID(id uint) (*model.CmdbNetworkDevice, error
 	return &data, err
 }
 
-func (d *CmdbNetworkDeviceDao) GetList(query model.CmdbNetworkDeviceQuery) ([]model.CmdbNetworkDevice, int64, error) {
+func (d *CmdbNetworkDeviceDao) GetList(query model.CmdbNetworkDeviceQuery, scopes ...map[uint]bool) ([]model.CmdbNetworkDevice, int64, error) {
 	var list []model.CmdbNetworkDevice
 	var total int64
 	db := d.db.Model(&model.CmdbNetworkDevice{}).Preload("IDC").Preload("Cabinet")
@@ -59,7 +59,10 @@ func (d *CmdbNetworkDeviceDao) GetList(query model.CmdbNetworkDeviceQuery) ([]mo
 		db = db.Where("sn LIKE ? OR name LIKE ? OR manage_ip LIKE ? OR model LIKE ?", kw, kw, kw, kw)
 	}
 
-	db.Count(&total)
+	db = ApplyAssetIDScope(db, scopes...)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
 	page, size := query.Page, query.Size
 	if page <= 0 {
 		page = 1
@@ -81,8 +84,8 @@ func (d *CmdbNetworkDeviceDao) GetListByIDs(ids []uint) ([]model.CmdbNetworkDevi
 	return list, err
 }
 
-func (d *CmdbNetworkDeviceDao) GetAll() ([]model.CmdbNetworkDevice, error) {
+func (d *CmdbNetworkDeviceDao) GetAll(scopes ...map[uint]bool) ([]model.CmdbNetworkDevice, error) {
 	var list []model.CmdbNetworkDevice
-	err := d.db.Preload("IDC").Preload("Cabinet").Order("id ASC").Find(&list).Error
+	err := ApplyAssetIDScope(d.db, scopes...).Preload("IDC").Preload("Cabinet").Order("id ASC").Find(&list).Error
 	return list, err
 }

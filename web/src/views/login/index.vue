@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { tr } from "@/locales";
+
+import LanguageSwitch from "@/components/LanguageSwitch/index.vue";
 import Motion from "./utils/motion";
 import { useRouter } from "vue-router";
 import { message } from "@/utils/message";
@@ -54,10 +57,10 @@ const fetchCaptcha = async () => {
       captchaImage.value = res.data.image;
       captchaIdKey.value = res.data.idKey;
     } else {
-      message(res?.message || "获取验证码失败", { type: "error" });
+      message(res?.message || tr("获取验证码失败"), { type: "error" });
     }
   } catch (err) {
-    message("获取验证码失败，请检查网络连接", { type: "error" });
+    message(tr("获取验证码失败，请检查网络连接"), { type: "error" });
   }
 };
 
@@ -70,7 +73,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   await formEl.validate(valid => {
     if (valid) {
       if (!captchaIdKey.value) {
-        message("请先获取验证码", { type: "warning" });
+        message(tr("请先获取验证码"), { type: "warning" });
         return;
       }
       loading.value = true;
@@ -89,18 +92,18 @@ const onLogin = async (formEl: FormInstance | undefined) => {
             router
               .push("/dashboard")
               .then(() => {
-                message("登录成功", { type: "success" });
+                message(tr("登录成功"), { type: "success" });
               })
               .finally(() => (disabled.value = false));
           } else {
-            message(res?.message || "登录失败", { type: "error" });
+            message(res?.message || tr("登录失败"), { type: "error" });
             // 登录失败刷新验证码
             fetchCaptcha();
             ruleForm.image = "";
           }
         })
         .catch(() => {
-          message("登录请求失败", { type: "error" });
+          message(tr("登录请求失败"), { type: "error" });
           fetchCaptcha();
         })
         .finally(() => (loading.value = false));
@@ -128,6 +131,7 @@ useEventListener(document, "keydown", ({ code }) => {
   <div class="select-none">
     <img :src="bg" class="wave" />
     <div class="flex-c absolute right-5 top-3">
+      <LanguageSwitch />
       <!-- 主题 -->
       <el-switch
         v-model="dataTheme"
@@ -159,7 +163,7 @@ useEventListener(document, "keydown", ({ code }) => {
                 :rules="[
                   {
                     required: true,
-                    message: '请输入账号',
+                    message: $tr('请输入账号'),
                     trigger: 'blur'
                   }
                 ]"
@@ -168,7 +172,7 @@ useEventListener(document, "keydown", ({ code }) => {
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  placeholder="账号"
+                  :placeholder='$tr("账号")'
                   :prefix-icon="useRenderIcon(User)"
                 />
               </el-form-item>
@@ -180,7 +184,7 @@ useEventListener(document, "keydown", ({ code }) => {
                   v-model="ruleForm.password"
                   clearable
                   show-password
-                  placeholder="密码"
+                  :placeholder='$tr("密码")'
                   :prefix-icon="useRenderIcon(Lock)"
                 />
               </el-form-item>
@@ -193,14 +197,14 @@ useEventListener(document, "keydown", ({ code }) => {
                   <el-input
                     v-model="ruleForm.image"
                     clearable
-                    placeholder="验证码"
+                    :placeholder='$tr("验证码")'
                     maxlength="6"
                     :prefix-icon="useRenderIcon(PictureFilled)"
                     style="flex: 1"
                   />
-                  <div class="captcha-box" @click="fetchCaptcha" title="点击刷新验证码">
-                    <img v-if="captchaImage" :src="captchaImage" class="captcha-img" alt="验证码" />
-                    <span v-else class="captcha-placeholder">加载中...</span>
+                  <div class="captcha-box" @click="fetchCaptcha" :title='$tr("点击刷新验证码")'>
+                    <img v-if="captchaImage" :src="captchaImage" class="captcha-img" :alt='$tr("验证码")' />
+                    <span v-else class="captcha-placeholder">{{ $tr("加载中...") }}</span>
                   </div>
                 </div>
               </el-form-item>
@@ -215,7 +219,7 @@ useEventListener(document, "keydown", ({ code }) => {
                 :disabled="disabled"
                 @click="onLogin(ruleFormRef)"
               >
-                登录
+                {{ $tr("登录") }}
               </el-button>
             </Motion>
           </el-form>

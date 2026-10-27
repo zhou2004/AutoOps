@@ -1,0 +1,19 @@
+# 验证 Pod：消费 test PVC（演示 WaitForFirstConsumer 绑定机制）
+# 挂载 test PVC，由调度器自动选择节点（匹配 test PV 的 nodeAffinity: worker-01）
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bind-test-pvc
+  namespace: test-pv
+spec:
+  containers:
+    - name: alpine
+      image: docker.io/library/alpine:latest
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: test

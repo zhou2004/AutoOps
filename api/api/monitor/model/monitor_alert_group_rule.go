@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type MonitorAlertGroupRule struct {
 	gorm.Model
+	CmdbGroupID  uint   `json:"cmdb_group_id" gorm:"column:cmdb_group_id;index;default:0;comment:关联资产业务分组"`
 	DataSourceID uint   `json:"data_source_id" gorm:"column:data_source_id;comment:数据源id"`
 	GroupName    string `json:"group_name" gorm:"column:group_name;type:varchar(255);comment:规则组名"` // 群组名
 	RuleContent  string `json:"rule_content" gorm:"column:rule_content;type:text;comment:原生yaml内容"` // 整个Group的完整Yaml

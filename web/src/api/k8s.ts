@@ -1263,6 +1263,289 @@ export default {
         })
     },
 
+    // ========== 存储高阶功能 ==========
+
+    // PVC扩容
+    expandPVC(clusterId, namespaceName, pvcName, newSize) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/namespaces/${namespaceName}/pvcs/${pvcName}/expand`,
+            method: 'post',
+            data: { newSize }
+        })
+    },
+
+    // PVC克隆（备份迁移）
+    clonePVC(clusterId, namespaceName, pvcName, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/namespaces/${namespaceName}/pvcs/${pvcName}/clone`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 设置默认存储类
+    setDefaultStorageClass(clusterId, storageClassName, isDefault) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/storageclasses/${storageClassName}/set-default`,
+            method: 'post',
+            data: { isDefault }
+        })
+    },
+
+    // 获取存储统计
+    getStorageStats(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/storage/stats`,
+            method: 'get'
+        })
+    },
+
+    // ========== Ceph 分布式存储管理 ==========
+
+    // 获取Ceph集群状态
+    getCephStatus(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/status`,
+            method: 'get'
+        })
+    },
+
+    // 获取Ceph Pool列表
+    getCephPools(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools`,
+            method: 'get'
+        })
+    },
+
+    // 调整Ceph Pool副本数
+    updateCephPoolSize(clusterId, poolName, size) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools/${poolName}/size`,
+            method: 'put',
+            data: { size }
+        })
+    },
+
+    // 获取Ceph OSD列表
+    getCephOSDs(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/osds`,
+            method: 'get'
+        })
+    },
+
+    // ========== Ceph Pool 详细操作 ==========
+
+    // 创建Ceph Pool
+    createCephPool(clusterId, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 删除Ceph Pool
+    deleteCephPool(clusterId, poolName) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools/${poolName}`,
+            method: 'delete'
+        })
+    },
+
+    // 调整Ceph Pool PG数
+    updateCephPoolPGNum(clusterId, poolName, pgNum) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools/${poolName}/pg-num`,
+            method: 'put',
+            data: { pgNum }
+        })
+    },
+
+    // 设置Ceph Pool配额
+    updateCephPoolQuota(clusterId, poolName, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools/${poolName}/quota`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 设置Ceph Pool压缩
+    updateCephPoolCompression(clusterId, poolName, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pools/${poolName}/compression`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // ========== Ceph RBD 块存储 ==========
+
+    // 获取RBD镜像列表
+    getCephRBDImages(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images`,
+            method: 'get'
+        })
+    },
+
+    // 创建RBD镜像
+    createCephRBDImage(clusterId, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 获取RBD镜像详情
+    getCephRBDImageDetail(clusterId, pool, image) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}`,
+            method: 'get'
+        })
+    },
+
+    // 扩容RBD镜像
+    resizeCephRBDImage(clusterId, pool, image, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/resize`,
+            method: 'put',
+            data: data
+        })
+    },
+
+    // 删除RBD镜像
+    deleteCephRBDImage(clusterId, pool, image) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}`,
+            method: 'delete'
+        })
+    },
+
+    // 获取RBD快照列表
+    getCephRBDSnapshots(clusterId, pool, image) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/snapshots`,
+            method: 'get'
+        })
+    },
+
+    // 创建RBD快照
+    createCephRBDSnapshot(clusterId, pool, image, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/snapshots`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 删除RBD快照
+    deleteCephRBDSnapshot(clusterId, pool, image, snap) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/snapshots/${snap}`,
+            method: 'delete'
+        })
+    },
+
+    // RBD快照回滚
+    rollbackCephRBDImage(clusterId, pool, image, snap) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/snapshots/${snap}/rollback`,
+            method: 'post'
+        })
+    },
+
+    // 克隆RBD镜像
+    cloneCephRBDImage(clusterId, pool, image, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/rbd/images/${pool}/${image}/clone`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // ========== Ceph CephFS / 监控 / OSD 管理 ==========
+
+    // 获取CephFS文件系统列表
+    getCephFS(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/fs`,
+            method: 'get'
+        })
+    },
+
+    // 获取Ceph健康详情
+    getCephHealth(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/health`,
+            method: 'get'
+        })
+    },
+
+    // 获取Ceph版本分布
+    getCephVersions(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/versions`,
+            method: 'get'
+        })
+    },
+
+    // 获取Ceph PG状态
+    getCephPGStat(clusterId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/pg-stat`,
+            method: 'get'
+        })
+    },
+
+    // 标记OSD状态
+    setCephOSDStatus(clusterId, osdId, action) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/osds/${osdId}/${action}`,
+            method: 'post'
+        })
+    },
+
+    // 调整OSD权重
+    reweightCephOSD(clusterId, osdId, weight) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/osds/${osdId}/reweight`,
+            method: 'post',
+            data: { weight }
+        })
+    },
+
+    // 删除OSD
+    deleteCephOSD(clusterId, osdId) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/ceph/osds/${osdId}`,
+            method: 'delete'
+        })
+    },
+
+    // ========== 存储迁移 ==========
+
+    // 卷到卷数据迁移
+    migratePVC(clusterId, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/storage/migrate`,
+            method: 'post',
+            data: data
+        })
+    },
+
+    // 一键换卷
+    switchWorkloadPVC(clusterId, namespaceName, data) {
+        return request({
+            url: `/api/v1/k8s/cluster/${clusterId}/namespaces/${namespaceName}/storage/switch-pvc`,
+            method: 'post',
+            data: data
+        })
+    },
+
     // K8s 配置管理
 
     // ConfigMap 管理

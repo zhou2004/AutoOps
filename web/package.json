@@ -19,7 +19,9 @@
     "lint:stylelint": "stylelint --cache --fix \"**/*.{html,vue,css,scss}\" --cache-location node_modules/.cache/stylelint/",
     "lint": "pnpm lint:eslint && pnpm lint:prettier && pnpm lint:stylelint",
     "prepare": "husky",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "i18n:audit": "node scripts/i18n-audit.cjs --strict",
+    "i18n:test": "node scripts/i18n-check.cjs"
   },
   "keywords": [
     "pure-admin-thin",
@@ -69,6 +71,7 @@
     "dayjs": "^1.11.18",
     "echarts": "^6.0.0",
     "element-plus": "^2.11.5",
+    "guacamole-common-js": "1.5.0",
     "highlight.js": "^11.11.1",
     "js-cookie": "^3.0.5",
     "js-yaml": "^5.0.0",
@@ -83,6 +86,7 @@
     "responsive-storage": "^2.2.0",
     "sortablejs": "^1.15.6",
     "vue": "^3.5.22",
+    "vue-i18n": "^11.4.16",
     "vue-router": "^4.6.3",
     "vue-tippy": "^6.7.1",
     "vue-types": "^6.0.0",

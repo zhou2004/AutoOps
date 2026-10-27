@@ -8,7 +8,7 @@
       style="width: 100%"
       class="namespace-table"
     >
-      <el-table-column prop="name" label="命名空间名称" min-width="180">
+      <el-table-column prop="name" :label='$tr("命名空间名称")' min-width="180">
         <template #default="{ row }">
           <div class="namespace-name-container">
             <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" />
@@ -24,25 +24,25 @@
         </template>
       </el-table-column>
       
-      <el-table-column prop="status" label="状态" min-width="100">
+      <el-table-column prop="status" :label='$tr("状态")' min-width="100">
         <template #default="{ row }">
           <el-tag
             :type="getStatusTag(row.status)"
             size="small"
             effect="dark"
           >
-            {{ getStatusText(row.status) }}
+            {{ $tr(getStatusText(row.status)) }}
           </el-tag>
         </template>
       </el-table-column>
       
-      <el-table-column prop="age" label="创建时间" min-width="100">
+      <el-table-column prop="age" :label='$tr("创建时间")' min-width="100">
         <template #default="{ row }">
           <el-tag size="small" type="info">{{ row.age }}</el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="标签" min-width="100" align="center">
+      <el-table-column :label='$tr("标签")' min-width="100" align="center">
         <template #default="{ row }">
           <div class="label-container">
             <el-badge :value="getLabelCount(row.labels)" :max="99" class="label-badge">
@@ -53,14 +53,14 @@
                 @click="viewNamespaceLabels(row)"
                 class="label-icon-button"
               >
-                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" :alt='$tr("标签")' width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
         </template>
       </el-table-column>
       
-      <el-table-column label="资源统计" min-width="160">
+      <el-table-column :label='$tr("资源统计")' min-width="160">
         <template #default="{ row }">
           <div class="resource-stats">
             <div class="resource-item">
@@ -83,23 +83,23 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="配额/限制" min-width="120" align="center">
+      <el-table-column :label='$tr("配额/限制")' min-width="120" align="center">
         <template #default="{ row }">
           <div class="quota-limit-info">
             <el-badge :value="row.resourceQuotas.length" :max="99" class="quota-badge">
-              <el-tag size="small" type="warning">配额</el-tag>
+              <el-tag size="small" type="warning">{{ $tr("配额") }}</el-tag>
             </el-badge>
             <el-badge :value="row.limitRanges.length" :max="99" class="limit-badge">
-              <el-tag size="small" type="info">限制</el-tag>
+              <el-tag size="small" type="info">{{ $tr("限制") }}</el-tag>
             </el-badge>
           </div>
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="300" fixed="right">
+      <el-table-column :label='$tr("操作")' width="300" fixed="right">
         <template #default="{ row }">
           <div class="operation-buttons">
-            <el-tooltip content="查看详情" placement="top">
+            <el-tooltip :content='$tr("查看详情")' placement="top">
               <el-button
                 type="primary"
                 :icon="View"
@@ -109,7 +109,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip content="资源配额" placement="top">
+            <el-tooltip :content='$tr("资源配额")' placement="top">
               <el-button
                 type="warning"
                 :icon="Monitor"
@@ -119,7 +119,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip content="资源限制" placement="top">
+            <el-tooltip :content='$tr("资源限制")' placement="top">
               <el-button
                 type="info"
                 :icon="Setting"
@@ -129,7 +129,7 @@
               />
             </el-tooltip>
             
-            <el-tooltip :content="isSystemNamespace(row.name) ? '系统命名空间不可删除' : '删除命名空间'" placement="top">
+            <el-tooltip :content="isSystemNamespace(row.name) ? $tr('系统命名空间不可删除') : '删除命名空间'" placement="top">
               <el-button
                 type="danger"
                 :icon="Delete"

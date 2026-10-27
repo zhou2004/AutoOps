@@ -1,40 +1,40 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="启动任务"
+    :title='$tr("启动任务")'
     width="500px"
     :before-close="handleClose"
   >
     <div class="start-task-content">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="80px">
-        <el-form-item label="任务名称">
+        <el-form-item :label='$tr("任务名称")'>
           <el-input :value="taskName" disabled />
         </el-form-item>
         
-        <el-form-item label="确认启动" prop="confirm">
+        <el-form-item :label='$tr("确认启动")' prop="confirm">
           <el-checkbox v-model="form.confirm">
-            我确认要启动此Ansible任务
+            {{ $tr("我确认要启动此Ansible任务") }}
           </el-checkbox>
         </el-form-item>
         
         <div class="task-info" v-if="taskInfo">
-          <p><strong>任务ID:</strong> {{ taskInfo.id }}</p>
-          <p><strong>描述:</strong> {{ taskInfo.description || '无描述' }}</p>
-          <p><strong>预计执行时间:</strong> {{ taskInfo.estimatedTime || '未知' }}</p>
+          <p><strong>{{ $tr("任务ID:") }}</strong> {{ taskInfo.id }}</p>
+          <p><strong>{{ $tr("描述:") }}</strong> {{ taskInfo.description || '无描述' }}</p>
+          <p><strong>{{ $tr("预计执行时间:") }}</strong> {{ taskInfo.estimatedTime || '未知' }}</p>
         </div>
       </el-form>
     </div>
     
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
+        <el-button @click="handleClose">{{ $tr("取消") }}</el-button>
         <el-button 
           type="primary" 
           @click="handleConfirm"
           :loading="loading"
           :disabled="!form.confirm"
         >
-          {{ loading ? '启动中...' : '确认启动' }}
+          {{ loading ? '启动中...' : $tr('确认启动') }}
         </el-button>
       </span>
     </template>
@@ -42,6 +42,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 
@@ -78,7 +80,7 @@ const rules = {
     { 
       validator: (rule, value, callback) => {
         if (!value) {
-          callback(new Error('请确认启动任务'))
+          callback(new Error(tr('请确认启动任务')))
         } else {
           callback()
         }
@@ -118,7 +120,7 @@ const handleConfirm = async () => {
     setTimeout(() => {
       loading.value = false
       dialogVisible.value = false
-      ElMessage.success('任务启动成功')
+      ElMessage.success(tr('任务启动成功'))
     }, 1000)
     
   } catch (error) {

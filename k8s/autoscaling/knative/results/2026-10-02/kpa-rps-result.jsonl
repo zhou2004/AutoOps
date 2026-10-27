@@ -1,0 +1,41 @@
+{"time": "2026-10-01T16:44:31Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:44:36Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:44:41Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:44:47Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:44:52Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:44:57Z", "event": "replicas", "phase": "initial-idle", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:45:02Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:07Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:12Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:17Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:22Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:27Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 1}
+{"time": "2026-10-01T16:45:33Z", "event": "replicas", "phase": "initial-idle", "desired": 0, "ready": 0, "pods": 0}
+{"time": "2026-10-01T16:45:35Z", "event": "cold-start", "seconds": 2.868}
+{"time": "2026-10-01T16:45:36Z", "event": "replicas", "phase": "traffic", "desired": 1, "ready": 1, "pods": 1}
+{"time": "2026-10-01T16:45:41Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 2, "pods": 3}
+{"time": "2026-10-01T16:45:46Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:45:51Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:45:56Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:01Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:06Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:11Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:17Z", "event": "replicas", "phase": "traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:22Z", "event": "traffic-completed", "peak_ready": 3, "ok": 1352, "errors": 0}
+{"time": "2026-10-01T16:46:22Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:27Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:32Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:37Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:42Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:47Z", "event": "replicas", "phase": "after-traffic", "desired": 3, "ready": 3, "pods": 3}
+{"time": "2026-10-01T16:46:52Z", "event": "replicas", "phase": "after-traffic", "desired": 1, "ready": 1, "pods": 3}
+{"time": "2026-10-01T16:46:58Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:03Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:08Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:13Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:18Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:23Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 3}
+{"time": "2026-10-01T16:47:28Z", "event": "replicas", "phase": "after-traffic", "desired": 0, "ready": 0, "pods": 0}
+{"time": "2026-10-01T16:47:31Z", "event": "cold-restart", "seconds": 2.737}
+{"time": "2026-10-01T16:47:31Z", "event": "passed", "namespace": "autoops-kpa-e2e-rps-20261002", "metric": "rps", "peak_ready": 3, "ok": 1352, "errors": 0}
+{"time": "2026-10-01T16:47:31Z", "event": "cleanup-requested", "namespace": "autoops-kpa-e2e-rps-20261002"}

@@ -3,44 +3,44 @@
     <div class="glass-card main-card">
       <!-- 卡片标题 -->
       <div class="card-header">
-        <h2 class="gradient-title">角色管理</h2>
+        <h2 class="gradient-title">{{ $tr("角色管理") }}</h2>
       </div>
-      
+
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-        <el-form-item label="角色名称" prop="roleName">
-          <el-input 
-            placeholder="请输入角色名称" 
-            size="small" 
-            clearable 
+        <el-form-item :label='$tr("角色名称")' prop="roleName">
+          <el-input
+            :placeholder='$tr("请输入角色名称")'
+            size="small"
+            clearable
             v-model="queryParams.roleName"
             @keyup.enter="handleQuery"
             class="search-input">
           </el-input>
         </el-form-item>
-        <el-form-item label="账号状态" prop="status" style="width: 150px;" >
-          <el-select size="small" placeholder="账号状态" v-model="queryParams.status" class="search-select">
-            <el-option v-for="item in statusList" :key="item.value" :label="item.label" :value="item.value" />
+        <el-form-item :label='$tr("账号状态")' prop="status" style="width: 150px;" >
+          <el-select size="small" :placeholder='$tr("账号状态")' v-model="queryParams.status" class="search-select">
+            <el-option v-for="item in statusList" :key="item.value" :label="$tr(item.label)" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" size="small" @click="handleQuery" class="modern-btn primary-btn">
             <el-icon><Search /></el-icon>
-            搜索
+            {{ $tr("搜索") }}
           </el-button>
           <el-button size="small" @click="resetQuery" class="modern-btn reset-btn">
             <el-icon><Refresh /></el-icon>
-            重置
+            {{ $tr("重置") }}
           </el-button>
-          <el-button 
-            type="success" 
+          <el-button
+            type="success"
             size="small"
-            @click="addRoleDialogVisible = true" 
+            @click="addRoleDialogVisible = true"
             v-authority="['base:role:add']"
             class="modern-btn success-btn">
             <el-icon><Plus /></el-icon>
-            新增角色
+            {{ $tr("新增角色") }}
           </el-button>
         </el-form-item>
         </el-form>
@@ -48,35 +48,35 @@
 
       <!-- 表格区域 -->
       <div class="table-section">
-      <el-table 
-        v-loading="Loading" 
-        :data="roleList" 
+      <el-table
+        v-loading="Loading"
+        :data="roleList"
         class="modern-table"
         style="width: 100%">
         <el-table-column label="ID" prop="id" v-if="false" />
-        <el-table-column label="角色名称" prop="roleName"  />
-        <el-table-column label="角色标识" prop="roleKey"  />
-        <el-table-column label="创建时间" prop="createTime"  />
-        <el-table-column label="账号状态" >
+        <el-table-column :label='$tr("角色名称")' prop="roleName"  />
+        <el-table-column :label='$tr("角色标识")' prop="roleKey"  />
+        <el-table-column :label='$tr("创建时间")' prop="createTime"  />
+        <el-table-column :label='$tr("账号状态")' >
           <template v-slot="scope">
-            <el-switch 
-              v-model="scope.row.status" 
-              :active-value="1" 
-              :inactive-value="2" 
+            <el-switch
+              v-model="scope.row.status"
+              :active-value="1"
+              :inactive-value="2"
               active-color="#667eea"
-              inactive-color="#f56565" 
-              active-text="启用" 
-              inactive-text="停用" 
+              inactive-color="#f56565"
+              :active-text='$tr("启用")'
+              :inactive-text='$tr("停用")'
               @change="roleUpdateStatus(scope.row)"
               class="status-switch">
             </el-switch>
           </template>
         </el-table-column>
-        <el-table-column label="描述" prop="description" />
-        <el-table-column label="操作" width="200">
+        <el-table-column :label='$tr("描述")' prop="description" />
+        <el-table-column :label='$tr("操作")' width="200">
           <template v-slot="scope">
             <div class="operation-buttons">
-              <el-tooltip content="编辑" placement="top">
+              <el-tooltip :content='$tr("编辑")' placement="top">
                 <el-button
                   type="warning"
                   size="small"
@@ -87,7 +87,7 @@
                   <el-icon><Edit /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="删除" placement="top">
+              <el-tooltip :content='$tr("删除")' placement="top">
                 <el-button
                   type="danger"
                   size="small"
@@ -98,30 +98,20 @@
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </el-tooltip>
-              <el-tooltip content="分配权限" placement="top">
-                <el-button
-                  type="primary"
-                  size="small"
-                  circle
-                  @click="showSetMenuDialog(scope.row)"
-                  v-authority="['base:role:assign']"
-                >
-                  <el-icon><Setting /></el-icon>
-                </el-button>
-              </el-tooltip>
+              <el-tooltip  :content='$tr("菜单权限")' placement="top"><el-button size="small" circle @click="showSetMenuDialog(scope.row)"><el-icon><Setting /></el-icon></el-button></el-tooltip>
             </div>
           </template>
         </el-table-column>
         </el-table>
-        
+
         <!-- 分页区域 -->
-        <el-pagination 
-          @size-change="handleSizeChange" 
+        <el-pagination
+          @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="queryParams.pageNum" 
-          :page-sizes="[10, 50, 100, 500, 1000]" 
+          :current-page="queryParams.pageNum"
+          :page-sizes="[10, 50, 100, 500, 1000]"
           :page-size="queryParams.pageSize"
-          layout="total, sizes, prev, pager, next, jumper" 
+          layout="total, sizes, prev, pager, next, jumper"
           :total="total"
           class="modern-pagination">
         </el-pagination>
@@ -129,93 +119,93 @@
     </div>
 
     <!-- 新增角色对话框 -->
-    <el-dialog 
-      v-model="addRoleDialogVisible" 
-      title="新增角色"
-      width="35%" 
+    <el-dialog
+      v-model="addRoleDialogVisible"
+      :title='$tr("新增角色")'
+      width="35%"
       @close="addRoleDialogClosed"
       :show-close="true"
       class="clean-dialog">
       <el-form ref="addRoleFormRefForm" label-width="80px" :model="addRoleForm" :rules="addRoleFormRules" class="dialog-form">
-        <el-form-item label="角色名称" prop="roleName">
-          <el-input placeholder="请输入角色名称" v-model="addRoleForm.roleName" class="form-input" />
+        <el-form-item :label='$tr("角色名称")' prop="roleName">
+          <el-input :placeholder='$tr("请输入角色名称")' v-model="addRoleForm.roleName" class="form-input" />
         </el-form-item>
-        <el-form-item label="角色标识" prop="roleKey">
-          <el-input placeholder="请输入角色标识" v-model="addRoleForm.roleKey" class="form-input" />
+        <el-form-item :label='$tr("角色标识")' prop="roleKey">
+          <el-input :placeholder='$tr("请输入角色标识")' v-model="addRoleForm.roleKey" class="form-input" />
         </el-form-item>
-        <el-form-item label="角色状态" prop="status">
+        <el-form-item :label='$tr("角色状态")' prop="status">
           <el-radio-group v-model="addRoleForm.status" class="radio-group">
-            <el-radio :label="1" class="custom-radio">正常</el-radio>
-            <el-radio :label="2" class="custom-radio">停用</el-radio>
+            <el-radio :label="1" class="custom-radio">{{ $tr("正常") }}</el-radio>
+            <el-radio :label="2" class="custom-radio">{{ $tr("停用") }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="角色描述" prop="description">
-          <el-input placeholder="请输入角色描述" type="textarea" v-model="addRoleForm.description" class="form-textarea" />
+        <el-form-item :label='$tr("角色描述")' prop="description">
+          <el-input :placeholder='$tr("请输入角色描述")' type="textarea" v-model="addRoleForm.description" class="form-textarea" />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="addRole" class="dialog-btn confirm-btn">确 定</el-button>
-          <el-button @click="addRoleDialogVisible = false" class="dialog-btn cancel-btn">取 消</el-button>
+          <el-button type="primary" @click="addRole" class="dialog-btn confirm-btn">{{ $tr("确 定") }}</el-button>
+          <el-button @click="addRoleDialogVisible = false" class="dialog-btn cancel-btn">{{ $tr("取 消") }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 编辑角色对话框 -->
-    <el-dialog 
-      v-model="editRoleDialogVisible" 
-      title="修改角色"
-      width="35%" 
+    <el-dialog
+      v-model="editRoleDialogVisible"
+      :title='$tr("修改角色")'
+      width="35%"
       @close="editRoleDialogClosed"
       :show-close="true"
       class="clean-dialog">
       <el-form ref="editRoleFormRefForm" label-width="80px" :model="roleInfo" :rules="editRoleFormRules" class="dialog-form">
-        <el-form-item label="角色名称" prop="roleName">
-          <el-input placeholder="请输入角色名称" v-model="roleInfo.roleName" class="form-input" />
+        <el-form-item :label='$tr("角色名称")' prop="roleName">
+          <el-input :placeholder='$tr("请输入角色名称")' v-model="roleInfo.roleName" class="form-input" />
         </el-form-item>
-        <el-form-item label="角色标识" prop="roleKey">
-          <el-input placeholder="请输入角色标识" v-model="roleInfo.roleKey" class="form-input" />
+        <el-form-item :label='$tr("角色标识")' prop="roleKey">
+          <el-input :placeholder='$tr("请输入角色标识")' v-model="roleInfo.roleKey" class="form-input" />
         </el-form-item>
-        <el-form-item label="角色状态" prop="status">
+        <el-form-item :label='$tr("角色状态")' prop="status">
           <el-radio-group v-model="roleInfo.status" class="radio-group">
-            <el-radio :label="1" class="custom-radio">正常</el-radio>
-            <el-radio :label="2" class="custom-radio">停用</el-radio>
+            <el-radio :label="1" class="custom-radio">{{ $tr("正常") }}</el-radio>
+            <el-radio :label="2" class="custom-radio">{{ $tr("停用") }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="角色描述" prop="description">
-          <el-input placeholder="请输入角色描述" type="textarea" v-model="roleInfo.description" class="form-textarea" />
+        <el-form-item :label='$tr("角色描述")' prop="description">
+          <el-input :placeholder='$tr("请输入角色描述")' type="textarea" v-model="roleInfo.description" class="form-textarea" />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="editRole" class="dialog-btn confirm-btn">确 定</el-button>
-          <el-button @click="editRoleDialogVisible = false" class="dialog-btn cancel-btn">取 消</el-button>
+          <el-button type="primary" @click="editRole" class="dialog-btn confirm-btn">{{ $tr("确 定") }}</el-button>
+          <el-button @click="editRoleDialogVisible = false" class="dialog-btn cancel-btn">{{ $tr("取 消") }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 分配权限对话框 -->
-    <el-dialog 
-      v-model="setMenuDialogVisible" 
-      title="分配权限"
-      width="25%" 
+    <el-dialog
+      v-model="setMenuDialogVisible"
+      :title='$tr("分配权限")'
+      width="25%"
       @close="setRightDialogClosed"
       :show-close="true"
       class="clean-dialog">
-      <el-tree 
-        :data="menuList" 
-        :props="treeProps" 
-        show-checkbox 
+      <el-tree
+        :data="menuList"
+        :props="treeProps"
+        show-checkbox
         node-key="id"
-        :default-checked-keys="defKeys" 
-        ref="treeRef" 
+        :default-checked-keys="defKeys"
+        ref="treeRef"
         @check="handleTreeCheck"
         class="permission-tree">
       </el-tree>
       <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="allotMenus" class="dialog-btn confirm-btn">确 定</el-button>
-          <el-button @click="setMenuDialogVisible = false" class="dialog-btn cancel-btn">取 消</el-button>
+          <el-button type="primary" @click="allotMenus" class="dialog-btn confirm-btn">{{ $tr("确 定") }}</el-button>
+          <el-button @click="setMenuDialogVisible = false" class="dialog-btn cancel-btn">{{ $tr("取 消") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -226,6 +216,8 @@
 
 
 <script>
+import { tr } from "@/locales";
+
 import Treeselect from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import {
@@ -259,18 +251,18 @@ export default {
         status: 1
       },
       addRoleFormRules: {
-        roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-        roleKey: [{ required: true, message: '请角色权限标识', trigger: 'blur' }],
-        status: [{ required: true, message: '请输入角色状态', trigger: 'blur' }],
-        description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }],
+        roleName: [{ required: true, get message() { return tr('请输入角色名称'); }, trigger: 'blur' }],
+        roleKey: [{ required: true, get message() { return tr('请角色权限标识'); }, trigger: 'blur' }],
+        status: [{ required: true, get message() { return tr('请输入角色状态'); }, trigger: 'blur' }],
+        description: [{ required: true, get message() { return tr('请输入角色描述'); }, trigger: 'blur' }],
       },
       editRoleDialogVisible: false,
       roleInfo: {},
       editRoleFormRules: {
-        roleName: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-        roleKey: [{ required: true, message: '请输入角色权限标识', trigger: 'blur' }],
-        status: [{ required: true, message: '请输入角色状态', trigger: 'blur' }],
-        description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }],
+        roleName: [{ required: true, get message() { return tr('请输入角色名称'); }, trigger: 'blur' }],
+        roleKey: [{ required: true, get message() { return tr('请输入角色权限标识'); }, trigger: 'blur' }],
+        status: [{ required: true, get message() { return tr('请输入角色状态'); }, trigger: 'blur' }],
+        description: [{ required: true, get message() { return tr('请输入角色描述'); }, trigger: 'blur' }],
       },
       setMenuDialogVisible: false,
       menuList: [],
@@ -375,7 +367,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getRoleList()
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // pageSize
     handleSizeChange(newSize) {
@@ -390,17 +382,17 @@ export default {
     // 启用/停用
     async roleUpdateStatus(row) {
       let text = row.status === 2 ? "停用" : "启用"
-      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.roleName + '"角色吗?', "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
+      const confirmResult = await this.$confirm('确认要"' + text + '""' + row.roleName + '"角色吗?', tr("警告"), {
+        confirmButtonText: tr("确定"),
+        cancelButtonText: tr("取消"),
         type: "warning",
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
         await this.getRoleList()
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       await this.$api.updateRoleStatus(row.id, row.status)
-      return this.$message.success(text + "成功")
+      return this.$message.success(text + tr("成功"))
       // eslint-disable-next-line no-unreachable
       await this.getRoleList()
     },
@@ -416,7 +408,7 @@ export default {
         if (res.code !== 200) {
           this.$message.error(res.message);
         } else {
-          this.$message.success("新增角色成功")
+          this.$message.success(tr("新增角色成功"))
           this.addRoleDialogVisible = false
           await this.getRoleList()
         }
@@ -446,26 +438,26 @@ export default {
         } else {
           this.editRoleDialogVisible = false
           await this.getRoleList()
-          this.$message.success("修改角色成功")
+          this.$message.success(tr("修改角色成功"))
         }
       })
     },
     // 删除角色
     async handleRoleDelete(row) {
-      const confirmResult = await this.$confirm('是否确认删除角色为"' + row.roleName + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除角色为"' + row.roleName + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.deleteRole(row.id)
       console.log(row.id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getRoleList()
       }
     },
@@ -538,7 +530,7 @@ export default {
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('分配权限成功')
+        this.$message.success(tr('分配权限成功'))
         await this.getRoleList()
         this.setMenuDialogVisible = false
       }
@@ -557,7 +549,7 @@ export default {
   min-height: 100vh;
   background: var(--bg-page);
   padding: 20px;
-  
+
   .main-card {
     background: var(--bg-card);
     backdrop-filter: blur(10px);
@@ -569,13 +561,13 @@ export default {
     box-sizing: border-box;
     width: 100%;
     overflow: hidden;
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
     }
   }
-  
+
   .card-header {
     display: flex;
     justify-content: space-between;
@@ -583,7 +575,7 @@ export default {
     margin-bottom: 20px;
     padding-bottom: 12px;
     border-bottom: 1px solid rgba(103, 126, 234, 0.1);
-    
+
     .gradient-title {
       color: var(--text-primary);
       color: var(--text-primary);
@@ -595,7 +587,7 @@ export default {
       margin: 0;
     }
   }
-  
+
   .search-section {
     margin-bottom: 24px;
     padding: 20px;
@@ -603,7 +595,7 @@ export default {
     border-radius: 12px;
     border: 1px solid rgba(103, 126, 234, 0.1);
     overflow: hidden;
-    
+
     .search-form {
       display: flex;
       flex-wrap: wrap;
@@ -611,12 +603,12 @@ export default {
       gap: 16px;
       width: 100%;
       box-sizing: border-box;
-      
+
       :deep(.el-form-item) {
         margin-bottom: 0;
         flex-shrink: 0;
       }
-      
+
       :deep(.el-form-item__label) {
         color: var(--text-regular);
         font-weight: 500;
@@ -628,7 +620,7 @@ export default {
       }
     }
   }
-  
+
   .table-section {
     background: transparent;
     border-radius: 12px;
@@ -1066,40 +1058,40 @@ export default {
   .role-container {
     padding: 12px;
   }
-  
+
   .glass-card {
     margin-bottom: 16px;
     border-radius: 12px;
   }
-  
+
   .search-card {
     padding: 16px;
   }
-  
+
   .table-card {
     padding: 16px;
     overflow-x: auto;
   }
-  
+
   .search-form {
     flex-direction: column;
   }
-  
+
   .search-form .el-form-item {
     width: 100%;
     margin-bottom: 12px;
   }
-  
+
   .search-date,
   .search-select {
     width: 100%;
   }
-  
+
   .table-actions {
     flex-direction: column;
     gap: 4px;
   }
-  
+
   :deep(.modern-dialog .el-dialog) {
     margin: 20px;
     width: calc(100vw - 40px) !important;

@@ -1,0 +1,17 @@
+# kube-scheduler 配置 - 启用 TopoLVM scheduler extender
+# TopoLVM scheduler 以 DaemonSet 运行在 master-01 (hostNetwork, 监听 127.0.0.1:9251)
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+clientConnection:
+  kubeconfig: /etc/kubernetes/kube-scheduler.kubeconfig
+leaderElection:
+  leaderElect: true
+extenders:
+  - urlPrefix: "http://127.0.0.1:9251/scheduler"
+    filterVerb: filter
+    weight: 1
+    enableHTTPS: false
+    managedResources:
+      - name: topolvm.io/scheduler
+        ignoredByScheduler: true
+    ignorable: true

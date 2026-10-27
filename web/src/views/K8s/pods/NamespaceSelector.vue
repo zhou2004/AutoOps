@@ -1,7 +1,7 @@
 <template>
   <el-select
     :model-value="modelValue"
-    placeholder="请选择命名空间"
+    :placeholder='$tr("请选择命名空间")'
     size="small"
     style="width: 200px"
     @change="handleChange"
@@ -18,13 +18,13 @@
         @click="fetchNamespaceList(true)"
         style="color: #409eff; padding: 0; margin-right: 4px;"
       >
-        刷新
+        {{ $tr("刷新") }}
       </el-button>
     </template>
     <el-option
       v-for="ns in namespaceList"
       :key="ns.name"
-      :label="ns.name"
+      :label="$tr(ns.name)"
       :value="ns.name"
     >
       <div class="namespace-option">
@@ -42,6 +42,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
@@ -170,11 +172,11 @@ const fetchNamespaceList = async (force = false) => {
 
     // 只在严重错误时显示消息
     if (error.response?.status === 401) {
-      ElMessage.error('认证失败，请重新登录')
+      ElMessage.error(tr('认证失败，请重新登录'))
     } else if (error.response?.status === 403) {
-      ElMessage.error('权限不足，请联系管理员')
+      ElMessage.error(tr('权限不足，请联系管理员'))
     } else if (error.code === 'ECONNABORTED') {
-      ElMessage.warning('请求超时，命名空间加载时间较长，请稍后重试')
+      ElMessage.warning(tr('请求超时，命名空间加载时间较长，请稍后重试'))
     } else if (!force) {
       // 静默失败，用户可以手动重试
       console.warn('命名空间列表加载失败，错误已记录')

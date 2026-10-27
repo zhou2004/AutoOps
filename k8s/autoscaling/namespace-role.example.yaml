@@ -1,0 +1,34 @@
+# Example only. Replace application and the subject to match your imported kubeconfig.
+# This is Kubernetes-side authorization, separate from AutoOps user RBAC.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: autoops-autoscaling
+  namespace: application
+rules:
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list, create, update, delete]
+  - apiGroups: [autoscaling.k8s.io]
+    resources: [verticalpodautoscalers]
+    verbs: [get, list, create, update, delete]
+  - apiGroups: [serving.knative.dev]
+    resources: [services]
+    verbs: [get, list, update]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: autoops-autoscaling
+  namespace: application
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: autoops-autoscaling
+subjects:
+  - kind: ServiceAccount
+    name: autoops
+    namespace: application

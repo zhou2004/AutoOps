@@ -3,26 +3,26 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-title">
-        <h2>K8s 监控仪表板</h2>
-        <p class="header-desc">实时监控集群资源使用情况</p>
+        <h2>{{ $tr("K8s 监控仪表板") }}</h2>
+        <p class="header-desc">{{ $tr("实时监控集群资源使用情况") }}</p>
       </div>
       <div class="header-controls">
-        <el-select v-model="selectedClusterId" placeholder="选择集群" @change="handleClusterChange">
+        <el-select v-model="selectedClusterId" :placeholder='$tr("选择集群")' @change="handleClusterChange">
           <el-option 
             v-for="cluster in clusterList" 
             :key="cluster.id" 
-            :label="cluster.name" 
+            :label="$tr(cluster.name)" 
             :value="cluster.id"
           />
         </el-select>
-        <el-button :icon="Refresh" @click="refreshAllData" :loading="loading">刷新数据</el-button>
+        <el-button :icon="Refresh" @click="refreshAllData" :loading="loading">{{ $tr("刷新数据") }}</el-button>
       </div>
     </div>
 
     <!-- 监控标签页 -->
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <!-- 节点监控 -->
-      <el-tab-pane label="节点监控" name="nodes">
+      <el-tab-pane :label='$tr("节点监控")' name="nodes">
         <NodesMonitoring 
           :selected-cluster-id="selectedClusterId"
           ref="nodesMonitoringRef"
@@ -30,7 +30,7 @@
       </el-tab-pane>
 
       <!-- 命名空间监控 -->
-      <el-tab-pane label="命名空间监控" name="namespaces">
+      <el-tab-pane :label='$tr("命名空间监控")' name="namespaces">
         <NamespaceMonitoring 
           :selected-cluster-id="selectedClusterId"
           ref="namespaceMonitoringRef"
@@ -41,6 +41,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -114,7 +116,7 @@ const fetchClusterList = async () => {
     }
   } catch (error) {
     console.error('获取集群列表失败:', error)
-    ElMessage.warning('无法获取集群列表，请检查后端服务')
+    ElMessage.warning(tr('无法获取集群列表，请检查后端服务'))
   }
 }
 
@@ -164,9 +166,9 @@ const refreshAllData = async () => {
     } else {
       await loadTabData()
     }
-    ElMessage.success('数据刷新成功')
+    ElMessage.success(tr('数据刷新成功'))
   } catch (error) {
-    ElMessage.error('数据刷新失败')
+    ElMessage.error(tr('数据刷新失败'))
   } finally {
     loading.value = false
   }

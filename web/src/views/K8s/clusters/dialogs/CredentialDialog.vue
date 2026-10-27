@@ -14,7 +14,7 @@
           :icon="DocumentCopy"
           :loading="copyLoading"
         >
-          复制凭证
+          {{ $tr("复制凭证") }}
         </el-button>
         <el-button 
           size="small" 
@@ -22,7 +22,7 @@
           :icon="Download"
           :loading="downloadLoading"
         >
-          下载文件
+          {{ $tr("下载文件") }}
         </el-button>
       </div>
       
@@ -33,13 +33,13 @@
       
       <div class="credential-info">
         <el-tag size="small" type="info">
-          字符数：{{ credential.content?.length || 0 }}
+          {{ $tr("字符数：") }}{{ credential.content?.length || 0 }}
         </el-tag>
         <el-tag size="small" type="success" style="margin-left: 8px;">
-          格式：YAML/Config
+          {{ $tr("格式：YAML/Config") }}
         </el-tag>
         <el-tag size="small" type="warning" style="margin-left: 8px;" v-if="!credential.content?.trim()">
-          内容为空
+          {{ $tr("内容为空") }}
         </el-tag>
       </div>
     </div>
@@ -47,6 +47,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { DocumentCopy, Download } from '@element-plus/icons-vue'
@@ -86,14 +88,14 @@ const highlightedCredential = computed(() => {
 // 复制凭证内容
 const copyCredential = async () => {
   if (!props.credential.content?.trim()) {
-    ElMessage.warning('凭证内容为空，无法复制')
+    ElMessage.warning(tr('凭证内容为空，无法复制'))
     return
   }
   
   try {
     copyLoading.value = true
     await navigator.clipboard.writeText(props.credential.content)
-    ElMessage.success('凭证内容已复制到剪贴板')
+    ElMessage.success(tr('凭证内容已复制到剪贴板'))
   } catch (error) {
     console.error('复制失败:', error)
     // 降级处理：使用传统方式复制
@@ -106,10 +108,10 @@ const copyCredential = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success('凭证内容已复制到剪贴板')
+      ElMessage.success(tr('凭证内容已复制到剪贴板'))
     } catch (fallbackError) {
       console.error('降级复制也失败:', fallbackError)
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
   } finally {
     copyLoading.value = false
@@ -119,12 +121,12 @@ const copyCredential = async () => {
 // 下载凭证文件
 const downloadCredential = () => {
   if (!props.credential.content?.trim()) {
-    ElMessage.warning('凭证内容为空，无法下载')
+    ElMessage.warning(tr('凭证内容为空，无法下载'))
     return
   }
   
   if (!props.credential.clusterName?.trim()) {
-    ElMessage.warning('集群名称为空，无法生成文件名')
+    ElMessage.warning(tr('集群名称为空，无法生成文件名'))
     return
   }
   
@@ -140,10 +142,10 @@ const downloadCredential = () => {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-    ElMessage.success('凭证文件下载成功')
+    ElMessage.success(tr('凭证文件下载成功'))
   } catch (error) {
     console.error('下载失败:', error)
-    ElMessage.error('下载失败，请重试')
+    ElMessage.error(tr('下载失败，请重试'))
   } finally {
     downloadLoading.value = false
   }

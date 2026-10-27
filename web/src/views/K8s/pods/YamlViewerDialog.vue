@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="YAML 查看器" width="80%">
+  <el-dialog v-model="visible" :title='$tr("YAML 查看器")' width="80%">
     <pre>{{ yamlContent }}</pre>
   </el-dialog>
 </template>

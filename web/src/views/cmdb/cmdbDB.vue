@@ -1,576 +1,606 @@
 <template>
-  <div class="cmdb-db-management">
-    <el-card shadow="hover" class="db-card">
-      <template #header>
-        <div class="card-header">
-          <span class="title">数据库管理</span>
+  <div class="database-page">
+    <section class="page-hero">
+      <div>
+        <p class="eyebrow">DATABASE SOURCES</p>
+        <h1>{{ $tr("数据源管理") }}</h1>
+        <p>{{ $tr("按业务分组管理 MySQL、PostgreSQL 与 Redis，从数据源进入数据库工作台。") }}</p>
+      </div>
+      <el-button
+        v-if="platformAccess.isAdmin"
+        v-authority="['cmdb:db:add']"
+        type="primary"
+        size="large"
+        @click="openCreate"
+        >{{ $tr("新增数据源") }}</el-button
+      >
+    </section>
+
+
+
+    <section class="summary-grid">
+      <article v-for="item in summary" :key="item.label">
+        <span>{{ $tr(item.label) }}</span
+        ><strong>{{ item.value }}</strong>
+      </article>
+    </section>
+
+    <el-card shadow="never" class="asset-table-card">
+      <div class="toolbar">
+        <div class="filters">
+          <el-input
+            v-model="query.name"
+            clearable
+            :placeholder='$tr("按名称搜索")'
+            @keyup.enter="search"
+          />
+          <el-select v-model="query.type" clearable :placeholder='$tr("全部类型")'
+            ><el-option
+              v-for="item in dbTypes"
+              :key="item.value"
+              :label="$tr(item.label)"
+              :value="item.value"
+          /></el-select>
+          <el-tree-select class="source-group-filter" v-model="query.groupId" :data="groups" :props="{ label: 'name', value: 'id', children: 'children' }" check-strictly filterable clearable :placeholder="$tr('业务分组（含子分组）')" />
+          <el-button type="primary" @click="search">{{ $tr("查询") }}</el-button
+          ><el-button @click="resetSearch">{{ $tr("重置") }}</el-button>
         </div>
-      </template>
-      
-      <!-- 搜索表单 -->
-      <div class="search-section">
-        <el-form :inline="true" :model="queryParams" ref="queryForm" class="search-form">
-          <el-form-item label="数据库名称">
-            <el-input
-              v-model="queryParams.name"
-              placeholder="请输入数据库名称"
-              clearable
-              size="small"
-              style="width: 200px"
-              @keyup.enter="handleQuery"
-            />
-          </el-form-item>
-          <el-form-item label="数据库类型">
-            <el-select
-              v-model="queryParams.type"
-              placeholder="请选择数据库类型"
-              clearable
-              size="small"
-              style="width: 180px"
-            >
-              <el-option
-                v-for="item in dbTypeOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              >
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <img 
-                    :src="getDbIcon(item.value)" 
-                    :alt="item.label"
-                    style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
-                  />
-                  <span>{{ item.label }}</span>
-                </div>
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" size="small" @click="handleQuery">
-              <el-icon><Search /></el-icon>
-              搜索
-            </el-button>
-            <el-button type="warning" size="small" @click="resetQuery">
-              <el-icon><Refresh /></el-icon>
-              重置
-            </el-button>
-          </el-form-item>
-        </el-form>
       </div>
 
-      <!-- 操作按钮 -->
-      <div class="action-section">
-        <el-button type="success" size="small" v-authority="['cmdb:db:add']" @click="showAddDialog">
-          <el-icon><Plus /></el-icon>
-          创建数据库
-        </el-button>
-      </div>
-      
-      <!-- 数据库列表表格 -->
-      <div class="table-section">
-        <el-table
-          :data="dbList"
-          v-loading="loading"
-          stripe
-          style="width: 100%"
-          class="db-table"
+      <el-table :data="rows" v-loading="loading" stripe>
+        <el-table-column :label='$tr("数据源")' min-width="220"
+          ><template #default="{ row }"
+            ><div class="database-name">
+              <span class="type-mark" :class="`type-${row.type}`">{{
+                typeShort(row.type)
+              }}</span>
+              <div>
+                <strong>{{ row.name }}</strong
+                ><small>{{ row.description || "暂无描述" }}</small>
+              </div>
+            </div></template
+          ></el-table-column
         >
-          <el-table-column prop="name" label="数据库名称" min-width="200">
-            <template #default="{ row }">
-              <div class="db-name-container">
-                <img :src="getDbIcon(row.type)" :alt="getDbName(row.type)" class="db-icon" />
-                <el-button
-                  type="primary"
-                  link
-                  @click="goToDetails(row.id)"
-                  class="db-name-link"
-                >
-                  {{ row.name }}
-                </el-button>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="accountAlias" label="所属账号" min-width="140" />
-          <el-table-column prop="charset" label="标签" min-width="120" show-overflow-tooltip />
-          <el-table-column prop="type" label="数据库类型" min-width="140">
-            <template #default="{ row }">
-              <el-tag
-                :type="getDbTagType(row.type)"
-                size="small"
-                effect="dark"
-              >
-                {{ getDbName(row.type) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" min-width="180" />
-          <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-          <el-table-column label="操作" width="140" fixed="right">
-            <template #default="{ row }">
-              <div class="operation-buttons">
-                <el-tooltip content="修改" placement="top">
-                  <el-button
-                    type="warning"
-                    size="small"
-                    circle
-                    v-authority="['cmdb:db:edit']"
-                    @click="showEditDialog(row)"
-                  >
-                    <el-icon><Edit /></el-icon>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip content="删除" placement="top">
-                  <el-button
-                    type="danger"
-                    size="small"
-                    circle
-                    v-authority="['cmdb:db:delete']"
-                    @click="handleDelete(row)"
-                  >
-                    <el-icon><Delete /></el-icon>
-                  </el-button>
-                </el-tooltip>
-              </div>
-            </template>
-          </el-table-column>
-        </el-table>
-      <div class="pagination-section">
+        <el-table-column :label='$tr("类型")' width="140"
+          ><template #default="{ row }"
+            ><el-tag :type="tagType(row.type)">{{
+              typeName(row.type)
+            }}</el-tag></template
+          ></el-table-column
+        >
+        <el-table-column prop="groupName" :label="$tr('业务分组')" min-width="150" />
+        <el-table-column :label='$tr("连接账号")' min-width="180"
+          ><template #default="{ row }"
+            ><span>{{ row.username || accountName(row.accountId) }}</span
+            ><small class="cell-subtitle">{{
+              row.address || accountAddress(row.accountId)
+            }}</small></template
+          ></el-table-column
+        >
+        <el-table-column :label='$tr("默认库 / DB")' min-width="150"
+          ><template #default="{ row }">{{
+            row.defaultDb || (row.type === 3 ? "0" : "未指定")
+          }}</template></el-table-column
+        >
+        <el-table-column label="TLS" width="130"
+          ><template #default="{ row }"
+            ><el-tag
+              effect="plain"
+              :type="row.tlsMode === 'disable' ? 'info' : 'success'"
+              >{{ row.tlsMode || "disable" }}</el-tag
+            ></template
+          ></el-table-column
+        >
+        <el-table-column :label='$tr("标签")' min-width="150" show-overflow-tooltip
+          ><template #default="{ row }">{{
+            row.tags || "-"
+          }}</template></el-table-column
+        >
+        <el-table-column :label='$tr("连通性")' width="120"
+          ><template #default="{ row }"
+            ><el-tag :type="health[row.id]?.type || 'info'">{{
+              health[row.id]?.text || "未检测"
+            }}</el-tag></template
+          ></el-table-column
+        >
+        <el-table-column :label='$tr("操作")' width="270" fixed="right"
+          ><template #default="{ row }"
+            ><el-button link type="primary" @click="openWorkbench(row)"
+              >{{ $tr("工作台") }}</el-button
+            ><el-button
+              link
+              type="success"
+              :loading="testingId === row.id"
+              @click="testConnection(row)"
+              >{{ $tr("测试") }}</el-button
+            ><el-button
+              v-authority="['cmdb:db:edit']"
+              link
+              type="warning"
+              @click="openEdit(row)"
+              >{{ $tr("编辑") }}</el-button
+            ><el-button
+              v-authority="['cmdb:db:delete']"
+              link
+              type="danger"
+              @click="remove(row)"
+              >{{ $tr("删除") }}</el-button
+            ></template
+          ></el-table-column
+        >
+      </el-table>
+
+      <div class="pagination">
         <el-pagination
-          @size-change="s=>{queryParams.size=s;getList()}"
-          @current-change="p=>{queryParams.page=p;getList()}"
-          :current-page="queryParams.page"
-          :page-sizes="[10,20,50,100]"
-          :page-size="queryParams.size"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total" />
+          v-model:current-page="query.page"
+          v-model:page-size="query.pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next"
+          @size-change="
+            query.page = 1;
+            loadList();
+          "
+          @current-change="loadList"
+        />
       </div>
-      </div>
-    
-    <!--新增/编辑对话框-->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="40%">
-      <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="数据库名称" prop="name">
-              <el-input v-model="formData.name"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="数据库类型" prop="type">
-              <el-select v-model="formData.type" placeholder="请选择数据库类型">
-                <el-option label="MySQL" :value="1" />
-                <el-option label="PostgreSQL" :value="2" />
-                <el-option label="Redis" :value="3" />
-                <el-option label="MongoDB" :value="4" />
-                <el-option label="Elasticsearch" :value="5" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="所属账号" prop="accountId">
-              <el-select
-                v-model="formData.accountId"
-                placeholder="请选择所属账号"
-                filterable
-              >
-                <el-option
-                  v-for="account in accountList"
-                  :key="account.id"
-                  :label="account.alias"
-                  :value="account.id">
-                  <span style="float: left">{{ account.alias }}</span>
-                  <span style="float: right; color: #8492a6; font-size: 13px">
-                    {{ getDbName(account.type) }}
-                  </span>
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="业务分组" prop="groupId">
-              <el-cascader
-                v-model="formData.groupId"
-                :options="groupList"
-                :props="{
-                  checkStrictly: true,
-                  value: 'id',
-                  label: 'name',
-                  children: 'children',
-                  expandTrigger: 'hover'
-                }"
-                placeholder="请选择业务分组"
-                clearable
+    </el-card>
+
+    <el-dialog
+      v-model="dialogVisible"
+      :title="form.id ? '编辑数据源' : $tr('新增数据源')"
+      width="min(720px, 94vw)"
+      destroy-on-close
+    >
+      <el-alert
+        :title='$tr("连接账号由管理员配置；操作人员通过资产授权获得查询或执行权限。")'
+        type="info"
+        :closable="false"
+        show-icon
+      />
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="110px"
+        class="source-form"
+      >
+        <el-row :gutter="18">
+          <el-col :span="12"
+            ><el-form-item :label='$tr("数据源名称")' prop="name"
+              ><el-input v-model="form.name" maxlength="100" /></el-form-item
+          ></el-col>
+          <el-col :span="12"
+            ><el-form-item :label='$tr("类型")' prop="type"
+              ><el-select
+                v-model="form.type" :disabled="!platformAccess.isAdmin"
+                style="width: 100%"
+                @change="handleTypeChange"
+                ><el-option
+                  v-for="item in dbTypes"
+                  :key="item.value"
+                  :label="$tr(item.label)"
+                  :value="item.value" /></el-select></el-form-item
+          ></el-col>
+          <el-col :span="12"
+            ><el-form-item :label='$tr("连接账号")' prop="accountId"
+              ><el-select
+                v-model="form.accountId" :disabled="!platformAccess.isAdmin"
                 filterable
                 style="width: 100%"
-              ></el-cascader>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="标签" prop="tags">
-              <el-input v-model="formData.tags" placeholder="多个标签用逗号分隔"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="描述" prop="description">
-              <el-input v-model="formData.description"></el-input>
-            </el-form-item>
-          </el-col>
+                :placeholder='$tr("选择同类型账号")'
+                ><el-option
+                  v-for="item in filteredAccounts"
+                  :key="item.id"
+                  :label="`${item.alias} · ${item.host}:${item.port}`"
+                  :value="item.id" /></el-select></el-form-item
+          ></el-col>
+          <el-col :span="12"
+            ><el-form-item :label='$tr("业务分组")' prop="groupId"
+              ><el-cascader
+                v-model="form.groupId"
+                :options="groups"
+                :props="groupProps"
+                clearable
+                filterable
+                style="width: 100%" /></el-form-item
+          ></el-col>
+          <el-col :span="12"
+            ><el-form-item :label="form.type === 3 ? 'Redis DB' : '默认数据库'"
+              ><el-input
+                v-model="form.defaultDb"
+                :placeholder="
+                  form.type === 3 ? '0 - 1024' : '可留空'
+                " /></el-form-item
+          ></el-col>
+          <el-col :span="12"
+            ><el-form-item :label='$tr("TLS 模式")' prop="tlsMode"
+              ><el-select v-model="form.tlsMode" style="width: 100%"
+                ><el-option
+                  v-for="item in tlsOptions"
+                  :key="item"
+                  :label="$tr(tlsLabel(item))"
+                  :value="item" /></el-select></el-form-item
+          ></el-col>
+          <el-col :span="24"
+            ><el-form-item :label='$tr("标签")'
+              ><el-input
+                v-model="form.tags"
+                :placeholder='$tr("例如 production,core")' /></el-form-item
+          ></el-col>
+          <el-col :span="24"
+            ><el-form-item :label='$tr("描述")'
+              ><el-input
+                v-model="form.description"
+                type="textarea"
+                :rows="3"
+                maxlength="500"
+                show-word-limit /></el-form-item
+          ></el-col>
         </el-row>
       </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">确定</el-button>
-      </template>
+      <template #footer
+        ><el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button
+        ><el-button type="primary" :loading="saving" @click="save"
+          >{{ $tr("保存") }}</el-button
+        ></template
+      >
     </el-dialog>
-    </el-card>
   </div>
 </template>
 
-<script>
-import cmdbAPI from '@/api/cmdb'
-import configAPI from '@/api/config'
-import { Edit, Delete, Search, Refresh, Plus } from '@element-plus/icons-vue'
+<script setup>
+import { tr } from "@/locales";
+import { platformAccess } from "@/utils/platformAccess";
 
-export default {
-  components: {
-    Edit,
-    Delete,
-    Search,
-    Refresh,
-    Plus
-  },
-  data() {
-    return {
-      queryParams: {
-        name: '',
-        type: undefined,
-        page: 1,
-        size: 10
-      },
-      total: 0,
-      dbTypeOptions: [
-        { label: 'MySQL', value: 1 },
-        { label: 'PostgreSQL', value: 2 },
-        { label: 'Redis', value: 3 },
-        { label: 'MongoDB', value: 4 },
-        { label: 'Elasticsearch', value: 5 }
-      ],
-      loading: false,
-      dbList: [],
-      accountList: [], // 账号列表
-      groupList: [], // 分组列表
-      dialogVisible: false,
-      dialogTitle: '',
-      formData: {
-        id: '',
-        name: '',
-        type: undefined,
-        accountId: undefined,
-        groupId: undefined,
-        tags: '',
-        description: ''
-      },
-      formRules: {
-        name: [{ required: true, message: '请输入数据库名称', trigger: 'blur' }],
-        type: [{ required: true, message: '请选择数据库类型', trigger: 'change' }],
-        accountId: [{ required: true, message: '请选择所属账号', trigger: 'change' }],
-        groupId: [{ required: true, message: '请选择业务分组', trigger: 'change' }]
-      }
-    }
-  },
-    methods: {
-      getAssetUrl(path) { return this.$getAssetUrl(path); },
-      // 获取数据库图标
-      getDbIcon(type) {
-        const iconMap = {
-          1: this.getAssetUrl('@/assets/image/mysql.svg'),
-          2: this.getAssetUrl('@/assets/image/PostgreSQL.svg'),
-          3: this.getAssetUrl('@/assets/image/redis.svg'),
-          4: this.getAssetUrl('@/assets/image/mongodb.svg'),
-          5: this.getAssetUrl('@/assets/image/Elasticsearch.svg')
-        }
-        return iconMap[type] || this.getAssetUrl('@/assets/image/mysql.svg')
-      },
-      
-      // 获取数据库名称
-      getDbName(type) {
-        const nameMap = {
-          1: 'MySQL',
-          2: 'PostgreSQL', 
-          3: 'Redis',
-          4: 'MongoDB',
-          5: 'Elasticsearch'
-        }
-        return nameMap[type] || 'MySQL'
-      },
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage, ElMessageBox } from "element-plus";
+import cmdbAPI from "@/api/cmdb";
+import configAPI from "@/api/config";
 
-      // 获取数据库标签类型
-      getDbTagType(type) {
-        const tagTypeMap = {
-          1: 'success',    // MySQL - 绿色
-          2: 'warning',    // PostgreSQL - 黄色
-          3: 'danger',     // Redis - 红色
-          4: 'info',       // MongoDB - 蓝色
-          5: 'primary'     // Elasticsearch - 主色
-        }
-        return tagTypeMap[type] || 'success'
-      },
-      
-      goToDetails(id) {
-        this.$router.push({
-          path: '/cmdb/dbdetails',
-          query: { id }
-        })
-      },
-    // 获取数据库列表
-    async getList() {
-      this.loading = true
-      try {
-        const res = await cmdbAPI.listDatabases()
-        if (res.data?.code === 200) {
-          // 适配后端返回的数据结构
-          this.dbList = res.data?.data?.list?.map(item => {
-            // 查找对应的账号名称
-            const account = this.accountList.find(a => a.id === item.accountId)
-            return {
-              ...item,
-              accountAlias: account ? account.alias : item.accountId,
-              charset: item.tags || '',
-              collation: item.description || '',
-              remark: item.description || '',
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt
-            }
-          }) || []
-        } else {
-          this.$message.error(res.data?.message || '获取数据库列表失败')
-        }
-      } catch (error) {
-        console.error('获取数据库列表失败:', error)
-        this.$message.error('获取数据库列表失败')
-      } finally {
-        this.loading = false
-      }
-    },
-    
-    // 获取账号列表
-    async getAccountList() {
-      try {
-        console.log('开始获取账号列表...')
-        const res = await configAPI.listAccountAuth({
-          page: 1,
-          pageSize: 100  // 获取账号，用于下拉选择
-        })
-        console.log('账号列表API完整响应:', JSON.stringify(res, null, 2))
-        
-        if (res.data?.code === 200) {
-          console.log('API返回数据:', JSON.stringify(res.data.data, null, 2))
-          this.accountList = (res.data.data?.list || []).map(account => ({
-            id: account.id,
-            alias: account.alias.trim(), // 去除可能的空白字符
-            type: account.type
-          }))
-          console.log('格式化后的账号列表:', JSON.stringify(this.accountList, null, 2))
-          
-          // 检查选择器是否渲染
-          this.$nextTick(() => {
-            const selectEl = document.querySelector('.el-select')
-            console.log('选择器DOM状态:', selectEl)
-            console.log('选择器选项数量:', document.querySelectorAll('.el-select-dropdown__item').length)
-          })
-        } else {
-          console.error('API返回错误:', res.data?.message)
-          this.$message.error('获取账号列表失败: ' + (res.data?.message || '未知错误'))
-        }
-      } catch (error) {
-        console.error('获取账号列表异常:', error)
-        this.$message.error('获取账号列表失败: ' + error.message)
-      }
-    },
+const router = useRouter();
+const dbTypes = [
+  { label: "MySQL", value: 1 },
+  { label: "PostgreSQL", value: 2 },
+  { label: "Redis", value: 3 }
+];
+const loading = ref(false),
+  saving = ref(false),
+  dialogVisible = ref(false),
+  testingId = ref(0),
+  total = ref(0),
+  formRef = ref();
+const rows = ref([]),
+  accounts = ref([]),
+  groups = ref([]),
+  health = reactive({});
+const query = reactive({ name: "", type: undefined, groupId: undefined, page: 1, pageSize: 10 });
+const emptyForm = () => ({
+  id: undefined,
+  name: "",
+  type: 1,
+  accountId: undefined,
+  groupId: undefined,
+  defaultDb: "",
+  tlsMode: "disable",
+  tags: "",
+  description: ""
+});
+const form = reactive(emptyForm());
+const rules = {
+  name: [{ required: true, get message() { return tr("请输入数据源名称"); }, trigger: "blur" }],
+  type: [{ required: true, get message() { return tr("请选择类型"); }, trigger: "change" }],
+  accountId: [{ required: true, get message() { return tr("请选择连接账号"); }, trigger: "change" }],
+  groupId: [{ required: true, get message() { return tr("请选择业务分组"); }, trigger: "change" }],
+  tlsMode: [{ required: true, get message() { return tr("请选择 TLS 模式"); }, trigger: "change" }]
+};
+const groupProps = {
+  checkStrictly: true,
+  emitPath: false,
+  value: "id",
+  label: "name",
+  children: "children"
+};
+const filteredAccounts = computed(() =>
+  accounts.value.filter(item => Number(item.type) === Number(form.type))
+);
+const tlsOptions = computed(() =>
+  form.type === 2
+    ? ["disable", "require", "verify-ca", "verify-full"]
+    : ["disable", "verify-full"]
+);
+const summary = computed(() => [
+  { label: "匹配数据源", value: total.value },
+  ...dbTypes.map(type => ({
+    label: type.label + "（本页）",
+    value: rows.value.filter(row => row.type === type.value).length
+  }))
+]);
 
-    // 获取业务分组列表
-    async getGroupList() {
-      try {
-        const res = await cmdbAPI.getAllCmdbGroups()
-        if (res.data?.code === 200) {
-          this.groupList = res.data?.data || []
-        }
-      } catch (error) {
-        console.error('获取业务分组列表失败:', error)
-      }
-    },
-    
-    // 搜索
-    async handleQuery() {
-      this.loading = true
-      try {
-        let res
-        if (this.queryParams.name) {
-          res = await cmdbAPI.getDatabasesByName(this.queryParams.name)
-        } else if (this.queryParams.type) {
-          res = await cmdbAPI.getDatabasesByType(this.queryParams.type)
-        } else {
-          res = await cmdbAPI.listDatabases()
-        }
-
-        if (res.data?.code === 200) {
-          this.dbList = res.data?.data || []
-        } else {
-          this.$message.error(res.data?.message || '查询失败')
-        }
-      } catch (error) {
-        console.error('查询失败:', error)
-        this.$message.error('查询失败')
-      } finally {
-        this.loading = false
-      }
-    },
-    
-    // 重置搜索
-    resetQuery() {
-      this.queryParams = {
-        name: '',
-        type: undefined
-      }
-      this.getList()
-    },
-    
-    // 显示新增对话框
-    showAddDialog() {
-      this.dialogTitle = '创建数据库'
-      this.$nextTick(() => {
-        this.formData = {
-          name: '',
-          type: undefined,
-          accountId: undefined,
-          groupId: 1, // 默认选择第一个分组
-          tags: '',
-          description: ''
-        }
-        this.dialogVisible = true
-      })
-    },
-    
-    // 显示编辑对话框
-    showEditDialog(row) {
-      this.dialogTitle = '修改数据库'
-      this.$nextTick(() => {
-        this.formData = {
-          id: row.id,
-          name: row.name,
-          type: row.type,
-          accountId: Number(row.accountId), // 确保转换为数字
-          groupId: row.groupId,
-          tags: row.tags,
-          description: row.description
-        }
-        console.log('编辑表单数据:', this.formData)
-        this.dialogVisible = true
-      })
-    },
-    
-    // 提交表单
-    async submitForm() {
-      try {
-        await this.$refs.formRef.validate()
-        
-        // 处理级联选择器的值（可能是数组或单个值）
-        let groupId = this.formData.groupId
-        if (Array.isArray(groupId)) {
-          groupId = groupId[groupId.length - 1] // 取最后一级的ID
-        }
-        
-        // 准备提交数据，移除id字段，确保groupId有效
-        const formData = {
-          name: this.formData.name,
-          type: Number(this.formData.type),
-          accountId: Number(this.formData.accountId),
-          groupId: groupId ? Number(groupId) : 1, // 默认分组ID为1
-          tags: this.formData.tags,
-          description: this.formData.description
-        }
-        
-        console.log('处理后的groupId:', groupId)
-        // 如果是更新操作，添加id字段
-        if (this.formData.id) {
-          formData.id = Number(this.formData.id)
-        }
-        console.log('提交给API的数据:', JSON.stringify(formData, null, 2))
-
-        let res
-        if (formData.id) {
-          res = await cmdbAPI.updateDatabase(formData)
-        } else {
-          res = await cmdbAPI.createDatabase(formData)
-        }
-
-        if (res.data.code === 200) {
-          this.$message.success(formData.id ? '修改成功' : '创建成功')
-          this.dialogVisible = false
-          await this.getList()
-        } else {
-          this.$message.error(res.data.message || (formData.id ? '修改失败' : '创建失败'))
-        }
-      } catch (error) {
-        console.error('操作失败:', error)
-        this.$message.error('操作失败: ' + error.message)
-      }
-    },
-    
-    // 删除数据库
-    async handleDelete(row) {
-      try {
-        await this.$confirm(`确定删除数据库"${row.name}"?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        
-        const res = await cmdbAPI.deleteDatabase(row.id)
-        if (res.data.code === 200) {
-          this.$message.success('删除成功')
-          this.getList()
-        } else {
-          this.$message.error(res.data.message || '删除失败')
-        }
-      } catch (error) {
-        console.error('删除失败:', error)
-      }
-    }
-  },
-    created() {
-      this.getList()
-      this.getAccountList().then(() => {
-        console.log('账号列表加载完成:', this.accountList)
-      })
-      this.getGroupList()
-    },
-    
-    mounted() {
-      console.log('组件挂载完成，检查账号选择器:')
-      this.$nextTick(() => {
-        const selectEl = document.querySelector('.el-select')
-        console.log('选择器DOM:', selectEl)
-      })
-    }
+function unpack(response) {
+  if (response.data?.code !== 200)
+    throw new Error(response.data?.message || tr("操作失败"));
+  return response.data.data;
 }
+function typeName(type) {
+  return dbTypes.find(item => item.value === Number(type))?.label || "未知";
+}
+function typeShort(type) {
+  return { 1: "MY", 2: "PG", 3: "RE" }[type] || "DB";
+}
+function tagType(type) {
+  return { 1: "success", 2: "primary", 3: "danger" }[type] || "info";
+}
+function tlsLabel(value) {
+  return (
+    {
+      disable: "关闭",
+      require: "加密（不校验证书）",
+      "verify-ca": "校验 CA",
+      "verify-full": "完整校验"
+    }[value] || value
+  );
+}
+function account(id) {
+  return accounts.value.find(item => Number(item.id) === Number(id));
+}
+function accountName(id) {
+  return account(id)?.alias || `账号 #${id}`;
+}
+function accountAddress(id) {
+  const item = account(id);
+  return item ? `${item.host}:${item.port}` : "账号不存在";
+}
+
+async function loadDependencies() {
+  const [accountResponse, groupResponse] = await Promise.all([
+    platformAccess.isAdmin ? configAPI.listAccountAuth({ page: 1, pageSize: 100 }) : Promise.resolve({ data: {code: 200, data: {list: []}} }),
+    cmdbAPI.getDatabaseGroups()
+  ]);
+  accounts.value = unpack(accountResponse)?.list || [];
+  groups.value = unpack(groupResponse) || [];
+}
+async function loadList() {
+  loading.value = true;
+  try {
+    const data = unpack(await cmdbAPI.listDatabases({ ...query, name: query.name.trim() }));
+    rows.value = data.list || [];
+    total.value = Number(data.total || 0);
+  } catch (error) {
+    ElMessage.error(error.message);
+  } finally {
+    loading.value = false;
+  }
+}
+function search() {
+  query.page = 1;
+  loadList();
+}
+function resetSearch() {
+  query.name = "";
+  query.type = undefined;
+  query.groupId = undefined;
+  query.page = 1;
+  loadList();
+}
+function resetForm(value = {}) {
+  Object.assign(form, emptyForm(), value);
+}
+function openCreate() {
+  resetForm();
+  dialogVisible.value = true;
+}
+function openEdit(row) {
+  resetForm({
+    ...row,
+    id: Number(row.id),
+    type: Number(row.type),
+    accountId: Number(row.accountId),
+    groupId: Number(row.groupId),
+    tlsMode: row.tlsMode || "disable"
+  });
+  dialogVisible.value = true;
+}
+function handleTypeChange() {
+  form.accountId = undefined;
+  if (!tlsOptions.value.includes(form.tlsMode)) form.tlsMode = "disable";
+  form.defaultDb = form.type === 3 ? "0" : "";
+}
+async function save() {
+  try {
+    await formRef.value.validate();
+  } catch {
+    return;
+  }
+  saving.value = true;
+  try {
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      type: Number(form.type),
+      accountId: Number(form.accountId),
+      groupId: Number(form.groupId),
+      defaultDb: form.defaultDb.trim(),
+      tags: form.tags.trim(),
+      description: form.description.trim()
+    };
+    unpack(
+      await (payload.id
+        ? cmdbAPI.updateDatabase(payload)
+        : cmdbAPI.createDatabase(payload))
+    );
+    ElMessage.success(payload.id ? "数据源已更新" : "数据源已创建");
+    dialogVisible.value = false;
+    await loadList();
+  } catch (error) {
+    ElMessage.error(error.message);
+  } finally {
+    saving.value = false;
+  }
+}
+async function remove(row) {
+  try {
+    await ElMessageBox.confirm(`确定删除数据源“${row.name}”？`, tr("删除确认"), {
+      type: "warning"
+    });
+    unpack(await cmdbAPI.deleteDatabase(row.id));
+    ElMessage.success(tr("数据源已删除"));
+    await loadList();
+  } catch (error) {
+    if (error !== "cancel" && error !== "close" && error?.message)
+      ElMessage.error(error.message);
+  }
+}
+async function testConnection(row) {
+  testingId.value = row.id;
+  try {
+    const info = unpack(await cmdbAPI.getDatabaseOverview(row.id));
+    health[row.id] = { type: "success", text: `${info.latencyMs} ms` };
+    ElMessage.success(`${row.name} 连接正常`);
+  } catch (error) {
+    health[row.id] = { type: "danger", text: "失败" };
+    ElMessage.error(error.message);
+  } finally {
+    testingId.value = 0;
+  }
+}
+function openWorkbench(row) {
+  router.push({ path: "/database/workbench", query: { id: row.id } });
+}
+onMounted(async () => {
+  try {
+    await loadDependencies();
+    await loadList();
+  } catch (error) {
+    ElMessage.error(error.message);
+  }
+});
 </script>
 
 <style scoped>
-.cmdb-db-management { padding: 20px; min-height: 100vh; background: var(--bg-page); }
-.db-card { border-radius: var(--radius-lg); }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.card-header .title { font-size: 18px; font-weight: 600; color: var(--text-primary); }
-.search-section { background: var(--bg-card-alt); padding: 16px 20px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border-light); }
-.action-section { margin-bottom: 16px; }
-.table-section { margin-bottom: 16px; }
-.db-name-container { display: flex; align-items: center; gap: 8px; }
-.db-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
-.db-name-link { font-weight: 600; color: var(--primary); }
-.operation-buttons { display: flex; gap: 8px; justify-content: center; }
-.pagination-section { display: flex; justify-content: center; margin-top: 20px; }
+.filters .source-group-filter { width: 230px; }
+.database-page {
+  padding: 22px;
+}
+.page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 30px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-card-alt));
+}
+.page-hero h1 {
+  margin: 2px 0 8px;
+  color: var(--text-primary);
+  font-size: 28px;
+}
+.page-hero p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.eyebrow {
+  font-size: 11px !important;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--primary) !important;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 16px 0;
+}
+.summary-grid article {
+  padding: 17px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+.summary-grid span,
+.cell-subtitle {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.summary-grid strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-primary);
+  font-size: 23px;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.filters {
+  display: flex;
+  gap: 10px;
+}
+.filters .el-input {
+  width: 230px;
+}
+.filters .el-select {
+  width: 170px;
+}
+.database-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.database-name strong,
+.database-name small {
+  display: block;
+}
+.database-name small {
+  max-width: 220px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.type-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+.type-1 {
+  background: #1876d2;
+}
+.type-2 {
+  background: #355b91;
+}
+.type-3 {
+  background: #d8343a;
+}
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+.source-form {
+  margin-top: 20px;
+}
+@media (max-width: 900px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page-hero {
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .filters {
+    flex-wrap: wrap;
+  }
+}
 </style>

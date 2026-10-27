@@ -1,6 +1,6 @@
 <template>
   <el-dialog 
-    title="选择执行主机" 
+    :title='$tr("选择执行主机")' 
     v-model="visible"
     width="70%"
   >
@@ -21,7 +21,7 @@
             <span>
               <el-icon v-if="node.expanded" style="margin-right: 5px"><FolderOpened /></el-icon>
               <el-icon v-else style="margin-right: 5px"><Folder /></el-icon>
-              {{ node.label }}
+              {{ $tr(node.label) }}
             </span>
           </template>
         </el-tree>
@@ -43,7 +43,7 @@
           />
           <el-table-column
             prop="name"
-            label="主机名称"
+            :label='$tr("主机名称")'
             width="150"
           >
             <template #default="{row}">
@@ -55,7 +55,7 @@
           </el-table-column>
           <el-table-column
             prop="privateIp"
-            label="内网IP"
+            :label='$tr("内网IP")'
             width="120"
           >
             <template #default="{row}">
@@ -67,7 +67,7 @@
           </el-table-column>
           <el-table-column
             prop="publicIp"
-            label="外网IP"
+            :label='$tr("外网IP")'
             width="120"
           >
             <template #default="{row}">
@@ -79,12 +79,12 @@
           </el-table-column>
           <el-table-column
             prop="os"
-            label="操作系统"
+            :label='$tr("操作系统")'
             width="180"
           />
           <el-table-column
             prop="remark"
-            label="备注"
+            :label='$tr("备注")'
           />
         </el-table>
         <div class="pagination">
@@ -101,11 +101,11 @@
       </div>
     </div>
     <template #footer>
-      <el-button @click="close">关闭</el-button>
+      <el-button @click="close">{{ $tr("关闭") }}</el-button>
       <el-button 
         type="primary" 
         @click="confirmSelection"
-      >添加选中主机</el-button>
+      >{{ $tr("添加选中主机") }}</el-button>
     </template>
   </el-dialog>
 </template>

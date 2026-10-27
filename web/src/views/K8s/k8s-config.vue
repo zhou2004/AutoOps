@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -182,7 +184,7 @@ const fetchConfigMapList = async () => {
     }
   } catch (error) {
     console.error('获取 ConfigMap 列表失败:', error)
-    ElMessage.error('获取 ConfigMap 列表失败，请检查网络连接')
+    ElMessage.error(tr('获取 ConfigMap 列表失败，请检查网络连接'))
     configMapList.value = []
   }
 }
@@ -210,7 +212,7 @@ const fetchSecretList = async () => {
     }
   } catch (error) {
     console.error('获取 Secret 列表失败:', error)
-    ElMessage.error('获取 Secret 列表失败，请检查网络连接')
+    ElMessage.error(tr('获取 Secret 列表失败，请检查网络连接'))
     secretList.value = []
   }
 }
@@ -223,11 +225,11 @@ const handleRefresh = () => {
 // ConfigMap 操作
 const handleCreateConfigMap = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
 
@@ -262,11 +264,11 @@ const handleViewConfigMap = async (row) => {
       currentConfigMapForDetail.value = responseData.data || row
       configMapDetailDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 ConfigMap 详情失败')
+      ElMessage.error(responseData.message || tr('获取 ConfigMap 详情失败'))
     }
   } catch (error) {
     console.error('获取 ConfigMap 详情失败:', error)
-    ElMessage.error('获取 ConfigMap 详情失败')
+    ElMessage.error(tr('获取 ConfigMap 详情失败'))
   }
 }
 
@@ -294,11 +296,11 @@ const handleEditConfigMapYaml = async (row) => {
       currentConfigMapForDetail.value = row
       configMapYamlDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 ConfigMap YAML 失败')
+      ElMessage.error(responseData.message || tr('获取 ConfigMap YAML 失败'))
     }
   } catch (error) {
     console.error('获取 ConfigMap YAML 失败:', error)
-    ElMessage.error('获取 ConfigMap YAML 失败')
+    ElMessage.error(tr('获取 ConfigMap YAML 失败'))
   } finally {
     loading.value = false
   }
@@ -330,7 +332,7 @@ const handleConfigMapYamlSave = async (data) => {
     }
   } catch (error) {
     console.error('ConfigMap 操作失败:', error)
-    ElMessage.error('ConfigMap 操作失败')
+    ElMessage.error(tr('ConfigMap 操作失败'))
   }
 }
 
@@ -339,10 +341,10 @@ const handleDeleteConfigMap = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确认删除 ConfigMap "${row?.name}"？删除后相关配置将无法恢复。`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确认删除'),
+        cancelButtonText: tr('取消'),
         type: 'warning',
         confirmButtonClass: 'el-button--danger'
       }
@@ -352,7 +354,7 @@ const handleDeleteConfigMap = async (row) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('ConfigMap 删除成功')
+      ElMessage.success(tr('ConfigMap 删除成功'))
       fetchConfigMapList()
     } else {
       ElMessage.error(responseData.message || 'ConfigMap 删除失败')
@@ -360,7 +362,7 @@ const handleDeleteConfigMap = async (row) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除 ConfigMap 失败:', error)
-      ElMessage.error('删除 ConfigMap 失败')
+      ElMessage.error(tr('删除 ConfigMap 失败'))
     }
   }
 }
@@ -368,11 +370,11 @@ const handleDeleteConfigMap = async (row) => {
 // Secret 操作
 const handleCreateSecret = () => {
   if (!selectedClusterId.value) {
-    ElMessage.warning('请先选择集群')
+    ElMessage.warning(tr('请先选择集群'))
     return
   }
   if (!queryParams.namespace) {
-    ElMessage.warning('请先选择命名空间')
+    ElMessage.warning(tr('请先选择命名空间'))
     return
   }
 
@@ -413,11 +415,11 @@ const handleViewSecret = async (row) => {
       visibleSecretKeys.value = {}
       secretDetailDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Secret 详情失败')
+      ElMessage.error(responseData.message || tr('获取 Secret 详情失败'))
     }
   } catch (error) {
     console.error('获取 Secret 详情失败:', error)
-    ElMessage.error('获取 Secret 详情失败')
+    ElMessage.error(tr('获取 Secret 详情失败'))
   }
 }
 
@@ -478,11 +480,11 @@ const handleEditSecretYaml = async (row) => {
       currentSecretForDetail.value = row
       secretYamlDialogVisible.value = true
     } else {
-      ElMessage.error(responseData.message || '获取 Secret YAML 失败')
+      ElMessage.error(responseData.message || tr('获取 Secret YAML 失败'))
     }
   } catch (error) {
     console.error('获取 Secret YAML 失败:', error)
-    ElMessage.error('获取 Secret YAML 失败')
+    ElMessage.error(tr('获取 Secret YAML 失败'))
   } finally {
     loading.value = false
   }
@@ -514,7 +516,7 @@ const handleSecretYamlSave = async (data) => {
     }
   } catch (error) {
     console.error('Secret 操作失败:', error)
-    ElMessage.error('Secret 操作失败')
+    ElMessage.error(tr('Secret 操作失败'))
   }
 }
 
@@ -523,10 +525,10 @@ const handleDeleteSecret = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确认删除 Secret "${row?.name}"？删除后敏感数据将无法恢复。`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确认删除'),
+        cancelButtonText: tr('取消'),
         type: 'warning',
         confirmButtonClass: 'el-button--danger'
       }
@@ -536,7 +538,7 @@ const handleDeleteSecret = async (row) => {
     const responseData = response.data || response
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('Secret 删除成功')
+      ElMessage.success(tr('Secret 删除成功'))
       fetchSecretList()
     } else {
       ElMessage.error(responseData.message || 'Secret 删除失败')
@@ -544,7 +546,7 @@ const handleDeleteSecret = async (row) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除 Secret 失败:', error)
-      ElMessage.error('删除 Secret 失败')
+      ElMessage.error(tr('删除 Secret 失败'))
     }
   }
 }
@@ -622,7 +624,7 @@ onMounted(async () => {
     <el-card shadow="hover" class="config-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 配置管理</span>
+          <span class="title">{{ $tr("K8s 配置管理") }}</span>
           <div class="header-actions">
             <ClusterSelector
               v-model="selectedClusterId"
@@ -640,10 +642,10 @@ onMounted(async () => {
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :inline="true" class="search-form">
-          <el-form-item label="配置资源名称">
+          <el-form-item :label='$tr("配置资源名称")'>
             <el-input
               v-model="searchKeyword"
-              placeholder="请输入名称"
+              :placeholder='$tr("请输入名称")'
               clearable
               size="small"
               style="width: 200px"
@@ -652,10 +654,10 @@ onMounted(async () => {
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="resetSearch">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="handleRefresh">
-              刷新
+              {{ $tr("刷新") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -667,9 +669,9 @@ onMounted(async () => {
         <el-tab-pane label="ConfigMap" name="configmap">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ cmTotal }} 个 ConfigMap</span>
+              <span class="resource-count">{{ $tr("共") }} {{ cmTotal }} {{ $tr("个 ConfigMap") }}</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreateConfigMap">
-                创建 ConfigMap
+                {{ $tr("创建 ConfigMap") }}
               </el-button>
             </div>
 
@@ -678,9 +680,9 @@ onMounted(async () => {
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
-              empty-text="暂无 ConfigMap 资源"
+              :empty-text='$tr("暂无 ConfigMap 资源")'
             >
-              <el-table-column prop="name" label="名称" min-width="150">
+              <el-table-column prop="name" :label='$tr("名称")' min-width="150">
                 <template #default="{ row }">
                   <div class="resource-name">
                     <el-icon class="resource-icon"><Setting /></el-icon>
@@ -689,7 +691,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column prop="namespace" label="命名空间" width="120">
+              <el-table-column prop="namespace" :label='$tr("命名空间")' width="120">
                 <template #default="{ row }">
                   <el-tag size="small" type="info">
                     {{ row?.namespace || '-' }}
@@ -697,7 +699,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="数据键" min-width="200">
+              <el-table-column :label='$tr("数据键")' min-width="200">
                 <template #default="{ row }">
                   <div class="data-keys">
                     <span class="keys-text">{{ formatDataKeys(row?.data) }}</span>
@@ -705,7 +707,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="标签" min-width="200">
+              <el-table-column :label='$tr("标签")' min-width="200">
                 <template #default="{ row }">
                   <div class="labels-info">
                     <template v-if="row?.labels && Object.keys(row.labels).length > 0">
@@ -741,21 +743,21 @@ onMounted(async () => {
                         </div>
                       </el-popover>
                     </template>
-                    <span v-else class="no-labels">无标签</span>
+                    <span v-else class="no-labels">{{ $tr("无标签") }}</span>
                   </div>
                 </template>
               </el-table-column>
 
-              <el-table-column prop="createdTime" label="创建时间" width="180">
+              <el-table-column prop="createdTime" :label='$tr("创建时间")' width="180">
                 <template #default="{ row }">
                   <span>{{ row?.createdTime ? new Date(row?.createdTime).toLocaleString() : '-' }}</span>
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="160" fixed="right">
+              <el-table-column :label='$tr("操作")' width="160" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-tooltip content="编辑 YAML" placement="top">
+                    <el-tooltip :content='$tr("编辑 YAML")' placement="top">
                       <el-button
                         :icon="Edit"
                         size="small"
@@ -764,7 +766,7 @@ onMounted(async () => {
                         @click="handleEditConfigMapYaml(row)"
                       />
                     </el-tooltip>
-                    <el-tooltip content="删除" placement="top">
+                    <el-tooltip :content='$tr("删除")' placement="top">
                       <el-button
                         :icon="Delete"
                         size="small"
@@ -796,9 +798,9 @@ onMounted(async () => {
         <el-tab-pane label="Secret" name="secret">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ secretTotal }} 个 Secret</span>
+              <span class="resource-count">{{ $tr("共") }} {{ secretTotal }} {{ $tr("个 Secret") }}</span>
               <el-button type="primary" :icon="Plus" size="small" @click="handleCreateSecret">
-                创建 Secret
+                {{ $tr("创建 Secret") }}
               </el-button>
             </div>
 
@@ -807,9 +809,9 @@ onMounted(async () => {
               v-loading="loading"
               element-loading-text="加载中..."
               class="resource-table"
-              empty-text="暂无 Secret 资源"
+              :empty-text='$tr("暂无 Secret 资源")'
             >
-              <el-table-column prop="name" label="名称" min-width="150">
+              <el-table-column prop="name" :label='$tr("名称")' min-width="150">
                 <template #default="{ row }">
                   <div class="resource-name">
                     <el-icon class="resource-icon"><Key /></el-icon>
@@ -818,7 +820,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column prop="namespace" label="命名空间" width="120">
+              <el-table-column prop="namespace" :label='$tr("命名空间")' width="120">
                 <template #default="{ row }">
                   <el-tag size="small" type="info">
                     {{ row?.namespace || '-' }}
@@ -826,7 +828,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column prop="type" label="类型" width="150">
+              <el-table-column prop="type" :label='$tr("类型")' width="150">
                 <template #default="{ row }">
                   <el-tag
                     :type="getSecretTypeTag(row?.type)"
@@ -837,7 +839,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="数据键" min-width="200">
+              <el-table-column :label='$tr("数据键")' min-width="200">
                 <template #default="{ row }">
                   <div class="data-keys">
                     <span class="keys-text">
@@ -848,7 +850,7 @@ onMounted(async () => {
                 </template>
               </el-table-column>
 
-              <el-table-column label="标签" min-width="200">
+              <el-table-column :label='$tr("标签")' min-width="200">
                 <template #default="{ row }">
                   <div class="labels-info">
                     <template v-if="row?.labels && Object.keys(row.labels).length > 0">
@@ -884,21 +886,21 @@ onMounted(async () => {
                         </div>
                       </el-popover>
                     </template>
-                    <span v-else class="no-labels">无标签</span>
+                    <span v-else class="no-labels">{{ $tr("无标签") }}</span>
                   </div>
                 </template>
               </el-table-column>
 
-              <el-table-column prop="createdTime" label="创建时间" width="180">
+              <el-table-column prop="createdTime" :label='$tr("创建时间")' width="180">
                 <template #default="{ row }">
                   <span>{{ row?.createdTime ? new Date(row?.createdTime).toLocaleString() : '-' }}</span>
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="160" fixed="right">
+              <el-table-column :label='$tr("操作")' width="160" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-tooltip content="编辑 YAML" placement="top">
+                    <el-tooltip :content='$tr("编辑 YAML")' placement="top">
                       <el-button
                         :icon="Edit"
                         size="small"
@@ -907,7 +909,7 @@ onMounted(async () => {
                         @click="handleEditSecretYaml(row)"
                       />
                     </el-tooltip>
-                    <el-tooltip content="删除" placement="top">
+                    <el-tooltip :content='$tr("删除")' placement="top">
                       <el-button
                         :icon="Delete"
                         size="small"
@@ -940,18 +942,18 @@ onMounted(async () => {
     <!-- ConfigMap 详情对话框 -->
     <el-dialog
       v-model="configMapDetailDialogVisible"
-      title="ConfigMap 详情"
+      :title='$tr("ConfigMap 详情")'
       width="70%"
       class="detail-dialog"
     >
       <div class="detail-content">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="名称">{{ currentConfigMapForDetail.name }}</el-descriptions-item>
-          <el-descriptions-item label="命名空间">{{ currentConfigMapForDetail.namespace }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间" :span="2">
+          <el-descriptions-item :label='$tr("名称")'>{{ currentConfigMapForDetail.name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("命名空间")'>{{ currentConfigMapForDetail.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("创建时间")' :span="2">
             {{ currentConfigMapForDetail.createdTime ? new Date(currentConfigMapForDetail.createdTime).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="标签" :span="2">
+          <el-descriptions-item :label='$tr("标签")' :span="2">
             <div class="labels-info">
               <el-tag
                 v-for="(value, key) in (currentConfigMapForDetail.labels || {})"
@@ -962,13 +964,13 @@ onMounted(async () => {
               >
                 {{ key }}={{ value }}
               </el-tag>
-              <span v-if="!currentConfigMapForDetail.labels || Object.keys(currentConfigMapForDetail.labels).length === 0">无标签</span>
+              <span v-if="!currentConfigMapForDetail.labels || Object.keys(currentConfigMapForDetail.labels).length === 0">{{ $tr("无标签") }}</span>
             </div>
           </el-descriptions-item>
         </el-descriptions>
 
         <div v-if="currentConfigMapForDetail.data" class="data-section">
-          <h4 class="section-title">配置数据</h4>
+          <h4 class="section-title">{{ $tr("配置数据") }}</h4>
           <div class="data-list">
             <div
               v-for="(value, key) in currentConfigMapForDetail.data"
@@ -986,15 +988,15 @@ onMounted(async () => {
     <!-- Secret 详情对话框 -->
     <el-dialog
       v-model="secretDetailDialogVisible"
-      title="Secret 详情"
+      :title='$tr("Secret 详情")'
       width="70%"
       class="detail-dialog"
     >
       <div class="detail-content">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="名称">{{ currentSecretForDetail.name }}</el-descriptions-item>
-          <el-descriptions-item label="命名空间">{{ currentSecretForDetail.namespace }}</el-descriptions-item>
-          <el-descriptions-item label="类型">
+          <el-descriptions-item :label='$tr("名称")'>{{ currentSecretForDetail.name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("命名空间")'>{{ currentSecretForDetail.namespace }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("类型")'>
             <el-tag
               :type="getSecretTypeTag(currentSecretForDetail.type)"
               size="small"
@@ -1002,10 +1004,10 @@ onMounted(async () => {
               {{ formatSecretType(currentSecretForDetail.type) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">
+          <el-descriptions-item :label='$tr("创建时间")'>
             {{ currentSecretForDetail.createdTime ? new Date(currentSecretForDetail.createdTime).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="标签" :span="2">
+          <el-descriptions-item :label='$tr("标签")' :span="2">
             <div class="labels-info">
               <el-tag
                 v-for="(value, key) in (currentSecretForDetail.labels || {})"
@@ -1016,7 +1018,7 @@ onMounted(async () => {
               >
                 {{ key }}={{ value }}
               </el-tag>
-              <span v-if="!currentSecretForDetail.labels || Object.keys(currentSecretForDetail.labels).length === 0">无标签</span>
+              <span v-if="!currentSecretForDetail.labels || Object.keys(currentSecretForDetail.labels).length === 0">{{ $tr("无标签") }}</span>
             </div>
           </el-descriptions-item>
         </el-descriptions>
@@ -1024,7 +1026,7 @@ onMounted(async () => {
         <div v-if="currentSecretForDetail.data" class="data-section">
           <h4 class="section-title">
             <el-icon class="secret-icon"><Lock /></el-icon>
-            敏感数据
+            {{ $tr("敏感数据") }}
           </h4>
           <div class="data-list">
             <div

@@ -131,7 +131,7 @@ const transitionMain = defineComponent({
               }"
             >
               <el-backtop
-                title="回到顶部"
+                :title='$tr("回到顶部")'
                 target=".app-main .el-scrollbar__wrap"
               >
                 <BackTopIcon />
@@ -146,7 +146,7 @@ const transitionMain = defineComponent({
                       :is="Comp"
                       :key="fullPath"
                       :frameInfo="frameInfo"
-                      class="main-content"
+                      :class="['main-content', { 'app-page-content': route.meta.uiLayout !== 'canvas' }]"
                     />
                   </keep-alive>
                   <component
@@ -154,7 +154,7 @@ const transitionMain = defineComponent({
                     v-else
                     :key="fullPath"
                     :frameInfo="frameInfo"
-                    class="main-content"
+                    :class="['main-content', { 'app-page-content': route.meta.uiLayout !== 'canvas' }]"
                   />
                 </transitionMain>
               </div>
@@ -170,7 +170,7 @@ const transitionMain = defineComponent({
                     :is="Comp"
                     :key="fullPath"
                     :frameInfo="frameInfo"
-                    class="main-content"
+                    :class="['main-content', { 'app-page-content': route.meta.uiLayout !== 'canvas' }]"
                   />
                 </keep-alive>
                 <component
@@ -178,7 +178,7 @@ const transitionMain = defineComponent({
                   v-else
                   :key="fullPath"
                   :frameInfo="frameInfo"
-                  class="main-content"
+                  :class="['main-content', { 'app-page-content': route.meta.uiLayout !== 'canvas' }]"
                 />
               </transitionMain>
             </div>
@@ -208,6 +208,6 @@ const transitionMain = defineComponent({
 }
 
 .main-content {
-  margin: 24px;
+  margin: 0;
 }
 </style>

@@ -113,21 +113,21 @@ function onNodeClick(node) {
 
       <Panel class="process-panel" position="top-right">
         <div class="layout-panel">
-          <button v-if="isRunning" class="stop-btn" title="停止" @click="stop">
+          <el-button v-if="isRunning" type="danger" class="stop-btn" :title='$tr("停止")' @click="stop">
             <span class="spinner" />
-            停止
-          </button>
-          <button v-else title="开始" @click="run(nodes)">
-            开始
-          </button>
+            {{ $tr("停止") }}
+          </el-button>
+          <el-button v-else type="primary" :title='$tr("开始")' @click="run(nodes)">
+            {{ $tr("开始") }}
+          </el-button>
 
-          <button title="水平布局" @click="layoutGraph('LR')">
-            水平
-          </button>
+          <el-button :title='$tr("水平布局")' @click="layoutGraph('LR')">
+            {{ $tr("水平") }}
+          </el-button>
 
-          <button title="垂直布局" @click="layoutGraph('TB')">
-            垂直
-          </button>
+          <el-button :title='$tr("垂直布局")' @click="layoutGraph('TB')">
+            {{ $tr("垂直") }}
+          </el-button>
         </div>
       </Panel>
     </VueFlow>
@@ -135,11 +135,11 @@ function onNodeClick(node) {
     <!-- 日志弹窗 -->
     <div v-if="showLogs" class="log-modal" @click.self="showLogs = false">
       <div class="log-content">
-        <h3>{{ selectedNode?.data?.label }}</h3>
+        <h3>{{ $tr(selectedNode?.data?.label) }}</h3>
         <div class="log-text">
           {{ selectedNode?.data?.logs }}
         </div>
-        <button class="close-btn" @click="showLogs = false">关闭</button>
+        <el-button class="close-btn" @click="showLogs = false">{{ $tr("关闭") }}</el-button>
       </div>
     </div>
   </div>

@@ -26,14 +26,10 @@ type CmdbGroupServiceImpl struct{}
 // 新增分组
 func (s CmdbGroupServiceImpl) CreateCmdbGroup(c *gin.Context, group model.CmdbGroup) {
 	dao := dao.NewCmdbGroupDao()
-	if dao.CheckNameExists(group.Name) {
-		result.FailedWithCode(c, constant.GROUP_EXIST, "分组已存在无法创建")
-		return
-	}
 	group.CreateTime = util.HTime{Time: time.Now()}
 	err := dao.CreateCmdbGroup(&group)
 	if err != nil {
-		result.Failed(c, constant.GROUP_EXIST, "创建分组失败")
+		result.Failed(c, constant.GROUP_EXIST, err.Error())
 		return
 	}
 	result.Success(c, true)
@@ -43,12 +39,12 @@ func (s CmdbGroupServiceImpl) CreateCmdbGroup(c *gin.Context, group model.CmdbGr
 func (s CmdbGroupServiceImpl) GetAllCmdbGroups(c *gin.Context) {
 	groupDao := dao.NewCmdbGroupDao()
 	hostDao := dao.NewCmdbHostDao()
-	
+
 	// 获取所有分组
-	groups := groupDao.GetCmdbGroupList()
+	groups := filterAllowedGroups(c, groupDao.GetCmdbGroupList())
 	// 获取所有主机
-	hosts := hostDao.GetCmdbHostList()
-	
+	hosts := filterGroupHosts(c, hostDao.GetCmdbHostList())
+
 	result.Success(c, model.BuildCmdbGroupTreeWithHostCount(groups, hosts))
 }
 
@@ -58,35 +54,35 @@ func (s CmdbGroupServiceImpl) GetAllCmdbGroupsWithHosts(c *gin.Context) {
 	hostDao := dao.NewCmdbHostDao()
 
 	// 获取所有分组
-	groups := groupDao.GetCmdbGroupList()
+	groups := filterAllowedGroups(c, groupDao.GetCmdbGroupList())
 	// 获取所有主机并转换为VO
-	hosts := hostDao.GetCmdbHostList()
+	hosts := filterGroupHosts(c, hostDao.GetCmdbHostList())
 	var hostVos []model.CmdbHostVo
 	for _, host := range hosts {
 		hostVos = append(hostVos, model.CmdbHostVo{
-			ID:         host.ID,
-			HostName:   host.HostName,
-			Name:       host.Name,
-			GroupID:    host.GroupID,
-			PrivateIP:  host.PrivateIP,
-			PublicIP:   host.PublicIP,
-			SSHIP:      host.SSHIP,
-			SSHName:    host.SSHName,
-			SSHKeyID:   host.SSHKeyID,
-			SSHPort:    host.SSHPort,
-			Remark:     host.Remark,
-			Vendor:     getVendorName(host.Vendor),
-			Region:     host.Region,
-			InstanceID: host.InstanceID,
-			OS:         host.OS,
-			Status:     host.Status,
-			CPU:        host.CPU,
-			Memory:     host.Memory,
-			Disk:       host.Disk,
+			ID:          host.ID,
+			HostName:    host.HostName,
+			Name:        host.Name,
+			GroupID:     host.GroupID,
+			PrivateIP:   host.PrivateIP,
+			PublicIP:    host.PublicIP,
+			SSHIP:       host.SSHIP,
+			SSHName:     host.SSHName,
+			SSHKeyID:    host.SSHKeyID,
+			SSHPort:     host.SSHPort,
+			Remark:      host.Remark,
+			Vendor:      host.Vendor,
+			Region:      host.Region,
+			InstanceID:  host.InstanceID,
+			OS:          host.OS,
+			Status:      host.Status,
+			CPU:         host.CPU,
+			Memory:      host.Memory,
+			Disk:        host.Disk,
 			BillingType: host.BillingType,
-			CreateTime: host.CreateTime,
-			ExpireTime: host.ExpireTime,
-			UpdateTime: host.UpdateTime,
+			CreateTime:  host.CreateTime,
+			ExpireTime:  host.ExpireTime,
+			UpdateTime:  host.UpdateTime,
 		})
 	}
 
@@ -137,6 +133,11 @@ func (s CmdbGroupServiceImpl) GetCmdbGroupByName(c *gin.Context, name string) {
 		result.Failed(c, constant.GROUP_EXIST, "查询分组失败")
 		return
 	}
+	if scope := assetIDScope(c); scope != nil && !scope[group.ID] {
+		result.Failed(c, 403, "您没有该分组的访问权限")
+		return
+	}
+	group.Hosts = nil
 	result.Success(c, group)
 }
 

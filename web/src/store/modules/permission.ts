@@ -1,3 +1,4 @@
+import { filterPlatformMenus } from "@/utils/platformAccess";
 import { defineStore } from "pinia";
 import {
   type cacheType,
@@ -28,7 +29,7 @@ export const usePermissionStore = defineStore("pure-permission", {
       // 直接用 constantMenus 构建菜单，不通过 filterNoPermissionTree
       // （菜单权限由后端登录接口返回的 leftMenuList 控制）
       const merged = ascending(this.constantMenus.concat(routes));
-      this.wholeMenus = filterTree(merged);
+      this.wholeMenus = filterTree(filterPlatformMenus(merged));
       this.flatteningRoutes = formatFlatteningRoutes(
         this.constantMenus.concat(routes) as any
       );

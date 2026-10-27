@@ -27,16 +27,12 @@ type APIEndpointServiceInterface interface {
 }
 
 type APIEndpointServiceImpl struct {
-	dao          *dao.APIEndpointDao
-	incidentDao  *dao.IncidentDao
-	alertService AlertServiceInterface
+	dao *dao.APIEndpointDao
 }
 
 func NewAPIEndpointService() APIEndpointServiceInterface {
 	return &APIEndpointServiceImpl{
-		dao:          dao.NewAPIEndpointDao(),
-		incidentDao:  dao.NewIncidentDao(),
-		alertService: NewAlertService(),
+		dao: dao.NewAPIEndpointDao(),
 	}
 }
 
@@ -59,6 +55,13 @@ func (s *APIEndpointServiceImpl) GetByID(c *gin.Context, id uint) {
 }
 
 func (s *APIEndpointServiceImpl) Add(c *gin.Context, req *model.APIEndpointAddReq) {
+	if err := dao.NewMonitorCategoryDao().Validate("api_endpoint", req.CategoryID); err != nil {
+		result.Failed(c, 400, err.Error())
+		return
+	}
+	if strings.TrimSpace(req.Headers) == "" {
+		req.Headers = "{}"
+	}
 	if req.Method == "" {
 		req.Method = "GET"
 	}
@@ -73,6 +76,7 @@ func (s *APIEndpointServiceImpl) Add(c *gin.Context, req *model.APIEndpointAddRe
 	}
 	now := time.Now().Format("2006-01-02 15:04:05")
 	m := &model.MonitorAPIEndpoint{
+		CategoryID:    req.CategoryID,
 		Name:          req.Name,
 		URL:           req.URL,
 		Method:        strings.ToUpper(req.Method),
@@ -90,15 +94,25 @@ func (s *APIEndpointServiceImpl) Add(c *gin.Context, req *model.APIEndpointAddRe
 		return
 	}
 	s.checkEndpointInternal(m)
-	s.dao.Update(m)
+	if err := s.dao.UpdateCheck(m); err != nil {
+		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+		return
+	}
 	result.Success(c, m)
 }
 
 func (s *APIEndpointServiceImpl) Update(c *gin.Context, req *model.APIEndpointUpdateReq) {
+	if err := dao.NewMonitorCategoryDao().Validate("api_endpoint", req.CategoryID); err != nil {
+		result.Failed(c, 400, err.Error())
+		return
+	}
 	m, err := s.dao.GetByID(req.ID)
 	if err != nil {
 		result.Failed(c, 404, "未找到该记录")
 		return
+	}
+	if strings.TrimSpace(req.Headers) == "" {
+		req.Headers = "{}"
 	}
 	if req.Method == "" {
 		req.Method = "GET"
@@ -112,6 +126,7 @@ func (s *APIEndpointServiceImpl) Update(c *gin.Context, req *model.APIEndpointUp
 	if req.ExpectedCode <= 0 {
 		req.ExpectedCode = 200
 	}
+	m.CategoryID = req.CategoryID
 	m.Name = req.Name
 	m.URL = req.URL
 	m.Method = strings.ToUpper(req.Method)
@@ -129,7 +144,10 @@ func (s *APIEndpointServiceImpl) Update(c *gin.Context, req *model.APIEndpointUp
 }
 
 func (s *APIEndpointServiceImpl) Delete(c *gin.Context, id uint) {
-	s.dao.Delete(id)
+	if err := s.dao.Delete(id); err != nil {
+		result.Failed(c, 500, "删除失败: "+err.Error())
+		return
+	}
 	result.Success(c, nil)
 }
 
@@ -138,7 +156,10 @@ func (s *APIEndpointServiceImpl) BatchDelete(c *gin.Context, ids []uint) {
 		result.Failed(c, 400, "请选择要删除的记录")
 		return
 	}
-	s.dao.BatchDelete(ids)
+	if err := s.dao.BatchDelete(ids); err != nil {
+		result.Failed(c, 500, "批量删除失败: "+err.Error())
+		return
+	}
 	result.Success(c, nil)
 }
 
@@ -149,7 +170,10 @@ func (s *APIEndpointServiceImpl) CheckEndpoint(c *gin.Context, id uint) {
 		return
 	}
 	s.checkEndpointInternal(m)
-	s.dao.Update(m)
+	if err := s.dao.UpdateCheck(m); err != nil {
+		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+		return
+	}
 	result.Success(c, m)
 }
 
@@ -161,7 +185,10 @@ func (s *APIEndpointServiceImpl) CheckAllEndpoints(c *gin.Context) {
 	}
 	for i := range list {
 		s.checkEndpointInternal(&list[i])
-		s.dao.Update(&list[i])
+		if err := s.dao.UpdateCheck(&list[i]); err != nil {
+			result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+			return
+		}
 	}
 	result.Success(c, map[string]interface{}{"total": len(list)})
 }

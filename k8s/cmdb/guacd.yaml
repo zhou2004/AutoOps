@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoops-guacd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoops-guacd
+  template:
+    metadata:
+      labels:
+        app: autoops-guacd
+    spec:
+      containers:
+        - name: guacd
+          image: guacamole/guacd:1.6.0
+          ports:
+            - name: guacd
+              containerPort: 4822
+          env:
+            - name: GUACD_LOG_LEVEL
+              value: warning
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: guacd
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoops-guacd
+spec:
+  type: ClusterIP
+  selector:
+    app: autoops-guacd
+  ports:
+    - name: guacd
+      port: 4822
+      targetPort: guacd
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: autoops-guacd-api-only
+spec:
+  podSelector:
+    matchLabels:
+      app: autoops-guacd
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              io.kompose.service: devops-api
+      ports:
+        - protocol: TCP
+          port: 4822

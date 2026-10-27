@@ -1,0 +1,13 @@
+[Unit]
+Description=AutoOps managed MySQL
+After=network.target
+[Service]
+Type=simple
+User={{ mysql_user }}
+Group={{ mysql_group }}
+ExecStart={{ mysql_install_dir }}/bin/mysqld --defaults-file={{ mysql_config_path }}
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target

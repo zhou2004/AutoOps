@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoops-harness
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: autoops-harness}
+  template:
+    metadata:
+      labels: {app: autoops-harness}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: harness
+          image: autoops-harness:0.2.1rc2
+          ports: [{containerPort: 8091}]
+          env:
+            - name: AIOPS_HARNESS_SECRET
+              valueFrom:
+                secretKeyRef: {name: autoops-harness, key: shared-secret}
+            - name: AUTOOPS_CALLBACK_URL
+              value: http://devops-api:8000
+          resources:
+            requests: {cpu: 250m, memory: 256Mi}
+            limits: {cpu: "2", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          readinessProbe:
+            httpGet: {path: /health, port: 8091}
+          volumeMounts:
+            - {name: runtime, mountPath: /tmp}
+      volumes:
+        - name: runtime
+          emptyDir: {sizeLimit: 512Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoops-harness
+spec:
+  selector: {app: autoops-harness}
+  ports: [{port: 8091, targetPort: 8091}]

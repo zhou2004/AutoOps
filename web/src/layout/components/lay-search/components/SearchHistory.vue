@@ -141,7 +141,7 @@ defineExpose({ handleScroll });
 <template>
   <div ref="historyRef" class="history">
     <template v-if="historyList.length">
-      <div :style="titleStyle">搜索历史</div>
+      <div :style="titleStyle">{{ $tr("搜索历史") }}</div>
       <div
         v-for="(item, index) in historyList"
         :key="item.path"

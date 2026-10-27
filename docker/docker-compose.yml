@@ -61,8 +61,11 @@ services:
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
+      AUTOOPS_JWT_SECRET: ${AUTOOPS_JWT_SECRET:-}
       TZ: ${TZ:-Asia/Shanghai}
       # 传递环境变量到容器(供应用读取)
+      AIOPS_KEY_FILE: /app/data/aiops.key
+      AIOPS_ENCRYPTION_KEY: ${AIOPS_ENCRYPTION_KEY:-}
       IMAGE_HOST: ${IMAGE_HOST:-http://localhost:8080}
       DB_HOST: ${DB_HOST:-mysql}
       DB_PORT: ${DB_PORT:-3306}
@@ -72,6 +75,7 @@ services:
       REDIS_ADDR: ${REDIS_ADDR:-redis:6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-zhangfan@123}
     volumes:
+      - aiops-state:/app/data
       # Configuration file
       - ./api/config.yaml:/app/config.yaml
       # Logs directory
@@ -129,5 +133,6 @@ networks:
         - subnet: 172.20.0.0/16
 
 volumes:
+  aiops-state:
   mysql-data:
   redis-data:

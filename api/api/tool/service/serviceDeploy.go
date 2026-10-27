@@ -90,6 +90,11 @@ func (s ServiceDeployServiceImpl) GetServiceDetail(c *gin.Context, serviceID str
 
 // CreateDeploy 创建部署任务
 func (s ServiceDeployServiceImpl) CreateDeploy(c *gin.Context, dto toolModel.CreateDeployDto) {
+	if dto.ServiceID == "mysql" || dto.ServiceID == "postgresql" || dto.ServiceID == "redis" {
+		result.Failed(c, 400, "数据库安装已迁移至 Ansible，请使用数据库部署入口")
+		return
+	}
+
 	// 参数校验
 	err := validator.New().Struct(dto)
 	if err != nil {

@@ -1,0 +1,86 @@
+---
+- name: Back up managed databases
+  hosts: mysql_nodes
+  become: true
+  gather_facts: false
+  vars_files: [../defaults.yml]
+  vars:
+    backup_dir: '/var/backups/autoops/{{ database_name }}/{{ database_run_id }}'
+  tasks:
+    - name: Create private backup directory
+      ansible.builtin.file:
+        path: '{{ backup_dir }}'
+        state: directory
+        mode: '0700'
+    - name: Back up MySQL with consistent transaction and replication coordinates
+      when: database_engine == 'mysql'
+      block:
+        - name: Write temporary client credentials
+          ansible.builtin.copy:
+            dest: '{{ backup_dir }}/client.cnf'
+            content: |
+              [client]
+              user=root
+              password={{ database_password }}
+              host=127.0.0.1
+              port={{ database_port }}
+            mode: '0600'
+          no_log: true
+        - name: Dump MySQL
+          ansible.builtin.command:
+            argv:
+              - '{{ mysql_install_dir }}/bin/mysqldump'
+              - '--defaults-extra-file={{ backup_dir }}/client.cnf'
+              - --all-databases
+              - --single-transaction
+              - --quick
+              - --routines
+              - --triggers
+              - --events
+              - --hex-blob
+              - --flush-privileges
+              - '--result-file={{ backup_dir }}/mysql.sql'
+          no_log: true
+      always:
+        - name: Remove temporary MySQL credentials
+          ansible.builtin.file:
+            path: '{{ backup_dir }}/client.cnf'
+            state: absent
+    - name: Back up PostgreSQL
+      when: database_engine == 'postgresql'
+      block:
+        - name: Dump all PostgreSQL databases and roles
+          ansible.builtin.command:
+            argv: [pg_dumpall, -h, 127.0.0.1, -p, '{{ database_port | string }}', -U, postgres, '-f', '{{ backup_dir }}/postgresql.sql']
+          environment:
+            PGPASSWORD: '{{ database_password }}'
+          no_log: true
+    - name: Back up Redis RDB
+      ansible.builtin.command:
+        argv: [redis-cli, -h, 127.0.0.1, -p, '{{ database_port | string }}', --rdb, '{{ backup_dir }}/redis.rdb']
+      environment:
+        REDISCLI_AUTH: '{{ database_password }}'
+      when: database_engine == 'redis'
+      no_log: true
+    - name: Find completed backup
+      ansible.builtin.find:
+        paths: '{{ backup_dir }}'
+        file_type: file
+      register: backup_files
+    - name: Require a nonempty backup
+      ansible.builtin.assert:
+        that: backup_files.files | length == 1 and backup_files.files[0].size > 0
+    - name: Restrict backup permissions
+      ansible.builtin.file:
+        path: '{{ backup_files.files[0].path }}'
+        mode: '0600'
+    - name: Compute SHA256 backup digest
+      ansible.builtin.stat:
+        path: '{{ backup_files.files[0].path }}'
+        checksum_algorithm: sha256
+      register: backup_digest
+    - name: Write backup manifest
+      ansible.builtin.copy:
+        dest: '{{ backup_dir }}/manifest.json'
+        mode: '0600'
+        content: '{{ {"engine": database_engine, "file": backup_files.files[0].path, "size": backup_files.files[0].size, "sha256": backup_digest.stat.checksum} | to_nice_json }}'

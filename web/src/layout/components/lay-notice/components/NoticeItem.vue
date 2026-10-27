@@ -63,7 +63,7 @@ function hoverDescription(event, description) {
           popper-class="notice-title-popper"
           :effect="tooltipEffect"
           :disabled="!titleTooltip"
-          :content="noticeItem.title"
+          :content="$tr(noticeItem.title)"
           placement="top-start"
           :enterable="!isMobile"
         >
@@ -72,7 +72,7 @@ function hoverDescription(event, description) {
             class="notice-title-content"
             @mouseover="hoverTitle"
           >
-            {{ noticeItem.title }}
+            {{ $tr(noticeItem.title) }}
           </div>
         </el-tooltip>
         <el-tag
@@ -89,7 +89,7 @@ function hoverDescription(event, description) {
         popper-class="notice-title-popper"
         :effect="tooltipEffect"
         :disabled="!descriptionTooltip"
-        :content="noticeItem.description"
+        :content="$tr(noticeItem.description)"
         placement="top-start"
       >
         <div
@@ -97,7 +97,7 @@ function hoverDescription(event, description) {
           class="notice-text-description"
           @mouseover="hoverDescription($event, noticeItem.description)"
         >
-          {{ noticeItem.description }}
+          {{ $tr(noticeItem.description) }}
         </div>
       </el-tooltip>
       <div class="notice-text-datetime text-[#00000073] dark:text-white">

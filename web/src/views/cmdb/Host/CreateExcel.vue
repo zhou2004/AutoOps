@@ -1,24 +1,24 @@
 <template>
   <el-dialog
-    title="Excel导入主机"
+    :title='$tr("Excel导入主机")'
     v-model="dialogVisible"
     width="25%"
     @close="handleClose"
   >
     <el-form :model="form" label-width="120px">
       <!-- 模板下载 -->
-      <el-form-item label="模板下载">
+      <el-form-item :label='$tr("模板下载")'>
         <el-button
           type="primary"
           @click="downloadTemplate"
           :loading="downloading"
         >
-          <el-icon><Download /></el-icon>下载模板
+          <el-icon><Download /></el-icon>{{ $tr("下载模板") }}
         </el-button>
       </el-form-item>
 
       <!-- 选择分组 -->
-      <el-form-item label="选择分组" prop="groupId">
+      <el-form-item :label='$tr("选择分组")' prop="groupId">
         <el-cascader
           v-model="form.groupId"
           :options="groupList"
@@ -29,7 +29,7 @@
             children: 'children',
             disabled: (node) => node.children && node.children.length > 0
           }"
-          placeholder="请选择分组"
+          :placeholder='$tr("请选择分组")'
           style="width: 100%"
           clearable
           filterable
@@ -38,7 +38,7 @@
       </el-form-item>
 
       <!-- 上传Excel -->
-      <el-form-item label="上传Excel" prop="file">
+      <el-form-item :label='$tr("上传Excel")' prop="file">
         <el-upload
           class="upload-demo"
           :auto-upload="false"
@@ -47,10 +47,10 @@
           :show-file-list="false"
           accept=".xlsx,.xls"
         >
-          <el-button type="primary">选择文件</el-button>
+          <el-button type="primary">{{ $tr("选择文件") }}</el-button>
           <template #tip>
             <div class="el-upload__tip" v-if="form.file">
-              已选择: {{ form.file.name }}
+              {{ $tr("已选择:") }} {{ form.file.name }}
               <el-button
                 type="danger"
                 text
@@ -62,7 +62,7 @@
               />
             </div>
             <div class="el-upload__tip" style="color: #999; margin-top: 15px">
-              请上传Excel文件（.xlsx或.xls格式）
+              {{ $tr("请上传Excel文件（.xlsx或.xls格式）") }}
             </div>
           </template>
         </el-upload>
@@ -76,20 +76,22 @@
     </el-form>
 
     <template #footer>
-      <el-button @click="dialogVisible = false">取消</el-button>
+      <el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button>
       <el-button
         type="primary"
         @click="submitImport"
         :loading="uploading"
         :disabled="!form.file || !form.groupId"
       >
-        导入主机
+        {{ $tr("导入主机") }}
       </el-button>
     </template>
   </el-dialog>
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import { Download } from '@element-plus/icons-vue'
 
 export default {
@@ -142,7 +144,7 @@ export default {
         }
       } catch (error) {
         console.error('获取分组列表失败:', error)
-        this.$message.error('获取分组列表失败')
+        this.$message.error(tr('获取分组列表失败'))
       }
     },
 
@@ -175,10 +177,10 @@ export default {
         link.click()
         document.body.removeChild(link)
         
-        this.$message.success('模板下载成功')
+        this.$message.success(tr('模板下载成功'))
       } catch (error) {
         console.error('模板下载失败:', error)
-        this.$message.error('模板下载失败')
+        this.$message.error(tr('模板下载失败'))
       } finally {
         this.downloading = false
       }
@@ -197,10 +199,10 @@ export default {
     // 提交导入
     async submitImport() {
       if (!this.form.file) {
-        return this.$message.warning('请选择要上传的文件')
+        return this.$message.warning(tr('请选择要上传的文件'))
       }
       if (!this.form.groupId) {
-        return this.$message.warning('请选择分组')
+        return this.$message.warning(tr('请选择分组'))
       }
 
       this.uploading = true
@@ -220,15 +222,15 @@ export default {
         })
 
         if (res.code === 200) {
-          this.$message.success('导入成功')
+          this.$message.success(tr('导入成功'))
           this.dialogVisible = false
           this.$emit('success') // 通知父组件刷新数据
         } else {
-          this.$message.error(res.message || '导入失败')
+          this.$message.error(res.message || tr('导入失败'))
         }
       } catch (error) {
         console.error('导入失败:', error)
-        this.$message.error('导入失败')
+        this.$message.error(tr('导入失败'))
       } finally {
         this.uploading = false
       }

@@ -2,26 +2,26 @@
   <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.3s' }">
     <div class="section-title">
       <span class="title-bar"></span>
-      <span>📊 监控中心</span>
+      <span>{{ $tr("📊 监控中心") }}</span>
     </div>
 
     <!-- Top 5 排行 -->
     <div class="dashboard-grid dashboard-grid-3" style="margin-bottom:16px">
       <div class="stat-card">
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          <span class="status-dot danger"></span> CPU 使用率 TOP5
+          <span class="status-dot danger"></span> {{ $tr("CPU 使用率 TOP5") }}
         </div>
         <BaseChart :option="cpuOption" size="sm" />
       </div>
       <div class="stat-card">
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          <span class="status-dot warning"></span> 内存使用率 TOP5
+          <span class="status-dot warning"></span> {{ $tr("内存使用率 TOP5") }}
         </div>
         <BaseChart :option="memOption" size="sm" />
       </div>
       <div class="stat-card">
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          <span class="status-dot info"></span> 磁盘使用率 TOP5
+          <span class="status-dot info"></span> {{ $tr("磁盘使用率 TOP5") }}
         </div>
         <BaseChart :option="diskOption" size="sm" />
       </div>
@@ -30,11 +30,11 @@
     <!-- 网络 & 服务 -->
     <div class="dashboard-grid dashboard-grid-2">
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">🌐 网络延迟与吞吐</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("🌐 网络延迟与吞吐") }}</div>
         <BaseChart :option="networkOption" size="sm" />
       </div>
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">🔄 服务响应与错误率</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("🔄 服务响应与错误率") }}</div>
         <BaseChart :option="serviceOption" size="sm" />
       </div>
     </div>

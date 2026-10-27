@@ -1,35 +1,35 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="编辑 K8s 集群"
+    :title='$tr("编辑 K8s 集群")'
     width="600px"
     class="edit-dialog"
     @closed="handleDialogClosed"
   >
     <el-form :model="form" label-width="120px" ref="formRef">
       <el-form-item 
-        label="集群名称" 
+        :label='$tr("集群名称")' 
         required
         prop="clusterName"
         :rules="[
-          { required: true, message: '请输入集群名称', trigger: 'blur' },
+          { required: true, message: $tr('请输入集群名称'), trigger: 'blur' },
           { min: 2, max: 50, message: '集群名称长度在 2 到 50 个字符', trigger: 'blur' }
         ]"
       >
         <el-input
           v-model="form.clusterName"
-          placeholder="请输入集群名称"
+          :placeholder='$tr("请输入集群名称")'
           clearable
           :disabled="loading"
         />
       </el-form-item>
       
-      <el-form-item label="集群版本">
+      <el-form-item :label='$tr("集群版本")'>
         <el-input
           v-model="form.version"
           readonly
           style="width: 100%"
-          placeholder="集群版本信息"
+          :placeholder='$tr("集群版本信息")'
           :disabled="loading"
         >
           <template #prefix>
@@ -37,25 +37,25 @@
           </template>
         </el-input>
         <div class="version-tip">
-          <el-text size="small" type="info">集群版本为只读信息，无法修改</el-text>
+          <el-text size="small" type="info">{{ $tr("集群版本为只读信息，无法修改") }}</el-text>
         </div>
       </el-form-item>
       
-      <el-form-item label="集群凭证">
+      <el-form-item :label='$tr("集群凭证")'>
         <CredentialEditor
           v-model="form.credential"
           height="180px"
-          placeholder="请输入或上传集群凭证配置"
+          :placeholder='$tr("请输入或上传集群凭证配置")'
           :disabled="loading"
         />
       </el-form-item>
       
-      <el-form-item label="描述信息">
+      <el-form-item :label='$tr("描述信息")'>
         <el-input
           v-model="form.description"
           type="textarea"
           :rows="2"
-          placeholder="请输入集群描述"
+          :placeholder='$tr("请输入集群描述")'
           :disabled="loading"
           maxlength="200"
           show-word-limit
@@ -65,13 +65,13 @@
     
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleCancel" :disabled="loading">取消</el-button>
+        <el-button @click="handleCancel" :disabled="loading">{{ $tr("取消") }}</el-button>
         <el-button 
           type="primary" 
           @click="handleSubmit"
           :loading="loading"
         >
-          更新
+          {{ $tr("更新") }}
         </el-button>
       </span>
     </template>
@@ -79,6 +79,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Setting } from '@element-plus/icons-vue'
@@ -157,7 +159,7 @@ const handleSubmit = async () => {
   try {
     // 表单验证
     if (!formRef.value) {
-      ElMessage.error('表单验证失败')
+      ElMessage.error(tr('表单验证失败'))
       return
     }
     
@@ -167,7 +169,7 @@ const handleSubmit = async () => {
     }
     
     if (!form.id) {
-      ElMessage.error('集群ID不能为空')
+      ElMessage.error(tr('集群ID不能为空'))
       return
     }
     
@@ -195,7 +197,7 @@ const handleSubmit = async () => {
     console.log('📥 更新集群API响应:', responseData)
 
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('集群信息更新成功')
+      ElMessage.success(tr('集群信息更新成功'))
       dialogVisible.value = false
       resetForm()
       emit('success', responseData)
@@ -207,15 +209,15 @@ const handleSubmit = async () => {
     
     // 根据错误类型给出更友好的提示
     if (error.response?.status === 400) {
-      ElMessage.error('请求参数错误，请检查集群信息')
+      ElMessage.error(tr('请求参数错误，请检查集群信息'))
     } else if (error.response?.status === 404) {
-      ElMessage.error('集群不存在或已被删除')
+      ElMessage.error(tr('集群不存在或已被删除'))
     } else if (error.response?.status === 409) {
-      ElMessage.error('集群名称已存在，请使用其他名称')
+      ElMessage.error(tr('集群名称已存在，请使用其他名称'))
     } else if (error.code === 'ERR_NETWORK') {
-      ElMessage.error('网络连接失败，请检查网络状态')
+      ElMessage.error(tr('网络连接失败，请检查网络状态'))
     } else {
-      ElMessage.error('更新集群信息失败，请重试')
+      ElMessage.error(tr('更新集群信息失败，请重试'))
     }
   } finally {
     loading.value = false

@@ -1,0 +1,75 @@
+{
+  "components": [
+    {
+      "namespace": "knative-serving",
+      "name": "activator-6dccf9d6dd-wrc2v",
+      "node": "worker-02",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "autoscaler-5f5f597fbb-nzvft",
+      "node": "worker-02",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "controller-6d7c8f746f-s9s9d",
+      "node": "worker-02",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "net-kourier-controller-69f848d4f-dpxxz",
+      "node": "worker-02",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "webhook-75864fcfb5-txnq5",
+      "node": "worker-01",
+      "ready": true,
+      "restarts": 0
+    },
+    {
+      "namespace": "kourier-system",
+      "name": "3scale-kourier-gateway-b9db74fdc-7qnj8",
+      "node": "worker-02",
+      "ready": true,
+      "restarts": 0
+    }
+  ],
+  "nodes": [
+    {
+      "name": "master-01",
+      "conditions": {
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      }
+    },
+    {
+      "name": "worker-01",
+      "conditions": {
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      }
+    },
+    {
+      "name": "worker-02",
+      "conditions": {
+        "MemoryPressure": "False",
+        "DiskPressure": "False",
+        "PIDPressure": "False",
+        "Ready": "True"
+      }
+    }
+  ]
+}

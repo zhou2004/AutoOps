@@ -24,10 +24,10 @@ type CmdbAssetPermission struct {
 	IDCIDs       string `gorm:"column:idc_ids;type:text;comment:'授权机房ID列表(JSON数组,含其下所有资产)'" json:"idcIds"`
 
 	// 权限级别 (RBAC风格)
-	PermissionActions string `gorm:"type:text;comment:'权限操作(JSON数组: get/list/connect/create/update/delete/admin)'" json:"permissionActions"`
+	PermissionActions string `gorm:"type:text;comment:'权限操作(JSON数组)'" json:"permissionActions"`
 
 	// 有效期
-	IsActive    int    `gorm:"default:1;comment:'是否启用:0-禁用,1-启用'" json:"isActive"`
+	IsActive    int    `gorm:"comment:'是否启用:0-禁用,1-启用'" json:"isActive"`
 	DateStart   string `gorm:"size:20;comment:'有效期开始(YYYY-MM-DD)'" json:"dateStart"`
 	DateExpired string `gorm:"size:20;comment:'有效期结束(YYYY-MM-DD)'" json:"dateExpired"`
 

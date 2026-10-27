@@ -1,6 +1,6 @@
 <template>
   <el-dialog 
-    title="选择部署Agent的主机" 
+    :title='$tr("选择部署Agent的主机")' 
     v-model="visible"
     width="70%"
     :modal="false"
@@ -17,7 +17,7 @@
             :class="{ 'active-group': !currentGroupId }"
           >
             <el-icon><House /></el-icon>
-            所有主机
+            {{ $tr("所有主机") }}
           </el-button>
         </div>
         <el-tree
@@ -34,7 +34,7 @@
             <span>
               <el-icon v-if="node.expanded" style="margin-right: 5px"><FolderOpened /></el-icon>
               <el-icon v-else style="margin-right: 5px"><Folder /></el-icon>
-              {{ node.label }}
+              {{ $tr(node.label) }}
             </span>
           </template>
         </el-tree>
@@ -46,7 +46,7 @@
         <div style="margin-bottom: 10px">
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索主机名称或IP地址"
+            :placeholder='$tr("搜索主机名称或IP地址")'
             clearable
             size="small"
             style="width: 300px"
@@ -73,7 +73,7 @@
           />
           <el-table-column
             prop="name"
-            label="主机名称"
+            :label='$tr("主机名称")'
             width="150"
           >
             <template #default="{row}">
@@ -85,7 +85,7 @@
           </el-table-column>
           <el-table-column
             prop="privateIp"
-            label="内网IP"
+            :label='$tr("内网IP")'
             width="140"
           >
             <template #default="{row}">
@@ -97,7 +97,7 @@
           </el-table-column>
           <el-table-column
             prop="publicIp"
-            label="外网IP"
+            :label='$tr("外网IP")'
             width="140"
           >
             <template #default="{row}">
@@ -109,11 +109,11 @@
           </el-table-column>
           <el-table-column
             prop="os"
-            label="操作系统"
+            :label='$tr("操作系统")'
             width="180"
           />
           <el-table-column
-            label="Agent状态"
+            :label='$tr("Agent状态")'
             width="120"
           >
             <template #default="{row}">
@@ -121,13 +121,13 @@
                 :type="getAgentStatusTagType(row)"
                 size="small"
               >
-                {{ getAgentStatusText(row) }}
+                {{ $tr(getAgentStatusText(row)) }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column
             prop="remark"
-            label="备注"
+            :label='$tr("备注")'
           />
         </el-table>
         <div class="pagination">
@@ -147,17 +147,17 @@
       <div style="display: flex; justify-content: space-between; align-items: center">
         <div style="color: var(--text-regular); font-size: 14px">
           <span v-if="tempSelectedHosts.length > 0">
-            已选择 {{ tempSelectedHosts.length }} 台主机
+            {{ $tr("已选择") }} {{ tempSelectedHosts.length }} {{ $tr("台主机") }}
           </span>
-          <span v-else>请选择主机</span>
+          <span v-else>{{ $tr("请选择主机") }}</span>
         </div>
         <div>
-          <el-button @click="close">取消</el-button>
+          <el-button @click="close">{{ $tr("取消") }}</el-button>
           <el-button
             type="primary"
             @click="confirmSelection"
             :disabled="tempSelectedHosts.length === 0"
-          >部署到选中主机</el-button>
+          >{{ $tr("部署到选中主机") }}</el-button>
         </div>
       </div>
     </template>

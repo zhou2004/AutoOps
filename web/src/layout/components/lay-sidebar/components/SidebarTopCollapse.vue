@@ -22,7 +22,7 @@ const toggleClick = () => {
 <template>
   <div
     class="px-3 mr-1 navbar-bg-hover"
-    :title="isActive ? '点击折叠' : '点击展开'"
+    :title="$tr(isActive ? '点击折叠' : '点击展开')"
     @click="toggleClick"
   >
     <IconifyIconOffline

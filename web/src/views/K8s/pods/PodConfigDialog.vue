@@ -7,7 +7,7 @@
     @update:model-value="handleClose"
   >
     <el-form :model="configForm" label-width="120px">
-      <el-form-item label="资源限制">
+      <el-form-item :label='$tr("资源限制")'>
         <div class="resource-config">
           <el-row :gutter="20">
             <el-col :span="12">
@@ -16,14 +16,14 @@
                 <el-form-item label="Request:" size="small">
                   <el-input
                     v-model="configForm.cpuRequest"
-                    placeholder="如: 100m"
+                    :placeholder='$tr("如: 100m")'
                     style="width: 100%"
                   />
                 </el-form-item>
                 <el-form-item label="Limit:" size="small">
                   <el-input
                     v-model="configForm.cpuLimit"
-                    placeholder="如: 500m"
+                    :placeholder='$tr("如: 500m")'
                     style="width: 100%"
                   />
                 </el-form-item>
@@ -31,18 +31,18 @@
             </el-col>
             <el-col :span="12">
               <div class="resource-section">
-                <h5>内存</h5>
+                <h5>{{ $tr("内存") }}</h5>
                 <el-form-item label="Request:" size="small">
                   <el-input
                     v-model="configForm.memoryRequest"
-                    placeholder="如: 128Mi"
+                    :placeholder='$tr("如: 128Mi")'
                     style="width: 100%"
                   />
                 </el-form-item>
                 <el-form-item label="Limit:" size="small">
                   <el-input
                     v-model="configForm.memoryLimit"
-                    placeholder="如: 512Mi"
+                    :placeholder='$tr("如: 512Mi")'
                     style="width: 100%"
                   />
                 </el-form-item>
@@ -51,21 +51,21 @@
           </el-row>
         </div>
       </el-form-item>
-      <el-form-item label="环境变量">
+      <el-form-item :label='$tr("环境变量")'>
         <div class="env-vars-section">
           <div v-for="(envVar, index) in configForm.envVars" :key="index" class="env-var-item">
             <el-row :gutter="10">
               <el-col :span="10">
                 <el-input
                   v-model="envVar.name"
-                  placeholder="变量名"
+                  :placeholder='$tr("变量名")'
                   size="small"
                 />
               </el-col>
               <el-col :span="10">
                 <el-input
                   v-model="envVar.value"
-                  placeholder="变量值"
+                  :placeholder='$tr("变量值")'
                   size="small"
                 />
               </el-col>
@@ -75,19 +75,19 @@
                   size="small"
                   @click="removeEnvVar(index)"
                 >
-                  删除
+                  {{ $tr("删除") }}
                 </el-button>
               </el-col>
             </el-row>
           </div>
-          <el-button type="text" size="small" @click="addEnvVar">+ 添加环境变量</el-button>
+          <el-button type="text" size="small" @click="addEnvVar">{{ $tr("+ 添加环境变量") }}</el-button>
         </div>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">更新配置</el-button>
+        <el-button @click="handleClose">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitting">{{ $tr("更新配置") }}</el-button>
       </span>
     </template>
   </el-dialog>

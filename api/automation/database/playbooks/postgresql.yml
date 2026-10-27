@@ -1,0 +1,55 @@
+---
+- name: Require Debian family for native PostgreSQL installation
+  ansible.builtin.assert:
+    that: ansible_os_family == 'Debian'
+    fail_msg: PostgreSQL installation currently supports Debian and Ubuntu
+- name: Install PostgreSQL and driver
+  ansible.builtin.apt:
+    name: [postgresql, postgresql-client, python3-psycopg2, acl]
+    state: present
+    update_cache: true
+- name: Locate the distribution cluster
+  ansible.builtin.command: pg_lsclusters --no-header
+  register: pg_clusters
+  changed_when: false
+- name: Select distribution version
+  ansible.builtin.set_fact:
+    pg_version: '{{ pg_clusters.stdout_lines[0].split()[0] }}'
+- name: Configure listening address and port
+  ansible.builtin.lineinfile:
+    path: '/etc/postgresql/{{ pg_version }}/main/postgresql.conf'
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  loop:
+    - {regexp: '^#?listen_addresses\s*=', line: "listen_addresses = '*'"}
+    - {regexp: '^#?port\s*=', line: 'port = {{ database_port }}'}
+  register: pg_config
+- name: Allow password authenticated connections
+  ansible.builtin.blockinfile:
+    path: '/etc/postgresql/{{ pg_version }}/main/pg_hba.conf'
+    block: |
+      host all all 0.0.0.0/0 scram-sha-256
+      host all all ::/0 scram-sha-256
+  register: pg_hba
+- name: Start PostgreSQL
+  ansible.builtin.service:
+    name: postgresql
+    enabled: true
+    state: "{{ 'restarted' if pg_config.changed or pg_hba.changed else 'started' }}"
+- name: Set postgres management password through local peer authentication
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: postgres
+    password: '{{ database_password }}'
+    port: '{{ database_port }}'
+  no_log: true
+- name: Verify PostgreSQL authentication
+  community.postgresql.postgresql_ping:
+    login_host: 127.0.0.1
+    login_user: postgres
+    login_password: '{{ database_password }}'
+    login_db: postgres
+    port: '{{ database_port }}'
+  register: pg_ping
+  failed_when: not pg_ping.is_available
+  no_log: true

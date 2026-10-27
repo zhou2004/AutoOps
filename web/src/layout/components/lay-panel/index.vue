@@ -51,7 +51,7 @@ onBeforeUnmount(() => {
       <div
         class="project-configuration border-0 border-b-[1px] border-solid border-[var(--pure-border-color)]"
       >
-        <h4 class="dark:text-white">系统配置</h4>
+        <h4 class="dark:text-white">{{ $tr("系统配置") }}</h4>
         <span
           v-tippy="{
             content: '关闭配置',
@@ -87,7 +87,7 @@ onBeforeUnmount(() => {
           bg
           @click="onReset"
         >
-          清空缓存
+          {{ $tr("清空缓存") }}
         </el-button>
       </div>
     </div>

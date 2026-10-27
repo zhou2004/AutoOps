@@ -34,13 +34,14 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.DELETE("/alert/router/:id", alertController.DeleteRouter)
 	monitorGroup.PUT("/alert/router/:id", alertController.UpdateRouter)
 	monitorGroup.GET("/alert/routers", alertController.GetRouter)
-		monitorGroup.GET("/alert/router/:id", alertController.GetRouterById)
+	monitorGroup.GET("/alert/router/:id", alertController.GetRouterById)
 	// Component Config Operations
 	monitorGroup.POST("/alert/router/reload", alertController.ReloadConfig)
 	monitorGroup.GET("/alert/router/health", alertController.HealthCheck)
 	// Records Operations
 	monitorGroup.GET("/alert/records", alertController.GetRecords)
 	monitorGroup.DELETE("/alert/records/clean", alertController.CleanRecords)
+	monitorGroup.DELETE("/alert/records", alertController.DeleteRecords)
 
 	// 主机监控
 	monitorGroup.GET("/host/:id", monitorController.GetHostMetrics)                        // 获取主机监控数据
@@ -51,14 +52,14 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.GET("/hosts/:id/ports", monitorController.GetHostPorts)                   // 获取主机端口信息
 
 	// Agent管理
-	monitorGroup.POST("/agent/deploy", agentController.DeployAgent)           // 部署agent到指定主机(支持单个或多个)
-	monitorGroup.DELETE("/agent/uninstall", agentController.UninstallAgent)   // 卸载指定主机的agent(支持单个或多个)
+	monitorGroup.POST("/agent/deploy", agentController.DeployAgent)                  // 部署agent到指定主机(支持单个或多个)
+	monitorGroup.DELETE("/agent/uninstall", agentController.UninstallAgent)          // 卸载指定主机的agent(支持单个或多个)
 	monitorGroup.POST("/agent/scan-node-exporter", agentController.ScanNodeExporter) // 扫描主机node_exporter
-	monitorGroup.GET("/agent/status/:id", agentController.GetAgentStatus)     // 根据主机id获取agent状态
-	monitorGroup.POST("/agent/restart/:id", agentController.RestartAgent)     // 重启agent
-	monitorGroup.GET("/agent/list", agentController.GetAgentList)             // 获取agent列表
-	monitorGroup.GET("/agent/statistics", agentController.GetAgentStatistics) // 获取统计信息
-	monitorGroup.DELETE("/agent/delete/:id", agentController.DeleteAgent)     // 删除agent数据(用于离线服务器)
+	monitorGroup.GET("/agent/status/:id", agentController.GetAgentStatus)            // 根据主机id获取agent状态
+	monitorGroup.POST("/agent/restart/:id", agentController.RestartAgent)            // 重启agent
+	monitorGroup.GET("/agent/list", agentController.GetAgentList)                    // 获取agent列表
+	monitorGroup.GET("/agent/statistics", agentController.GetAgentStatistics)        // 获取统计信息
+	monitorGroup.DELETE("/agent/delete/:id", agentController.DeleteAgent)            // 删除agent数据(用于离线服务器)
 
 	// Monitor Data Source CRUD
 	dataSourceController := controller.NewMonitorDataSourceController()
@@ -75,6 +76,7 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.PUT("/alert/group", ruleController.UpdateGroup)
 	monitorGroup.GET("/alert/group/:id", ruleController.GetGroupByID)
 	monitorGroup.GET("/alert/groups", ruleController.GetGroupList)
+	monitorGroup.GET("/alert/business-groups", ruleController.BusinessGroups)
 
 	// Monitor Alert Single Rule CRUD
 	monitorGroup.POST("/alert/rule", ruleController.CreateRule)
@@ -91,6 +93,14 @@ func InitMonitorRouter(r *gin.RouterGroup) {
 	monitorGroup.DELETE("/alert/style/:id", styleController.DeleteStyle)
 	monitorGroup.PUT("/alert/style", styleController.UpdateStyle)
 	monitorGroup.GET("/alert/styles", styleController.GetStyleList)
+
+	// 监控分类管理
+	categoryController := controller.NewMonitorCategoryController()
+	monitorGroup.GET("/categories", categoryController.List)
+	monitorGroup.POST("/category", categoryController.Save)
+	monitorGroup.PUT("/category", categoryController.Save)
+	monitorGroup.DELETE("/category/:id", categoryController.Delete)
+	monitorGroup.POST("/category/assign", categoryController.Assign)
 
 	// 域名证书监控
 	domainCertController := controller.NewDomainCertController()

@@ -2,6 +2,7 @@ package dao
 
 import (
 	"dodevops-api/api/task/model"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ type TaskDao interface {
 	UpdateEndTimeAndDuration(id uint, endTime *time.Time, duration int) error
 	UpdateStatus(id uint, status int) error
 	GetParentTask(taskID uint) (*model.Task, error)
+	ReplaceTaskWorks(tx *gorm.DB, task *model.Task) error
 }
 
 type taskDaoImpl struct {
@@ -44,59 +46,49 @@ func (d *taskDaoImpl) Create(task *model.Task) error {
 			return err
 		}
 
-		// 验证并解析主机ID列表
-		hostIDs := strings.Split(strings.TrimSpace(task.HostIDs), ",")
-		if len(hostIDs) == 0 || (len(hostIDs) == 1 && hostIDs[0] == "") {
-			return nil // 没有主机ID时不创建task_work记录
-		}
-
-		// 验证并解析模板ID列表
-		templateIDs := strings.Split(strings.TrimSpace(task.Shell), ",")
-		if len(templateIDs) == 0 || (len(templateIDs) == 1 && templateIDs[0] == "") {
-			return nil // 没有模板ID时不创建task_work记录
-		}
-
-		// 准备批量插入的task_work记录
-		var taskWorks []model.TaskWork
-		for _, hostIDStr := range hostIDs {
-			hostIDStr = strings.TrimSpace(hostIDStr)
-			if hostIDStr == "" {
-				continue
-			}
-			hostID, err := strconv.Atoi(hostIDStr)
-			if err != nil {
-				return err
-			}
-
-			for _, templateIDStr := range templateIDs {
-				templateIDStr = strings.TrimSpace(templateIDStr)
-				if templateIDStr == "" {
-					continue
-				}
-				templateID, err := strconv.Atoi(templateIDStr)
-				if err != nil {
-					return err
-				}
-
-				taskWorks = append(taskWorks, model.TaskWork{
-					TaskID:     task.ID,
-					HostID:     uint(hostID),
-					TemplateID: uint(templateID),
-					Status:     1, // 初始状态为等待
-					CreatedAt:  time.Now(),
-				})
-			}
-		}
-
-		// 批量插入task_work记录
-		if len(taskWorks) > 0 {
-			if err := tx.CreateInBatches(taskWorks, 100).Error; err != nil {
-				return err
-			}
-		}
-
-		return nil
+		return createTaskWorks(tx, task)
 	})
+}
+
+func createTaskWorks(tx *gorm.DB, task *model.Task) error {
+	hostIDs := strings.Split(strings.TrimSpace(task.HostIDs), ",")
+	if len(hostIDs) == 0 || (len(hostIDs) == 1 && hostIDs[0] == "") {
+		return nil
+	}
+
+	templateIDs := strings.Split(strings.TrimSpace(task.Shell), ",")
+	if task.ExecutionMode == 2 {
+		templateIDs = []string{"0"}
+	}
+	if len(templateIDs) == 0 || (len(templateIDs) == 1 && templateIDs[0] == "") {
+		return nil
+	}
+
+	var taskWorks []model.TaskWork
+	for _, hostIDStr := range hostIDs {
+		hostID, err := strconv.ParseUint(strings.TrimSpace(hostIDStr), 10, 32)
+		if err != nil || hostID == 0 {
+			return fmt.Errorf("无效的主机ID: %q", hostIDStr)
+		}
+		for _, templateIDStr := range templateIDs {
+			templateID, err := strconv.ParseUint(strings.TrimSpace(templateIDStr), 10, 32)
+			if err != nil || (templateID == 0 && task.ExecutionMode != 2) {
+				return fmt.Errorf("无效的模板ID: %q", templateIDStr)
+			}
+			taskWorks = append(taskWorks, model.TaskWork{
+				TaskID:     task.ID,
+				HostID:     uint(hostID),
+				TemplateID: uint(templateID),
+				Type:       task.Type,
+				Status:     model.TaskStatusPending,
+				CreatedAt:  time.Now(),
+			})
+		}
+	}
+	if len(taskWorks) == 0 {
+		return nil
+	}
+	return tx.CreateInBatches(taskWorks, 100).Error
 }
 
 func (d *taskDaoImpl) GetById(id uint) (*model.Task, error) {
@@ -202,4 +194,14 @@ func (d *taskDaoImpl) GetParentTask(taskID uint) (*model.Task, error) {
 	var task model.Task
 	err := d.db.Where("id = ?", taskID).First(&task).Error
 	return &task, err
+}
+
+func (d *taskDaoImpl) ReplaceTaskWorks(tx *gorm.DB, task *model.Task) error {
+	if tx == nil {
+		tx = d.db
+	}
+	if err := tx.Where("task_id = ?", task.ID).Delete(&model.TaskWork{}).Error; err != nil {
+		return err
+	}
+	return createTaskWorks(tx, task)
 }

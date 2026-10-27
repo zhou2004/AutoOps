@@ -1,0 +1,14 @@
+# kubectl patch deployment devops-api --type strategic --patch-file k8s/api/harness-api.patch.yaml
+spec:
+  template:
+    spec:
+      containers:
+        - name: devops-api
+          env:
+            - name: AIOPS_HARNESS_URL
+              value: http://autoops-harness:8091
+            - name: AIOPS_CALLBACK_URL
+              value: http://devops-api:8000
+            - name: AIOPS_HARNESS_SECRET
+              valueFrom:
+                secretKeyRef: {name: autoops-harness, key: shared-secret}

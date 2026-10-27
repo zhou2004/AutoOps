@@ -1,0 +1,17 @@
+# Strategic merge patch for the existing devops-api Deployment.
+# Create Secret autoops-cmdb with key config-encryption-key first.
+spec:
+  template:
+    spec:
+      containers:
+        - name: devops-api
+          env:
+            - name: CMDB_GUACD_ADDR
+              value: autoops-guacd:4822
+            - name: CMDB_CONFIG_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: autoops-cmdb
+                  key: config-encryption-key
+            - name: CMDB_REMOTE_ORIGINS
+              value: ""

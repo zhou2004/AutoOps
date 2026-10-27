@@ -1,5 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, defineOptions } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -150,11 +152,11 @@ const fetchApplicationList = async () => {
       applicationList.value = response.data.data?.list || []
       pagination.total = response.data.data?.total || 0
     } else {
-      ElMessage.error(response.data?.message || '获取应用列表失败')
+      ElMessage.error(response.data?.message || tr('获取应用列表失败'))
     }
   } catch (error) {
     console.error('获取应用列表失败:', error)
-    ElMessage.error('获取应用列表失败')
+    ElMessage.error(tr('获取应用列表失败'))
   } finally {
     loading.value = false
   }
@@ -200,7 +202,7 @@ const loadJenkinsEnvs = async () => {
     }
   } catch (error) {
     console.error('获取Jenkins环境列表失败:', error)
-    ElMessage.error('获取Jenkins环境列表失败')
+    ElMessage.error(tr('获取Jenkins环境列表失败'))
   }
 }
 
@@ -234,7 +236,7 @@ const handleSaveJenkinsEnv = async () => {
   try {
     // 验证必填字段
     if (!jenkinsEnvForm.value.env_name?.trim()) {
-      ElMessage.warning('请填写环境名称')
+      ElMessage.warning(tr('请填写环境名称'))
       return
     }
 
@@ -246,10 +248,10 @@ const handleSaveJenkinsEnv = async () => {
       try {
         await ElMessageBox.confirm(
           `Jenkins任务 "${jenkinsEnvForm.value.job_name.trim()}" 在所选服务器中可能不存在，确定要保存吗？`,
-          '任务验证提醒',
+          tr('任务验证提醒'),
           {
             confirmButtonText: '确定保存',
-            cancelButtonText: '取消',
+            cancelButtonText: tr('取消'),
             type: 'warning'
           }
         )
@@ -273,11 +275,11 @@ const handleSaveJenkinsEnv = async () => {
     if (editingJenkinsEnv.value) {
       // 更新环境
       await appApi.updateAppJenkinsEnv(currentAppId.value, editingJenkinsEnv.value.id, data)
-      ElMessage.success('Jenkins环境更新成功')
+      ElMessage.success(tr('Jenkins环境更新成功'))
     } else {
       // 新增环境
       await appApi.addAppJenkinsEnv(currentAppId.value, data)
-      ElMessage.success('Jenkins环境创建成功')
+      ElMessage.success(tr('Jenkins环境创建成功'))
     }
 
     resetJenkinsEnvForm()
@@ -294,16 +296,16 @@ const handleDeleteJenkinsEnv = async (env) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除环境 "${env.env_name}" 吗？`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('删除'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     )
 
     await appApi.deleteAppJenkinsEnv(currentAppId.value, env.id)
-    ElMessage.success('Jenkins环境删除成功')
+    ElMessage.success(tr('Jenkins环境删除成功'))
     await loadJenkinsEnvs()
   } catch (error) {
     if (error !== 'cancel') {
@@ -335,7 +337,7 @@ const loadJenkinsServers = async () => {
     }
   } catch (error) {
     console.error('获取Jenkins服务器列表失败:', error)
-    ElMessage.error('获取Jenkins服务器列表失败')
+    ElMessage.error(tr('获取Jenkins服务器列表失败'))
   }
 }
 
@@ -368,7 +370,7 @@ const searchJenkinsJobs = async (searchKey = '') => {
     }
   } catch (error) {
     console.error('搜索Jenkins任务失败:', error)
-    ElMessage.error('搜索Jenkins任务失败')
+    ElMessage.error(tr('搜索Jenkins任务失败'))
   } finally {
     jobSearchLoading.value = false
   }
@@ -414,8 +416,8 @@ const validateJenkinsJob = async () => {
     }
   } catch (error) {
     console.error('验证Jenkins任务失败:', error)
-    ElMessage.error('验证Jenkins任务失败')
-    jobValidationStatus.value = { exists: false, message: '验证失败' }
+    ElMessage.error(tr('验证Jenkins任务失败'))
+    jobValidationStatus.value = { exists: false, get message() { return tr('验证失败'); } }
   } finally {
     jobValidationLoading.value = false
   }
@@ -426,10 +428,10 @@ const handleDeleteApp = async (row) => {
   try {
     await ElMessageBox.confirm(
       `确认删除应用 "${row.name}"？删除后将无法恢复。`,
-      '删除确认',
+      tr('删除确认'),
       {
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确认删除'),
+        cancelButtonText: tr('取消'),
         type: 'warning',
         confirmButtonClass: 'el-button--danger'
       }
@@ -438,7 +440,7 @@ const handleDeleteApp = async (row) => {
     const response = await appApi.deleteApplication(row.id)
 
     if (response.data?.code === 200) {
-      ElMessage.success('应用删除成功')
+      ElMessage.success(tr('应用删除成功'))
       fetchApplicationList()
     } else {
       ElMessage.error(response.data?.message || '删除应用失败')
@@ -456,15 +458,15 @@ const handleSaveApp = async () => {
   try {
     // 验证必填字段
     if (!applicationForm.value.name) {
-      ElMessage.warning('请填写应用名称')
+      ElMessage.warning(tr('请填写应用名称'))
       return
     }
     if (!applicationForm.value.business_group_id) {
-      ElMessage.warning('请选择业务组')
+      ElMessage.warning(tr('请选择业务组'))
       return
     }
     if (!applicationForm.value.business_dept_id) {
-      ElMessage.warning('请选择业务部门')
+      ElMessage.warning(tr('请选择业务部门'))
       return
     }
 
@@ -521,7 +523,7 @@ const handleSaveApp = async () => {
       editDialogVisible.value = false
       fetchApplicationList()
     } else {
-      ElMessage.error(response.data?.message || '操作失败')
+      ElMessage.error(response.data?.message || tr('操作失败'))
     }
   } catch (error) {
     console.error('保存应用失败:', error)
@@ -740,10 +742,10 @@ onMounted(() => {
     <el-card shadow="hover" class="main-card">
       <template #header>
         <div class="card-header">
-          <span class="title">应用管理</span>
+          <span class="title">{{ $tr("应用管理") }}</span>
           <div class="header-actions">
             <el-button type="primary" :icon="Plus"  v-authority="['app:application:add']" size="small" @click="handleCreateApp">
-              创建应用
+              {{ $tr("创建应用") }}
             </el-button>
           </div>
         </div>
@@ -756,7 +758,7 @@ onMounted(() => {
             <el-form-item>
               <el-input
                 v-model="searchKeyword"
-                placeholder="搜索应用名称、编码或技术栈"
+                :placeholder='$tr("搜索应用名称、编码或技术栈")'
                 clearable
                 size="small"
                 style="width: 300px"
@@ -766,18 +768,18 @@ onMounted(() => {
             </el-form-item>
             <el-form-item>
               <el-button type="primary" :icon="Search" size="small" @click="resetSearch">
-                搜索
+                {{ $tr("搜索") }}
               </el-button>
               <el-button :icon="Refresh" size="small" @click="handleRefresh">
-                刷新
+                {{ $tr("刷新") }}
               </el-button>
               <el-button type="success" :icon="Rocket" size="small" @click="handleQuickRelease">
-                快速发布
+                {{ $tr("快速发布") }}
               </el-button>
             </el-form-item>
           </el-form>
           <div class="toolbar-right">
-            <span class="resource-count">共 {{ filteredApplicationList.length }} 个应用</span>
+            <span class="resource-count">{{ $tr("共") }} {{ filteredApplicationList.length }} {{ $tr("个应用") }}</span>
           </div>
         </div>
       </el-card>
@@ -789,10 +791,10 @@ onMounted(() => {
           v-loading="loading"
           element-loading-text="加载中..."
           class="app-table"
-          empty-text="暂无应用数据"
+          :empty-text='$tr("暂无应用数据")'
           stripe
         >
-          <el-table-column prop="name" label="应用名称" min-width="150" fixed="left">
+          <el-table-column prop="name" :label='$tr("应用名称")' min-width="150" fixed="left">
             <template #default="{ row }">
               <div class="app-name">
                 <el-icon class="app-icon"><Monitor /></el-icon>
@@ -802,7 +804,7 @@ onMounted(() => {
           </el-table-column>
 
 
-          <el-table-column prop="business_group_id" label="业务线" min-width="200" show-overflow-tooltip>
+          <el-table-column prop="business_group_id" :label='$tr("业务线")' min-width="200" show-overflow-tooltip>
             <template #default="{ row }">
               <el-tag size="small" type="primary">
                 {{ getGroupNameById(row.business_group_id) }}
@@ -810,7 +812,7 @@ onMounted(() => {
             </template>
           </el-table-column>
 
-          <el-table-column prop="business_dept_id" label="业务部门" width="120">
+          <el-table-column prop="business_dept_id" :label='$tr("业务部门")' width="120">
             <template #default="{ row }">
               <el-tag size="small" type="info">
                 {{ getDeptNameById(row.business_dept_id) }}
@@ -818,25 +820,25 @@ onMounted(() => {
             </template>
           </el-table-column>
 
-          <el-table-column prop="dev_owners" label="研发负责人" min-width="150" show-overflow-tooltip>
+          <el-table-column prop="dev_owners" :label='$tr("研发负责人")' min-width="150" show-overflow-tooltip>
             <template #default="{ row }">
               <span style="font-size: 12px;">{{ getUserNamesByIds(row.dev_owners) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column prop="test_owners" label="测试负责人" min-width="150" show-overflow-tooltip>
+          <el-table-column prop="test_owners" :label='$tr("测试负责人")' min-width="150" show-overflow-tooltip>
             <template #default="{ row }">
               <span style="font-size: 12px;">{{ getUserNamesByIds(row.test_owners) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column prop="ops_owners" label="运维负责人" min-width="150" show-overflow-tooltip>
+          <el-table-column prop="ops_owners" :label='$tr("运维负责人")' min-width="150" show-overflow-tooltip>
             <template #default="{ row }">
               <span style="font-size: 12px;">{{ getUserNamesByIds(row.ops_owners) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column prop="programming_lang" label="技术栈" width="100">
+          <el-table-column prop="programming_lang" :label='$tr("技术栈")' width="100">
             <template #default="{ row }">
               <el-tag :type="row.programming_lang === 'Java' ? 'warning' : 'primary'" size="small">
                 {{ row.programming_lang || '-' }}
@@ -844,30 +846,30 @@ onMounted(() => {
             </template>
           </el-table-column>
 
-          <el-table-column prop="status" label="状态" width="100">
+          <el-table-column prop="status" :label='$tr("状态")' width="100">
             <template #default="{ row }">
               <el-tag :type="getStatusTagType(row.status)" size="small">
-                {{ getStatusText(row.status) }}
+                {{ $tr(getStatusText(row.status)) }}
               </el-tag>
             </template>
           </el-table-column>
 
-          <el-table-column prop="created_at" label="创建时间" width="180">
+          <el-table-column prop="created_at" :label='$tr("创建时间")' width="180">
             <template #default="{ row }">
               <span>{{ row.created_at ? new Date(row.created_at).toLocaleString() : '-' }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column :label='$tr("操作")' width="200" fixed="right">
             <template #default="{ row }">
               <div class="operation-buttons">
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button :icon="Edit" v-authority="['app:application:edit']" size="small" type="primary" circle @click="handleEditApp(row)" />
                 </el-tooltip>
-                <el-tooltip content="环境配置" placement="top">
+                <el-tooltip :content='$tr("环境配置")' placement="top">
                   <el-button :icon="Setting" v-authority="['app:application:env']" size="small" type="warning" circle @click="handleJenkinsEnvConfig(row)" />
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button :icon="Delete" v-authority="['app:application:delete']" size="small" type="danger" circle @click="handleDeleteApp(row)" />
                 </el-tooltip>
               </div>
@@ -893,27 +895,27 @@ onMounted(() => {
     <!-- 创建应用对话框 -->
     <el-dialog
       v-model="createDialogVisible"
-      title="创建应用"
+      :title='$tr("创建应用")'
       width="700px"
       class="create-dialog compact-dialog"
     >
       <el-form :model="applicationForm" label-width="90px" class="compact-form">
         <!-- 基础配置行 -->
-        <el-form-item label="应用名称" required class="form-item-full">
+        <el-form-item :label='$tr("应用名称")' required class="form-item-full">
           <el-input
             v-model="applicationForm.name"
-            placeholder="请输入应用名称"
+            :placeholder='$tr("请输入应用名称")'
             size="small"
           />
         </el-form-item>
 
         <!-- 业务信息行 -->
         <div class="form-row">
-          <el-form-item label="业务组" required class="form-item-half">
+          <el-form-item :label='$tr("业务组")' required class="form-item-half">
             <el-cascader
               v-model="applicationForm.business_group_id"
               :options="cascaderBusinessGroups"
-              placeholder="请选择业务组"
+              :placeholder='$tr("请选择业务组")'
               style="width: 100%"
               size="small"
               :props="{
@@ -924,10 +926,10 @@ onMounted(() => {
               }"
             />
           </el-form-item>
-          <el-form-item label="业务部门" required class="form-item-half">
+          <el-form-item :label='$tr("业务部门")' required class="form-item-half">
             <el-select
               v-model="applicationForm.business_dept_id"
-              placeholder="请选择业务部门"
+              :placeholder='$tr("请选择业务部门")'
               style="width: 100%"
               size="small"
               filterable
@@ -936,7 +938,7 @@ onMounted(() => {
               <el-option
                 v-for="dept in businessDepts"
                 :key="dept.id"
-                :label="dept.deptName"
+                :label="$tr(dept.deptName)"
                 :value="dept.id"
               />
             </el-select>
@@ -944,17 +946,17 @@ onMounted(() => {
         </div>
 
         <!-- 描述和仓库地址 -->
-        <el-form-item label="应用描述" class="form-item-full">
+        <el-form-item :label='$tr("应用描述")' class="form-item-full">
           <el-input
             v-model="applicationForm.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入应用描述"
+            :placeholder='$tr("请输入应用描述")'
             size="small"
           />
         </el-form-item>
 
-        <el-form-item label="仓库地址" class="form-item-full">
+        <el-form-item :label='$tr("仓库地址")' class="form-item-full">
           <el-input
             v-model="applicationForm.repo_url"
             placeholder="https://git.company.com/project.git"
@@ -964,22 +966,22 @@ onMounted(() => {
 
         <!-- 技术配置行 -->
         <div class="form-row">
-          <el-form-item label="编程语言" class="form-item-half">
+          <el-form-item :label='$tr("编程语言")' class="form-item-half">
             <el-select
               v-model="applicationForm.programming_lang"
-              placeholder="请选择编程语言"
+              :placeholder='$tr("请选择编程语言")'
               style="width: 100%"
               size="small"
             >
               <el-option
                 v-for="lang in programmingLanguages"
                 :key="lang"
-                :label="lang"
+                :label="$tr(lang)"
                 :value="lang"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="健康检查" class="form-item-half">
+          <el-form-item :label='$tr("健康检查")' class="form-item-half">
             <el-input
               v-model="applicationForm.health_api"
               placeholder="/api/v1/health"
@@ -990,14 +992,14 @@ onMounted(() => {
 
         <!-- 命令配置行 -->
         <div class="form-row">
-          <el-form-item label="启动命令" class="form-item-half">
+          <el-form-item :label='$tr("启动命令")' class="form-item-half">
             <el-input
               v-model="applicationForm.start_command"
               placeholder="./app --config=config.yaml"
               size="small"
             />
           </el-form-item>
-          <el-form-item label="停止命令" class="form-item-half">
+          <el-form-item :label='$tr("停止命令")' class="form-item-half">
             <el-input
               v-model="applicationForm.stop_command"
               placeholder="kill -TERM $PID"
@@ -1008,10 +1010,10 @@ onMounted(() => {
 
         <!-- 负责人配置 -->
         <div class="form-row">
-          <el-form-item label="研发负责人" class="form-item-half">
+          <el-form-item :label='$tr("研发负责人")' class="form-item-half">
             <el-select
               v-model="applicationForm.dev_owners"
-              placeholder="请选择研发负责人"
+              :placeholder='$tr("请选择研发负责人")'
               style="width: 100%"
               size="small"
               multiple
@@ -1023,15 +1025,15 @@ onMounted(() => {
               <el-option
                 v-for="user in userOptions"
                 :key="user.id"
-                :label="user.name"
+                :label="$tr(user.name)"
                 :value="user.id"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="测试负责人" class="form-item-half">
+          <el-form-item :label='$tr("测试负责人")' class="form-item-half">
             <el-select
               v-model="applicationForm.test_owners"
-              placeholder="请选择测试负责人"
+              :placeholder='$tr("请选择测试负责人")'
               style="width: 100%"
               size="small"
               multiple
@@ -1043,17 +1045,17 @@ onMounted(() => {
               <el-option
                 v-for="user in userOptions"
                 :key="user.id"
-                :label="user.name"
+                :label="$tr(user.name)"
                 :value="user.id"
               />
             </el-select>
           </el-form-item>
         </div>
 
-        <el-form-item label="运维负责人" class="form-item-full">
+        <el-form-item :label='$tr("运维负责人")' class="form-item-full">
           <el-select
             v-model="applicationForm.ops_owners"
-            placeholder="请选择运维负责人"
+            :placeholder='$tr("请选择运维负责人")'
             style="width: 100%"
             size="small"
             multiple
@@ -1074,8 +1076,8 @@ onMounted(() => {
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="createDialogVisible = false" size="small">取消</el-button>
-          <el-button type="primary" @click="handleSaveApp" size="small">确认创建</el-button>
+          <el-button @click="createDialogVisible = false" size="small">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="handleSaveApp" size="small">{{ $tr("确认创建") }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -1083,27 +1085,27 @@ onMounted(() => {
     <!-- 编辑应用对话框 -->
     <el-dialog
       v-model="editDialogVisible"
-      title="编辑应用"
+      :title='$tr("编辑应用")'
       width="700px"
       class="edit-dialog compact-dialog"
     >
       <el-form :model="applicationForm" label-width="90px" class="compact-form">
         <!-- 基础配置行 -->
-        <el-form-item label="应用名称" required class="form-item-full">
+        <el-form-item :label='$tr("应用名称")' required class="form-item-full">
           <el-input
             v-model="applicationForm.name"
-            placeholder="请输入应用名称"
+            :placeholder='$tr("请输入应用名称")'
             size="small"
           />
         </el-form-item>
 
         <!-- 业务信息行 -->
         <div class="form-row">
-          <el-form-item label="业务组" required class="form-item-half">
+          <el-form-item :label='$tr("业务组")' required class="form-item-half">
             <el-cascader
               v-model="applicationForm.business_group_id"
               :options="cascaderBusinessGroups"
-              placeholder="请选择业务组"
+              :placeholder='$tr("请选择业务组")'
               style="width: 100%"
               size="small"
               :props="{
@@ -1114,10 +1116,10 @@ onMounted(() => {
               }"
             />
           </el-form-item>
-          <el-form-item label="业务部门" required class="form-item-half">
+          <el-form-item :label='$tr("业务部门")' required class="form-item-half">
             <el-select
               v-model="applicationForm.business_dept_id"
-              placeholder="请选择业务部门"
+              :placeholder='$tr("请选择业务部门")'
               style="width: 100%"
               size="small"
               filterable
@@ -1126,7 +1128,7 @@ onMounted(() => {
               <el-option
                 v-for="dept in businessDepts"
                 :key="dept.id"
-                :label="dept.deptName"
+                :label="$tr(dept.deptName)"
                 :value="dept.id"
               />
             </el-select>
@@ -1134,17 +1136,17 @@ onMounted(() => {
         </div>
 
         <!-- 描述和仓库地址 -->
-        <el-form-item label="应用描述" class="form-item-full">
+        <el-form-item :label='$tr("应用描述")' class="form-item-full">
           <el-input
             v-model="applicationForm.description"
             type="textarea"
             :rows="2"
-            placeholder="请输入应用描述"
+            :placeholder='$tr("请输入应用描述")'
             size="small"
           />
         </el-form-item>
 
-        <el-form-item label="仓库地址" class="form-item-full">
+        <el-form-item :label='$tr("仓库地址")' class="form-item-full">
           <el-input
             v-model="applicationForm.repo_url"
             placeholder="https://git.company.com/project.git"
@@ -1154,22 +1156,22 @@ onMounted(() => {
 
         <!-- 技术配置行 -->
         <div class="form-row">
-          <el-form-item label="编程语言" class="form-item-half">
+          <el-form-item :label='$tr("编程语言")' class="form-item-half">
             <el-select
               v-model="applicationForm.programming_lang"
-              placeholder="请选择编程语言"
+              :placeholder='$tr("请选择编程语言")'
               style="width: 100%"
               size="small"
             >
               <el-option
                 v-for="lang in programmingLanguages"
                 :key="lang"
-                :label="lang"
+                :label="$tr(lang)"
                 :value="lang"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="健康检查" class="form-item-half">
+          <el-form-item :label='$tr("健康检查")' class="form-item-half">
             <el-input
               v-model="applicationForm.health_api"
               placeholder="/api/v1/health"
@@ -1180,14 +1182,14 @@ onMounted(() => {
 
         <!-- 命令配置行 -->
         <div class="form-row">
-          <el-form-item label="启动命令" class="form-item-half">
+          <el-form-item :label='$tr("启动命令")' class="form-item-half">
             <el-input
               v-model="applicationForm.start_command"
               placeholder="./app --config=config.yaml"
               size="small"
             />
           </el-form-item>
-          <el-form-item label="停止命令" class="form-item-half">
+          <el-form-item :label='$tr("停止命令")' class="form-item-half">
             <el-input
               v-model="applicationForm.stop_command"
               placeholder="kill -TERM $PID"
@@ -1198,10 +1200,10 @@ onMounted(() => {
 
         <!-- 负责人配置 -->
         <div class="form-row">
-          <el-form-item label="研发负责人" class="form-item-half">
+          <el-form-item :label='$tr("研发负责人")' class="form-item-half">
             <el-select
               v-model="applicationForm.dev_owners"
-              placeholder="请选择研发负责人"
+              :placeholder='$tr("请选择研发负责人")'
               style="width: 100%"
               size="small"
               multiple
@@ -1213,15 +1215,15 @@ onMounted(() => {
               <el-option
                 v-for="user in userOptions"
                 :key="user.id"
-                :label="user.name"
+                :label="$tr(user.name)"
                 :value="user.id"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="测试负责人" class="form-item-half">
+          <el-form-item :label='$tr("测试负责人")' class="form-item-half">
             <el-select
               v-model="applicationForm.test_owners"
-              placeholder="请选择测试负责人"
+              :placeholder='$tr("请选择测试负责人")'
               style="width: 100%"
               size="small"
               multiple
@@ -1233,17 +1235,17 @@ onMounted(() => {
               <el-option
                 v-for="user in userOptions"
                 :key="user.id"
-                :label="user.name"
+                :label="$tr(user.name)"
                 :value="user.id"
               />
             </el-select>
           </el-form-item>
         </div>
 
-        <el-form-item label="运维负责人" class="form-item-full">
+        <el-form-item :label='$tr("运维负责人")' class="form-item-full">
           <el-select
             v-model="applicationForm.ops_owners"
-            placeholder="请选择运维负责人"
+            :placeholder='$tr("请选择运维负责人")'
             style="width: 100%"
             size="small"
             multiple
@@ -1255,7 +1257,7 @@ onMounted(() => {
             <el-option
               v-for="user in userOptions"
               :key="user.id"
-              :label="user.name"
+              :label="$tr(user.name)"
               :value="user.id"
             />
           </el-select>
@@ -1264,8 +1266,8 @@ onMounted(() => {
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="editDialogVisible = false" size="small">取消</el-button>
-          <el-button type="primary" @click="handleSaveApp" size="small">确认更新</el-button>
+          <el-button @click="editDialogVisible = false" size="small">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="handleSaveApp" size="small">{{ $tr("确认更新") }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -1273,35 +1275,35 @@ onMounted(() => {
     <!-- 应用详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
-      title="应用详情"
+      :title='$tr("应用详情")'
       width="600px"
       class="detail-dialog compact-dialog"
     >
       <div class="detail-content">
         <div class="detail-item">
-          <span class="detail-label">应用名称:</span>
+          <span class="detail-label">{{ $tr("应用名称:") }}</span>
           <span class="detail-value">{{ currentApplication.name }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label">应用编码:</span>
+          <span class="detail-label">{{ $tr("应用编码:") }}</span>
           <span class="detail-value">{{ currentApplication.code }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label">应用描述:</span>
+          <span class="detail-label">{{ $tr("应用描述:") }}</span>
           <span class="detail-value">{{ currentApplication.description || '-' }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label">技术栈:</span>
+          <span class="detail-label">{{ $tr("技术栈:") }}</span>
           <span class="detail-value">{{ currentApplication.programming_lang || '-' }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label">状态:</span>
+          <span class="detail-label">{{ $tr("状态:") }}</span>
           <el-tag :type="getStatusTagType(currentApplication.status)" size="small">
-            {{ getStatusText(currentApplication.status) }}
+            {{ $tr(getStatusText(currentApplication.status)) }}
           </el-tag>
         </div>
         <div class="detail-item">
-          <span class="detail-label">创建时间:</span>
+          <span class="detail-label">{{ $tr("创建时间:") }}</span>
           <span class="detail-value">
             {{ currentApplication.created_at ? new Date(currentApplication.created_at).toLocaleString() : '-' }}
           </span>
@@ -1323,31 +1325,31 @@ onMounted(() => {
           <div class="section-header">
             <div class="header-left">
               <el-icon class="section-icon"><Monitor /></el-icon>
-              <span class="section-title">环境列表</span>
+              <span class="section-title">{{ $tr("环境列表") }}</span>
             </div>
             <el-button v-authority="['app:application:envadd']" type="primary" size="small" @click="handleAddJenkinsEnv" class="add-btn">
               <el-icon><Plus /></el-icon>
-              新增环境
+              {{ $tr("新增环境") }}
             </el-button>
           </div>
 
           <el-table :data="jenkinsEnvs" size="small" class="env-table">
-            <el-table-column prop="env_name" label="环境名称" width="120">
+            <el-table-column prop="env_name" :label='$tr("环境名称")' width="120">
               <template #default="{ row }">
                 <el-tag type="info" size="small" class="env-tag">{{ row.env_name }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="jenkins_server_id" label="Jenkins服务器" width="150">
+            <el-table-column prop="jenkins_server_id" :label='$tr("Jenkins服务器")' width="150">
               <template #default="{ row }">
                 <span class="server-name">{{ getServerNameById(row.jenkins_server_id) }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="job_name" label="任务名称" min-width="150">
+            <el-table-column prop="job_name" :label='$tr("任务名称")' min-width="150">
               <template #default="{ row }">
                 <span class="job-name">{{ row.job_name || '未配置' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="配置状态" width="100">
+            <el-table-column :label='$tr("配置状态")' width="100">
               <template #default="{ row }">
                 <el-tag
                   :type="(row.jenkins_server_id && row.job_name) ? 'success' : 'warning'"
@@ -1357,24 +1359,24 @@ onMounted(() => {
                   <el-icon>
                     <component :is="(row.jenkins_server_id && row.job_name) ? SuccessFilled : WarningFilled" />
                   </el-icon>
-                  {{ (row.jenkins_server_id && row.job_name) ? '已配置' : '待配置' }}
+                  {{ (row.jenkins_server_id && row.job_name) ? $tr('已配置') : '待配置' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="创建时间" width="160">
+            <el-table-column :label='$tr("创建时间")' width="160">
               <template #default="{ row }">
                 <span class="create-time">{{ row.created_at ? new Date(row.created_at).toLocaleString() : '-' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="140">
+            <el-table-column :label='$tr("操作")' width="140">
               <template #default="{ row }">
                 <div class="table-actions">
-                  <el-tooltip content="编辑环境" placement="top">
+                  <el-tooltip :content='$tr("编辑环境")' placement="top">
                     <el-button v-authority="['app:application:envedit']" size="small" type="primary" circle @click="handleEditJenkinsEnv(row)">
                       <el-icon><Edit /></el-icon>
                     </el-button>
                   </el-tooltip>
-                  <el-tooltip content="删除环境" placement="top">
+                  <el-tooltip :content='$tr("删除环境")' placement="top">
                     <el-button v-authority="['app:application:envdelete']"
  size="small" type="danger" circle @click="handleDeleteJenkinsEnv(row)">
                       <el-icon><Delete /></el-icon>
@@ -1393,23 +1395,23 @@ onMounted(() => {
               <div class="header-left">
                 <el-icon class="section-icon"><Setting /></el-icon>
                 <span class="section-title">
-                  {{ editingJenkinsEnv ? '编辑环境' : '新增环境' }}
+                  {{ editingJenkinsEnv ? $tr('编辑环境') : $tr('新增环境') }}
                 </span>
               </div>
             </div>
 
             <el-form :model="jenkinsEnvForm" label-width="120px" size="small" class="modern-form">
               <div class="form-row">
-                <el-form-item label="环境名称" required class="form-item-half">
+                <el-form-item :label='$tr("环境名称")' required class="form-item-half">
                   <el-input
                     v-model="jenkinsEnvForm.env_name"
-                    placeholder="请输入环境名称（如：prod、test、dev）"
+                    :placeholder='$tr("请输入环境名称（如：prod、test、dev）")'
                   />
                 </el-form-item>
-                <el-form-item label="Jenkins服务器" class="form-item-half">
+                <el-form-item :label='$tr("Jenkins服务器")' class="form-item-half">
                   <el-select
                     v-model="jenkinsEnvForm.jenkins_server_id"
-                    placeholder="请选择Jenkins服务器"
+                    :placeholder='$tr("请选择Jenkins服务器")'
                     style="width: 100%"
                     filterable
                     clearable
@@ -1418,17 +1420,17 @@ onMounted(() => {
                     <el-option
                       v-for="server in jenkinsServers"
                       :key="server.id"
-                      :label="server.name"
+                      :label="$tr(server.name)"
                       :value="server.id"
                     />
                   </el-select>
                 </el-form-item>
               </div>
-              <el-form-item label="任务名称" class="form-item-full">
+              <el-form-item :label='$tr("任务名称")' class="form-item-full">
                 <div class="job-name-input-group">
                   <el-select
                     v-model="jenkinsEnvForm.job_name"
-                    placeholder="请选择或输入Jenkins任务名称"
+                    :placeholder='$tr("请选择或输入Jenkins任务名称")'
                     style="width: 100%"
                     filterable
                     allow-create
@@ -1440,7 +1442,7 @@ onMounted(() => {
                     <el-option
                       v-for="job in jenkinsJobs"
                       :key="job"
-                      :label="job"
+                      :label="$tr(job)"
                       :value="job"
                     />
                   </el-select>
@@ -1452,7 +1454,7 @@ onMounted(() => {
                     :disabled="!jenkinsEnvForm.jenkins_server_id || !jenkinsEnvForm.job_name"
                     class="validate-btn"
                   >
-                    验证任务
+                    {{ $tr("验证任务") }}
                   </el-button>
                 </div>
 
@@ -1476,7 +1478,7 @@ onMounted(() => {
                   <el-icon><component :is="editingJenkinsEnv ? Edit : Plus" /></el-icon>
                   {{ editingJenkinsEnv ? '更新环境' : '创建环境' }}
                 </el-button>
-                <el-button @click="resetJenkinsEnvForm">取消</el-button>
+                <el-button @click="resetJenkinsEnvForm">{{ $tr("取消") }}</el-button>
               </el-form-item>
             </el-form>
           </el-card>
@@ -1487,7 +1489,7 @@ onMounted(() => {
         <div class="dialog-footer">
           <el-button @click="jenkinsEnvDialogVisible = false" size="small">
             <el-icon><Close /></el-icon>
-            关闭
+            {{ $tr("关闭") }}
           </el-button>
         </div>
       </template>

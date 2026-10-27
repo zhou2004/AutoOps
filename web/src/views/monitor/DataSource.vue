@@ -4,10 +4,10 @@
       <template #header>
         <div class="card-header">
           <span class="header-title">
-            <el-icon><Monitor /></el-icon> 数据源管理
+            <el-icon><Monitor /></el-icon> {{ $tr("数据源管理") }}
           </span>
           <div class="right-actions">
-            <el-button type="primary" icon="Plus" @click="openDialog()">新增数据源</el-button>
+            <el-button type="primary" icon="Plus" @click="openDialog()">{{ $tr("新增数据源") }}</el-button>
           </div>
         </div>
       </template>
@@ -15,19 +15,19 @@
       <!-- 搜索 -->
       <div class="search-section">
         <el-form :inline="true" :model="query" class="search-form">
-          <el-form-item label="名称">
-            <el-input v-model="query.name" placeholder="数据源名称" clearable @keyup.enter="fetchData" style="width: 180px" />
+          <el-form-item :label='$tr("名称")'>
+            <el-input v-model="query.name" :placeholder='$tr("数据源名称")' clearable @keyup.enter="fetchData" style="width: 180px" />
           </el-form-item>
-          <el-form-item label="类型">
-            <el-select v-model="query.type" clearable placeholder="选择类型" @change="fetchData" style="width: 150px">
+          <el-form-item :label='$tr("类型")'>
+            <el-select v-model="query.type" clearable :placeholder='$tr("选择类型")' @change="fetchData" style="width: 150px">
               <el-option label="Prometheus" value="Prometheus" />
               <el-option label="Zabbix" value="Zabbix" />
               <el-option label="Loki" value="Loki" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" @click="fetchData">查询</el-button>
-            <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" @click="fetchData">{{ $tr("查询") }}</el-button>
+            <el-button type="warning" icon="Refresh" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -40,8 +40,8 @@
         stripe
         :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }"
       >
-        <el-table-column prop="name" label="数据源名称" min-width="150" />
-        <el-table-column prop="type" label="类型" width="140" align="left">
+        <el-table-column prop="name" :label='$tr("数据源名称")' min-width="150" />
+        <el-table-column prop="type" :label='$tr("类型")' width="140" align="left">
           <template #default="{ row }">
              <div style="display: flex; align-items: center; gap: 8px;">
                <img :src="getDsTypeIcon(row.type)" class="ds-icon" v-if="getDsTypeIcon(row.type)" />
@@ -49,25 +49,25 @@
              </div>
           </template>
         </el-table-column>
-        <el-table-column prop="apiUrl" label="连接地址 (URL)" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="deployMethod" label="部署方式" width="140" align="center">
+        <el-table-column prop="apiUrl" :label='$tr("连接地址 (URL)")' min-width="200" show-overflow-tooltip />
+        <el-table-column prop="deployMethod" :label='$tr("部署方式")' width="140" align="center">
           <template #default="{ row }">
              <el-tag size="small" :type="row.deployMethod === 'Kubernetes' ? 'primary' : 'info'" style="border-radius: 12px;">
                {{ row.deployMethod || '未知' }}
              </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="config" label="配置" min-width="150" show-overflow-tooltip />
-         <el-table-column label="创建时间" width="160" align="center">
+        <el-table-column prop="config" :label='$tr("配置")' min-width="150" show-overflow-tooltip />
+         <el-table-column :label='$tr("创建时间")' width="160" align="center">
           <template #default="{ row }">
             {{ formatDate(row.CreatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" align="center" fixed="right">
+        <el-table-column :label='$tr("操作")' width="180" align="center" fixed="right">
           <template #default="{ row }">
             <div class="operation-buttons">
-              <el-button link type="primary" icon="EditPen" @click="openDialog(row)">编辑</el-button>
-              <el-button link type="danger" icon="Delete" @click="handleDelete(row.id || row.ID)">删除</el-button>
+              <el-button link type="primary" icon="EditPen" @click="openDialog(row)">{{ $tr("编辑") }}</el-button>
+              <el-button link type="danger" icon="Delete" @click="handleDelete(row.id || row.ID)">{{ $tr("删除") }}</el-button>
             </div>
           </template>
         </el-table-column>
@@ -88,19 +88,19 @@
     </el-card>
 
     <!-- 弹窗 -->
-    <el-dialog :title="form.id ? '编辑数据源' : '新增数据源'" v-model="dialogVisible" width="600px" class="modern-dialog">
+    <el-dialog :title="form.id ? '编辑数据源' : $tr('新增数据源')" v-model="dialogVisible" width="600px" class="modern-dialog">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" class="rule-form">
-        <div class="form-section-title"><el-icon><Setting /></el-icon> 基础配置</div>
+        <div class="form-section-title"><el-icon><Setting /></el-icon> {{ $tr("基础配置") }}</div>
         
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入名称" />
+            <el-form-item :label='$tr("名称")' prop="name">
+              <el-input v-model="form.name" :placeholder='$tr("请输入名称")' />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="类型" prop="type">
-              <el-select v-model="form.type" placeholder="选择类型" style="width: 100%">
+            <el-form-item :label='$tr("类型")' prop="type">
+              <el-select v-model="form.type" :placeholder='$tr("选择类型")' style="width: 100%">
                 <el-option label="Prometheus" value="Prometheus" />
                 <el-option label="Zabbix" value="Zabbix" />
                 <el-option label="Loki" value="Loki" />
@@ -110,14 +110,14 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="连接地址" prop="apiUrl">
-          <el-input v-model="form.url" placeholder="http://ip:port (例如: http://prometheus:9090)" />
+        <el-form-item :label='$tr("连接地址")' prop="apiUrl">
+          <el-input v-model="form.url" :placeholder='$tr("http://ip:port (例如: http://prometheus:9090)")' />
         </el-form-item>
         
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="部署方式" prop="deployMethod">
-              <el-select v-model="form.deployMethod" placeholder="请选择" style="width: 100%">
+            <el-form-item :label='$tr("部署方式")' prop="deployMethod">
+              <el-select v-model="form.deployMethod" :placeholder='$tr("请选择")' style="width: 100%">
                 <el-option label="Kubernetes" value="Kubernetes" />
                 <el-option label="Docker" value="Docker" />
                 <el-option label="Binary" value="Binary" />
@@ -129,14 +129,14 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="配置" prop="config">
-          <el-input v-model="form.config" type="textarea" :rows="3" placeholder="写点描述..." />
+        <el-form-item :label='$tr("配置")' prop="config">
+          <el-input v-model="form.config" type="textarea" :rows="3" :placeholder='$tr("写点描述...")' />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitForm" :loading="submitting">保存</el-button>
+          <el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitForm" :loading="submitting">{{ $tr("保存") }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -144,6 +144,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Monitor, Setting } from '@element-plus/icons-vue'
@@ -175,9 +177,9 @@ const form = reactive({
 })
 
 const rules = {
-  name: [{ required: true, message: '请输入数据源名称', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择数据源类型', trigger: 'change' }],
-  url: [{ required: true, message: '请输入连接地址', trigger: 'blur' }]
+  name: [{ required: true, get message() { return tr('请输入数据源名称'); }, trigger: 'blur' }],
+  type: [{ required: true, get message() { return tr('请选择数据源类型'); }, trigger: 'change' }],
+  url: [{ required: true, get message() { return tr('请输入连接地址'); }, trigger: 'blur' }]
 }
 
 onMounted(() => {
@@ -244,7 +246,7 @@ const submitForm = async () => {
         dialogVisible.value = false
         fetchData()
       } catch (error) {
-        ElMessage.error('保存数据源失败')
+        ElMessage.error(tr('保存数据源失败'))
       } finally {
         submitting.value = false
       }
@@ -253,16 +255,16 @@ const submitForm = async () => {
 }
 
 const handleDelete = (id) => {
-  ElMessageBox.confirm('确定删除该数据源吗？相关依赖可能会受到影响。', '警告', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm(tr('确定删除该数据源吗？相关依赖可能会受到影响。'), tr('警告'), { type: 'warning' }).then(async () => {
     try {
       await deleteDataSource(id)
-      ElMessage.success('删除成功')
+      ElMessage.success(tr('删除成功'))
       if (tableData.value.length === 1 && query.page > 1) {
         query.page -= 1
       }
       fetchData()
     } catch(err) {
-      ElMessage.error('删除失败')
+      ElMessage.error(tr('删除失败'))
     }
   }).catch(() => {})
 }

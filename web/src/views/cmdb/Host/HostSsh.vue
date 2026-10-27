@@ -4,11 +4,11 @@
       <div class="tree-section">
         <el-card shadow="never" style="height: 100%; border: none;">
           <template #header>
-            <h3>资产分组</h3>
+            <h3>{{ $tr("资产分组") }}</h3>
           </template>
           <el-input
             v-model="groupSearchText"
-            placeholder="搜索分组"
+            :placeholder='$tr("搜索分组")'
             clearable
             size="medium"
             style="margin-bottom: 20px; width: 100%"
@@ -43,7 +43,7 @@
                   <el-icon v-if="expandedKeys.includes(node.key)" style="margin-right: 5px"><FolderOpened /></el-icon>
                   <el-icon v-else style="margin-right: 5px"><Folder /></el-icon>
                 </template>
-                {{ node.label }}
+                {{ $tr(node.label) }}
               </span>
             </template>
           </el-tree>
@@ -53,21 +53,21 @@
       <div class="terminal-section">
         <el-card shadow="never" style="height: 100%;">
           <template #header>
-            <h3>SSH终端连接</h3>
+            <h3>{{ $tr("SSH终端连接") }}</h3>
             <div class="terminal-actions" v-if="currentHost">
               <el-button size="mini" @click="connectTerminal" :disabled="isConnecting || !currentHost">
-                {{ isConnected ? '重新连接' : '连接' }}
+                {{ isConnected ? '重新连接' : $tr('连接') }}
               </el-button>
               <el-button size="mini" @click="disconnectTerminal" :disabled="!isConnected || isConnecting">
-                断开
+                {{ $tr("断开") }}
               </el-button>
             </div>
           </template>
           <div class="terminal-content">
             <div class="host-info" v-if="currentHost">
               <el-descriptions :column="1" border>
-                <el-descriptions-item label="主机名称">{{ currentHost.hostName }}</el-descriptions-item>
-                <el-descriptions-item label="连接地址">
+                <el-descriptions-item :label='$tr("主机名称")'>{{ currentHost.hostName }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("连接地址")'>
                   {{ currentHost.sshName }}@{{ currentHost.sshIp }}:{{ currentHost.sshPort }}
                 </el-descriptions-item>
               </el-descriptions>
@@ -81,6 +81,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { AttachAddon } from '@xterm/addon-attach'
@@ -315,7 +317,7 @@ export default {
         }
       } catch (error) {
         console.error('加载分组列表失败:', error)
-        this.$message.error('加载分组列表失败')
+        this.$message.error(tr('加载分组列表失败'))
       }
     },
     
@@ -377,11 +379,11 @@ export default {
             })
           }
         } else {
-          this.$message.warning('未找到匹配的分组')
+          this.$message.warning(tr('未找到匹配的分组'))
         }
       } catch (error) {
         console.error('搜索分组失败:', error)
-        this.$message.error('搜索分组失败')
+        this.$message.error(tr('搜索分组失败'))
       }
     },
     

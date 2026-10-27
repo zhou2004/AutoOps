@@ -1,0 +1,1781 @@
+{
+  "at": "2026-10-01T16:58:21.371734+00:00",
+  "nodes": [
+    {
+      "name": "master-01",
+      "conditions": [
+        {
+          "type": "NetworkUnavailable",
+          "status": "False"
+        },
+        {
+          "type": "MemoryPressure",
+          "status": "False"
+        },
+        {
+          "type": "DiskPressure",
+          "status": "False"
+        },
+        {
+          "type": "PIDPressure",
+          "status": "False"
+        },
+        {
+          "type": "Ready",
+          "status": "True"
+        }
+      ]
+    },
+    {
+      "name": "worker-01",
+      "conditions": [
+        {
+          "type": "NetworkUnavailable",
+          "status": "False"
+        },
+        {
+          "type": "MemoryPressure",
+          "status": "False"
+        },
+        {
+          "type": "DiskPressure",
+          "status": "False"
+        },
+        {
+          "type": "PIDPressure",
+          "status": "False"
+        },
+        {
+          "type": "Ready",
+          "status": "True"
+        }
+      ]
+    },
+    {
+      "name": "worker-02",
+      "conditions": [
+        {
+          "type": "NetworkUnavailable",
+          "status": "False"
+        },
+        {
+          "type": "MemoryPressure",
+          "status": "False"
+        },
+        {
+          "type": "DiskPressure",
+          "status": "False"
+        },
+        {
+          "type": "PIDPressure",
+          "status": "False"
+        },
+        {
+          "type": "Ready",
+          "status": "True"
+        }
+      ]
+    }
+  ],
+  "pods": [
+    {
+      "namespace": "cert-manager",
+      "name": "cert-manager-5b67d47ccb-xwnwx",
+      "uid": "7475531e-44cd-4f0d-9c51-e1c7b932970b",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "cert-manager-controller",
+          "ready": true,
+          "restarts": 8,
+          "imageID": "quay.io/jetstack/cert-manager-controller@sha256:189920e5752ec7d56a6329347969d847bfd867c07119873c849f300795a0be7b",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "cert-manager",
+      "name": "cert-manager-cainjector-6f9d6d995f-np8b8",
+      "uid": "0d4ad1a2-1dca-4d86-a2d1-def8820552c7",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "cert-manager-cainjector",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "quay.io/jetstack/cert-manager-cainjector@sha256:0f7dcc7ca23dc95c32323ddd7b638c3fa318662985378360a1aeb9c72473e147",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "cert-manager",
+      "name": "cert-manager-webhook-bfb776b76-v7b5z",
+      "uid": "f364e15a-ddc0-4177-8fc8-a194093bed93",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "cert-manager-webhook",
+          "ready": true,
+          "restarts": 8,
+          "imageID": "quay.io/jetstack/cert-manager-webhook@sha256:1e4711c91ea4c45baab763bec3875528847f8221a577aa81b325cac49d68cd09",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "activator-6dccf9d6dd-wrc2v",
+      "uid": "6d27c54b-8927-446f-88a3-09633ccdc7f1",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "activator",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "gcr.io/knative-releases/knative.dev/serving/cmd/activator@sha256:e5ab46f3b73fa2e3898fe47f6a3a0c2bd765596f4fb36ceb4c28c35d0a74b2e5",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "autoscaler-5f5f597fbb-nzvft",
+      "uid": "6d53fa38-f74b-4fed-b3d9-6be6cd6a2dd5",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "autoscaler",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "gcr.io/knative-releases/knative.dev/serving/cmd/autoscaler@sha256:879da127b23db65d862cafa6b23fb987381d0e44150f0027d44e1f5aee83bde2",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "controller-6d7c8f746f-s9s9d",
+      "uid": "d40d2b84-a80b-4f29-9241-d2d838857b34",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "controller",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "gcr.io/knative-releases/knative.dev/serving/cmd/controller@sha256:ca5062ece0329d002a81940cf4268d7898866434d70049bb93f27d3a786d3292",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "net-kourier-controller-69f848d4f-dpxxz",
+      "uid": "783bb54b-546f-4b3f-b9c1-7054ac14cf8b",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "controller",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "gcr.io/knative-releases/knative.dev/net-kourier/cmd/kourier@sha256:eedfe3938f1efa93230863099f96400a0567909d383a585021f8727fa3a6cf0b",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "webhook-75864fcfb5-txnq5",
+      "uid": "a02e286d-244b-4571-a321-e7c752e62e20",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "webhook",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "gcr.io/knative-releases/knative.dev/serving/cmd/webhook@sha256:3846e9a416665c5b9ec2e4de246cfcb5c4ab0d01ba19348aa008caf30144b650",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kourier-system",
+      "name": "3scale-kourier-gateway-b9db74fdc-7qnj8",
+      "uid": "fa3357ff-ab81-4f77-bc35-176976c0f728",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "kourier-gateway",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "docker.io/envoyproxy/envoy@sha256:3e5f1b892f15d46a2674ffc81b9f86f4d0df7794e3ef49e92ee7062871b87be1",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "calico-kube-controllers-78dcb7b647-tfz94",
+      "uid": "474e5c6d-92eb-4d43-a370-8abb034fead0",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "calico-kube-controllers",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "easzlab.io.local:5000/easzlab/kube-controllers@sha256:1c07cc091d70a525b305e84c3c83086046b71875fb07ffafb8154301cde1f2ee",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "calico-node-4q8g7",
+      "uid": "fe2bc7b9-cbf7-43a2-a290-6b01d67102ff",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "calico-node",
+          "ready": true,
+          "restarts": 10,
+          "imageID": "easzlab.io.local:5000/easzlab/node@sha256:cec640f3131eb91fece8b7dc14f5241b5192fe7faa107f91e2497c09332b96c8",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "calico-node-6p8ck",
+      "uid": "fbeeb848-c943-4ec9-a684-49336f98bd55",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "calico-node",
+          "ready": true,
+          "restarts": 11,
+          "imageID": "easzlab.io.local:5000/easzlab/node@sha256:cec640f3131eb91fece8b7dc14f5241b5192fe7faa107f91e2497c09332b96c8",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "calico-node-kcfwn",
+      "uid": "c878503e-2193-44c8-8032-a314c3727373",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "calico-node",
+          "ready": true,
+          "restarts": 17,
+          "imageID": "easzlab.io.local:5000/easzlab/node@sha256:cec640f3131eb91fece8b7dc14f5241b5192fe7faa107f91e2497c09332b96c8",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "coredns-6746f4cb74-wkgzp",
+      "uid": "a24abde0-4719-48af-89a5-e78af37c4d4a",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "coredns",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "easzlab.io.local:5000/easzlab/coredns@sha256:5fe4ce2f40fba78ebd7941f205d5ba21058e6aebff00878325f3f2645d9d465c",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "metrics-server-55c56cb875-4h256",
+      "uid": "d772c472-ad9a-4da6-b5dd-b260825728e4",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "metrics-server",
+          "ready": true,
+          "restarts": 15,
+          "imageID": "easzlab.io.local:5000/easzlab/metrics-server@sha256:d1a527deee93f23ffac97a2be308bf0bd5df3e686427ee447b9699e73049df72",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "node-local-dns-2n29p",
+      "uid": "4cfa0cc5-7bab-46dc-a13d-57622cf537c8",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-cache",
+          "ready": true,
+          "restarts": 11,
+          "imageID": "easzlab.io.local:5000/easzlab/k8s-dns-node-cache@sha256:422a07a940516af2363400de76d910c829d6319e9070cf7f48de10bcd51b784c",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "node-local-dns-pwcbh",
+      "uid": "3caa4ce0-3ad6-49ae-97ea-0ea99add30bf",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-cache",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "easzlab.io.local:5000/easzlab/k8s-dns-node-cache@sha256:422a07a940516af2363400de76d910c829d6319e9070cf7f48de10bcd51b784c",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "node-local-dns-tgqgg",
+      "uid": "4e74353f-6d01-424c-a528-d8ce38fbafe6",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-cache",
+          "ready": true,
+          "restarts": 17,
+          "imageID": "easzlab.io.local:5000/easzlab/k8s-dns-node-cache@sha256:422a07a940516af2363400de76d910c829d6319e9070cf7f48de10bcd51b784c",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-admission-controller-bb6c7d5-2rjn8",
+      "uid": "ffd6d930-b9bb-4a90-be1a-64d61e390381",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "admission-controller",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "registry.k8s.io/autoscaling/vpa-admission-controller@sha256:80e487edff0202b657afccac35db68c06e964cb8568c75bdfe1f6363e69a0781",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-recommender-5879c44c9-n4ln9",
+      "uid": "deb43a8e-c7c8-45a5-bc1b-cf7ab4c7a8d5",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "recommender",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "registry.k8s.io/autoscaling/vpa-recommender@sha256:4af365370c187e4eb60302e937b18a188774698b049a1bfdd77d43e51b30abec",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-updater-9668b7bf-wmgtl",
+      "uid": "95b6a25b-df7b-4479-8cbd-987ff075e442",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "updater",
+          "ready": true,
+          "restarts": 0,
+          "imageID": "registry.k8s.io/autoscaling/vpa-updater@sha256:b39d1dfa19cb3f8b02454ec9c5c560e4266602f322623d5d3cfd5351be0c4f7b",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "alertmanager-prometheus-kube-prometheus-alertmanager-0",
+      "uid": "ad5fec82-23fb-45e4-a773-bc9cd28b9331",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "alertmanager",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "easzlab.io.local:5000/prometheus/alertmanager@sha256:220da6995a919b9ee6e0d3da7ca5f09802f3088007af56be22160314d2485b54",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "config-reloader",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "easzlab.io.local:5000/prometheus/prometheus-config-reloader@sha256:76fa11618538bd3bb1ca58c80fea54aaea1af05bacef2a830df36138589f8243",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-grafana-5c5678db4c-cjzms",
+      "uid": "972a91b8-c153-4d87-9818-b9efd21605bf",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "grafana",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "easzlab.io.local:5000/prometheus/grafana@sha256:fe89b739a264c78f2111d68221a1d51db67135ec50885dc93b59a981a7a5d4d5",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "grafana-sc-dashboard",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "easzlab.io.local:5000/prometheus/k8s-sidecar@sha256:b44988c2ed3c7ca8fa11f9d12917d51206a25b21c20d54efb4445f583c24e147",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "grafana-sc-datasources",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "easzlab.io.local:5000/prometheus/k8s-sidecar@sha256:b44988c2ed3c7ca8fa11f9d12917d51206a25b21c20d54efb4445f583c24e147",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-kube-prometheus-operator-7b46c57bb5-mwfzq",
+      "uid": "083b96d6-0de8-470e-baea-98f718a4f0ac",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "kube-prometheus-stack",
+          "ready": true,
+          "restarts": 20,
+          "imageID": "easzlab.io.local:5000/prometheus/prometheus-operator@sha256:45e3523bc3be67499af00b3a1528b1b94d8261c1a67c6d51473d6e4607a02a6c",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-kube-state-metrics-f74864d87-kdmbh",
+      "uid": "6602c18a-4ca2-4af3-bba1-f3578df0cc6b",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "kube-state-metrics",
+          "ready": true,
+          "restarts": 19,
+          "imageID": "easzlab.io.local:5000/easzlab/kube-state-metrics@sha256:9793b36bc0a38f688e794b942c6cdd1f7b27482c6ff312863cb496f3740379b2",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-prometheus-kube-prometheus-prometheus-0",
+      "uid": "e58ffa62-8f63-4095-9f11-13d63cae9900",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "config-reloader",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "easzlab.io.local:5000/prometheus/prometheus-config-reloader@sha256:76fa11618538bd3bb1ca58c80fea54aaea1af05bacef2a830df36138589f8243",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "prometheus",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "easzlab.io.local:5000/prometheus/prometheus@sha256:2c937b95147c9aaf349447df2ba88066977461815e2c6c91e4011d05871ca2ac",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-prometheus-node-exporter-5z2fl",
+      "uid": "0794f387-411f-4b73-afac-c7ddd5e45444",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-exporter",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "easzlab.io.local:5000/prometheus/node-exporter@sha256:863b62ff9f392b6f472e22b4b670ad1cabb66b3042502ebd4b2cd192733e1bce",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-prometheus-node-exporter-77lbw",
+      "uid": "df80d68b-a7a3-4b6a-8137-2bc994606ed3",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-exporter",
+          "ready": true,
+          "restarts": 18,
+          "imageID": "easzlab.io.local:5000/prometheus/node-exporter@sha256:863b62ff9f392b6f472e22b4b670ad1cabb66b3042502ebd4b2cd192733e1bce",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "monitor",
+      "name": "prometheus-prometheus-node-exporter-9jcft",
+      "uid": "6599a9e0-0891-479f-8811-b72a988c5809",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "node-exporter",
+          "ready": true,
+          "restarts": 11,
+          "imageID": "easzlab.io.local:5000/prometheus/node-exporter@sha256:863b62ff9f392b6f472e22b4b670ad1cabb66b3042502ebd4b2cd192733e1bce",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-cephfsplugin-7jbgn",
+      "uid": "b8cbab23-15f0-4351-9771-5ed53b27e574",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-cephfsplugin",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 6,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-cephfsplugin-csgwd",
+      "uid": "bbfb36ca-7707-4f0a-ae1f-56a1be39de48",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-cephfsplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-cephfsplugin-fqkxj",
+      "uid": "88fc499a-d868-4a1a-94c0-f27c826225ed",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-cephfsplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-cephfsplugin-provisioner-7d74db8fc-dfbb8",
+      "uid": "eaba707d-e5e1-471d-8fff-5a59af753013",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-attacher",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-attacher@sha256:d69cc72025f7c40dae112ff989e920a3331583497c8dfb1600c5ae0e37184a29",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-cephfsplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-provisioner@sha256:de79c8bbc271622eb94d2ee8689f189ea7c1cb6adac260a421980fe5eed66708",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-resizer@sha256:4c148bbdf883153bc72d321be4dc55c33774a6d98b2b3e0c2da6ae389149a9b7",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-snapshotter@sha256:1a29ab1e4ecdc33a84062cec757620d9787c28b28793202c5b78ae097c3dee27",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-cephfsplugin-provisioner-7d74db8fc-p6zpd",
+      "uid": "ccd84d0f-0df9-43f2-9d6b-9f76c63e03e0",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-attacher",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-attacher@sha256:d69cc72025f7c40dae112ff989e920a3331583497c8dfb1600c5ae0e37184a29",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-cephfsplugin",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-provisioner@sha256:de79c8bbc271622eb94d2ee8689f189ea7c1cb6adac260a421980fe5eed66708",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-resizer@sha256:4c148bbdf883153bc72d321be4dc55c33774a6d98b2b3e0c2da6ae389149a9b7",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-snapshotter@sha256:1a29ab1e4ecdc33a84062cec757620d9787c28b28793202c5b78ae097c3dee27",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-rbdplugin-d2gr8",
+      "uid": "5bdfe130-82da-4c31-a31a-1f2ad827ba6a",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-rbdplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-rbdplugin-lmkxr",
+      "uid": "da8e43aa-4940-4623-8382-f73bade6d76f",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-rbdplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-rbdplugin-provisioner-7f7684bd-b28rm",
+      "uid": "1f89f8c2-a7bb-48c0-85b9-7e072537e2f7",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-attacher",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-attacher@sha256:d69cc72025f7c40dae112ff989e920a3331583497c8dfb1600c5ae0e37184a29",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-provisioner@sha256:de79c8bbc271622eb94d2ee8689f189ea7c1cb6adac260a421980fe5eed66708",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-rbdplugin",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-resizer@sha256:4c148bbdf883153bc72d321be4dc55c33774a6d98b2b3e0c2da6ae389149a9b7",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "registry.k8s.io/sig-storage/csi-snapshotter@sha256:1a29ab1e4ecdc33a84062cec757620d9787c28b28793202c5b78ae097c3dee27",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-rbdplugin-provisioner-7f7684bd-lfvjv",
+      "uid": "96a1052a-ffa2-4367-978f-9064e5a36169",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-attacher",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-attacher@sha256:d69cc72025f7c40dae112ff989e920a3331583497c8dfb1600c5ae0e37184a29",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-provisioner@sha256:de79c8bbc271622eb94d2ee8689f189ea7c1cb6adac260a421980fe5eed66708",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-rbdplugin",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-resizer@sha256:4c148bbdf883153bc72d321be4dc55c33774a6d98b2b3e0c2da6ae389149a9b7",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "registry.k8s.io/sig-storage/csi-snapshotter@sha256:1a29ab1e4ecdc33a84062cec757620d9787c28b28793202c5b78ae097c3dee27",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "csi-rbdplugin-wlmxd",
+      "uid": "cebee858-a7cf-4722-965c-3f98940bf0bf",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-rbdplugin",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/cephcsi/cephcsi@sha256:a338c0dec57b8033e01f277dc342607d7610411422cc3ce47f176ab059aeaf21",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "driver-registrar",
+          "ready": true,
+          "restarts": 6,
+          "imageID": "registry.k8s.io/sig-storage/csi-node-driver-registrar@sha256:c53535af8a7f7e3164609838c4b191b42b2d81238d75c1b2a2b582ada62a9780",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-crashcollector-master-01-db5f595c9-c8wgv",
+      "uid": "86b0e05c-6f10-4ef4-9c7d-6bf9c5df6bf7",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-crash",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-crashcollector-worker-01-bd5fb679c-9fb66",
+      "uid": "20992df9-ac27-4a72-b40b-e0d79b89cf48",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-crash",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-crashcollector-worker-02-855c85594-psgl2",
+      "uid": "ba493919-c9b3-441a-9605-81863096028f",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-crash",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-exporter-master-01-64468d7868-9hxr5",
+      "uid": "8753e675-261f-43b8-a811-8c8ad57c2f05",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-exporter",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-exporter-worker-01-67df8484bb-fsdvx",
+      "uid": "eff0e631-419c-496d-bfd8-7fd0f1dcc104",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-exporter",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-exporter-worker-02-85ccd94d5-kgbps",
+      "uid": "117528f1-c927-486c-8682-085a72491bfd",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "ceph-exporter",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mds-myfs-a-567ddfc55c-2wm2h",
+      "uid": "ecbb1f0b-dbb8-41fb-acb4-4e5532802ac3",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mds",
+          "ready": true,
+          "restarts": 6,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mds-myfs-b-7c79bbf48-dwnz9",
+      "uid": "523d8ee2-87e9-4961-b4d6-5f6fdc9ff11a",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mds",
+          "ready": true,
+          "restarts": 6,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mgr-a-5785786979-w8bvz",
+      "uid": "a89340ec-dd9d-44da-9ecc-a9423cc9626e",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mgr",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mon-a-57986b78d-2tjbs",
+      "uid": "90a309ed-5902-41c3-bfa3-724ae0d6b341",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mon",
+          "ready": true,
+          "restarts": 2,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mon-b-7d86b554ff-rln7n",
+      "uid": "51917eee-05f3-4023-99fb-7bb8d4b7b438",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mon",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-mon-c-6585657557-n7jd2",
+      "uid": "4e4892f7-e826-495c-81be-04b31291f05d",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mon",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-operator-6c9547955c-b2plw",
+      "uid": "beb53458-9164-4a53-996a-5313c624baf5",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "rook-ceph-operator",
+          "ready": true,
+          "restarts": 2,
+          "imageID": "docker.io/rook/ceph@sha256:221356e793569dc9c8d43902e73eb41e7a3c142a6d0c5154826e0472fe3bbe16",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-0-68c8db7b4d-4cfdq",
+      "uid": "5da39253-47a7-4964-a4ea-ad749ac6dcb7",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "osd",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-1-d646d77cc-wqs2n",
+      "uid": "ca37f922-6ad0-4de7-b15b-d08643c129c1",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "osd",
+          "ready": true,
+          "restarts": 2,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-2-74fbcd99c6-tw7f2",
+      "uid": "ed446c40-2675-4cf8-ab6b-a0610be56485",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "osd",
+          "ready": true,
+          "restarts": 2,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-prepare-master-01-vzb9f",
+      "uid": "db56a1e4-e2f9-4817-b366-fa0ff74bdd42",
+      "node": "master-01",
+      "phase": "Succeeded",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "provision",
+          "ready": false,
+          "restarts": 0,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "terminated",
+          "reason": "Completed"
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-prepare-worker-01-x59xc",
+      "uid": "c2b65ca2-3081-4611-963a-b9459be6920b",
+      "node": "worker-01",
+      "phase": "Succeeded",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "provision",
+          "ready": false,
+          "restarts": 0,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "terminated",
+          "reason": "Completed"
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-osd-prepare-worker-02-mwnk2",
+      "uid": "1a9cce7c-452d-4ff2-af09-cf69e22bc1f2",
+      "node": "worker-02",
+      "phase": "Succeeded",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "provision",
+          "ready": false,
+          "restarts": 0,
+          "imageID": "quay.io/ceph/ceph@sha256:1793ff3af6ae74527c86e1a0b22401e9c42dc08d0ebb8379653be07db17d0007",
+          "state": "terminated",
+          "reason": "Completed"
+        }
+      ]
+    },
+    {
+      "namespace": "rook-ceph",
+      "name": "rook-ceph-tools-5dbc67fd49-dtq5j",
+      "uid": "f47a0516-226d-4c3f-9881-fce5a55f3619",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "rook-ceph-tools",
+          "ready": true,
+          "restarts": 3,
+          "imageID": "quay.io/ceph/ceph@sha256:f8d467dcf49d13b8ea42229d89be642581110175d8ce36e216aefc9b32b0854d",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "test-pv",
+      "name": "demo-app-78c7fcfd4c-dqnh5",
+      "uid": "71aede11-8aef-45a8-b060-f7b95440a5d5",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "alpine",
+          "ready": true,
+          "restarts": 15,
+          "imageID": "docker.io/library/alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "test-pv",
+      "name": "test-mysql-0",
+      "uid": "4abbfeca-5fd4-4a9a-a4c0-daa44f91abeb",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mysql",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql@sha256:ce327c13199b0f553b3f3f53f8f1eabd725e589ec4bd1a937095812288b33e24",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "test-pv",
+      "name": "test-mysql-1",
+      "uid": "11984f76-defe-4dcb-a1b9-16231e3f8aac",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "mysql",
+          "ready": true,
+          "restarts": 4,
+          "imageID": "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql@sha256:ce327c13199b0f553b3f3f53f8f1eabd725e589ec4bd1a937095812288b33e24",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-controller-7b6755b974-sqh2c",
+      "uid": "982f0f51-6c37-4e0c-b4d5-a724aa4a3a44",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "liveness-probe",
+          "ready": true,
+          "restarts": 5,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "topolvm-controller",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-controller-7b6755b974-wbxvd",
+      "uid": "ababd20b-7758-4648-a6c6-97b5cd5d06cc",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-provisioner",
+          "ready": true,
+          "restarts": 12,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "csi-resizer",
+          "ready": false,
+          "restarts": 188,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "waiting",
+          "reason": "CrashLoopBackOff"
+        },
+        {
+          "name": "csi-snapshotter",
+          "ready": true,
+          "restarts": 17,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "liveness-probe",
+          "ready": true,
+          "restarts": 8,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "topolvm-controller",
+          "ready": true,
+          "restarts": 18,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-lvmd-0-qk2bk",
+      "uid": "851bc732-d6bd-4cff-88f6-8a48d2afea45",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "lvmd",
+          "ready": true,
+          "restarts": 9,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-lvmd-0-w8ctr",
+      "uid": "d0f8e3af-a85f-49d4-9411-6f88ee87e45d",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "lvmd",
+          "ready": true,
+          "restarts": 8,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-node-fxppt",
+      "uid": "29174d44-bb50-4cc2-afbc-a4ff214ef679",
+      "node": "worker-02",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-registrar",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "liveness-probe",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "topolvm-node",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-node-mfs4s",
+      "uid": "d0de6569-ed59-4cf1-9fd5-1e982cfccc1e",
+      "node": "worker-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "csi-registrar",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "liveness-probe",
+          "ready": true,
+          "restarts": 8,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        },
+        {
+          "name": "topolvm-node",
+          "ready": true,
+          "restarts": 14,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "namespace": "topolvm-system",
+      "name": "topolvm-scheduler-qk8kg",
+      "uid": "8b0f5731-8f83-48ac-bf4b-408da012468a",
+      "node": "master-01",
+      "phase": "Running",
+      "deleting": false,
+      "containers": [
+        {
+          "name": "topolvm-scheduler",
+          "ready": true,
+          "restarts": 7,
+          "imageID": "ghcr.io/topolvm/topolvm-with-sidecar@sha256:5faf5b94557516ae0f6fa7d329a5a4305e22aa2dc464af7641b31f2aca618036",
+          "state": "running",
+          "reason": null
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "namespace": "knative-serving",
+      "name": "activator",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "gcr.io/knative-releases/knative.dev/serving/cmd/activator@sha256:e5ab46f3b73fa2e3898fe47f6a3a0c2bd765596f4fb36ceb4c28c35d0a74b2e5"
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "autoscaler",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "gcr.io/knative-releases/knative.dev/serving/cmd/autoscaler@sha256:879da127b23db65d862cafa6b23fb987381d0e44150f0027d44e1f5aee83bde2"
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "controller",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "gcr.io/knative-releases/knative.dev/serving/cmd/controller@sha256:ca5062ece0329d002a81940cf4268d7898866434d70049bb93f27d3a786d3292"
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "net-kourier-controller",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "gcr.io/knative-releases/knative.dev/net-kourier/cmd/kourier@sha256:eedfe3938f1efa93230863099f96400a0567909d383a585021f8727fa3a6cf0b"
+      ]
+    },
+    {
+      "namespace": "knative-serving",
+      "name": "webhook",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "gcr.io/knative-releases/knative.dev/serving/cmd/webhook@sha256:3846e9a416665c5b9ec2e4de246cfcb5c4ab0d01ba19348aa008caf30144b650"
+      ]
+    },
+    {
+      "namespace": "kourier-system",
+      "name": "3scale-kourier-gateway",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "docker.io/envoyproxy/envoy@sha256:3e5f1b892f15d46a2674ffc81b9f86f4d0df7794e3ef49e92ee7062871b87be1"
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-admission-controller",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "registry.k8s.io/autoscaling/vpa-admission-controller:1.6.0"
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-recommender",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "registry.k8s.io/autoscaling/vpa-recommender:1.6.0"
+      ]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "vpa-updater",
+      "replicas": 1,
+      "ready": 1,
+      "available": 1,
+      "images": [
+        "registry.k8s.io/autoscaling/vpa-updater:1.6.0"
+      ]
+    }
+  ],
+  "testNamespacesRemaining": [],
+  "apiResources": {
+    "autoscaling/v2": [
+      "horizontalpodautoscalers",
+      "horizontalpodautoscalers/status"
+    ],
+    "autoscaling.k8s.io/v1": [
+      "verticalpodautoscalers",
+      "verticalpodautoscalers/status",
+      "verticalpodautoscalercheckpoints"
+    ],
+    "serving.knative.dev/v1": [
+      "configurations",
+      "configurations/status",
+      "revisions",
+      "revisions/status",
+      "routes",
+      "routes/status",
+      "services",
+      "services/status"
+    ],
+    "metrics.k8s.io/v1beta1": [
+      "nodes",
+      "pods"
+    ]
+  },
+  "nodeUsage": "NAME        CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   \nmaster-01   273m         6%       3178Mi          88%         \nworker-01   174m         4%       4106Mi          73%         \nworker-02   189m         4%       4092Mi          73%         \n",
+  "baselineComparison": {
+    "existingPodRestartChanges": [
+      {
+        "namespace": "test-pv",
+        "pod": "demo-app-78c7fcfd4c-dqnh5",
+        "container": "alpine",
+        "before": 14,
+        "after": 15
+      },
+      {
+        "namespace": "topolvm-system",
+        "pod": "topolvm-controller-7b6755b974-wbxvd",
+        "container": "csi-resizer",
+        "before": 180,
+        "after": 188
+      }
+    ],
+    "baselinePodsMissing": [],
+    "expectedDemoRestart": {
+      "namespace": "test-pv",
+      "pod": "demo-app-78c7fcfd4c-dqnh5",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "sleep 3600"
+      ],
+      "lastTermination": {
+        "exitCode": 0,
+        "finishedAt": "2026-10-01T16:23:42Z",
+        "reason": "Completed",
+        "startedAt": "2026-10-01T15:23:42Z"
+      }
+    }
+  }
+}

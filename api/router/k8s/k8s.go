@@ -18,6 +18,8 @@ func RegisterK8sRoutes(router *gin.RouterGroup) {
 	k8sServiceCtrl := controller.NewK8sServiceController(common.GetDB())
 	k8sIngressCtrl := controller.NewK8sIngressController(common.GetDB())
 	k8sStorageCtrl := controller.NewK8sStorageController(common.GetDB())
+	k8sCephCtrl := controller.NewK8sCephController(common.GetDB())
+	k8sAutoscalingCtrl := controller.NewK8sAutoscalingController(common.GetDB())
 	k8sConfigCtrl := controller.NewK8sConfigController(common.GetDB())
 	k8sCRDCtrl := controller.NewK8sCRDController(common.GetDB())
 	k8sPermCtrl := controller.NewK8sPermissionController(common.GetDB())
@@ -66,6 +68,15 @@ func RegisterK8sRoutes(router *gin.RouterGroup) {
 	router.GET("/k8s/cluster/:id/status", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), kubeClusterCtrl.GetClusterStatus) // 获取集群状态
 	router.GET("/k8s/cluster/:id/detail", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), kubeClusterCtrl.GetClusterDetail) // 获取集群详细信息
 	router.POST("/k8s/cluster/:id/sync", middleware.AuthMiddleware(), kubeClusterCtrl.SyncCluster)                                                   // 同步集群信息
+
+	// 弹性伸缩：API group/resource/verb 精确授权，单命名空间隔离。
+	autoscalingBase := "/k8s/cluster/:id/namespaces/:namespaceName/autoscaling"
+	router.GET(autoscalingBase+"/capabilities", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
+	router.GET(autoscalingBase+"/:kind", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
+	router.GET(autoscalingBase+"/:kind/:name", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
+	router.POST(autoscalingBase+"/:kind", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
+	router.PUT(autoscalingBase+"/:kind/:name", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
+	router.DELETE(autoscalingBase+"/:kind/:name", middleware.AuthMiddleware(), k8sPermMiddleware.CheckAutoscalingPermission(), k8sAutoscalingCtrl.Handle)
 
 	// K8s节点管理路由 - 需要集群权限
 	router.GET("/k8s/cluster/:id/nodes", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sNodesCtrl.GetNodes)                                      // 获取集群节点列表
@@ -216,6 +227,10 @@ func RegisterK8sRoutes(router *gin.RouterGroup) {
 	router.GET("/k8s/cluster/:id/namespaces/:namespaceName/pvcs/:pvcName/yaml", middleware.AuthMiddleware(), k8sPermMiddleware.CheckNamespacePermission(), k8sStorageCtrl.GetPVCYaml)         // 获取PVC YAML
 	router.PUT("/k8s/cluster/:id/namespaces/:namespaceName/pvcs/:pvcName/yaml", middleware.AuthMiddleware(), k8sPermMiddleware.CheckNamespaceWritePermission(), k8sStorageCtrl.UpdatePVCYaml) // 更新PVC YAML
 
+	// PVC高阶功能路由 - 需要命名空间写权限
+	router.POST("/k8s/cluster/:id/namespaces/:namespaceName/pvcs/:pvcName/expand", middleware.AuthMiddleware(), k8sPermMiddleware.CheckNamespaceWritePermission(), k8sStorageCtrl.ExpandPVC) // PVC扩容
+	router.POST("/k8s/cluster/:id/namespaces/:namespaceName/pvcs/:pvcName/clone", middleware.AuthMiddleware(), k8sPermMiddleware.CheckNamespaceWritePermission(), k8sStorageCtrl.ClonePVC)   // PVC克隆（备份迁移）
+
 	// PV基础CRUD路由 - 需要集群权限
 	router.GET("/k8s/cluster/:id/pvs", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.GetPVs)              // 获取PV列表
 	router.GET("/k8s/cluster/:id/pvs/:pvName", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.GetPVDetail) // 获取PV详情
@@ -238,6 +253,57 @@ func RegisterK8sRoutes(router *gin.RouterGroup) {
 	router.GET("/k8s/cluster/:id/storageclasses/:storageClassName/yaml", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.GetStorageClassYaml)    // 获取StorageClass YAML
 	router.PUT("/k8s/cluster/:id/storageclasses/:storageClassName/yaml", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.UpdateStorageClassYaml) // 更新StorageClass YAML
 
+	// StorageClass高阶功能路由 - 需要集群权限
+	router.POST("/k8s/cluster/:id/storageclasses/:storageClassName/set-default", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.SetDefaultStorageClass) // 设置默认存储类
+	router.GET("/k8s/cluster/:id/storage/stats", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.GetStorageStats)                                        // 获取存储统计
+	// 存储迁移路由
+	router.POST("/k8s/cluster/:id/storage/migrate", middleware.AuthMiddleware(), k8sPermMiddleware.CheckClusterPermission(), k8sStorageCtrl.MigratePVC)                                            // 卷到卷数据迁移
+	router.POST("/k8s/cluster/:id/namespaces/:namespaceName/storage/switch-pvc", middleware.AuthMiddleware(), k8sPermMiddleware.CheckNamespaceWritePermission(), k8sStorageCtrl.SwitchWorkloadPVC) // 一键换卷
+
+	// Ceph 持久化维护任务、备份仓库和定时计划
+	router.GET("/k8s/cluster/:id/ceph/maintenance/capabilities", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("capabilities"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/inspect", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("inspect"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/tasks", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("tasks"))
+	router.POST("/k8s/cluster/:id/ceph/maintenance/tasks", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("create-task"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/tasks/:name/logs", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("logs"))
+	router.POST("/k8s/cluster/:id/ceph/maintenance/tasks/:name/cancel", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("cancel"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/schedules", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("schedules"))
+	router.POST("/k8s/cluster/:id/ceph/maintenance/schedules", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("create-schedule"))
+	router.PUT("/k8s/cluster/:id/ceph/maintenance/schedules/:name", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("update-schedule"))
+	router.DELETE("/k8s/cluster/:id/ceph/maintenance/schedules/:name", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("delete-schedule"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/repositories", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("repositories"))
+	router.POST("/k8s/cluster/:id/ceph/maintenance/repositories", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("create-repository"))
+	router.GET("/k8s/cluster/:id/ceph/maintenance/backups", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sCephCtrl.Action("backups"))
+
+	// Ceph 管理路由 - 需要集群权限
+	router.GET("/k8s/cluster/:id/ceph/status", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephStatus)                                  // Ceph 集群状态
+	router.GET("/k8s/cluster/:id/ceph/pools", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephPools)                                    // Ceph pool 列表
+	router.POST("/k8s/cluster/:id/ceph/pools", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.CreateCephPool)                                 // 创建 pool
+	router.DELETE("/k8s/cluster/:id/ceph/pools/:poolName", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.DeleteCephPool)                     // 删除 pool
+	router.PUT("/k8s/cluster/:id/ceph/pools/:poolName/size", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.UpdateCephPoolSize)               // 调整 pool 副本数
+	router.PUT("/k8s/cluster/:id/ceph/pools/:poolName/pg-num", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.UpdateCephPoolPGNum)            // 调整 pool PG 数
+	router.PUT("/k8s/cluster/:id/ceph/pools/:poolName/quota", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.UpdateCephPoolQuota)             // 设置 pool 配额
+	router.PUT("/k8s/cluster/:id/ceph/pools/:poolName/compression", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.UpdateCephPoolCompression) // 设置 pool 压缩
+	router.GET("/k8s/cluster/:id/ceph/osds", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephOSDs)                                      // Ceph OSD 列表
+	router.POST("/k8s/cluster/:id/ceph/osds/:osdId/:action", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.SetCephOSDStatus)                 // 标记 OSD in/out/down
+	router.POST("/k8s/cluster/:id/ceph/osds/:osdId/reweight", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.ReweightCephOSD)                 // 调整 OSD 权重
+	router.DELETE("/k8s/cluster/:id/ceph/osds/:osdId", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.DeleteCephOSD)                          // 删除 OSD
+	// Ceph RBD 块存储路由
+	router.GET("/k8s/cluster/:id/ceph/rbd/images", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephRBDImages)                                            // RBD 镜像列表
+	router.POST("/k8s/cluster/:id/ceph/rbd/images", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.CreateCephRBDImage)                                         // 创建 RBD 镜像
+	router.GET("/k8s/cluster/:id/ceph/rbd/images/:pool/:image", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephRBDImageDetail)                          // RBD 镜像详情
+	router.PUT("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/resize", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.ResizeCephRBDImage)                      // 扩容 RBD 镜像
+	router.DELETE("/k8s/cluster/:id/ceph/rbd/images/:pool/:image", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.DeleteCephRBDImage)                          // 删除 RBD 镜像
+	router.GET("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/snapshots", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.ListCephRBDSnapshots)                 // RBD 快照列表
+	router.POST("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/snapshots", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.CreateCephRBDSnapshot)               // 创建 RBD 快照
+	router.DELETE("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/snapshots/:snap", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.DeleteCephRBDSnapshot)       // 删除 RBD 快照
+	router.POST("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/snapshots/:snap/rollback", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.RollbackCephRBDImage) // 快照回滚
+	router.POST("/k8s/cluster/:id/ceph/rbd/images/:pool/:image/clone", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.CloneCephRBDImage)                       // 克隆 RBD 镜像
+	// Ceph CephFS 与监控路由
+	router.GET("/k8s/cluster/:id/ceph/fs", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephFS)             // CephFS 文件系统列表
+	router.GET("/k8s/cluster/:id/ceph/health", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephHealth)     // Ceph 健康详情
+	router.GET("/k8s/cluster/:id/ceph/versions", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephVersions) // Ceph 版本分布
+	router.GET("/k8s/cluster/:id/ceph/pg-stat", middleware.AuthMiddleware(), k8sPermMiddleware.CheckCephPermission(), k8sStorageCtrl.GetCephPGStat)    // Ceph PG 状态
 	// ===================== K8s配置管理路由 =====================
 
 	// ConfigMap基础CRUD路由 - 需要命名空间权限

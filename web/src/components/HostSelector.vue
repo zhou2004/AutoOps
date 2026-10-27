@@ -1,6 +1,6 @@
 <template>
   <el-dialog 
-    :title="dialogTitle" 
+    :title="$tr(dialogTitle)" 
     v-model="visible"
     width="70%"
     :before-close="handleClose"
@@ -15,7 +15,7 @@
             @click="loadAllHosts"
             :loading="loading"
           >
-            显示全部主机
+            {{ $tr("显示全部主机") }}
           </el-button>
         </div>
         <el-tree
@@ -33,7 +33,7 @@
             <span class="tree-node">
               <el-icon v-if="node.expanded" style="margin-right: 5px"><FolderOpened /></el-icon>
               <el-icon v-else style="margin-right: 5px"><Folder /></el-icon>
-              {{ node.label }}
+              {{ $tr(node.label) }}
               <span class="host-count" v-if="data.hostCount !== undefined">({{ data.hostCount }})</span>
             </span>
           </template>
@@ -45,9 +45,9 @@
         <div class="table-header">
           <div class="selection-info">
             <span v-if="tempSelectedHosts.length > 0">
-              已选择 <strong>{{ tempSelectedHosts.length }}</strong> 台主机
+              {{ $tr("已选择") }} <strong>{{ tempSelectedHosts.length }}</strong> {{ $tr("台主机") }}
             </span>
-            <span v-else class="text-muted">请从下方表格中选择主机</span>
+            <span v-else class="text-muted">{{ $tr("请从下方表格中选择主机") }}</span>
           </div>
           <div class="table-actions">
             <el-button 
@@ -55,7 +55,7 @@
               @click="clearSelection"
               :disabled="tempSelectedHosts.length === 0"
             >
-              清空选择
+              {{ $tr("清空选择") }}
             </el-button>
             <el-button 
               size="small" 
@@ -63,7 +63,7 @@
               @click="selectAll"
               :disabled="currentGroupHosts.length === 0"
             >
-              全选当前页
+              {{ $tr("全选当前页") }}
             </el-button>
           </div>
         </div>
@@ -84,7 +84,7 @@
           />
           <el-table-column
             prop="name"
-            label="主机名称"
+            :label='$tr("主机名称")'
             width="150"
             show-overflow-tooltip
           >
@@ -97,7 +97,7 @@
           </el-table-column>
           <el-table-column
             prop="ip"
-            label="IP地址"
+            :label='$tr("IP地址")'
             width="120"
             show-overflow-tooltip
           >
@@ -110,7 +110,7 @@
           </el-table-column>
           <el-table-column
             prop="publicIp"
-            label="公网IP"
+            :label='$tr("公网IP")'
             width="120"
             show-overflow-tooltip
           >
@@ -124,13 +124,13 @@
           </el-table-column>
           <el-table-column
             prop="os"
-            label="操作系统"
+            :label='$tr("操作系统")'
             width="120"
             show-overflow-tooltip
           />
           <el-table-column
             prop="status"
-            label="状态"
+            :label='$tr("状态")'
             width="80"
           >
             <template #default="{row}">
@@ -138,13 +138,13 @@
                 :type="getStatusType(row.status)" 
                 size="small"
               >
-                {{ getStatusText(row.status) }}
+                {{ $tr(getStatusText(row.status)) }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column
             prop="remark"
-            label="备注"
+            :label='$tr("备注")'
             show-overflow-tooltip
           />
         </el-table>
@@ -168,17 +168,17 @@
       <div class="dialog-footer">
         <div class="footer-info">
           <span v-if="tempSelectedHosts.length > 0">
-            将添加 <strong>{{ tempSelectedHosts.length }}</strong> 台主机到{{ nodeType }}节点
+            {{ $tr("将添加") }} <strong>{{ tempSelectedHosts.length }}</strong> {{ $tr("台主机到") }}{{ nodeType }}{{ $tr("节点") }}
           </span>
         </div>
         <div class="footer-actions">
-          <el-button @click="handleClose">取消</el-button>
+          <el-button @click="handleClose">{{ $tr("取消") }}</el-button>
           <el-button 
             type="primary" 
             @click="confirmSelection"
             :disabled="tempSelectedHosts.length === 0"
           >
-            确认选择 ({{ tempSelectedHosts.length }})
+            {{ $tr("确认选择 (") }}{{ tempSelectedHosts.length }})
           </el-button>
         </div>
       </div>
@@ -187,6 +187,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { 
@@ -260,7 +262,7 @@ const fetchGroupsWithHosts = async () => {
     }
   } catch (error) {
     console.error('获取分组列表失败:', error)
-    ElMessage.error('获取分组列表失败')
+    ElMessage.error(tr('获取分组列表失败'))
   } finally {
     groupsLoading.value = false
   }
@@ -296,7 +298,7 @@ const getAllHosts = async () => {
     }
   } catch (error) {
     console.error('获取主机列表失败:', error)
-    ElMessage.error('获取主机列表失败')
+    ElMessage.error(tr('获取主机列表失败'))
     currentGroupHosts.value = []
   } finally {
     hostsLoading.value = false
@@ -331,7 +333,7 @@ const handleGroupClick = async (data) => {
     }
   } catch (error) {
     console.error('获取分组主机失败:', error)
-    ElMessage.error('获取分组主机失败')
+    ElMessage.error(tr('获取分组主机失败'))
     currentGroupHosts.value = []
   } finally {
     hostsLoading.value = false
@@ -405,7 +407,7 @@ const getStatusText = (status) => {
 // 确认选择
 const confirmSelection = () => {
   if (tempSelectedHosts.value.length === 0) {
-    ElMessage.warning('请选择至少一台主机')
+    ElMessage.warning(tr('请选择至少一台主机'))
     return
   }
   

@@ -1,0 +1,47 @@
+DEBU[2026/10/02 - 00:46:55] Logger initialized with TextFormatter.       
+=== RUN   TestAutoscalingHTTPLive
+=== RUN   TestAutoscalingHTTPLive/unauthenticated_rejected
+=== RUN   TestAutoscalingHTTPLive/admin_real_HPA_list
+=== RUN   TestAutoscalingHTTPLive/HPA_readonly_list
+=== RUN   TestAutoscalingHTTPLive/readonly_create_rejected
+=== RUN   TestAutoscalingHTTPLive/readonly_delete_rejected
+=== RUN   TestAutoscalingHTTPLive/core_Service_cannot_edit_Knative_Service
+=== RUN   TestAutoscalingHTTPLive/namespace_isolation
+=== RUN   TestAutoscalingHTTPLive/invalid_resource_kind
+=== RUN   TestAutoscalingHTTPLive/invalid_cluster_ID
+=== RUN   TestAutoscalingHTTPLive/ambiguous_dry-run_rejected
+=== RUN   TestAutoscalingHTTPLive/unknown_JSON_field_rejected
+=== RUN   TestAutoscalingHTTPLive/multiple_JSON_objects_rejected
+=== RUN   TestAutoscalingHTTPLive/KPA_create_rejected
+=== RUN   TestAutoscalingHTTPLive/missing_version_rejected
+=== RUN   TestAutoscalingHTTPLive/capabilities_and_button_permissions
+=== RUN   TestAutoscalingHTTPLive/HTTP_autoscaler_real_CRUD
+    autoscaling_live_test.go:321: HPA HTTP create/update/delete, all dry-runs and conflict envelopes passed
+    autoscaling_live_test.go:356: VPA HTTP JSON policy create/update/delete and all dry-runs passed
+I1002 00:46:56.643061   32211 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:46:56.865599   32211 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:46:56.993242   32211 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:46:57.197238   32211 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+I1002 00:46:57.321634   32211 warnings.go:107] "Warning: Kubernetes default value is insecure, Knative may default this to secure in a future release: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation, spec.template.spec.containers[0].securityContext.capabilities, spec.template.spec.containers[0].securityContext.runAsNonRoot, spec.template.spec.containers[0].securityContext.seccompProfile"
+    autoscaling_live_test.go:434: KPA HTTP JSON update/dry-run/reset passed; Service retained with unrelated annotation
+    autoscaling_live_test.go:398: HTTP Knative fixture foreground cleanup confirmed
+    autoscaling_live_test.go:229: HTTP cleanup confirmed: autoops-api-e2e-final-20261002 removed
+--- PASS: TestAutoscalingHTTPLive (44.04s)
+    --- PASS: TestAutoscalingHTTPLive/unauthenticated_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/admin_real_HPA_list (0.02s)
+    --- PASS: TestAutoscalingHTTPLive/HPA_readonly_list (0.02s)
+    --- PASS: TestAutoscalingHTTPLive/readonly_create_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/readonly_delete_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/core_Service_cannot_edit_Knative_Service (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/namespace_isolation (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/invalid_resource_kind (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/invalid_cluster_ID (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/ambiguous_dry-run_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/unknown_JSON_field_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/multiple_JSON_objects_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/KPA_create_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/missing_version_rejected (0.00s)
+    --- PASS: TestAutoscalingHTTPLive/capabilities_and_button_permissions (0.01s)
+    --- PASS: TestAutoscalingHTTPLive/HTTP_autoscaler_real_CRUD (43.89s)
+PASS
+ok  	dodevops-api/api/k8s/controller	44.056s

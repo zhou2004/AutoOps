@@ -763,3 +763,685 @@ func (ctrl *K8sStorageController) UpdateStorageClassYaml(c *gin.Context) {
 
 	ctrl.service.UpdateStorageClassYaml(c, uint(clusterId), storageClassName, yamlData)
 }
+
+// ===================== PVC 高阶功能 =====================
+
+// ExpandPVC PVC扩容
+func (ctrl *K8sStorageController) ExpandPVC(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	namespaceName := c.Param("namespaceName")
+	if namespaceName == "" {
+		result.Failed(c, 400, "命名空间名称不能为空")
+		return
+	}
+
+	pvcName := c.Param("pvcName")
+	if pvcName == "" {
+		result.Failed(c, 400, "PVC名称不能为空")
+		return
+	}
+
+	var req model.ExpandPVCRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数验证失败: "+err.Error())
+		return
+	}
+
+	ctrl.service.ExpandPVC(c, uint(clusterId), namespaceName, pvcName, &req)
+}
+
+// ClonePVC PVC克隆（数据备份迁移）
+func (ctrl *K8sStorageController) ClonePVC(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	namespaceName := c.Param("namespaceName")
+	if namespaceName == "" {
+		result.Failed(c, 400, "命名空间名称不能为空")
+		return
+	}
+
+	pvcName := c.Param("pvcName")
+	if pvcName == "" {
+		result.Failed(c, 400, "PVC名称不能为空")
+		return
+	}
+
+	var req model.PVCCloneRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数验证失败: "+err.Error())
+		return
+	}
+
+	ctrl.service.ClonePVC(c, uint(clusterId), namespaceName, pvcName, &req)
+}
+
+// ===================== StorageClass 高阶功能 =====================
+
+// SetDefaultStorageClass 设置默认存储类
+func (ctrl *K8sStorageController) SetDefaultStorageClass(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	storageClassName := c.Param("storageClassName")
+	if storageClassName == "" {
+		result.Failed(c, 400, "存储类名称不能为空")
+		return
+	}
+
+	var req model.SetDefaultSCRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数验证失败: "+err.Error())
+		return
+	}
+
+	ctrl.service.SetDefaultStorageClass(c, uint(clusterId), storageClassName, &req)
+}
+
+// GetStorageStats 获取存储统计信息
+func (ctrl *K8sStorageController) GetStorageStats(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	ctrl.service.GetStorageStats(c, uint(clusterId))
+}
+
+// ===================== Ceph 管理 =====================
+
+// GetCephStatus 获取 Ceph 集群状态概览
+// @Summary 获取 Ceph 集群状态概览
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result{data=model.CephClusterStatus}
+// @Router /k8s/cluster/{id}/ceph/status [get]
+func (ctrl *K8sStorageController) GetCephStatus(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+	ctrl.service.GetCephStatus(c, uint(clusterId))
+}
+
+// GetCephPools 获取 Ceph pool 列表
+// @Summary 获取 Ceph pool 列表
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result{data=[]model.CephPool}
+// @Router /k8s/cluster/{id}/ceph/pools [get]
+func (ctrl *K8sStorageController) GetCephPools(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+	ctrl.service.GetCephPools(c, uint(clusterId))
+}
+
+// UpdateCephPoolSize 调整 Ceph pool 副本数
+// @Summary 调整 Ceph pool 副本数
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param poolName path string true "Pool 名称"
+// @Param body body model.UpdateCephPoolSizeRequest true "目标副本数"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools/{poolName}/size [put]
+func (ctrl *K8sStorageController) UpdateCephPoolSize(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+	poolName := c.Param("poolName")
+	var req model.UpdateCephPoolSizeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.UpdateCephPoolSize(c, uint(clusterId), poolName, &req)
+}
+
+// GetCephOSDs 获取 Ceph OSD 状态列表
+// @Summary 获取 Ceph OSD 状态列表
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result{data=[]model.CephOSD}
+// @Router /k8s/cluster/{id}/ceph/osds [get]
+func (ctrl *K8sStorageController) GetCephOSDs(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+	ctrl.service.GetCephOSDs(c, uint(clusterId))
+}
+
+// CreateCephPool 创建 Ceph pool
+// @Summary 创建 Ceph pool
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param body body model.CreateCephPoolRequest true "Pool 信息"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools [post]
+func (ctrl *K8sStorageController) CreateCephPool(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.CreateCephPoolRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.CreateCephPool(c, clusterId, &req)
+}
+
+// DeleteCephPool 删除 Ceph pool
+// @Summary 删除 Ceph pool
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param poolName path string true "Pool 名称"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools/{poolName} [delete]
+func (ctrl *K8sStorageController) DeleteCephPool(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.DeleteCephPool(c, clusterId, c.Param("poolName"))
+}
+
+// UpdateCephPoolPGNum 调整 Ceph pool PG 数
+// @Summary 调整 Ceph pool PG 数
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param poolName path string true "Pool 名称"
+// @Param body body model.UpdateCephPoolPGNumRequest true "目标PG数"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools/{poolName}/pg-num [put]
+func (ctrl *K8sStorageController) UpdateCephPoolPGNum(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.UpdateCephPoolPGNumRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.UpdateCephPoolPGNum(c, clusterId, c.Param("poolName"), &req)
+}
+
+// UpdateCephPoolQuota 设置 Ceph pool 配额
+// @Summary 设置 Ceph pool 配额
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param poolName path string true "Pool 名称"
+// @Param body body model.UpdateCephPoolQuotaRequest true "配额信息"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools/{poolName}/quota [put]
+func (ctrl *K8sStorageController) UpdateCephPoolQuota(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.UpdateCephPoolQuotaRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.UpdateCephPoolQuota(c, clusterId, c.Param("poolName"), &req)
+}
+
+// UpdateCephPoolCompression 设置 Ceph pool 压缩
+// @Summary 设置 Ceph pool 压缩
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param poolName path string true "Pool 名称"
+// @Param body body model.UpdateCephPoolCompressionRequest true "压缩配置"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pools/{poolName}/compression [put]
+func (ctrl *K8sStorageController) UpdateCephPoolCompression(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.UpdateCephPoolCompressionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.UpdateCephPoolCompression(c, clusterId, c.Param("poolName"), &req)
+}
+
+// GetCephRBDImages 获取 Ceph RBD 镜像列表
+// @Summary 获取 Ceph RBD 镜像列表
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result{data=[]model.CephRBDImage}
+// @Router /k8s/cluster/{id}/ceph/rbd/images [get]
+func (ctrl *K8sStorageController) GetCephRBDImages(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephRBDImages(c, clusterId)
+}
+
+// CreateCephRBDImage 创建 Ceph RBD 镜像
+// @Summary 创建 Ceph RBD 镜像
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param body body model.CreateCephRBDImageRequest true "镜像信息"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images [post]
+func (ctrl *K8sStorageController) CreateCephRBDImage(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.CreateCephRBDImageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.CreateCephRBDImage(c, clusterId, &req)
+}
+
+// GetCephRBDImageDetail 获取 Ceph RBD 镜像详情
+// @Summary 获取 Ceph RBD 镜像详情
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Success 200 {object} result.Result{data=model.CephRBDImage}
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image} [get]
+func (ctrl *K8sStorageController) GetCephRBDImageDetail(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephRBDImageDetail(c, clusterId, c.Param("pool"), c.Param("image"))
+}
+
+// ResizeCephRBDImage 扩容/缩容 RBD 镜像
+// @Summary 扩容/缩容 RBD 镜像
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Param body body model.ResizeCephRBDImageRequest true "目标容量"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/resize [put]
+func (ctrl *K8sStorageController) ResizeCephRBDImage(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.ResizeCephRBDImageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.ResizeCephRBDImage(c, clusterId, c.Param("pool"), c.Param("image"), &req)
+}
+
+// DeleteCephRBDImage 删除 RBD 镜像
+// @Summary 删除 RBD 镜像
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image} [delete]
+func (ctrl *K8sStorageController) DeleteCephRBDImage(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.DeleteCephRBDImage(c, clusterId, c.Param("pool"), c.Param("image"))
+}
+
+// ListCephRBDSnapshots 获取 RBD 镜像快照列表
+// @Summary 获取 RBD 镜像快照列表
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Success 200 {object} result.Result{data=[]model.CephRBDSnapshot}
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/snapshots [get]
+func (ctrl *K8sStorageController) ListCephRBDSnapshots(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.ListCephRBDSnapshots(c, clusterId, c.Param("pool"), c.Param("image"))
+}
+
+// CreateCephRBDSnapshot 创建 RBD 快照
+// @Summary 创建 RBD 快照
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Param body body model.CreateCephRBDSnapshotRequest true "快照名"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/snapshots [post]
+func (ctrl *K8sStorageController) CreateCephRBDSnapshot(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.CreateCephRBDSnapshotRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.CreateCephRBDSnapshot(c, clusterId, c.Param("pool"), c.Param("image"), &req)
+}
+
+// DeleteCephRBDSnapshot 删除 RBD 快照
+// @Summary 删除 RBD 快照
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Param snap path string true "快照名称"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/snapshots/{snap} [delete]
+func (ctrl *K8sStorageController) DeleteCephRBDSnapshot(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.DeleteCephRBDSnapshot(c, clusterId, c.Param("pool"), c.Param("image"), c.Param("snap"))
+}
+
+// RollbackCephRBDImage 回滚 RBD 镜像到快照
+// @Summary 回滚 RBD 镜像到快照
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Param snap path string true "快照名称"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/snapshots/{snap}/rollback [post]
+func (ctrl *K8sStorageController) RollbackCephRBDImage(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.RollbackCephRBDImage(c, clusterId, c.Param("pool"), c.Param("image"), c.Param("snap"))
+}
+
+// CloneCephRBDImage 克隆 RBD 镜像
+// @Summary 克隆 RBD 镜像（基于受保护快照）
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param pool path string true "Pool 名称"
+// @Param image path string true "镜像名称"
+// @Param body body model.CloneCephRBDImageRequest true "克隆目标"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/rbd/images/{pool}/{image}/clone [post]
+func (ctrl *K8sStorageController) CloneCephRBDImage(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	var req model.CloneCephRBDImageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.CloneCephRBDImage(c, clusterId, c.Param("pool"), c.Param("image"), &req)
+}
+
+// GetCephFS 获取 CephFS 文件系统列表
+// @Summary 获取 CephFS 文件系统列表
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result{data=[]model.CephFS}
+// @Router /k8s/cluster/{id}/ceph/fs [get]
+func (ctrl *K8sStorageController) GetCephFS(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephFS(c, clusterId)
+}
+
+// GetCephHealth 获取 Ceph 健康详情
+// @Summary 获取 Ceph 健康详情
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/health [get]
+func (ctrl *K8sStorageController) GetCephHealth(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephHealth(c, clusterId)
+}
+
+// GetCephVersions 获取 Ceph 组件版本分布
+// @Summary 获取 Ceph 组件版本分布
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/versions [get]
+func (ctrl *K8sStorageController) GetCephVersions(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephVersions(c, clusterId)
+}
+
+// GetCephPGStat 获取 Ceph PG 状态统计
+// @Summary 获取 Ceph PG 状态统计
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/pg-stat [get]
+func (ctrl *K8sStorageController) GetCephPGStat(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	ctrl.service.GetCephPGStat(c, clusterId)
+}
+
+// SetCephOSDStatus 标记 OSD in/out/down
+// @Summary 标记 OSD in/out/down
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param osdId path int true "OSD ID"
+// @Param action path string true "动作 in/out/down"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/osds/{osdId}/{action} [post]
+func (ctrl *K8sStorageController) SetCephOSDStatus(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	osdId, err := strconv.Atoi(c.Param("osdId"))
+	if err != nil {
+		result.Failed(c, 400, "无效的OSD ID")
+		return
+	}
+	ctrl.service.SetCephOSDStatus(c, clusterId, osdId, c.Param("action"))
+}
+
+// ReweightCephOSD 调整 OSD 权重
+// @Summary 调整 OSD 权重
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param osdId path int true "OSD ID"
+// @Param body body model.ReweightCephOSDRequest true "目标权重"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/osds/{osdId}/reweight [post]
+func (ctrl *K8sStorageController) ReweightCephOSD(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	osdId, err := strconv.Atoi(c.Param("osdId"))
+	if err != nil {
+		result.Failed(c, 400, "无效的OSD ID")
+		return
+	}
+	var req model.ReweightCephOSDRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数错误: "+err.Error())
+		return
+	}
+	ctrl.service.ReweightCephOSD(c, clusterId, osdId, &req)
+}
+
+// DeleteCephOSD 删除 OSD
+// @Summary 删除 OSD（危险操作）
+// @Tags K8s存储管理-Ceph
+// @Accept json
+// @Produce json
+// @Param id path int true "集群ID"
+// @Param osdId path int true "OSD ID"
+// @Success 200 {object} result.Result
+// @Router /k8s/cluster/{id}/ceph/osds/{osdId} [delete]
+func (ctrl *K8sStorageController) DeleteCephOSD(c *gin.Context) {
+	clusterId, ok := ctrl.parseClusterId(c)
+	if !ok {
+		return
+	}
+	osdId, err := strconv.Atoi(c.Param("osdId"))
+	if err != nil {
+		result.Failed(c, 400, "无效的OSD ID")
+		return
+	}
+	ctrl.service.DeleteCephOSD(c, clusterId, osdId)
+}
+
+// parseClusterId 解析集群ID（Ceph controller 通用）
+func (ctrl *K8sStorageController) parseClusterId(c *gin.Context) (uint, bool) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return 0, false
+	}
+	return uint(clusterId), true
+}
+
+// MigratePVC 卷到卷数据迁移
+func (ctrl *K8sStorageController) MigratePVC(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	var req model.MigratePVCRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数验证失败: "+err.Error())
+		return
+	}
+
+	ctrl.service.MigratePVC(c, uint(clusterId), &req)
+}
+
+// SwitchWorkloadPVC 一键换卷
+func (ctrl *K8sStorageController) SwitchWorkloadPVC(c *gin.Context) {
+	clusterIdStr := c.Param("id")
+	clusterId, err := strconv.Atoi(clusterIdStr)
+	if err != nil || clusterId <= 0 {
+		result.Failed(c, 400, "无效的集群ID")
+		return
+	}
+
+	namespaceName := c.Param("namespaceName")
+	if namespaceName == "" {
+		result.Failed(c, 400, "命名空间名称不能为空")
+		return
+	}
+
+	var req model.SwitchWorkloadPVCRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		result.Failed(c, 400, "参数验证失败: "+err.Error())
+		return
+	}
+
+	ctrl.service.SwitchWorkloadPVC(c, uint(clusterId), namespaceName, &req)
+}

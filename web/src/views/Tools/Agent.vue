@@ -3,39 +3,39 @@
     <el-card shadow="hover" class="agent-card">
       <template #header>
         <div class="card-header">
-          <span class="title">Agent管理</span>
+          <span class="title">{{ $tr("Agent管理") }}</span>
         </div>
       </template>
       
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-      <el-form-item label="主机名称">
+      <el-form-item :label='$tr("主机名称")'>
         <el-input
-          placeholder="请输入主机名称"
+          :placeholder='$tr("请输入主机名称")'
           size="small"
           clearable
           v-model="queryParams.hostName"
           @keyup.enter="searchByHostName(queryParams.hostName)"
         />
       </el-form-item>
-      <el-form-item label="Agent状态" style="width: 200px">
+      <el-form-item :label='$tr("Agent状态")' style="width: 200px">
         <el-select
           size="small"
-          placeholder="请选择Agent状态"
+          :placeholder='$tr("请选择Agent状态")'
           v-model="queryParams.status"
           @change="searchByStatus(queryParams.status)"
           style="width: 100%"
         >
-          <el-option label="部署中" :value="1" />
-          <el-option label="部署失败" :value="2" />
-          <el-option label="运行中" :value="3" />
-          <el-option label="启动异常" :value="4" />
+          <el-option :label='$tr("部署中")' :value="1" />
+          <el-option :label='$tr("部署失败")' :value="2" />
+          <el-option :label='$tr("运行中")' :value="3" />
+          <el-option :label='$tr("启动异常")' :value="4" />
         </el-select>
       </el-form-item>
-      <el-form-item label="版本">
+      <el-form-item :label='$tr("版本")'>
         <el-input
-          placeholder="请输入版本号"
+          :placeholder='$tr("请输入版本号")'
           size="small"
           clearable
           v-model="queryParams.version"
@@ -43,8 +43,8 @@
         />
       </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="fetchAgents">搜索</el-button>
-            <el-button icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="fetchAgents">{{ $tr("搜索") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -58,14 +58,14 @@
           size="small"
           v-authority="['ops:agent:create']"
           @click="handleDeployToHosts"
-        >部署Agent</el-button>
+        >{{ $tr("部署Agent") }}</el-button>
         <el-button
           type="primary"
           plain
           icon="Search"
           size="small"
           @click="handleScanNodeExporter"
-        >扫描NodeExporter</el-button>
+        >{{ $tr("扫描NodeExporter") }}</el-button>
         <el-button
           type="danger"
           plain
@@ -74,7 +74,7 @@
           size="small"
           @click="batchUninstall"
           :disabled="selectedAgents.length === 0"
-        >批量卸载({{ selectedAgents.length }})</el-button>
+        >{{ $tr("批量卸载(") }}{{ selectedAgents.length }})</el-button>
       </div>
 
       <!-- 列表区域 -->
@@ -88,7 +88,7 @@
           @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="hostName" label="主机名称" width="150">
+      <el-table-column prop="hostName" :label='$tr("主机名称")' width="150">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img :src="$getAssetUrl('@/assets/image/主机在线.svg')" style="width: 16px; height: 16px"/>
@@ -96,7 +96,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="sshIp" label="IP地址" width="140">
+      <el-table-column prop="sshIp" :label='$tr("IP地址")' width="140">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img :src="$getAssetUrl('@/assets/image/ip.svg')" style="width: 16px; height: 16px"/>
@@ -104,7 +104,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="version" label="版本" width="120">
+      <el-table-column prop="version" :label='$tr("版本")' width="120">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img :src="$getAssetUrl('@/assets/image/版本.svg')" style="width: 16px; height: 16px"/>
@@ -112,15 +112,15 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="120">
+      <el-table-column prop="status" :label='$tr("状态")' width="120">
         <template #default="{row}">
           <span :class="getStatusClass(row.status)">
             <el-icon><component :is="getStatusIcon(row.status)" /></el-icon>
-            {{ getStatusText(row.status) }}
+            {{ $tr(getStatusText(row.status)) }}
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="port" label="监听端口" width="100">
+      <el-table-column prop="port" :label='$tr("监听端口")' width="100">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img :src="$getAssetUrl('@/assets/image/端口.svg')" style="width: 16px; height: 16px"/>
@@ -128,7 +128,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="安装进度" width="150">
+      <el-table-column :label='$tr("安装进度")' width="150">
         <template #default="{row}">
           <div v-if="row.status === 1">
             <el-progress 
@@ -153,31 +153,31 @@
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="健康状态" width="100">
+      <el-table-column :label='$tr("健康状态")' width="100">
         <template #default="{row}">
           <el-tag
             :type="getHealthStatusType(row)"
             size="small"
           >
             <el-icon><component :is="getHealthStatusIcon(row)" /></el-icon>
-            {{ getHealthStatusText(row) }}
+            {{ $tr(getHealthStatusText(row)) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="lastHeartbeat" label="最后心跳" width="180">
+      <el-table-column prop="lastHeartbeat" :label='$tr("最后心跳")' width="180">
         <template #default="{row}">
           <span v-if="row.lastHeartbeat && row.lastHeartbeat !== '0001-01-01 00:00:00'">
             {{ formatTime(row.lastHeartbeat) }}
           </span>
-          <span v-else class="text-muted">未连接</span>
+          <span v-else class="text-muted">{{ $tr("未连接") }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="updateTime" label="更新时间" width="180">
+      <el-table-column prop="updateTime" :label='$tr("更新时间")' width="180">
         <template #default="{row}">
           {{ formatTime(row.updateTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作"  fixed="right">
+      <el-table-column :label='$tr("操作")'  fixed="right">
         <template #default="{row}">
           <el-button 
             size="small" 
@@ -186,7 +186,7 @@
             @click="handleRedeploy(row)"
             :disabled="row.status === 1"
             v-if="row.status === 2"
-          >重新部署</el-button>
+          >{{ $tr("重新部署") }}</el-button>
           
           <el-button 
             size="small" 
@@ -195,9 +195,9 @@
             @click="handleRestart(row)"
             :disabled="row.status === 1"
             v-if="row.status === 4"
-          >重启</el-button>
+          >{{ $tr("重启") }}</el-button>
           
-          <el-tooltip content="卸载" placement="top">
+          <el-tooltip :content='$tr("卸载")' placement="top">
             <el-button
               size="small"
               type="warning"
@@ -246,7 +246,7 @@
 
     <!--Agent详情对话框-->
     <el-dialog
-      title="Agent详情"
+      :title='$tr("Agent详情")'
       v-model="detailVisible"
       width="50%"
       :modal="false"
@@ -256,41 +256,41 @@
         border 
         v-if="currentAgent"
       >
-        <el-descriptions-item label="主机名称">{{ currentAgent.hostName }}</el-descriptions-item>
-        <el-descriptions-item label="IP地址">{{ currentAgent.sshIp }}</el-descriptions-item>
-        <el-descriptions-item label="版本">{{ currentAgent.version }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label='$tr("主机名称")'>{{ currentAgent.hostName }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("IP地址")'>{{ currentAgent.sshIp }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("版本")'>{{ currentAgent.version }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("状态")'>
           <span :class="getStatusClass(currentAgent.status)">
             <el-icon><component :is="getStatusIcon(currentAgent.status)" /></el-icon>
-            {{ getStatusText(currentAgent.status) }}
+            {{ $tr(getStatusText(currentAgent.status)) }}
           </span>
         </el-descriptions-item>
-        <el-descriptions-item label="安装路径">{{ currentAgent.installPath || '未设置' }}</el-descriptions-item>
-        <el-descriptions-item label="监听端口">{{ currentAgent.port }}</el-descriptions-item>
-        <el-descriptions-item label="进程ID">{{ currentAgent.pid || '无' }}</el-descriptions-item>
-        <el-descriptions-item label="健康状态">
+        <el-descriptions-item :label='$tr("安装路径")'>{{ currentAgent.installPath || '未设置' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("监听端口")'>{{ currentAgent.port }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("进程ID")'>{{ currentAgent.pid || '无' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("健康状态")'>
           <el-tag 
             :type="currentAgent.isHealthy ? 'success' : 'danger'"
             size="small"
           >
-            {{ currentAgent.isHealthy ? '健康' : '异常' }}
+            {{ currentAgent.isHealthy ? '健康' : $tr('异常') }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="最后心跳" span="2">
+        <el-descriptions-item :label='$tr("最后心跳")' span="2">
           <span v-if="currentAgent.lastHeartbeat && currentAgent.lastHeartbeat !== '0001-01-01 00:00:00'">
             {{ formatTime(currentAgent.lastHeartbeat) }}
           </span>
-          <span v-else class="text-muted">未连接</span>
+          <span v-else class="text-muted">{{ $tr("未连接") }}</span>
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间" span="2">
+        <el-descriptions-item :label='$tr("创建时间")' span="2">
           {{ formatTime(currentAgent.createTime) }}
         </el-descriptions-item>
-        <el-descriptions-item label="更新时间" span="2">
+        <el-descriptions-item :label='$tr("更新时间")' span="2">
           {{ formatTime(currentAgent.updateTime) }}
         </el-descriptions-item>
-        <el-descriptions-item label="错误信息" span="2" v-if="currentAgent.errorMsg">
+        <el-descriptions-item :label='$tr("错误信息")' span="2" v-if="currentAgent.errorMsg">
           <el-alert 
-            :title="currentAgent.errorMsg" 
+            :title="$tr(currentAgent.errorMsg)" 
             type="error" 
             :closable="false"
             show-icon
@@ -298,7 +298,7 @@
         </el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <el-button @click="detailVisible = false">{{ $tr("关闭") }}</el-button>
       </template>
     </el-dialog>
 
@@ -315,20 +315,20 @@
     />
 
     <!--NodeExporter扫描结果对话框-->
-    <el-dialog title="NodeExporter 扫描结果" v-model="scanResultVisible" width="650px">
+    <el-dialog :title='$tr("NodeExporter 扫描结果")' v-model="scanResultVisible" width="650px">
       <el-table :data="scanResults" border stripe size="small">
-        <el-table-column prop="hostName" label="主机名称" width="140" />
-        <el-table-column prop="sshIp" label="IP地址" width="140" />
-        <el-table-column prop="port" label="端口" width="70" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="hostName" :label='$tr("主机名称")' width="140" />
+        <el-table-column prop="sshIp" :label='$tr("IP地址")' width="140" />
+        <el-table-column prop="port" :label='$tr("端口")' width="70" />
+        <el-table-column :label='$tr("状态")' width="100">
           <template #default="{row}">
             <el-tag :type="getScanStatusType(row.status)" size="small" effect="dark">
-              {{ getScanStatusText(row.status) }}
+              {{ $tr(getScanStatusText(row.status)) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="url" label="端点URL" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="errorMsg" label="错误信息" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="url" :label='$tr("端点URL")' min-width="200" show-overflow-tooltip />
+        <el-table-column prop="errorMsg" :label='$tr("错误信息")' min-width="150" show-overflow-tooltip />
       </el-table>
     </el-dialog>
     </el-card>
@@ -336,6 +336,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
@@ -374,7 +376,7 @@ const handleScanNodeExporter = () => {
 
 const handleScanHostsSelected = async (selectedHosts) => {
   if (!selectedHosts || selectedHosts.length === 0) {
-    ElMessage.warning('请选择要扫描的主机')
+    ElMessage.warning(tr('请选择要扫描的主机'))
     return
   }
   showScanHostDialog.value = false
@@ -459,14 +461,14 @@ const fetchAgents = async () => {
 
 const handleRedeploy = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要重新部署Agent到主机 ${row.hostName} 吗？`, '确认重新部署', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要重新部署Agent到主机 ${row.hostName} 吗？`, tr('确认重新部署'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'info'
     })
     
     await cmdbAPI.deployAgent([row.hostId], '1.0.0')
-    ElMessage.success('Agent重新部署已启动，请等待部署完成')
+    ElMessage.success(tr('Agent重新部署已启动，请等待部署完成'))
     fetchAgents()
     
     startPolling()
@@ -484,15 +486,15 @@ const handleDeployToHosts = () => {
 
 const handleHostsSelected = async (selectedHosts) => {
   if (!selectedHosts || selectedHosts.length === 0) {
-    ElMessage.warning('请选择要部署Agent的主机')
+    ElMessage.warning(tr('请选择要部署Agent的主机'))
     return
   }
 
   try {
     const hostNames = selectedHosts.map(host => host.name).join(', ')
-    await ElMessageBox.confirm(`确定要在以下主机上部署Agent吗？\n${hostNames}`, '确认部署', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要在以下主机上部署Agent吗？\n${hostNames}`, tr('确认部署'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'info'
     })
     
@@ -513,14 +515,14 @@ const handleHostsSelected = async (selectedHosts) => {
 
 const handleUninstall = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要卸载主机 ${row.hostName} 的Agent吗？`, '确认卸载', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要卸载主机 ${row.hostName} 的Agent吗？`, tr('确认卸载'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning'
     })
 
     await cmdbAPI.uninstallAgent([row.hostId])
-    ElMessage.success('Agent卸载已启动，请等待卸载完成')
+    ElMessage.success(tr('Agent卸载已启动，请等待卸载完成'))
 
     // 立即刷新一次数据
     await fetchAgents()
@@ -543,14 +545,14 @@ const handleUninstall = async (row) => {
 
 const handleDelete = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要删除主机 ${row.hostName} 的Agent数据吗？此操作不可恢复！`, '确认删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要删除主机 ${row.hostName} 的Agent数据吗？此操作不可恢复！`, tr('确认删除'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning'
     })
 
     await cmdbAPI.deleteAgent(row.id)
-    ElMessage.success('Agent数据删除成功')
+    ElMessage.success(tr('Agent数据删除成功'))
 
     // 立即刷新数据
     await fetchAgents()
@@ -565,14 +567,14 @@ const handleDelete = async (row) => {
 
 const handleRestart = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定要重启主机 ${row.hostName} 的Agent吗？`, '确认重启', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要重启主机 ${row.hostName} 的Agent吗？`, tr('确认重启'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'info'
     })
 
     await cmdbAPI.restartAgent(row.hostId)
-    ElMessage.success('Agent重启指令已发送')
+    ElMessage.success(tr('Agent重启指令已发送'))
 
     // 立即刷新数据
     await fetchAgents()
@@ -592,16 +594,16 @@ const handleRestart = async (row) => {
 const batchUninstall = async () => {
   try {
     const hostNames = selectedAgents.value.map(agent => agent.hostName).join(', ')
-    await ElMessageBox.confirm(`确定要批量卸载以下主机的Agent吗？\n${hostNames}`, '确认批量卸载', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要批量卸载以下主机的Agent吗？\n${hostNames}`, tr('确认批量卸载'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning'
     })
 
     const hostIds = selectedAgents.value.map(agent => agent.hostId)
     await cmdbAPI.uninstallAgent(hostIds)
 
-    ElMessage.success('批量卸载已启动，请等待卸载完成')
+    ElMessage.success(tr('批量卸载已启动，请等待卸载完成'))
 
     // 立即刷新一次数据
     await fetchAgents()

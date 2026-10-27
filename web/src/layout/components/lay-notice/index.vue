@@ -42,12 +42,12 @@ const getLabel = computed(
         >
           <el-empty
             v-if="notices.length === 0"
-            description="暂无消息"
+            :description='$tr("暂无消息")'
             :image-size="60"
           />
           <span v-else>
             <template v-for="item in notices" :key="item.key">
-              <el-tab-pane :label="getLabel(item)" :name="`${item.key}`">
+              <el-tab-pane :label="$tr(getLabel(item))" :name="`${item.key}`">
                 <el-scrollbar max-height="330px">
                   <div class="noticeList-container">
                     <NoticeList :list="item.list" :emptyText="item.emptyText" />

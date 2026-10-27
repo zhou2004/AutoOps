@@ -30,9 +30,9 @@
                 circle
                 @click="viewWorkloadLabels"
                 class="label-icon-button"
-                title="查看标签"
+                :title='$tr("查看标签")'
               >
-                <img :src="$getAssetUrl('@/assets/image/标签.svg')" alt="标签" width="14" height="14" />
+                <img :src="$getAssetUrl('@/assets/image/标签.svg')" :alt='$tr("标签")' width="14" height="14" />
               </el-button>
             </el-badge>
           </div>
@@ -52,7 +52,7 @@
             </el-tag>
             <div class="pod-status-text">
               <span :class="getReplicaStatusClass(workload.readyReplicas, workload.totalReplicas)">
-                {{ workload.readyReplicas }}/{{ workload.totalReplicas }} 就绪
+                {{ workload.readyReplicas }}/{{ workload.totalReplicas }} {{ $tr("就绪") }}
               </span>
             </div>
           </div>
@@ -66,7 +66,7 @@
               :key="index"
               class="image-tag-wrapper"
               @click="copyToClipboard(image, '镜像地址已复制')"
-              title="点击复制镜像地址"
+              :title='$tr("点击复制镜像地址")'
             >
               <el-icon class="copy-icon"><DocumentCopy /></el-icon>
               <span class="full-image-name">{{ image }}</span>
@@ -78,7 +78,7 @@
               class="more-images-btn"
               @click="viewAllImages"
             >
-              +{{ workload.images.length - 1 }} 更多
+              +{{ workload.images.length - 1 }} {{ $tr("更多") }}
             </el-button>
           </div>
         </div>
@@ -90,10 +90,10 @@
             size="default"
             class="status-tag"
           >
-            {{ getStatusText(workload.status) }}
+            {{ $tr(getStatusText(workload.status)) }}
           </el-tag>
           <div class="update-time">
-            <span class="update-label">更新时间:</span>
+            <span class="update-label">{{ $tr("更新时间:") }}</span>
             <span class="update-value">{{ formatDateTime(workload.updatedAt) }}</span>
           </div>
         </div>
@@ -106,7 +106,7 @@
             circle 
             type="primary" 
             @click="$emit('show-monitoring', workload)"
-            title="查看监控"
+            :title='$tr("查看监控")'
             class="monitor-btn"
           />
         </div>
@@ -123,7 +123,7 @@
       <div class="labels-content">
         <!-- 用户标签 -->
         <div class="labels-section" v-if="Object.keys(getUserLabels(workload.labels)).length > 0">
-          <h4>应用标签</h4>
+          <h4>{{ $tr("应用标签") }}</h4>
           <div class="labels-grid">
             <el-tag
               v-for="(value, key) in getUserLabels(workload.labels)"
@@ -141,7 +141,7 @@
         
         <!-- 系统标签 -->
         <div class="labels-section" v-if="Object.keys(getSystemLabels(workload.labels)).length > 0">
-          <h4>系统标签</h4>
+          <h4>{{ $tr("系统标签") }}</h4>
           <div class="labels-grid">
             <el-tag
               v-for="(value, key) in getSystemLabels(workload.labels)"
@@ -159,7 +159,7 @@
         
         <!-- 没有标签的提示 -->
         <div v-if="!workload.labels || Object.keys(workload.labels).length === 0" class="no-labels">
-          <el-empty description="该工作负载没有标签" :image-size="60" />
+          <el-empty :description='$tr("该工作负载没有标签")' :image-size="60" />
         </div>
       </div>
     </el-dialog>
@@ -188,7 +188,7 @@
                     :icon="DocumentCopy"
                     @click="copyToClipboard(image, '镜像地址已复制')"
                   >
-                    复制
+                    {{ $tr("复制") }}
                   </el-button>
                 </div>
               </div>
@@ -201,7 +201,7 @@
         </div>
         
         <div v-else class="no-images">
-          <el-empty description="该工作负载没有镜像信息" :image-size="60" />
+          <el-empty :description='$tr("该工作负载没有镜像信息")' :image-size="60" />
         </div>
       </div>
     </el-dialog>
@@ -209,6 +209,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -378,14 +380,14 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
     ElMessage.success(successMessage)
   } catch (error) {
     console.error('复制失败:', error)
-    ElMessage.error('复制失败')
+    ElMessage.error(tr('复制失败'))
   }
 }
 
 // 事件处理
 const navigateToPodDetail = () => {
   // 这里可以导航到Pod详情页面
-  ElMessage.info('跳转到Pod详情页面功能开发中...')
+  ElMessage.info(tr('跳转到Pod详情页面功能开发中...'))
 }
 
 const viewWorkloadLabels = () => {

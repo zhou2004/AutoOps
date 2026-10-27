@@ -92,49 +92,12 @@ type promAlert struct {
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
-// yamlSyncGroupToRules (自上而下解析) 将 Group 的 RuleContent 拆解到子规则
-func (s *monitorAlertRuleService) yamlSyncGroupToRules(group *model.MonitorAlertGroupRule) error {
-	// 1. 删除旧规则
-	s.ruleDao.DeleteByGroupID(group.ID)
-
-	// 2. 解析群组YAML
-	var doc promYamlRoot
-	if err := yaml.Unmarshal([]byte(group.RuleContent), &doc); err != nil {
-		return err
-	}
-
-	if len(doc.Spec.Groups) == 0 {
-		return nil
-	}
-
-	pg := doc.Spec.Groups[0] // 仅保存第一个 Group
-
-	// 构建子规则
-	for _, pr := range pg.Rules {
-		rLabels, _ := json.Marshal(pr.Labels)
-		contentBytes, _ := yaml.Marshal(pr)
-
-		rule := &model.MonitorAlertRule{
-			GroupID:     group.ID,
-			Alert:       pr.Alert,
-			Expr:        pr.Expr,
-			ForDuration: pr.For,
-			Labels:      string(rLabels),
-			Severity:    pr.Labels["severity"],
-			Summary:     pr.Annotations["summary"],
-			Description: pr.Annotations["description"],
-			RuleContent: string(contentBytes),
-			Status:      "inactive",
-		}
-		s.ruleDao.Create(rule)
-	}
-
-	return nil
-}
-
 // yamlSyncRulesToGroup (自下而上拼装) 将子规则拼装成 Group 的 RuleContent
 func (s *monitorAlertRuleService) yamlSyncRulesToGroup(group *model.MonitorAlertGroupRule) error {
-	rules, _ := s.ruleDao.GetByGroupID(group.ID)
+	rules, err := s.ruleDao.GetByGroupID(group.ID)
+	if err != nil {
+		return err
+	}
 
 	// 从群组读出 Labels 以便级联下发
 	var groupLabels map[string]string
@@ -142,6 +105,15 @@ func (s *monitorAlertRuleService) yamlSyncRulesToGroup(group *model.MonitorAlert
 
 	var doc promYamlRoot
 	_ = yaml.Unmarshal([]byte(group.RuleContent), &doc) // 保持外壳
+	if doc.ApiVersion == "" {
+		doc.ApiVersion = "monitoring.coreos.com/v1"
+	}
+	if doc.Kind == "" {
+		doc.Kind = "PrometheusRule"
+	}
+	if doc.Metadata.Name == "" {
+		doc.Metadata.Name = fmt.Sprintf("autoops-alert-group-%d", group.ID)
+	}
 	if len(doc.Spec.Groups) == 0 {
 		doc.Spec.Groups = []promGroup{{Name: group.GroupName}}
 	}
@@ -206,6 +178,7 @@ func (s *monitorAlertRuleService) yamlSyncRulesToGroup(group *model.MonitorAlert
 		newRules = append(newRules, pr)
 	}
 
+	doc.Spec.Groups[0].Name = group.GroupName
 	doc.Spec.Groups[0].Rules = newRules
 
 	// 写回群组
@@ -220,10 +193,14 @@ func (s *monitorAlertRuleService) yamlSyncRulesToGroup(group *model.MonitorAlert
 // ============== CRUD for Group ==============
 
 func (s *monitorAlertRuleService) CreateGroup(data *model.MonitorAlertGroupRule) error {
+	if err := prepareAlertBusinessGroup(common.GetDB(), data); err != nil {
+		return err
+	}
+	data.RuleContent = ""
 	if err := s.groupRuleDao.Create(data); err != nil {
 		return err
 	}
-	return s.yamlSyncGroupToRules(data)
+	return s.yamlSyncRulesToGroup(data)
 }
 
 func (s *monitorAlertRuleService) DeleteGroup(id uint) error {
@@ -237,19 +214,27 @@ func (s *monitorAlertRuleService) UpdateGroup(data *model.MonitorAlertGroupRule)
 		return err
 	}
 
-	// 判断是只改了外层基础字段还是直接传入了新的大 YAML 结构
-	if data.RuleContent != oldGroup.RuleContent && data.RuleContent != "" {
-		// 传入了新 YAML -> 冲刷子节点
-		s.groupRuleDao.Update(data)
-		return s.yamlSyncGroupToRules(data)
-	} else {
-		// 只是改了基础字段 (如 GroupName 或 GroupLabels) - > 向下合并并且反推新 YAML
-		if data.RuleContent == "" {
-			data.RuleContent = oldGroup.RuleContent
-		}
-		s.groupRuleDao.Update(data)
-		return s.yamlSyncRulesToGroup(data)
+	if err := prepareAlertBusinessGroup(common.GetDB(), data); err != nil {
+		return err
 	}
+	// Metadata edits preserve rule IDs, state, enabled flags and any custom group labels.
+	labels := map[string]string{}
+	if oldGroup.Labels != "" {
+		if err := json.Unmarshal([]byte(oldGroup.Labels), &labels); err != nil {
+			return fmt.Errorf("原群组标签格式无效")
+		}
+	}
+	selected := map[string]string{}
+	_ = json.Unmarshal([]byte(data.Labels), &selected)
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels["cluster"] = selected["cluster"]
+	encoded, _ := json.Marshal(labels)
+	data.Labels = string(encoded)
+	data.DataSourceID = oldGroup.DataSourceID
+	data.RuleContent = oldGroup.RuleContent
+	return s.yamlSyncRulesToGroup(data)
 }
 
 func (s *monitorAlertRuleService) GetGroupByID(id uint) (*model.MonitorAlertGroupRule, error) {
@@ -597,10 +582,11 @@ func (s *monitorAlertRuleService) evalDomainCertRule(ctx context.Context, rdb *r
 	for _, cert := range certs {
 		matched := s.matchDomainCertRule(r, cert)
 		metric := map[string]string{
-			"domain":         cert.Domain,
-			"port":           strconv.Itoa(cert.Port),
-			"status":         strconv.Itoa(cert.Status),
-			"remaining_days": strconv.Itoa(cert.RemainingDays),
+			"monitor_source_id": strconv.FormatUint(uint64(cert.ID), 10),
+			"domain":            cert.Domain,
+			"port":              strconv.Itoa(cert.Port),
+			"status":            strconv.Itoa(cert.Status),
+			"remaining_days":    strconv.Itoa(cert.RemainingDays),
 		}
 
 		value := []interface{}{float64(now.Unix()), "0"}
@@ -629,6 +615,7 @@ func (s *monitorAlertRuleService) evalAPIEndpointRule(ctx context.Context, rdb *
 	for _, ep := range endpoints {
 		matched := s.matchAPIEndpointRule(r, ep)
 		metric := map[string]string{
+			"monitor_source_id": strconv.FormatUint(uint64(ep.ID), 10),
 			"name":              ep.Name,
 			"url":               ep.URL,
 			"method":            ep.Method,
@@ -822,7 +809,7 @@ func (s *monitorAlertRuleService) processInternalEval(ctx context.Context, rdb *
 	currentRuleStatus := "inactive"
 
 	for _, res := range results {
-		fp := metricFingerprint(res.Metric)
+		fp := internalMetricFingerprint(res.Metric)
 		activeFps[fp] = true
 
 		var state AlertEvalState
@@ -893,7 +880,9 @@ func (s *monitorAlertRuleService) processInternalEval(ctx context.Context, rdb *
 			var state AlertEvalState
 			json.Unmarshal([]byte(valStr), &state)
 			if state.State == "firing" {
-				go sendWebhook(r, nil, "resolved", time.Unix(state.ActiveAt, 0))
+				var metric map[string]string
+				json.Unmarshal([]byte(fp), &metric)
+				go sendWebhook(r, metric, "resolved", time.Unix(state.ActiveAt, 0))
 			}
 			rdb.HDel(ctx, hashKey, fp)
 		}
@@ -903,6 +892,19 @@ func (s *monitorAlertRuleService) processInternalEval(ctx context.Context, rdb *
 		log.Printf("[状态更新] 内部规则 [%s] (ID:%d) 状态变化: %s -> %s\n", r.Alert, r.ID, r.Status, currentRuleStatus)
 		s.ruleDao.UpdateStatus(r.ID, currentRuleStatus)
 	}
+}
+
+func internalMetricFingerprint(metric map[string]string) string {
+	if id := metric["monitor_source_id"]; id != "" {
+		return metricFingerprint(map[string]string{"monitor_source_id": id})
+	}
+	identity := make(map[string]string)
+	for k, v := range metric {
+		if k != "status" && k != "remaining_days" && k != "last_status_code" && k != "last_response_ms" {
+			identity[k] = v
+		}
+	}
+	return metricFingerprint(identity)
 }
 
 func metricFingerprint(metric map[string]string) string {
@@ -1017,6 +1019,12 @@ func sendWebhook(r *model.MonitorAlertRule, metric map[string]string, status str
 		}
 	}
 
+	labels["monitor_rule_id"] = strconv.FormatUint(uint64(r.ID), 10)
+	labels["monitor_source"] = "prometheus"
+	if r.Style == "domain_cert" || r.Style == "api_endpoint" {
+		labels["monitor_source"] = r.Style
+		labels["monitor_source_id"] = metric["monitor_source_id"]
+	}
 	annotations := map[string]string{
 		"summary":     r.Summary,
 		"description": r.Description,

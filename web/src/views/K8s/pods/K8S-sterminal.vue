@@ -7,7 +7,7 @@
             <el-icon class="terminal-icon">
               <Monitor />
             </el-icon>
-            <span>终端 - {{ podName }}</span>
+            <span>{{ $tr("终端 -") }} {{ podName }}</span>
             <el-tag v-if="currentContainer" type="info" size="small">
               {{ currentContainer }}
             </el-tag>
@@ -15,7 +15,7 @@
           <div class="terminal-controls">
             <el-select
               v-model="selectedCommand"
-              placeholder="选择命令"
+              :placeholder='$tr("选择命令")'
               size="small"
               style="width: 120px; margin-right: 10px;"
             >
@@ -24,7 +24,7 @@
             </el-select>
             <el-select
               v-model="selectedContainer"
-              placeholder="选择容器"
+              :placeholder='$tr("选择容器")'
               size="small"
               style="width: 150px; margin-right: 10px;"
               @change="handleContainerChange"
@@ -32,7 +32,7 @@
               <el-option
                 v-for="container in containers"
                 :key="container"
-                :label="container"
+                :label="$tr(container)"
                 :value="container"
               />
             </el-select>
@@ -43,7 +43,7 @@
               @click="connect"
               :disabled="!selectedContainer"
             >
-              {{ isConnected ? '重连' : '连接' }}
+              {{ isConnected ? '重连' : $tr('连接') }}
             </el-button>
             <el-button
               type="danger"
@@ -51,7 +51,7 @@
               @click="disconnect"
               :disabled="!isConnected"
             >
-              断开
+              {{ $tr("断开") }}
             </el-button>
             <el-button
               type="success"
@@ -60,7 +60,7 @@
               @click="fileManagerVisible = true"
               :disabled="!selectedContainer"
             >
-              文件管理
+              {{ $tr("文件管理") }}
             </el-button>
             <el-button
               type="info"
@@ -68,7 +68,7 @@
               style="margin-left: 10px"
               @click="goBack"
             >
-              返回
+              {{ $tr("返回") }}
             </el-button>
           </div>
         </div>
@@ -82,9 +82,9 @@
               <Monitor />
             </el-icon>
             <div class="placeholder-text">
-              <h3>Web 终端</h3>
-              <p>选择容器并点击连接按钮开始使用终端</p>
-              <p v-if="!selectedContainer" class="tip">请先选择一个容器</p>
+              <h3>{{ $tr("Web 终端") }}</h3>
+              <p>{{ $tr("选择容器并点击连接按钮开始使用终端") }}</p>
+              <p v-if="!selectedContainer" class="tip">{{ $tr("请先选择一个容器") }}</p>
             </div>
           </div>
         </div>
@@ -110,6 +110,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -242,7 +244,7 @@ const getContainers = async () => {
     }
   } catch (error) {
     console.error('获取容器列表失败:', error)
-    ElMessage.error('获取容器列表失败')
+    ElMessage.error(tr('获取容器列表失败'))
     // 降级处理：从Pod详情获取容器信息
     await getContainersFromPodDetail()
   }
@@ -294,7 +296,7 @@ const getContainersFromPodDetail = async () => {
 // 连接终端
 const connect = async () => {
   if (!selectedContainer.value) {
-    ElMessage.error('请选择容器')
+    ElMessage.error(tr('请选择容器'))
     return
   }
 
@@ -307,7 +309,7 @@ const connect = async () => {
   try {
     const token = getToken()
     if (!token) {
-      ElMessage.error('未找到token，请先登录')
+      ElMessage.error(tr('未找到token，请先登录'))
       return
     }
 
@@ -333,7 +335,7 @@ const connect = async () => {
         console.warn('⏰ WebSocket连接超时，主动关闭')
         websocket.close()
         connecting.value = false
-        ElMessage.error('连接超时，请检查网络或服务器状态')
+        ElMessage.error(tr('连接超时，请检查网络或服务器状态'))
       }
     }, 10000) // 10秒超时
     
@@ -342,7 +344,7 @@ const connect = async () => {
       connecting.value = false
       isConnected.value = true
       currentContainer.value = selectedContainer.value
-      ElMessage.success('终端连接成功')
+      ElMessage.success(tr('终端连接成功'))
       
       // 清空终端并显示欢迎信息
       if (terminal) {
@@ -400,7 +402,7 @@ const connect = async () => {
         readyState: error.target?.readyState,
         url: error.target?.url
       })
-      ElMessage.error('终端连接出错，请检查网络或后端服务')
+      ElMessage.error(tr('终端连接出错，请检查网络或后端服务'))
       connecting.value = false
       isConnected.value = false
     }
@@ -450,9 +452,9 @@ const connect = async () => {
       }
       
       if (event.code === 1000) {
-        ElMessage.info('终端连接已正常断开')
+        ElMessage.info(tr('终端连接已正常断开'))
       } else if (event.code === 1006) {
-        ElMessage.error('终端连接异常断开，请检查网络连接')
+        ElMessage.error(tr('终端连接异常断开，请检查网络连接'))
       } else {
         const reasonText = getCloseReason(event.code, event.reason)
         ElMessage.warning(`终端连接关闭: ${reasonText}`)
@@ -508,7 +510,7 @@ const disconnect = () => {
 // 切换容器
 const handleContainerChange = () => {
   if (isConnected.value) {
-    ElMessage.info('切换容器需要重新连接')
+    ElMessage.info(tr('切换容器需要重新连接'))
     disconnect()
   }
 }

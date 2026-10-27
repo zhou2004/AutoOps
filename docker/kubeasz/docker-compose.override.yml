@@ -1,0 +1,13 @@
+# From the repository root:
+# docker compose -f docker/docker-compose.yml -f docker/kubeasz/docker-compose.override.yml up -d devops-api
+# Prepare /srv/autoops-kubeasz/{bin,down,clusters,state} first. See the operations guide.
+services:
+  devops-api:
+    # This executor owns local processes; keep one API executor replica.
+    volumes:
+      - /srv/autoops-kubeasz/bin:/etc/kubeasz/bin
+      - /srv/autoops-kubeasz/down:/etc/kubeasz/down:ro
+      - /srv/autoops-kubeasz/clusters:/etc/kubeasz/clusters
+      - /srv/autoops-kubeasz/state:/etc/kubeasz/.autoops
+      # The base compose already mounts ./api/ssh_keys at /root/.ssh:ro.
+      # Include a private key and a verified known_hosts there.

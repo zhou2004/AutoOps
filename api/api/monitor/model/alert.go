@@ -59,64 +59,68 @@ func (AlertRouter) TableName() string {
 }
 
 type PrometheusAlertMsg struct {
-        Tpl                string
-        Type               string
-        Ddurl              string
-        Wxurl              string
-        Fsurl              string
-        Phone              string
-        WebHookUrl         string
-        ToUser             string
-        Email              string
-        EmailTitle         string
-        ToParty            string
-        ToTag              string
-        GroupId            string
-        AtSomeOne          string
-        RoundRobin         string
-        Split              string
-        WebhookContentType string
+	Tpl                string
+	Type               string
+	Ddurl              string
+	Wxurl              string
+	Fsurl              string
+	Phone              string
+	WebHookUrl         string
+	ToUser             string
+	Email              string
+	EmailTitle         string
+	ToParty            string
+	ToTag              string
+	GroupId            string
+	AtSomeOne          string
+	RoundRobin         string
+	Split              string
+	WebhookContentType string
 }
 
 type LabelMap struct {
-Name  string
-Value string
-Regex bool
+	Name  string
+	Value string
+	Regex bool
 }
 
-
-
 type AlertConfig struct {
-        Id        int    `gorm:"primaryKey;autoIncrement"`
-        ConfKey   string `gorm:"unique;column:conf_key;type:varchar(255)"`
-        ConfValue string `gorm:"column:conf_value;type:text"`
+	Id        int    `gorm:"primaryKey;autoIncrement"`
+	ConfKey   string `gorm:"unique;column:conf_key;type:varchar(255)"`
+	ConfValue string `gorm:"column:conf_value;type:text"`
 }
 
 func (AlertConfig) TableName() string {
-        return "monitor_alert_config"
+	return "monitor_alert_config"
 }
 
 type TemplateQuery struct {
-        Page     int    `form:"page" json:"page"`
-        PageSize int    `form:"pageSize" json:"pageSize"`
-        Tplname  string `form:"tplname" json:"tplname"`
-        Tpltype  string `form:"tpltype" json:"tpltype"`
-        Tpluse   string `form:"tpluse" json:"tpluse"`
+	Page     int    `form:"page" json:"page"`
+	PageSize int    `form:"pageSize" json:"pageSize"`
+	Tplname  string `form:"tplname" json:"tplname"`
+	Tpltype  string `form:"tpltype" json:"tpltype"`
+	Tpluse   string `form:"tpluse" json:"tpluse"`
 }
 
 type RouterQuery struct {
-        Page       int    `form:"page" json:"page"`
-        PageSize   int    `form:"pageSize" json:"pageSize"`
-        Name       string `form:"name" json:"name"`
-        UrlOrPhone string `form:"urlOrPhone" json:"urlOrPhone"`
-        TplId      int    `form:"tplId" json:"tplId"`
+	Page       int    `form:"page" json:"page"`
+	PageSize   int    `form:"pageSize" json:"pageSize"`
+	Name       string `form:"name" json:"name"`
+	UrlOrPhone string `form:"urlOrPhone" json:"urlOrPhone"`
+	TplId      int    `form:"tplId" json:"tplId"`
 }
 
 type RecordQuery struct {
-        Page        int    `form:"page" json:"page"`
-        PageSize    int    `form:"pageSize" json:"pageSize"`
-        Alertname   string `form:"alertname" json:"alertname"`
-        AlertLevel  string `form:"alertLevel" json:"alertLevel"`
-        Instance    string `form:"instance" json:"instance"`
-        AlertStatus string `form:"alertStatus" json:"alertStatus"`
+	Page        int    `form:"page" json:"page"`
+	PageSize    int    `form:"pageSize" json:"pageSize"`
+	Alertname   string `form:"alertname" json:"alertname"`
+	AlertLevel  string `form:"alertLevel" json:"alertLevel"`
+	Instance    string `form:"instance" json:"instance"`
+	AlertStatus string `form:"alertStatus" json:"alertStatus"`
+}
+
+// DeleteRecordsRequest 删除通知历史请求
+type DeleteRecordsRequest struct {
+	Ids        []int64 `json:"ids"`        // 按ID列表批量删除
+	BeforeTime string  `json:"beforeTime"` // 删除此时间之前的记录（RFC3339格式），与Ids二选一
 }

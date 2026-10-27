@@ -24,12 +24,12 @@ func NewCmdbHostDao() CmdbHostDao {
 }
 
 // 获取主机列表(分页)
-func (d *CmdbHostDao) GetCmdbHostListWithPage(page, pageSize int) ([]model.CmdbHost, int64) {
+func (d *CmdbHostDao) GetCmdbHostListWithPage(page, pageSize int, scopes ...map[uint]bool) ([]model.CmdbHost, int64) {
 	var list []model.CmdbHost
 	var total int64
 
 	// 使用预加载Group信息并优化查询
-	db := d.db.Preload("Group")
+	db := ApplyAssetIDScope(d.db.Model(&model.CmdbHost{}).Preload("Group"), scopes...)
 	db.Model(&model.CmdbHost{}).Count(&total)
 	db.Offset((page - 1) * pageSize).Limit(pageSize).Find(&list)
 

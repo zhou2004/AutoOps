@@ -31,25 +31,54 @@ func (d *CmdbGroupDao) GetCmdbGroupByName(name string) (model.CmdbGroup, error) 
 
 func (d *CmdbGroupDao) CheckNameExists(name string) bool {
 	var count int64
-	d.db.Model(&model.CmdbGroup{}).Where("name LIKE ?", "%"+name+"%").Count(&count)
+	d.db.Model(&model.CmdbGroup{}).Where("name = ?", name).Count(&count)
 	return count > 0
 }
 
 func (d *CmdbGroupDao) CreateCmdbGroup(group *model.CmdbGroup) error {
-	return d.db.Create(group).Error
+	group.ID = 0
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		groups, err := lockBusinessGroups(tx)
+		if err != nil {
+			return err
+		}
+		if err := validateBusinessGroup(group, groups, false); err != nil {
+			return err
+		}
+		return tx.Omit("Hosts").Create(group).Error
+	})
 }
 
 func (d *CmdbGroupDao) UpdateCmdbGroup(id uint, group *model.CmdbGroup) error {
-	return d.db.Model(&model.CmdbGroup{}).Where("id = ?", id).Updates(group).Error
+	group.ID = id
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		groups, err := lockBusinessGroups(tx)
+		if err != nil {
+			return err
+		}
+		if err := validateBusinessGroup(group, groups, true); err != nil {
+			return err
+		}
+		return tx.Model(&model.CmdbGroup{}).Where("id = ?", id).Updates(map[string]interface{}{"name": group.Name, "parent_id": group.ParentID}).Error
+	})
 }
 
 func (d *CmdbGroupDao) DeleteCmdbGroup(id uint) error {
-	return d.db.Delete(&model.CmdbGroup{}, id).Error
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		groups, err := lockBusinessGroups(tx)
+		if err != nil {
+			return err
+		}
+		if err := ensureBusinessGroupEmpty(tx, id, groups); err != nil {
+			return err
+		}
+		return tx.Delete(&model.CmdbGroup{}, id).Error
+	})
 }
 
 func (d *CmdbGroupDao) GetCmdbGroupList() []model.CmdbGroup {
 	var list []model.CmdbGroup
-	d.db.Find(&list)
+	d.db.Order("id").Find(&list)
 	return list
 }
 

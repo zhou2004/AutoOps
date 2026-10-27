@@ -18,7 +18,7 @@
                   :class="['status-tag', namespace.status.toLowerCase()]"
                 >
                   <i class="status-dot"></i>
-                  {{ getNamespaceStatusText(namespace.status) }}
+                  {{ $tr(getNamespaceStatusText(namespace.status)) }}
                 </el-tag>
               </div>
             </div>
@@ -30,7 +30,7 @@
             <div class="metric-item">
               <div class="metric-header">
                 <img :src="$getAssetUrl('@/assets/image/cpu.svg')" alt="CPU" class="metric-icon" />
-                <span class="metric-label">CPU使用率</span>
+                <span class="metric-label">{{ $tr("CPU使用率") }}</span>
                 <span class="metric-value">{{ getNamespaceCpuUsageRate(namespaceMetrics[namespace.name]) }}%</span>
               </div>
               <div class="metric-progress">
@@ -52,7 +52,7 @@
             <div class="metric-item">
               <div class="metric-header">
                 <img :src="$getAssetUrl('@/assets/image/内存.svg')" alt="Memory" class="metric-icon" />
-                <span class="metric-label">内存使用率</span>
+                <span class="metric-label">{{ $tr("内存使用率") }}</span>
                 <span class="metric-value">{{ getNamespaceMemoryUsageRate(namespaceMetrics[namespace.name]) }}%</span>
               </div>
               <div class="metric-progress">
@@ -77,7 +77,7 @@
                   <i class="icon-dot"></i>
                 </div>
                 <div class="stat-content">
-                  <span class="stat-label">Pod数量</span>
+                  <span class="stat-label">{{ $tr("Pod数量") }}</span>
                   <span class="stat-value">{{ namespaceMetrics[namespace.name].podCount || 0 }}</span>
                 </div>
               </div>
@@ -86,7 +86,7 @@
                   <i class="icon-pulse"></i>
                 </div>
                 <div class="stat-content">
-                  <span class="stat-label">服务数量</span>
+                  <span class="stat-label">{{ $tr("服务数量") }}</span>
                   <span class="stat-value">{{ namespaceMetrics[namespace.name].serviceCount || 0 }}</span>
                 </div>
               </div>
@@ -99,30 +99,30 @@
               <div class="loading-dot"></div>
               <div class="loading-dot"></div>
             </div>
-            <p class="no-data-text">正在获取监控数据...</p>
+            <p class="no-data-text">{{ $tr("正在获取监控数据...") }}</p>
           </div>
 
           <!-- 操作按钮 -->
           <div class="namespace-actions">
-            <button 
-              class="action-btn primary-btn"
+            <el-button
+              type="primary" class="action-btn primary-btn"
               @click="viewNamespaceDetail(namespace)"
             >
               <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16">
                 <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z" fill="currentColor"/>
               </svg>
-              <span>详细信息</span>
-              <div class="btn-glow"></div>
-            </button>
-            <button 
+              <span>{{ $tr("详细信息") }}</span>
+
+            </el-button>
+            <el-button
               class="action-btn secondary-btn"
               @click="refreshNamespaceMetrics(namespace.name)"
             >
               <svg class="btn-icon refresh-icon" viewBox="0 0 24 24" width="16" height="16">
                 <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" fill="currentColor"/>
               </svg>
-              <span>刷新</span>
-            </button>
+              <span>{{ $tr("刷新") }}</span>
+            </el-button>
           </div>
         </div>
       </el-col>
@@ -143,25 +143,25 @@
               <svg class="section-icon" viewBox="0 0 24 24" width="18" height="18">
                 <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" fill="currentColor"/>
               </svg>
-              基本信息
+              {{ $tr("基本信息") }}
             </h4>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">命名空间名称</span>
+                <span class="info-label">{{ $tr("命名空间名称") }}</span>
                 <span class="info-value">{{ selectedNamespace.name }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">状态</span>
+                <span class="info-label">{{ $tr("状态") }}</span>
                 <el-tag :type="getNamespaceStatusTag(selectedNamespace.status)" size="small">
-                  {{ getNamespaceStatusText(selectedNamespace.status) }}
+                  {{ $tr(getNamespaceStatusText(selectedNamespace.status)) }}
                 </el-tag>
               </div>
               <div class="info-item">
-                <span class="info-label">创建时间</span>
+                <span class="info-label">{{ $tr("创建时间") }}</span>
                 <span class="info-value">{{ selectedNamespace.createdAt || '2024-01-01T00:00:00Z' }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">标签数量</span>
+                <span class="info-label">{{ $tr("标签数量") }}</span>
                 <span class="info-value">{{ Object.keys(selectedNamespace.labels || {}).length }}</span>
               </div>
             </div>
@@ -173,7 +173,7 @@
               <svg class="section-icon" viewBox="0 0 24 24" width="18" height="18">
                 <path d="M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19Z" fill="currentColor"/>
               </svg>
-              资源使用情况
+              {{ $tr("资源使用情况") }}
             </h4>
             <div class="resource-stats">
               <div class="resource-stat-item">
@@ -181,7 +181,7 @@
                   <svg class="stat-icon cpu-icon" viewBox="0 0 24 24" width="20" height="20">
                     <path d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17C5,18.1 5.89,19 7,19H9V21H11V19H13V21H15V19H17C18.1,19 19,18.1 19,17V15H21V13H19V11M16,8H8V16H16V8Z" fill="currentColor"/>
                   </svg>
-                  <span class="stat-label">CPU使用率</span>
+                  <span class="stat-label">{{ $tr("CPU使用率") }}</span>
                 </div>
                 <div class="stat-value">{{ getNamespaceCpuUsageRate(selectedNamespace.metrics) }}%</div>
                 <div class="custom-progress large">
@@ -191,8 +191,8 @@
                   ></div>
                 </div>
                 <div class="stat-details">
-                  <span>使用: {{ formatCpuValue(selectedNamespace.metrics?.cpu?.usage) }}</span>
-                  <span>限制: {{ formatCpuValue(selectedNamespace.metrics?.cpu?.capacity) }}</span>
+                  <span>{{ $tr("使用:") }} {{ formatCpuValue(selectedNamespace.metrics?.cpu?.usage) }}</span>
+                  <span>{{ $tr("限制:") }} {{ formatCpuValue(selectedNamespace.metrics?.cpu?.capacity) }}</span>
                 </div>
               </div>
 
@@ -201,7 +201,7 @@
                   <svg class="stat-icon memory-icon" viewBox="0 0 24 24" width="20" height="20">
                     <path d="M17,7H22V9H19V17H17V19H15V17H13V19H11V17H9V19H7V17H5V9H2V7H7V5H9V7H11V5H13V7H15V5H17V7M17,9V15H7V9H17Z" fill="currentColor"/>
                   </svg>
-                  <span class="stat-label">内存使用率</span>
+                  <span class="stat-label">{{ $tr("内存使用率") }}</span>
                 </div>
                 <div class="stat-value">{{ getNamespaceMemoryUsageRate(selectedNamespace.metrics) }}%</div>
                 <div class="custom-progress large">
@@ -211,8 +211,8 @@
                   ></div>
                 </div>
                 <div class="stat-details">
-                  <span>使用: {{ formatMemoryValue(selectedNamespace.metrics?.memory?.usage) }}</span>
-                  <span>限制: {{ formatMemoryValue(selectedNamespace.metrics?.memory?.capacity) }}</span>
+                  <span>{{ $tr("使用:") }} {{ formatMemoryValue(selectedNamespace.metrics?.memory?.usage) }}</span>
+                  <span>{{ $tr("限制:") }} {{ formatMemoryValue(selectedNamespace.metrics?.memory?.capacity) }}</span>
                 </div>
               </div>
             </div>
@@ -224,7 +224,7 @@
               <svg class="section-icon" viewBox="0 0 24 24" width="18" height="18">
                 <path d="M19,5V7H15V5H19M9,5V11H5V5H9M19,13V19H15V13H19M9,17V19H5V17H9M21,3H13V9H21V3M11,3H3V13H11V3M21,11H13V21H21V11M11,15H3V21H11V15Z" fill="currentColor"/>
               </svg>
-              Pod列表 ({{ namespacePods.length }})
+              {{ $tr("Pod列表 (") }}{{ namespacePods.length }})
             </h4>
             <div class="pod-list">
               <div class="pod-item" v-for="pod in namespacePods" :key="pod.name">
@@ -243,9 +243,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { tr } from "@/locales";
+
+import { ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import k8sApi from '@/api/k8s'
 
 const props = defineProps({
   selectedClusterId: {
@@ -254,139 +256,95 @@ const props = defineProps({
   }
 })
 
-const router = useRouter()
-
 const namespaceDetailDialogVisible = ref(false)
 const selectedNamespace = ref(null)
 const namespacePods = ref([])
 const namespacesLoading = ref(false)
 
-// 命名空间监控相关
-const namespaceData = ref([
-  {
-    name: 'default',
-    status: 'Active'
-  },
-  {
-    name: 'kube-system',
-    status: 'Active'
-  },
-  {
-    name: 'monitoring',
-    status: 'Active'
-  }
-])
-
+// 命名空间监控相关（真实数据）
+const namespaceData = ref([])
 const namespaceMetrics = ref({})
 
-// 初始化模拟数据
-const initializeMockData = () => {
-  namespaceData.value.forEach(ns => {
-    namespaceMetrics.value[ns.name] = {
-      totalUsage: {
-        cpu: generateMockCpuUsage(),
-        memory: generateMockMemoryUsage()
-      },
-      totalCapacity: {
-        cpu: '2000m',
-        memory: '4Gi'
-      },
-      usageRate: {
-        cpuRate: Math.floor(Math.random() * 70) + 10,
-        memoryRate: Math.floor(Math.random() * 60) + 15
-      },
-      podCount: Math.floor(Math.random() * 15) + 3,
-      serviceCount: Math.floor(Math.random() * 8) + 2,
+// 获取命名空间列表
+const fetchNamespaces = async () => {
+  if (!props.selectedClusterId) return
+  namespacesLoading.value = true
+  try {
+    const response = await k8sApi.getNamespaces(props.selectedClusterId)
+    const responseData = response.data || response
+
+    if (responseData.code === 200 || responseData.success) {
+      const data = responseData.data || {}
+      // 兼容多种返回结构：{namespaces:[...]} / {list:[...]} / [...]
+      const list = data.namespaces || data.list || (Array.isArray(data) ? data : [])
+      namespaceData.value = (Array.isArray(list) ? list : []).map(ns => ({
+        name: ns.name || ns.Name || '-',
+        status: ns.status || ns.Status || 'Active',
+        createdAt: ns.createdAt || ns.CreationTimestamp || '',
+        labels: ns.labels || ns.Labels || {}
+      }))
+
+      // 为每个命名空间获取监控数据
+      if (namespaceData.value.length > 0) {
+        await Promise.all(namespaceData.value.map(ns => fetchNamespaceMetrics(ns.name)))
+      }
+    } else {
+      ElMessage.error(responseData.message || tr('获取命名空间列表失败'))
+    }
+  } catch (error) {
+    console.error('获取命名空间列表失败:', error)
+  } finally {
+    namespacesLoading.value = false
+  }
+}
+
+// 获取单个命名空间的监控数据
+const fetchNamespaceMetrics = async (namespaceName) => {
+  if (!props.selectedClusterId || !namespaceName) return
+  try {
+    const response = await k8sApi.getNamespaceMetrics(props.selectedClusterId, namespaceName)
+    const responseData = response.data || response
+
+    if (responseData.code === 200 || responseData.success) {
+      const metrics = responseData.data || {}
+      const hard = metrics.resourceQuota?.hard || {}
+      namespaceMetrics.value[namespaceName] = {
+        totalUsage: {
+          cpu: metrics.totalUsage?.cpu || '0m',
+          memory: metrics.totalUsage?.memory || '0Mi'
+        },
+        totalCapacity: {
+          cpu: hard.cpu || '-',
+          memory: hard.memory || '-'
+        },
+        usageRate: {
+          cpuRate: metrics.usageRate?.cpuRate || 0,
+          memoryRate: metrics.usageRate?.memoryRate || 0
+        },
+        podCount: metrics.podCount || 0,
+        runningPods: metrics.runningPods || 0,
+        podMetrics: metrics.podMetrics || [],
+        timestamp: metrics.timestamp || Date.now()
+      }
+    }
+  } catch (error) {
+    console.error(`获取命名空间${namespaceName}监控数据失败:`, error)
+    namespaceMetrics.value[namespaceName] = {
+      totalUsage: { cpu: '0m', memory: '0Mi' },
+      totalCapacity: { cpu: '-', memory: '-' },
+      usageRate: { cpuRate: 0, memoryRate: 0 },
+      podCount: 0,
+      runningPods: 0,
+      podMetrics: [],
       timestamp: Date.now()
     }
-  })
-}
-
-const generateMockCpuUsage = () => {
-  const usage = Math.floor(Math.random() * 800) + 100 // 100-900m
-  return `${usage}m`
-}
-
-const generateMockMemoryUsage = () => {
-  const usage = Math.floor(Math.random() * 2000) + 500 // 500-2500Mi  
-  return `${usage}Mi`
-}
-
-// 模拟命名空间数据（保留原来的结构用于详情弹窗）
-const originalNamespaceData = ref([
-  {
-    name: 'default',
-    status: 'Active',
-    metrics: {
-      cpu: {
-        usage: '125000000n',
-        capacity: '2000000000n'
-      },
-      memory: {
-        usage: '524288000',
-        capacity: '2147483648'
-      }
-    },
-    podCount: 8,
-    runningPods: 7,
-    serviceCount: 5,
-    activeServices: 4,
-    createdAt: '2024-01-01T00:00:00Z',
-    labels: {
-      'kubernetes.io/managed-by': 'kube-system'
-    }
-  },
-  {
-    name: 'kube-system',
-    status: 'Active',
-    metrics: {
-      cpu: {
-        usage: '87500000n',
-        capacity: '1000000000n'
-      },
-      memory: {
-        usage: '1073741824',
-        capacity: '4294967296'
-      }
-    },
-    podCount: 12,
-    runningPods: 11,
-    serviceCount: 8,
-    activeServices: 7,
-    createdAt: '2024-01-01T00:00:00Z',
-    labels: {
-      'name': 'kube-system'
-    }
-  },
-  {
-    name: 'monitoring',
-    status: 'Active',
-    metrics: {
-      cpu: {
-        usage: '312500000n',
-        capacity: '2000000000n'
-      },
-      memory: {
-        usage: '1610612736',
-        capacity: '3221225472'
-      }
-    },
-    podCount: 6,
-    runningPods: 5,
-    serviceCount: 4,
-    activeServices: 4,
-    createdAt: '2024-01-15T00:00:00Z',
-    labels: {
-      'app': 'monitoring',
-      'environment': 'production'
-    }
   }
-])
+}
 
 // 格式化CPU值
 const formatCpuValue = (value) => {
   if (!value) return '0m'
-  
+
   if (typeof value === 'string') {
     if (value.includes('n')) {
       const nanoValue = parseInt(value.replace('n', ''))
@@ -398,14 +356,14 @@ const formatCpuValue = (value) => {
     }
     return `${parseInt(value) * 1000}m`
   }
-  
+
   return `${Math.round(value / 1000000)}m`
 }
 
 // 格式化内存值
 const formatMemoryValue = (value) => {
   if (!value) return '0Mi'
-  
+
   if (typeof value === 'string') {
     if (value.includes('Ki')) {
       const kiValue = parseInt(value.replace('Ki', ''))
@@ -420,57 +378,38 @@ const formatMemoryValue = (value) => {
       return `${giValue * 1024}Mi`
     }
   }
-  
+
   const bytes = parseInt(value)
   const miValue = Math.round(bytes / (1024 * 1024))
   return `${miValue}Mi`
 }
 
-// 计算命名空间CPU使用率 (适配新的数据结构)
+// 计算命名空间CPU使用率
 const getNamespaceCpuUsageRate = (metrics) => {
-  if (!metrics || !metrics.usageRate) {
-    return Math.floor(Math.random() * 70) + 10
+  if (!metrics) return 0
+  if (metrics.usageRate?.cpuRate > 0) {
+    return Math.min(Math.max(Math.round(metrics.usageRate.cpuRate), 0), 100)
   }
-  return Math.min(Math.max(metrics.usageRate.cpuRate, 0), 100)
+  return 0
 }
 
-// 计算命名空间内存使用率 (适配新的数据结构) 
+// 计算命名空间内存使用率
 const getNamespaceMemoryUsageRate = (metrics) => {
-  if (!metrics || !metrics.usageRate) {
-    return Math.floor(Math.random() * 60) + 15
+  if (!metrics) return 0
+  if (metrics.usageRate?.memoryRate > 0) {
+    return Math.min(Math.max(Math.round(metrics.usageRate.memoryRate), 0), 100)
   }
-  return Math.min(Math.max(metrics.usageRate.memoryRate, 0), 100)
+  return 0
 }
 
 // 刷新命名空间监控数据
 const refreshNamespaceMetrics = async (namespaceName) => {
+  namespacesLoading.value = true
   try {
-    // 模拟API调用延迟
-    namespacesLoading.value = true
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // 重新生成该命名空间的模拟数据
-    namespaceMetrics.value[namespaceName] = {
-      totalUsage: {
-        cpu: generateMockCpuUsage(),
-        memory: generateMockMemoryUsage()
-      },
-      totalCapacity: {
-        cpu: '2000m',
-        memory: '4Gi'
-      },
-      usageRate: {
-        cpuRate: Math.floor(Math.random() * 70) + 10,
-        memoryRate: Math.floor(Math.random() * 60) + 15
-      },
-      podCount: Math.floor(Math.random() * 15) + 3,
-      serviceCount: Math.floor(Math.random() * 8) + 2,
-      timestamp: Date.now()
-    }
-    
+    await fetchNamespaceMetrics(namespaceName)
     ElMessage.success(`命名空间 ${namespaceName} 监控数据已刷新`)
   } catch (error) {
-    ElMessage.error('刷新监控数据失败')
+    ElMessage.error(tr('刷新监控数据失败'))
   } finally {
     namespacesLoading.value = false
   }
@@ -479,7 +418,7 @@ const refreshNamespaceMetrics = async (namespaceName) => {
 // 格式化时间戳
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '-'
-  
+
   try {
     const date = new Date(timestamp)
     return date.toLocaleString('zh-CN', {
@@ -539,40 +478,30 @@ const getPodStatusTag = (status) => {
   }
 }
 
-// 生成随机Pod数量
-const generateRandomPodCount = () => {
-  return Math.floor(Math.random() * 15) + 3
-}
-
-// 生成随机服务数量
-const generateRandomServiceCount = () => {
-  return Math.floor(Math.random() * 8) + 2
-}
-
-// 生成模拟Pod数据
-const generateMockPods = (namespace) => {
-  const podCount = namespace.podCount || generateRandomPodCount()
-  const pods = []
-  
-  for (let i = 0; i < podCount; i++) {
-    const statuses = ['Running', 'Pending', 'Failed', 'Succeeded']
-    const status = i === 0 ? 'Running' : statuses[Math.floor(Math.random() * statuses.length)]
-    
-    pods.push({
-      name: `${namespace.name}-pod-${i + 1}-${Math.random().toString(36).substr(2, 5)}`,
-      status: status,
-      cpu: `${Math.floor(Math.random() * 200) + 10}000000n`,
-      memory: `${Math.floor(Math.random() * 512) + 64}Mi`
-    })
-  }
-  
-  return pods
-}
-
 // 查看命名空间详情
 const viewNamespaceDetail = (namespace) => {
-  selectedNamespace.value = namespace
-  namespacePods.value = generateMockPods(namespace)
+  const metrics = namespaceMetrics.value[namespace.name]
+  // 适配详情弹窗的数据结构 { cpu:{usage,capacity}, memory:{usage,capacity} }
+  selectedNamespace.value = {
+    ...namespace,
+    metrics: {
+      cpu: {
+        usage: metrics?.totalUsage?.cpu || '0m',
+        capacity: metrics?.totalCapacity?.cpu || '-'
+      },
+      memory: {
+        usage: metrics?.totalUsage?.memory || '0Mi',
+        capacity: metrics?.totalCapacity?.memory || '-'
+      }
+    }
+  }
+  // 使用真实的 Pod 监控数据
+  namespacePods.value = (metrics?.podMetrics || []).map(pod => ({
+    name: pod.podName || pod.name || 'unknown-pod',
+    status: 'Running',
+    cpu: pod.usage?.cpu || '0m',
+    memory: pod.usage?.memory || '0Mi'
+  }))
   namespaceDetailDialogVisible.value = true
 }
 
@@ -583,15 +512,14 @@ const closeNamespaceDetailDialog = () => {
   namespacePods.value = []
 }
 
-// 暴露给父组件的方法
+// 刷新全部数据
 const refreshAllData = async () => {
-  console.log('NamespaceMonitoring: 刷新数据')
-  // 这里可以添加API调用逻辑
+  await fetchNamespaces()
 }
 
+// 集群变更处理
 const handleClusterChange = async () => {
-  console.log('NamespaceMonitoring: 集群变更', props.selectedClusterId)
-  // 这里可以添加集群变更处理逻辑
+  await fetchNamespaces()
 }
 
 // 暴露方法给父组件
@@ -600,10 +528,20 @@ defineExpose({
   handleClusterChange
 })
 
+// 监听集群ID变化
+watch(
+  () => props.selectedClusterId,
+  (newVal) => {
+    if (newVal) {
+      fetchNamespaces()
+    }
+  }
+)
+
 onMounted(() => {
-  console.log('NamespaceMonitoring 组件已挂载，集群ID:', props.selectedClusterId)
-  // 初始化模拟监控数据
-  initializeMockData()
+  if (props.selectedClusterId) {
+    fetchNamespaces()
+  }
 })
 </script>
 

@@ -1,0 +1,12 @@
+{
+  "namespace": "autoops-kpa-e2e-final-20261002",
+  "metric": "rps",
+  "duration_seconds": 30,
+  "script_sha256": "6e75f30dddc19766e0cdfaefdb7548badd86840bd87a08db71709a21f6901453",
+  "captured_before_run_at": "2026-10-01T16:54:23.232955+00:00",
+  "remote_sha256": "6e75f30dddc19766e0cdfaefdb7548badd86840bd87a08db71709a21f6901453",
+  "exit_code": 0,
+  "functional_passed_at": "2026-10-01T16:57:11Z",
+  "cleanup_confirmed_at": "2026-10-01T16:57:49Z",
+  "final_passed_at": "2026-10-01T16:57:49Z"
+}

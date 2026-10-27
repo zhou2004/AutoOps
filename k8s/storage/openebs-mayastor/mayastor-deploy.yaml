@@ -1,0 +1,81 @@
+# ============================================================
+# OpenEBS Mayastor 部署示例（高性能云原生块存储）
+# 适用于 192.168.80.51/52/53 三节点环境
+# 部署前需在每个 worker 节点准备一块裸盘 /dev/sdb
+# ============================================================
+
+# 1. 磁盘池（每个 worker 节点一个，使用本地裸盘）
+apiVersion: "openebs.io/v1"
+kind: DiskPool
+metadata:
+  name: pool-node01
+  namespace: mayastor
+spec:
+  node: k8s-node01
+  disks: ["/dev/sdb"]
+---
+apiVersion: "openebs.io/v1"
+kind: DiskPool
+metadata:
+  name: pool-node02
+  namespace: mayastor
+spec:
+  node: k8s-node02
+  disks: ["/dev/sdb"]
+---
+# 2. StorageClass（双副本，NVMe-oF 协议）
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mayastor-2
+provisioner: io.openebs.csi-mayastor
+parameters:
+  repl: "2"          # 数据双副本（跨节点容错）
+  protocol: "nvmf"   # NVMe-oF 高性能协议
+  thin: "true"       # 精简供给
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+---
+# 3. 测试 PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-pvc-mayastor
+  namespace: test_pv
+spec:
+  storageClassName: mayastor-2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# 4. 测试 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-postgres
+  namespace: test_pv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-postgres
+  template:
+    metadata:
+      labels:
+        app: test-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          env:
+            - name: POSTGRES_PASSWORD
+              value: "123456"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: test-pvc-mayastor

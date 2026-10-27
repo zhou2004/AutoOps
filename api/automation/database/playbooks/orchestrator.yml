@@ -1,0 +1,137 @@
+---
+- name: Validate Orchestrator topology
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture == 'x86_64'
+      - orc_nodes | length in [1, 3]
+- name: Check existing Orchestrator ownership
+  ansible.builtin.stat:
+    path: /etc/autoops-orchestrator-owner
+  register: orc_owner
+- name: Read existing Orchestrator ownership
+  ansible.builtin.slurp:
+    src: /etc/autoops-orchestrator-owner
+  register: orc_owner_content
+  when: orc_owner.stat.exists
+- name: Refuse another deployment's management service
+  ansible.builtin.assert:
+    that: not orc_owner.stat.exists or (orc_owner_content.content | default('') | b64decode | trim) == database_name
+- name: Inspect existing management state
+  ansible.builtin.stat:
+    path: /var/lib/autoops-orchestrator
+  register: orc_existing_state
+- name: Refuse unmanaged Orchestrator state
+  ansible.builtin.assert:
+    that: orc_owner.stat.exists or not orc_existing_state.stat.exists
+- name: Verify free Orchestrator HTTP port
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 13000
+    state: stopped
+    timeout: 1
+  when: not orc_owner.stat.exists
+- name: Verify free Raft port
+  ansible.builtin.wait_for:
+    host: '{{ database_address }}'
+    port: 11008
+    state: stopped
+    timeout: 1
+  when: not orc_owner.stat.exists and orc_nodes | length == 3
+- name: Record isolated Orchestrator ownership
+  ansible.builtin.copy:
+    dest: /etc/autoops-orchestrator-owner
+    content: '{{ database_name }}'
+    mode: '0600'
+- name: Create Orchestrator service user
+  ansible.builtin.user:
+    name: orchestrator
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+- name: Create installation and state directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    owner: orchestrator
+    group: orchestrator
+    mode: '0750'
+  loop: ['{{ orc_install_dir }}', /var/lib/autoops-orchestrator]
+- name: Download pinned upstream release on the controller
+  ansible.builtin.get_url:
+    url: '{{ orc_pkg_url }}'
+    checksum: 'sha256:688fd3432a014628692a284d9bee06fbab5c7b5704bd3425d580a37b3eb3a9da'
+    dest: '/tmp/autoops-orchestrator-{{ orc_version }}.tar.gz'
+    mode: '0644'
+    timeout: 90
+  delegate_to: localhost
+  become: false
+  run_once: true
+- name: Distribute Orchestrator release
+  ansible.builtin.copy:
+    src: '/tmp/autoops-orchestrator-{{ orc_version }}.tar.gz'
+    dest: '/var/lib/autoops-orchestrator/orchestrator-{{ orc_version }}.tar.gz'
+    mode: '0640'
+- name: Extract Orchestrator
+  ansible.builtin.unarchive:
+    src: '/var/lib/autoops-orchestrator/orchestrator-{{ orc_version }}.tar.gz'
+    dest: '{{ orc_install_dir }}'
+    remote_src: true
+    creates: '{{ orc_install_dir }}/usr/local/orchestrator/orchestrator'
+- name: Find release binary
+  ansible.builtin.find:
+    paths: '{{ orc_install_dir }}'
+    patterns: orchestrator
+    file_type: file
+    recurse: true
+  register: orc_binary
+- name: Validate release layout
+  ansible.builtin.assert:
+    that: orc_binary.files | length == 1
+- name: Locate service working directory
+  ansible.builtin.set_fact:
+    orc_binary_path: '{{ orc_binary.files[0].path }}'
+- name: Write authenticated Orchestrator configuration
+  ansible.builtin.template:
+    src: ../templates/orchestrator.json.j2
+    dest: /etc/autoops-orchestrator.json
+    owner: orchestrator
+    group: orchestrator
+    mode: '0600'
+  no_log: true
+  register: orc_config
+- name: Install service
+  ansible.builtin.template:
+    src: ../templates/orchestrator.service.j2
+    dest: /etc/systemd/system/autoops-orchestrator.service
+    mode: '0644'
+  register: orc_service
+- name: Start Orchestrator
+  ansible.builtin.systemd:
+    name: autoops-orchestrator
+    state: "{{ 'restarted' if orc_config.changed or orc_service.changed else 'started' }}"
+    enabled: true
+    daemon_reload: true
+- name: Wait for API health
+  ansible.builtin.uri:
+    url: http://127.0.0.1:13000/api/health
+    url_username: autoops
+    url_password: '{{ orc_http_password }}'
+    force_basic_auth: true
+    status_code: 200
+  register: orc_health
+  until: orc_health.status == 200
+  retries: 20
+  delay: 3
+  no_log: true
+- name: Wait for Raft quorum or standalone leadership before discovery
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:13000/api/{{ 'raft-health' if orc_nodes | length == 3 else 'leader-check' }}"
+    url_username: autoops
+    url_password: '{{ orc_http_password }}'
+    force_basic_auth: true
+    status_code: 200
+  register: orc_quorum
+  until: orc_quorum.status == 200
+  retries: 20
+  delay: 3
+  no_log: true

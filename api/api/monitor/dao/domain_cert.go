@@ -19,7 +19,12 @@ func NewDomainCertDao() *DomainCertDao {
 
 // Create 创建域名证书记录
 func (d *DomainCertDao) Create(cert *model.DomainCert) error {
-	return d.db.Create(cert).Error
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := validateCategory(tx, "domain_cert", cert.CategoryID); err != nil {
+			return err
+		}
+		return tx.Create(cert).Error
+	})
 }
 
 // GetByID 根据ID获取记录
@@ -55,6 +60,10 @@ func (d *DomainCertDao) GetList(req *model.DomainCertListReq) ([]model.DomainCer
 		query = query.Where("status = ?", req.Status)
 	}
 
+	if req.CategoryID != nil {
+		query = query.Where("category_id = ?", *req.CategoryID)
+	}
+
 	// 统计总数
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -66,6 +75,9 @@ func (d *DomainCertDao) GetList(req *model.DomainCertListReq) ([]model.DomainCer
 	}
 	if req.PageSize <= 0 {
 		req.PageSize = 20
+	}
+	if req.PageSize > 100 {
+		req.PageSize = 100
 	}
 	offset := (req.Page - 1) * req.PageSize
 
@@ -84,7 +96,12 @@ func (d *DomainCertDao) GetAll() ([]model.DomainCert, error) {
 
 // Update 更新域名证书记录
 func (d *DomainCertDao) Update(cert *model.DomainCert) error {
-	return d.db.Save(cert).Error
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := validateCategory(tx, "domain_cert", cert.CategoryID); err != nil {
+			return err
+		}
+		return tx.Model(cert).Select("domain", "port", "category_id").Updates(cert).Error
+	})
 }
 
 // Delete 删除域名证书记录
@@ -95,4 +112,7 @@ func (d *DomainCertDao) Delete(id uint) error {
 // BatchDelete 批量删除
 func (d *DomainCertDao) BatchDelete(ids []uint) error {
 	return d.db.Delete(&model.DomainCert{}, ids).Error
+}
+func (d *DomainCertDao) UpdateCheck(cert *model.DomainCert) error {
+	return d.db.Model(cert).Select("issuer", "subject", "not_before", "not_after", "remaining_days", "status", "check_time", "error_msg").Updates(cert).Error
 }

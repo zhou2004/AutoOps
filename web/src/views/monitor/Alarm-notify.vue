@@ -5,7 +5,7 @@
       <div class="sidebar-section">
         <div class="sidebar-header">
           <el-icon class="header-icon" size="28"><Bell /></el-icon>
-          <span class="header-title">通知配置</span>
+          <span class="header-title">{{ $tr("通知配置") }}</span>
         </div>
 
         <el-menu 
@@ -15,15 +15,15 @@
         >
           <el-menu-item index="templates">
             <el-icon class="menu-colored-icon" size="20"><Document /></el-icon>
-            <template #title><span class="menu-name">告警模版</span></template>
+            <template #title><span class="menu-name">{{ $tr("告警模版") }}</span></template>
           </el-menu-item>
           <el-menu-item index="routers">
             <el-icon class="menu-colored-icon" size="20"><Connection /></el-icon>
-            <template #title><span class="menu-name">告警路由</span></template>
+            <template #title><span class="menu-name">{{ $tr("告警路由") }}</span></template>
           </el-menu-item>
           <el-menu-item index="records">
             <el-icon class="menu-colored-icon" size="20"><Timer /></el-icon>
-            <template #title><span class="menu-name">通知历史</span></template>
+            <template #title><span class="menu-name">{{ $tr("通知历史") }}</span></template>
           </el-menu-item>
         </el-menu>
       </div>
@@ -33,13 +33,15 @@
         <div class="main-header">
           <span class="header-title">
             <el-icon style="margin-right: 8px"><component :is="activeIcon" /></el-icon> 
-            {{ activeTitle }}
+            {{ $tr(activeTitle) }}
           </span>
           <div class="right-actions">
-            <el-button v-if="activeTab === 'routers'" type="warning" plain icon="Refresh" @click="reloadRouters">重载路由配置</el-button>
-            <el-button v-if="activeTab === 'templates'" type="primary" icon="Plus" @click="openTemplateDialog()">新建模版</el-button>
-            <el-button v-if="activeTab === 'routers'" type="primary" icon="Plus" @click="openRouterDialog()">新建路由</el-button>
-            <el-button v-if="activeTab === 'records'" type="danger" icon="Delete" @click="cleanRecords()">清空历史</el-button>
+            <el-button v-if="activeTab === 'routers'" type="warning" plain icon="Refresh" @click="reloadRouters">{{ $tr("重载路由配置") }}</el-button>
+            <el-button v-if="activeTab === 'templates'" type="primary" icon="Plus" @click="openTemplateDialog()">{{ $tr("新建模版") }}</el-button>
+            <el-button v-if="activeTab === 'routers'" type="primary" icon="Plus" @click="openRouterDialog()">{{ $tr("新建路由") }}</el-button>
+            <el-button v-if="activeTab === 'records'" type="danger" plain icon="Delete" :disabled="!selectedRecords.length" @click="batchDeleteRecords()">{{ $tr("批量删除 (") }}{{ selectedRecords.length }})</el-button>
+            <el-button v-if="activeTab === 'records'" type="warning" plain icon="Timer" @click="openRetentionDialog()">{{ $tr("定时删除") }}</el-button>
+            <el-button v-if="activeTab === 'records'" type="danger" icon="Delete" @click="cleanRecords()">{{ $tr("清空历史") }}</el-button>
           </div>
         </div>
 
@@ -48,69 +50,69 @@
           <div class="search-section">
             <!-- 模版搜索 -->
             <el-form v-if="activeTab === 'templates'" :inline="true" :model="templateQuery" class="search-form">
-              <el-form-item label="名称">
-                <el-input v-model="templateQuery.tplname" placeholder="请输入模版名称" clearable @keyup.enter="fetchData" style="width: 180px" />
+              <el-form-item :label='$tr("名称")'>
+                <el-input v-model="templateQuery.tplname" :placeholder='$tr("请输入模版名称")' clearable @keyup.enter="fetchData" style="width: 180px" />
               </el-form-item>
-              <el-form-item label="类型">
-                <el-select v-model="templateQuery.tpltype" clearable placeholder="类型" @change="fetchData" style="width: 120px">
-                  <el-option label="微信" value="wx">
-                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><ChatDotRound /></el-icon> 微信</span>
+              <el-form-item :label='$tr("类型")'>
+                <el-select v-model="templateQuery.tpltype" clearable :placeholder='$tr("类型")' @change="fetchData" style="width: 120px">
+                  <el-option :label='$tr("微信")' value="wx">
+                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><ChatDotRound /></el-icon> {{ $tr("微信") }}</span>
                   </el-option>
-                  <el-option label="钉钉" value="dd">
-                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Bell /></el-icon> 钉钉</span>
+                  <el-option :label='$tr("钉钉")' value="dd">
+                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Bell /></el-icon> {{ $tr("钉钉") }}</span>
                   </el-option>
-                  <el-option label="飞书" value="fs">
-                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Promotion /></el-icon> 飞书</span>
+                  <el-option :label='$tr("飞书")' value="fs">
+                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Promotion /></el-icon> {{ $tr("飞书") }}</span>
                   </el-option>
-                  <el-option label="邮箱" value="email">
-                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Message /></el-icon> 邮箱</span>
+                  <el-option :label='$tr("邮箱")' value="email">
+                    <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Message /></el-icon> {{ $tr("邮箱") }}</span>
                   </el-option>
                 </el-select>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" icon="Search" @click="fetchData">查询</el-button>
-                <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
+                <el-button type="primary" icon="Search" @click="fetchData">{{ $tr("查询") }}</el-button>
+                <el-button type="warning" icon="Refresh" @click="resetQuery">{{ $tr("重置") }}</el-button>
               </el-form-item>
             </el-form>
 
             <!-- 路由搜索 -->
             <el-form v-if="activeTab === 'routers'" :inline="true" :model="routerQuery" class="search-form">
-              <el-form-item label="名称">
-                <el-input v-model="routerQuery.name" placeholder="请输入路由名" clearable @keyup.enter="fetchData" style="width: 180px" />
+              <el-form-item :label='$tr("名称")'>
+                <el-input v-model="routerQuery.name" :placeholder='$tr("请输入路由名")' clearable @keyup.enter="fetchData" style="width: 180px" />
               </el-form-item>
-              <el-form-item label="推送地址">
-                <el-input v-model="routerQuery.urlOrPhone" placeholder="URL 或 手机号" clearable @keyup.enter="fetchData" style="width: 180px" />
+              <el-form-item :label='$tr("推送地址")'>
+                <el-input v-model="routerQuery.urlOrPhone" :placeholder='$tr("URL 或 手机号")' clearable @keyup.enter="fetchData" style="width: 180px" />
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" icon="Search" @click="fetchData">查询</el-button>
-                <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
+                <el-button type="primary" icon="Search" @click="fetchData">{{ $tr("查询") }}</el-button>
+                <el-button type="warning" icon="Refresh" @click="resetQuery">{{ $tr("重置") }}</el-button>
               </el-form-item>
             </el-form>
 
             <!-- 历史搜索 -->
             <el-form v-if="activeTab === 'records'" :inline="true" :model="recordQuery" class="search-form">
-              <el-form-item label="告警名称">
-                <el-input v-model="recordQuery.alertname" placeholder="模糊匹配" clearable @keyup.enter="fetchData" style="width: 150px" />
+              <el-form-item :label='$tr("告警名称")'>
+                <el-input v-model="recordQuery.alertname" :placeholder='$tr("模糊匹配")' clearable @keyup.enter="fetchData" style="width: 150px" />
               </el-form-item>
-              <el-form-item label="级别">
-                <el-select v-model="recordQuery.alertLevel" clearable placeholder="级别" @change="fetchData" style="width: 110px">
+              <el-form-item :label='$tr("级别")'>
+                <el-select v-model="recordQuery.alertLevel" clearable :placeholder='$tr("级别")' @change="fetchData" style="width: 110px">
                   <el-option label="Critical" value="critical" />
                   <el-option label="Warning" value="warning" />
                   <el-option label="Info" value="info" />
                 </el-select>
               </el-form-item>
-              <el-form-item label="故障实例">
-                <el-input v-model="recordQuery.instance" placeholder="模糊匹配" clearable @keyup.enter="fetchData" style="width: 150px" />
+              <el-form-item :label='$tr("故障实例")'>
+                <el-input v-model="recordQuery.instance" :placeholder='$tr("模糊匹配")' clearable @keyup.enter="fetchData" style="width: 150px" />
               </el-form-item>
-              <el-form-item label="状态">
-                <el-select v-model="recordQuery.alertStatus" clearable placeholder="状态" @change="fetchData" style="width: 110px">
-                  <el-option label="触发" value="firing" />
-                  <el-option label="恢复" value="resolved" />
+              <el-form-item :label='$tr("状态")'>
+                <el-select v-model="recordQuery.alertStatus" clearable :placeholder='$tr("状态")' @change="fetchData" style="width: 110px">
+                  <el-option :label='$tr("触发")' value="firing" />
+                  <el-option :label='$tr("恢复")' value="resolved" />
                 </el-select>
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" icon="Search" @click="fetchData">查询</el-button>
-                <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
+                <el-button type="primary" icon="Search" @click="fetchData">{{ $tr("查询") }}</el-button>
+                <el-button type="warning" icon="Refresh" @click="resetQuery">{{ $tr("重置") }}</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -118,8 +120,8 @@
           <!-- 模版管理 -->
           <div v-if="activeTab === 'templates'">
             <el-table :data="templateList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
-              <el-table-column prop="Tplname" label="模版名称" min-width="150" />
-              <el-table-column prop="Tpltype" label="类型" width="120" align="center">
+              <el-table-column prop="Tplname" :label='$tr("模版名称")' min-width="150" />
+              <el-table-column prop="Tpltype" :label='$tr("类型")' width="120" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getTypeColor(row.Tpltype)" style="display: inline-flex; align-items: center; gap: 4px;">
                     <el-icon><component :is="getTypeIcon(row.Tpltype)" /></el-icon>
@@ -127,12 +129,12 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="Tpluse" label="关联模块" width="120" align="center" />
-              <el-table-column label="操作" width="180" align="center" fixed="right">
+              <el-table-column prop="Tpluse" :label='$tr("关联模块")' width="120" align="center" />
+              <el-table-column :label='$tr("操作")' width="180" align="center" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-button link type="primary" icon="EditPen" @click="openTemplateDialog(row)">编辑</el-button>
-                    <el-button link type="danger" icon="Delete" @click="deleteTemplate(row.Id)">删除</el-button>
+                    <el-button link type="primary" icon="EditPen" @click="openTemplateDialog(row)">{{ $tr("编辑") }}</el-button>
+                    <el-button link type="danger" icon="Delete" @click="deleteTemplate(row.Id)">{{ $tr("删除") }}</el-button>
                   </div>
                 </template>
               </el-table-column>
@@ -154,34 +156,34 @@
           <!-- 路由管理 -->
           <div v-if="activeTab === 'routers'">
             <el-table :data="routerList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
-              <el-table-column prop="Name" label="路由名称" min-width="150" />
-              <el-table-column label="匹配规则 (Rules)" min-width="250" show-overflow-tooltip>
+              <el-table-column prop="Name" :label='$tr("路由名称")' min-width="150" />
+              <el-table-column :label='$tr("匹配规则 (Rules)")' min-width="250" show-overflow-tooltip>
                 <template #default="{ row }">
                   <code class="promql-code rule-truncate" v-if="row.Rules && formatRules(row.Rules) !== '[]'">{{ formatRules(row.Rules) }}</code>
-                  <span v-else class="empty-text">无</span>
+                  <span v-else class="empty-text">{{ $tr("无") }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="发送目标" min-width="200" show-overflow-tooltip>
+              <el-table-column :label='$tr("发送目标")' min-width="200" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="url-text">{{ row.UrlOrPhone }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="@某人" prop="AtSomeOne" width="120" show-overflow-tooltip />
-              <el-table-column label="At恢复" width="80" align="center">
+              <el-table-column :label='$tr("@某人")' prop="AtSomeOne" width="120" show-overflow-tooltip />
+              <el-table-column :label='$tr("At恢复")' width="80" align="center">
                 <template #default="{ row }">
-                  <el-tag :type="row.AtSomeOneRR ? 'success' : 'info'">{{ row.AtSomeOneRR ? '是' : '否' }}</el-tag>
+                  <el-tag :type="row.AtSomeOneRR ? 'success' : 'info'">{{ row.AtSomeOneRR ? $tr('是') : $tr('否') }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="发恢复" width="80" align="center">
+              <el-table-column :label='$tr("发恢复")' width="80" align="center">
                 <template #default="{ row }">
-                  <el-tag :type="row.SendResolved ? 'success' : 'info'">{{ row.SendResolved ? '是' : '否' }}</el-tag>
+                  <el-tag :type="row.SendResolved ? 'success' : 'info'">{{ row.SendResolved ? $tr('是') : $tr('否') }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="180" align="center" fixed="right">
+              <el-table-column :label='$tr("操作")' width="180" align="center" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons">
-                    <el-button link type="primary" icon="EditPen" @click="openRouterDialog(row)">编辑</el-button>
-                    <el-button link type="danger" icon="Delete" @click="deleteRouter(row.Id)">删除</el-button>
+                    <el-button link type="primary" icon="EditPen" @click="openRouterDialog(row)">{{ $tr("编辑") }}</el-button>
+                    <el-button link type="danger" icon="Delete" @click="deleteRouter(row.Id)">{{ $tr("删除") }}</el-button>
                   </div>
                 </template>
               </el-table-column>
@@ -203,32 +205,38 @@
           <!-- 告警历史 -->
           <div v-if="activeTab === 'records'" class="records-section">
             <div class="records-table-wrap">
-            <el-table :data="recordList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }">
-              <el-table-column prop="Alertname" label="告警名称" min-width="150" show-overflow-tooltip />
-              <el-table-column prop="Instance" label="故障实例" min-width="150" show-overflow-tooltip />
-              <el-table-column label="级别" width="80" align="center">
+            <el-table :data="recordList" v-loading="loading" border stripe class="custom-table" :header-cell-style="{ background: 'rgba(102, 126, 234, 0.1)', color: 'var(--text-primary)', fontWeight: '600' }" @selection-change="handleRecordSelectionChange">
+              <el-table-column type="selection" width="50" align="center" />
+              <el-table-column prop="Alertname" :label='$tr("告警名称")' min-width="150" show-overflow-tooltip />
+              <el-table-column prop="Instance" :label='$tr("故障实例")' min-width="150" show-overflow-tooltip />
+              <el-table-column :label='$tr("级别")' width="80" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getSeverityColor(row.AlertLevel || tryGetSeverity(row.Labels))" effect="dark">
                     {{ row.AlertLevel || tryGetSeverity(row.Labels) || '未知' }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="AlertStatus" label="状态" width="80" align="center">
+              <el-table-column prop="AlertStatus" :label='$tr("状态")' width="80" align="center">
                 <template #default="{ row }">
                   <el-tag :type="row.AlertStatus === 'firing' ? 'danger' : 'success'">
-                    {{ row.AlertStatus === 'firing' ? '触发' : '恢复' }}
+                    {{ row.AlertStatus === 'firing' ? '触发' : $tr('恢复') }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="Summary" label="摘要" min-width="150" show-overflow-tooltip />
-              <el-table-column prop="StartsAt" label="告警发生时间" width="160" align="center">
+              <el-table-column prop="Summary" :label='$tr("摘要")' min-width="150" show-overflow-tooltip />
+              <el-table-column prop="StartsAt" :label='$tr("告警发生时间")' width="160" align="center">
                 <template #default="{ row }">
                   {{ formatDate(row.StartsAt) }}
                 </template>
               </el-table-column>
-              <el-table-column prop="CreatedTime" label="发送时间" width="160" align="center">
+              <el-table-column prop="CreatedTime" :label='$tr("发送时间")' width="160" align="center">
                 <template #default="{ row }">
                   {{ formatDate(row.CreatedTime) }}
+                </template>
+              </el-table-column>
+              <el-table-column :label='$tr("操作")' width="90" align="center" fixed="right">
+                <template #default="{ row }">
+                  <el-button type="danger" size="small" link icon="Delete" @click="deleteSingleRecord(row)">{{ $tr("删除") }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -251,29 +259,29 @@
     </div>
 
     <!-- 模版弹窗 -->
-    <el-dialog :title="tplForm.Id ? '编辑告警模版' : '新建告警模版'" v-model="tplDialogVisible" width="700px" class="modern-dialog">
+    <el-dialog :title="$tr(tplForm.Id ? '编辑告警模版' : '新建告警模版')" v-model="tplDialogVisible" width="700px" class="modern-dialog">
       <el-form :model="tplForm" ref="tplFormRef" label-width="120px" class="rule-form">
-        <div class="form-section-title"><el-icon><Setting /></el-icon> 模版基础信息</div>
+        <div class="form-section-title"><el-icon><Setting /></el-icon> {{ $tr("模版基础信息") }}</div>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="模版名称" required>
-              <el-input v-model="tplForm.Tplname" placeholder="如: Webhook-DingTalk" />
+            <el-form-item :label='$tr("模版名称")' required>
+              <el-input v-model="tplForm.Tplname" :placeholder='$tr("如: Webhook-DingTalk")' />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="通知类型" required>
+            <el-form-item :label='$tr("通知类型")' required>
               <el-select v-model="tplForm.Tpltype" style="width: 100%">
-                <el-option label="微信" value="wx">
-                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><ChatDotRound /></el-icon> 微信</span>
+                <el-option :label='$tr("微信")' value="wx">
+                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><ChatDotRound /></el-icon> {{ $tr("微信") }}</span>
                 </el-option>
-                <el-option label="钉钉" value="dd">
-                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Bell /></el-icon> 钉钉</span>
+                <el-option :label='$tr("钉钉")' value="dd">
+                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Bell /></el-icon> {{ $tr("钉钉") }}</span>
                 </el-option>
-                <el-option label="飞书" value="fs">
-                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Promotion /></el-icon> 飞书</span>
+                <el-option :label='$tr("飞书")' value="fs">
+                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Promotion /></el-icon> {{ $tr("飞书") }}</span>
                 </el-option>
-                <el-option label="邮箱" value="email">
-                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Message /></el-icon> 邮箱</span>
+                <el-option :label='$tr("邮箱")' value="email">
+                  <span style="display: flex; align-items: center; gap: 6px;"><el-icon><Message /></el-icon> {{ $tr("邮箱") }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
@@ -281,18 +289,18 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="关联模块">
-              <el-input v-model="tplForm.Tpluse" placeholder="如: Prometheus" />
+            <el-form-item :label='$tr("关联模块")'>
+              <el-input v-model="tplForm.Tpluse" :placeholder='$tr("如: Prometheus")' />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="Content-Type">
-              <el-input v-model="tplForm.WebhookContentType" placeholder="如: application/json" />
+              <el-input v-model="tplForm.WebhookContentType" :placeholder='$tr("如: application/json")' />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <div class="form-section-title"><el-icon><Document /></el-icon> 模版内容定义 (Go Template)</div>
+        <div class="form-section-title"><el-icon><Document /></el-icon> {{ $tr("模版内容定义 (Go Template)") }}</div>
         <div class="code-editor-container">
           <div class="code-editor-header">
             <span class="mac-dot close"></span>
@@ -300,86 +308,125 @@
             <span class="mac-dot maximize"></span>
             <span class="file-name">template.tmpl</span>
           </div>
-          <el-input v-model="tplForm.Tpl" type="textarea" class="code-input custom-scrollbar" :rows="8" placeholder="填写Go Template格式内容... 比如 {{.Alerts}}" />
+          <el-input v-model="tplForm.Tpl" type="textarea" class="code-input custom-scrollbar" :rows="8" :placeholder='$tr("填写Go Template格式内容... 比如 {{.Alerts}}")' />
         </div>
       </el-form>
       <template #footer>
-        <el-button @click="tplDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitTemplate">保存</el-button>
+        <el-button @click="tplDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="submitTemplate">{{ $tr("保存") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 路由弹窗 -->
-    <el-dialog :title="routerForm.Id ? '编辑告警路由' : '新建告警路由'" v-model="routerDialogVisible" width="750px" class="modern-dialog">
+    <el-dialog :title="$tr(routerForm.Id ? '编辑告警路由' : '新建告警路由')" v-model="routerDialogVisible" width="750px" class="modern-dialog">
       <el-form :model="routerForm" ref="routerFormRef" label-width="120px" class="rule-form">
-        <div class="form-section-title"><el-icon><Position /></el-icon> 路由基础配置</div>
+        <div class="form-section-title"><el-icon><Position /></el-icon> {{ $tr("路由基础配置") }}</div>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="路由名称" required>
-              <el-input v-model="routerForm.RouterName" placeholder="如: DBA-Alert-Route" />
+            <el-form-item :label='$tr("路由名称")' required>
+              <el-input v-model="routerForm.RouterName" :placeholder='$tr("如: DBA-Alert-Route")' />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="绑定模版" required>
-              <el-select v-model="routerForm.RouterTplId" placeholder="选择渲染模版" style="width: 100%">
-                <el-option v-for="t in templateList" :key="t.Id" :label="t.Tplname" :value="t.Id" />
+            <el-form-item :label='$tr("绑定模版")' required>
+              <el-select v-model="routerForm.RouterTplId" :placeholder='$tr("选择渲染模版")' style="width: 100%">
+                <el-option v-for="t in templateList" :key="t.Id" :label="$tr(t.Tplname)" :value="t.Id" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="推送地址" required>
-          <el-input v-model="routerForm.RouterPurl" placeholder="Webhook URL 或者邮箱地址" />
+        <el-form-item :label='$tr("推送地址")' required>
+          <el-input v-model="routerForm.RouterPurl" :placeholder='$tr("Webhook URL 或者邮箱地址")' />
         </el-form-item>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="@某人 (At)">
-              <el-input v-model="routerForm.RouterPat" placeholder="如: @all, 或手机号" />
+            <el-form-item :label='$tr("@某人 (At)")'>
+              <el-input v-model="routerForm.RouterPat" :placeholder='$tr("如: @all, 或手机号")' />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="At恢复(RR)">
+            <el-form-item :label='$tr("At恢复(RR)")'>
               <el-switch v-model="routerForm.RouterPatRR" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="发送恢复提醒">
+            <el-form-item :label='$tr("发送恢复提醒")'>
               <el-switch v-model="routerForm.RouterSendResolved" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <div class="form-section-title"><el-icon><Filter /></el-icon> 标签匹配规则 (Rules)</div>
+        <div class="form-section-title"><el-icon><Filter /></el-icon> {{ $tr("标签匹配规则 (Rules)") }}</div>
         <div v-for="(rule, index) in routerRules" :key="index" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center; padding-left: 50px;">
-          <el-input v-model="rule.key" placeholder="标签键 (如 severity)" style="width: 150px;" />
-          <el-select v-model="rule.type" placeholder="关系" style="width: 100px;">
-            <el-option label="等于" value="等于" />
-            <el-option label="不等于" value="不等于" />
-            <el-option label="正则" value="正则" />
+          <el-input v-model="rule.key" :placeholder='$tr("标签键 (如 severity)")' style="width: 150px;" />
+          <el-select v-model="rule.type" :placeholder='$tr("关系")' style="width: 100px;">
+            <el-option :label='$tr("等于")' value="等于" />
+            <el-option :label='$tr("不等于")' value="不等于" />
+            <el-option :label='$tr("正则")' value="正则" />
           </el-select>
-          <el-input v-model="rule.value" placeholder="匹配值" style="width: 180px;" />
+          <el-input v-model="rule.value" :placeholder='$tr("匹配值")' style="width: 180px;" />
           <el-button type="danger" icon="Delete" circle plain @click="removeRule(index)" />
         </div>
-        <el-button type="primary" plain icon="Plus" style="margin-left: 50px; margin-bottom: 15px;" @click="addRule">添加匹配规则</el-button>
+        <el-button type="primary" plain icon="Plus" style="margin-left: 50px; margin-bottom: 15px;" @click="addRule">{{ $tr("添加匹配规则") }}</el-button>
 
       </el-form>
       <template #footer>
-        <el-button @click="routerDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitRouter">保存</el-button>
+        <el-button @click="routerDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="submitRouter">{{ $tr("保存") }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 定时删除弹窗 -->
+    <el-dialog :title='$tr("定时删除通知历史")' v-model="retentionDialogVisible" width="480px" class="modern-dialog">
+      <el-form label-width="110px">
+        <el-form-item :label='$tr("删除范围")'>
+          <el-radio-group v-model="retentionType">
+            <el-radio label="week">{{ $tr("一周前") }}</el-radio>
+            <el-radio label="month">{{ $tr("一个月前") }}</el-radio>
+            <el-radio label="custom">{{ $tr("自定义时间") }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="retentionType === 'custom'" :label='$tr("删除时间点")'>
+          <el-date-picker
+            v-model="retentionCustomTime"
+            type="datetime"
+            :placeholder='$tr("删除此时间之前的记录")'
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <el-alert
+        :title='$tr("提示")'
+        type="warning"
+        :closable="false"
+        show-icon
+        style="margin-top: 8px"
+      >
+        <template #default>
+          <div>{{ $tr("将删除") }} {{ $tr(retentionDescription) }} {{ $tr("之前的通知历史，操作不可逆，请谨慎操作。") }}</div>
+        </template>
+      </el-alert>
+      <template #footer>
+        <el-button @click="retentionDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="danger" @click="submitRetentionDelete">{{ $tr("确认删除") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ChatDotRound, Bell, Promotion, Message, Collection, Document, Connection, Timer } from '@element-plus/icons-vue'
 import {
   getAlertTemplates, createAlertTemplate, updateAlertTemplate, deleteAlertTemplate,
   getAlertRouters, createAlertRouter, updateAlertRouter, deleteAlertRouter, reloadAlertRouters,
-  getAlertRecords, cleanAlertRecords
+  getAlertRecords, cleanAlertRecords, deleteAlertRecordsByIds, deleteAlertRecordsBefore
 } from '@/api/monitor'
 
 // 激活状态
@@ -500,25 +547,25 @@ const openTemplateDialog = (row = null) => {
 }
 
 const submitTemplate = async () => {
-  if (!tplForm.Tplname || !tplForm.Tpl) return ElMessage.warning('名称与内容必填项')
+  if (!tplForm.Tplname || !tplForm.Tpl) return ElMessage.warning(tr('名称与内容必填项'))
   try {
     if (tplForm.Id) {
       await updateAlertTemplate(tplForm.Id, tplForm)
     } else {
       await createAlertTemplate(tplForm)
     }
-    ElMessage.success('模版保存成功')
+    ElMessage.success(tr('模版保存成功'))
     tplDialogVisible.value = false
     fetchTemplates()
   } catch (e) {
-    ElMessage.error('保存失败')
+    ElMessage.error(tr('保存失败'))
   }
 }
 
 const deleteTemplate = (id) => {
-  ElMessageBox.confirm('确认删除该模版?', '警告', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm(tr('确认删除该模版?'), tr('警告'), { type: 'warning' }).then(async () => {
     await deleteAlertTemplate(id)
-    ElMessage.success('删除成功')
+    ElMessage.success(tr('删除成功'))
     fetchTemplates()
   }).catch(() => {})
 }
@@ -582,7 +629,7 @@ const addRule = () => routerRules.value.push({ key: '', type: '等于', value: '
 const removeRule = (index) => routerRules.value.splice(index, 1)
 
 const submitRouter = async () => {
-  if (!routerForm.RouterName || !routerForm.RouterTplId || !routerForm.RouterPurl) return ElMessage.warning('必填项未填完整')
+  if (!routerForm.RouterName || !routerForm.RouterTplId || !routerForm.RouterPurl) return ElMessage.warning(tr('必填项未填完整'))
   try {
     const activeRules = routerRules.value.filter(r => r.key && r.value)
     
@@ -598,18 +645,18 @@ const submitRouter = async () => {
     } else {
       await createAlertRouter(payload)
     }
-    ElMessage.success('路由保存成功')
+    ElMessage.success(tr('路由保存成功'))
     routerDialogVisible.value = false
     fetchRouters()
   } catch (e) {
-    ElMessage.error('路由保存失败')
+    ElMessage.error(tr('路由保存失败'))
   }
 }
 
 const deleteRouter = (id) => {
-  ElMessageBox.confirm('确认删除该路由策略?', '警告', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm(tr('确认删除该路由策略?'), tr('警告'), { type: 'warning' }).then(async () => {
     await deleteAlertRouter(id)
-    ElMessage.success('删除成功')
+    ElMessage.success(tr('删除成功'))
     fetchRouters()
   }).catch(() => {})
 }
@@ -617,17 +664,85 @@ const deleteRouter = (id) => {
 const reloadRouters = async () => {
   try {
     await reloadAlertRouters()
-    ElMessage.success('路由策略重载成功')
+    ElMessage.success(tr('路由策略重载成功'))
   } catch (e) {
-    ElMessage.error('重载失败')
+    ElMessage.error(tr('重载失败'))
   }
 }
 
 // --- Records 管理 ---
+const selectedRecords = ref([])
+
+const handleRecordSelectionChange = (selection) => {
+  selectedRecords.value = selection
+}
+
 const cleanRecords = () => {
-  ElMessageBox.confirm('即将清空所有通知发送历史，操作不可逆，继续吗?', '高危操作', { type: 'error' }).then(async () => {
+  ElMessageBox.confirm(tr('即将清空所有通知发送历史，操作不可逆，继续吗?'), tr('高危操作'), { type: 'error' }).then(async () => {
     await cleanAlertRecords()
-    ElMessage.success('历史记录已清空')
+    ElMessage.success(tr('历史记录已清空'))
+    recordQuery.page = 1
+    fetchRecords()
+  }).catch(() => {})
+}
+
+// 单行删除
+const deleteSingleRecord = (row) => {
+  const id = row.Id ?? row.id
+  if (id === undefined || id === null) return ElMessage.warning(tr('记录缺少ID，无法删除'))
+  ElMessageBox.confirm(tr('确认删除该条通知历史吗?'), tr('警告'), { type: 'warning' }).then(async () => {
+    await deleteAlertRecordsByIds([id])
+    ElMessage.success(tr('删除成功'))
+    fetchRecords()
+  }).catch(() => {})
+}
+
+// 批量删除选中的记录
+const batchDeleteRecords = () => {
+  if (!selectedRecords.value.length) return ElMessage.warning(tr('请先勾选要删除的记录'))
+  const ids = selectedRecords.value.map(r => r.Id ?? r.id).filter(id => id !== undefined && id !== null)
+  ElMessageBox.confirm(`确认删除选中的 ${ids.length} 条通知历史吗?`, tr('警告'), { type: 'warning' }).then(async () => {
+    await deleteAlertRecordsByIds(ids)
+    ElMessage.success(`已删除 ${ids.length} 条记录`)
+    selectedRecords.value = []
+    fetchRecords()
+  }).catch(() => {})
+}
+
+// --- 定时删除 ---
+const retentionDialogVisible = ref(false)
+const retentionType = ref('week')
+const retentionCustomTime = ref('')
+
+const retentionDescription = computed(() => {
+  if (retentionType.value === 'week') return '一周前'
+  if (retentionType.value === 'month') return '一个月前'
+  return retentionCustomTime.value || '所选时间'
+})
+
+const openRetentionDialog = () => {
+  retentionType.value = 'week'
+  retentionCustomTime.value = ''
+  retentionDialogVisible.value = true
+}
+
+const submitRetentionDelete = async () => {
+  let beforeTime
+  if (retentionType.value === 'week') {
+    beforeTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  } else if (retentionType.value === 'month') {
+    beforeTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  } else {
+    if (!retentionCustomTime.value) return ElMessage.warning(tr('请选择自定义删除时间点'))
+    beforeTime = new Date(retentionCustomTime.value.replace(' ', 'T'))
+    if (isNaN(beforeTime.getTime())) return ElMessage.warning(tr('时间格式错误'))
+  }
+
+  const desc = retentionDescription.value
+  ElMessageBox.confirm(`确认删除「${desc}」之前的所有通知历史吗？操作不可逆。`, tr('高危操作'), { type: 'error' }).then(async () => {
+    await deleteAlertRecordsBefore(beforeTime.toISOString())
+    ElMessage.success(`已删除 ${desc} 之前的历史记录`)
+    retentionDialogVisible.value = false
     recordQuery.page = 1
     fetchRecords()
   }).catch(() => {})

@@ -1,3 +1,5 @@
+import { refreshPlatformAccess, canVisitPlatform } from "@/utils/platformAccess";
+import { tr } from "@/locales";
 // import "@/utils/sso";
 import { getConfig } from "@/config";
 import NProgress from "@/utils/progress";
@@ -103,7 +105,7 @@ const whiteList = ["/login"];
 
 const { VITE_HIDE_HOME } = import.meta.env;
 
-router.beforeEach((to: ToRouteType, _from, next) => {
+router.beforeEach(async (to: ToRouteType, _from, next) => {
   to.meta.loaded = loadedPaths.has(to.path);
 
   if (!to.meta.loaded) {
@@ -122,8 +124,8 @@ router.beforeEach((to: ToRouteType, _from, next) => {
     to.matched.some(item => {
       if (!item.meta.title) return "";
       const Title = getConfig().Title;
-      if (Title) document.title = `${item.meta.title} | ${Title}`;
-      else document.title = item.meta.title as string;
+      if (Title) document.title = `${tr(item.meta.title)} | ${Title}`;
+      else document.title = tr(item.meta.title);
     });
   }
 
@@ -135,9 +137,18 @@ router.beforeEach((to: ToRouteType, _from, next) => {
   const loggedIn = isLoggedIn();
 
   if (loggedIn) {
+    if (!to.path.startsWith("/error/")) {
+      try { await refreshPlatformAccess(); }
+      catch { next({ path: isLoggedIn() ? "/error/403" : "/login" }); return; }
+      usePermissionStoreHook().handleWholeMenus([]);
+      if (to.path !== "/login" && !canVisitPlatform(to.path) && to.path !== "/") {
+        next({ path: "/error/403" }); return;
+      }
+    }
+
     // 已登录：不允许访问 /login
     if (to.path === "/login") {
-      next({ path: "/dashboard" });
+      next({ path: canVisitPlatform("/dashboard") ? "/dashboard" : "/system/api-keys" });
       return;
     }
     // 页面刷新时 wholeMenus 为空，从 constantMenus 构建菜单

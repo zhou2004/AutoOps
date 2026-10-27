@@ -1,0 +1,74 @@
+# ============================================================
+# TopoLVM 部署示例（本地盘虚拟化，最简单方案）
+# 适用于 AutoOps 测试集群:
+#   worker-01 (192.168.80.52): /dev/sda 20G
+#   worker-02 (192.168.80.53): /dev/sdb 20G
+# 部署前需先执行 deploy-topolvm.sh 创建 LVM 卷组并安装 TopoLVM
+# ============================================================
+
+# 1. StorageClass 定义
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: topolvm-provisioner
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: topolvm.io
+parameters:
+  "csi.storage.k8s.io/fstype": "ext4"
+  "topolvm.io/device-class": "ssd"
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+---
+# 2. 测试 PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-pvc-topolvm
+  namespace: test-pv
+spec:
+  storageClassName: topolvm-provisioner
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# 3. 测试 StatefulSet（验证有状态应用，双副本分布到两个 worker 节点）
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-mysql
+  namespace: test-pv
+spec:
+  serviceName: test-mysql
+  replicas: 2
+  selector:
+    matchLabels:
+      app: test-mysql
+  template:
+    metadata:
+      labels:
+        app: test-mysql
+    spec:
+      containers:
+        - name: mysql
+          # 国内镜像源（华为云 SWR，docker.io/mysql:8.0 的同步镜像）
+          image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mysql:8.0.40
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "123456"
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: topolvm-provisioner
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi

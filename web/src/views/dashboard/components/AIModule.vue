@@ -2,20 +2,20 @@
   <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.7s' }">
     <div class="section-title">
       <span class="title-bar"></span>
-      <span>🤖 AI 智能分析</span>
-      <el-tag type="danger" size="small" effect="dark" style="margin-left:8px">实时</el-tag>
+      <span>{{ $tr("🤖 AI 智能分析") }}</span>
+      <el-tag type="danger" size="small" effect="dark" style="margin-left:8px">{{ $tr("实时") }}</el-tag>
     </div>
 
     <div class="dashboard-grid dashboard-grid-3" style="margin-bottom:16px">
       <div class="stat-card" v-for="(item, i) in aiCards" :key="i" :style="{ borderLeft: '3px solid ' + item.color }">
         <div style="font-size:14px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:6px">
-          <span v-html="item.icon"></span> {{ item.title }}
+          <span v-html="item.icon"></span> {{ $tr(item.title) }}
         </div>
         <div style="margin-top:8px;font-size:13px;color:var(--text-regular);line-height:1.6">
           {{ item.desc }}
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <el-tag v-for="(tag, ti) in item.tags" :key="ti" :type="tag.type" size="small" effect="plain">{{ tag.text }}</el-tag>
+          <el-tag v-for="(tag, ti) in item.tags" :key="ti" :type="tag.type" size="small" effect="plain">{{ $tr(tag.text) }}</el-tag>
         </div>
       </div>
     </div>
@@ -23,16 +23,16 @@
     <!-- 预测图表 -->
     <div class="dashboard-grid dashboard-grid-2">
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">📈 资源使用率预测（未来7天）</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("📈 资源使用率预测（未来7天）") }}</div>
         <BaseChart :option="predictOption" size="sm" />
       </div>
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">💰 成本优化建议</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("💰 成本优化建议") }}</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div class="cost-item" v-for="(item, i) in costItems" :key="i">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:13px;color:var(--text-regular)">{{ item.name }}</span>
-              <span style="font-size:13px;font-weight:600;color:var(--success)">-¥{{ item.saving }}/月</span>
+              <span style="font-size:13px;font-weight:600;color:var(--success)">-¥{{ item.saving }}{{ $tr("/月") }}</span>
             </div>
             <el-progress :percentage="item.percent" :stroke-width="6" :color="item.color" style="margin-top:4px" />
           </div>

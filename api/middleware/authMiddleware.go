@@ -1,99 +1,103 @@
-// 鉴权中间件
-// author xiaoRui
-
 package middleware
 
 import (
+	systemmodel "dodevops-api/api/system/model"
+	"dodevops-api/common"
 	"dodevops-api/common/constant"
-	"dodevops-api/common/result"
+	"dodevops-api/pkg/apikey"
+	"dodevops-api/pkg/authorization"
 	"dodevops-api/pkg/jwt"
-	"fmt"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
-func AuthMiddleware() func(c *gin.Context) {
+const IdentityContextKey = "autoops.identity"
+
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 检查是否为websocket升级请求
-		if c.GetHeader("Upgrade") == "websocket" {
-			// 从URL参数获取token
-			token := c.Query("token")
-
-			// 如果URL没有token，尝试从Header获取
-			if token == "" {
-				authHeader := c.Request.Header.Get("Authorization")
-				parts := strings.SplitN(authHeader, " ", 2)
-				if len(parts) == 2 && parts[0] == "Bearer" {
-					token = parts[1]
-				}
-				// 有些客户端会将token放在 Sec-WebSocket-Protocol 中
-				if token == "" {
-					protocols := c.Request.Header.Get("Sec-WebSocket-Protocol")
-					if protocols != "" {
-						parts := strings.Split(protocols, ",")
-						for _, p := range parts {
-							p = strings.TrimSpace(p)
-							if p != "" {
-								token = p
-								break
-							}
-						}
-					}
-				}
-			}
-
-			if token != "" {
-				mc, err := jwt.ValidateToken(token)
-				if err == nil {
-					c.Set(constant.ContextKeyUserObj, mc)
-					c.Next()
-					return
-				}
-			}
-
-			// 直接返回HTTP 401未授权，终止握手
-			result.Failed(c, int(result.ApiCode.NOAUTH), result.ApiCode.GetMessage(result.ApiCode.NOAUTH))
-			c.Abort()
+		// Some legacy groups register authentication twice.
+		if _, ok := c.Get(IdentityContextKey); ok {
+			c.Next()
 			return
 		}
-
-		// 常规HTTP请求鉴权 - 支持SSE的token query参数
-		authHeader := c.Request.Header.Get("Authorization")
-
-		// 如果没有Authorization头，检查是否为SSE连接并从query参数获取token
-		if authHeader == "" {
-			token := c.Query("token")
-			if token != "" {
-				// 验证token
-				mc, err := jwt.ValidateToken(token)
-				if err == nil {
-					c.Set(constant.ContextKeyUserObj, mc)
-					c.Next()
-					return
-				} else {
-					// 添加调试信息
-					fmt.Printf("[DEBUG] Token验证失败: %v, token长度: %d, Secret: %s\n", err, len(token), string(jwt.Secret))
-				}
+		token := ""
+		if header := c.GetHeader("Authorization"); header != "" {
+			parts := strings.Fields(header)
+			if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
+				denyAuth(c, 401, "认证格式错误")
+				return
 			}
-
-			result.Failed(c, int(result.ApiCode.NOAUTH), result.ApiCode.GetMessage(result.ApiCode.NOAUTH))
-			c.Abort()
+			token = parts[1]
+		} else {
+			token = c.Query("token") // SSE, downloads and browser WebSocket clients.
+			if token == "" && strings.EqualFold(c.GetHeader("Upgrade"), "websocket") {
+				token = strings.TrimSpace(strings.Split(c.GetHeader("Sec-WebSocket-Protocol"), ",")[0])
+			}
+		}
+		if token == "" {
+			denyAuth(c, 401, "请先登录或提供 API Key")
 			return
 		}
-		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			result.Failed(c, int(result.ApiCode.AUTHFORMATERROR), result.ApiCode.GetMessage(result.ApiCode.AUTHFORMATERROR))
-			c.Abort()
-			return
+		var user uint
+		var key *systemmodel.APIKey
+		if strings.HasPrefix(token, "aops_") {
+			k, err := apikey.Authenticate(c.Request.Context(), common.GetDB(), token)
+			if err != nil {
+				denyAuth(c, 401, "API Key 无效、已过期或已撤销")
+				return
+			}
+			key = &k
+			user = k.UserID
+		} else {
+			claims, err := jwt.ValidateToken(token)
+			if err != nil {
+				denyAuth(c, 401, "登录会话无效")
+				return
+			}
+			user = claims.ID
 		}
-		mc, err := jwt.ValidateToken(parts[1])
+		identity, err := authorization.Load(c.Request.Context(), common.GetDB(), user)
 		if err != nil {
-			result.Failed(c, int(result.ApiCode.INVALIDTOKEN), result.ApiCode.GetMessage(result.ApiCode.INVALIDTOKEN))
-			c.Abort()
+			denyAuth(c, 401, "账号不可用或无法验证权限")
 			return
 		}
-		c.Set(constant.ContextKeyUserObj, mc)
+		required := authorization.Route(c.Request.Method, c.FullPath())
+		ownerAdmin := identity.Admin
+		if key != nil {
+			identity, err = apikey.Restrict(identity, *key)
+			if err != nil {
+				denyAuth(c, 403, "API Key 权限范围无效")
+				return
+			}
+			if key.GrantMode == apikey.Scoped {
+				// Personal password/profile writes are not module grants; keys cannot change login credentials.
+				if required.Self && c.Request.Method != "GET" && c.Request.Method != "HEAD" {
+					denyAuth(c, 403, "API Key 不能修改个人登录信息")
+					return
+				}
+			} else if !apikey.Has(*key, apikey.Inherit) {
+				scope := apikey.RouteScope(c.Request.Method, c.FullPath())
+				if scope == "" || !apikey.Has(*key, scope) {
+					denyAuth(c, 403, "此旧版 API Key 未授权该接口，请联系管理员重新分配 Key")
+					return
+				}
+			}
+			c.Set(apikey.ContextKey, *key)
+			c.Request = c.Request.WithContext(apikey.WithKey(c.Request.Context(), key.ID))
+		}
+		if !required.Self && (required.Permission == "" || required.AdminOnly && !ownerAdmin || !identity.Allows(required.Permission)) {
+			denyAuth(c, 403, "无权执行此操作，请联系管理员分配权限")
+			return
+		}
+		if !checkHostTargets(c, identity) {
+			return
+		}
+		c.Set(IdentityContextKey, identity)
+		c.Set(constant.ContextKeyUserObj, &systemmodel.JwtAdmin{ID: user, Username: identity.Username})
 		c.Next()
 	}
+}
+
+func denyAuth(c *gin.Context, status int, message string) {
+	c.AbortWithStatusJSON(status, gin.H{"code": status, "message": message})
 }

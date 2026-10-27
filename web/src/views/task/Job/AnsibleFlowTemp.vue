@@ -3,11 +3,15 @@
     <div class="flow-header">
       <el-button v-if="!historyMode" v-authority="['task:ansible:jobstart']" @click="startAnsibleTask" type="primary" size="medium" style="height: 40px; padding: 0 20px;" :loading="starting">
         <el-icon size="20"><VideoPlay /></el-icon>
-        <span style="margin-left: 8px;">启动任务</span>
+        <span style="margin-left: 8px;">{{ $tr("启动任务") }}</span>
+      </el-button>
+      <el-button v-if="!historyMode && hasRunningStep" @click="stopAnsibleTask" type="danger" size="medium" style="height: 40px; padding: 0 20px;" :loading="stopping">
+        <el-icon size="20"><Delete /></el-icon>
+        <span style="margin-left: 8px;">{{ $tr("停止任务") }}</span>
       </el-button>
       <el-button @click="handleRefresh" type="info" size="medium" style="height: 40px; padding: 0 20px;">
         <el-icon size="20"><Refresh /></el-icon>
-        <span style="margin-left: 8px;">刷新状态</span>
+        <span style="margin-left: 8px;">{{ $tr("刷新状态") }}</span>
       </el-button>
     </div>
     <svg class="connector-canvas" ref="connectorCanvas"></svg>
@@ -35,8 +39,8 @@
         <div class="status-text" :class="'status-' + step.status">
           {{
             step.status === 'completed' ? '完成' :
-            step.status === 'active' ? '运行中' :
-            step.status === 'error' ? '异常' : '等待'
+            step.status === 'active' ? $tr('运行中') :
+            step.status === 'error' ? $tr('异常') : '等待'
           }}
         </div>
         <h3 class="card-title">
@@ -45,26 +49,26 @@
             <path fill="#E6522C" d="M341.33 426.67a42.67 42.67 0 100-85.34 42.67 42.67 0 000 85.34zM682.67 426.67a42.67 42.67 0 100-85.34 42.67 42.67 0 000 85.34z"/>
             <path fill="#E6522C" d="M512 768c-117.82 0-213.33-95.51-213.33-213.33h426.66C725.33 672.49 629.82 768 512 768z"/>
           </svg>
-          {{ step.title }}
+          {{ $tr(step.title) }}
         </h3>
-        <p class="card-content">任务名称: {{ step.entry_file_name }}</p>
+        <p class="card-content">{{ $tr("任务名称:") }} {{ step.entry_file_name }}</p>
         <div class="card-duration" v-if="step.duration > 0">
-          执行时长: {{ formatDuration(step.duration) }}秒
+          {{ $tr("执行时长:") }} {{ formatDuration(step.duration) }}{{ $tr("秒") }}
         </div>
         <div class="card-buttons">
-          <el-tooltip effect="dark" content="查看日志" placement="top">
-            <button @click.stop="onLogClick(step)" class="btn-icon">
+          <el-tooltip effect="dark" :content='$tr("查看日志")' placement="top">
+            <el-button @click.stop="onLogClick(step)" class="btn-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21 10H7M21 6H3M21 14H3M21 18H7" stroke="#722ed1" stroke-width="2" stroke-linecap="round"/>
               </svg>
-            </button>
+            </el-button>
           </el-tooltip>
         </div>
       </div>
     </div>
     <!-- 调查参数(Survey)对话框 -->
     <el-dialog
-      title="启动参数设置"
+      :title='$tr("启动参数设置")'
       v-model="surveyDialogVisible"
       width="550px"
       :modal="true"
@@ -74,52 +78,75 @@
     >
       <!-- ========== 调查参数区域 ========== -->
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">📋 调查参数 (Survey Variables)</span>
-        <el-switch v-model="surveyEnabled" active-text="启用" inactive-text="关闭" size="small" />
+        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">{{ $tr("📋 调查参数 (Survey Variables)") }}</span>
+        <el-switch v-model="surveyEnabled" :active-text='$tr("启用")' :inactive-text='$tr("关闭")' size="small" />
       </div>
       <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12px;">
-        添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。数据会保存在浏览器中。
+        {{ $tr("添加临时变量，这些变量将覆盖全局变量和扩展参数，仅本次执行生效。数据会保存在浏览器中。") }}
       </div>
       <template v-if="surveyEnabled">
         <div v-for="(item, index) in surveyVars" :key="index" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
-          <el-input v-model="item.key" placeholder="变量名" size="small" style="width: 180px;" />
-          <el-input v-model="item.value" placeholder="变量值" size="small" style="width: 180px;" />
+          <el-input v-model="item.key" :placeholder='$tr("变量名")' size="small" style="width: 180px;" />
+          <el-input v-model="item.value" :placeholder='$tr("变量值")' size="small" style="width: 180px;" />
           <el-button type="danger" :icon="Delete" size="small" circle @click="removeSurveyVar(index)" />
         </div>
         <div style="margin-top: 4px;">
-          <el-button type="primary" :icon="Plus" size="small" @click="addSurveyVar">添加变量</el-button>
+          <el-button type="primary" :icon="Plus" size="small" @click="addSurveyVar">{{ $tr("添加变量") }}</el-button>
         </div>
       </template>
       <div v-else style="color: var(--text-secondary); font-size: 13px; padding: 12px 0; text-align: center; background: var(--bg-card-alt); border-radius: 6px;">
-        已禁用，不会应用调查参数
+        {{ $tr("已禁用，不会应用调查参数") }}
       </div>
 
       <el-divider style="margin: 20px 0 12px;" />
 
       <!-- ========== 启动命令行参数区域 ========== -->
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">⚡ 启动命令行参数 (CLI Args)</span>
-        <el-switch v-model="cliArgsEnabled" active-text="启用" inactive-text="关闭" size="small" />
+        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">{{ $tr("⚡ 启动命令行参数 (CLI Args)") }}</span>
+        <el-switch v-model="cliArgsEnabled" :active-text='$tr("启用")' :inactive-text='$tr("关闭")' size="small" />
       </div>
       <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12px;">
-        临时追加的命令行参数，会在任务配置的 CLI 参数之后追加，仅本次执行生效。
+        {{ $tr("临时追加的命令行参数，会在任务配置的 CLI 参数之后追加，仅本次执行生效。") }}
       </div>
       <template v-if="cliArgsEnabled">
         <el-input
           v-model="startupCliArgs"
           type="textarea"
           :rows="2"
-          placeholder="例如: -e 'ansible_user=root' --limit web"
+          :placeholder='$tr("例如: -e &#39;ansible_user=root&#39; --limit web")'
           style="width: 100%;"
         />
       </template>
       <div v-else style="color: var(--text-secondary); font-size: 13px; padding: 12px 0; text-align: center; background: var(--bg-card-alt); border-radius: 6px;">
-        已禁用，不会追加命令行参数
+        {{ $tr("已禁用，不会追加命令行参数") }}
+      </div>
+
+      <el-divider style="margin: 20px 0 12px;" />
+
+      <!-- ========== 主机清单参数区域 ========== -->
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-weight: 600; font-size: 14px; color: var(--text-primary);">{{ $tr("🖥️ 主机清单 (Inventory)") }}</span>
+        <el-switch v-model="inventoryEnabled" :active-text='$tr("启用")' :inactive-text='$tr("关闭")' size="small" />
+      </div>
+      <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12px;">
+        {{ $tr("临时覆盖主机清单文件(hosts)，支持INI格式。启用后将替换任务原有清单，仅本次执行生效。") }}
+      </div>
+      <template v-if="inventoryEnabled">
+        <el-input
+          v-model="inventoryContent"
+          type="textarea"
+          :rows="6"
+          :placeholder='$tr("例如:\n[web]\n192.168.1.10 ansible_ssh_user=root ansible_ssh_port=22\n192.168.1.11 ansible_ssh_user=root ansible_ssh_port=22\n\n[db]\n192.168.1.20 ansible_ssh_user=root ansible_ssh_port=22")'
+          style="width: 100%; font-family: monospace; font-size: 13px;"
+        />
+      </template>
+      <div v-else style="color: var(--text-secondary); font-size: 13px; padding: 12px 0; text-align: center; background: var(--bg-card-alt); border-radius: 6px;">
+        {{ $tr("已禁用，使用任务原有主机清单") }}
       </div>
 
       <template #footer>
-        <el-button @click="surveyDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmSurveyVars" :loading="starting">确认并启动</el-button>
+        <el-button @click="surveyDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="confirmSurveyVars" :loading="starting">{{ $tr("确认并启动") }}</el-button>
       </template>
     </el-dialog>
 
@@ -134,7 +161,9 @@
 </template>
 
 <script>
-import { GetAnsibleTaskLog, StartAnsibleTaskFlow, GetAnsibleTaskDetail, GetAnsibleHistoryDetail } from '@/api/task'
+import { tr } from "@/locales";
+
+import { GetAnsibleTaskLog, StartAnsibleTaskFlow, StopAnsibleTask, GetAnsibleTaskDetail, GetAnsibleHistoryDetail } from '@/api/task'
 import { VideoPlay, Refresh, Delete, Plus } from '@element-plus/icons-vue'
 import AnsibleLogDialog from '@/views/task/Job/AnsibleLogDialog.vue'
 
@@ -145,11 +174,14 @@ export default {
   data() {
     return {
       starting: false,
+      stopping: false,
       surveyDialogVisible: false,
       surveyVars: [],
       surveyEnabled: false,
       startupCliArgs: '',
-      cliArgsEnabled: false
+      cliArgsEnabled: false,
+      inventoryContent: '',
+      inventoryEnabled: false
     }
   },
   props: {
@@ -234,6 +266,9 @@ export default {
       
       console.log('Ansible orderedSteps计算结果:', JSON.parse(JSON.stringify(result)));
       return result;
+    },
+    hasRunningStep() {
+      return this.orderedSteps.some(s => s.status === 'active' || s.original_status === 2)
     }
   },
   methods: {
@@ -251,11 +286,11 @@ export default {
     // 显示调查参数对话框 - 从 localStorage 加载持久化数据
     startAnsibleTask() {
       if (this.historyMode) {
-        this.$message.warning('历史记录模式下无法启动任务');
+        this.$message.warning(tr('历史记录模式下无法启动任务'));
         return;
       }
       if (!this.taskId) {
-        this.$message.error('Ansible任务ID未定义');
+        this.$message.error(tr('Ansible任务ID未定义'));
         return;
       }
       // 从 localStorage 加载之前保存的调查参数
@@ -268,17 +303,23 @@ export default {
           this.surveyEnabled = parsed.enabled || false;
           this.startupCliArgs = parsed.cliArgs || '';
           this.cliArgsEnabled = parsed.cliArgsEnabled || false;
+          this.inventoryContent = parsed.inventoryContent || '';
+          this.inventoryEnabled = parsed.inventoryEnabled || false;
         } else {
           this.surveyVars = [];
           this.surveyEnabled = false;
           this.startupCliArgs = '';
           this.cliArgsEnabled = false;
+          this.inventoryContent = '';
+          this.inventoryEnabled = false;
         }
       } catch (e) {
         this.surveyVars = [];
         this.surveyEnabled = false;
         this.startupCliArgs = '';
         this.cliArgsEnabled = false;
+        this.inventoryContent = '';
+        this.inventoryEnabled = false;
       }
       this.surveyDialogVisible = true;
     },
@@ -304,7 +345,9 @@ export default {
             vars: this.surveyVars,
             enabled: this.surveyEnabled,
             cliArgs: this.startupCliArgs,
-            cliArgsEnabled: this.cliArgsEnabled
+            cliArgsEnabled: this.cliArgsEnabled,
+            inventoryContent: this.inventoryContent,
+            inventoryEnabled: this.inventoryEnabled
           }));
         } catch (e) {
           console.warn('保存调查参数到 localStorage 失败:', e);
@@ -312,23 +355,54 @@ export default {
         
         console.log('Survey vars:', surveyVarsMap, 'enabled:', this.surveyEnabled);
         console.log('Startup CLI args:', this.startupCliArgs, 'enabled:', this.cliArgsEnabled);
+        console.log('Inventory enabled:', this.inventoryEnabled, 'content length:', (this.inventoryContent || '').length);
         
         await StartAnsibleTaskFlow(
           this.taskId,
           surveyVarsMap,
           this.surveyEnabled,
           this.startupCliArgs,
-          this.cliArgsEnabled
+          this.cliArgsEnabled,
+          this.inventoryContent,
+          this.inventoryEnabled
         );
         
         this.surveyDialogVisible = false;
-        this.$message.success('Ansible任务已启动');
+        this.$message.success(tr('Ansible任务已启动'));
         this.$emit('refresh');
       } catch (error) {
         console.error('启动Ansible任务失败:', error);
         this.$message.error('启动Ansible任务失败: ' + (error.message || '未知错误'));
       } finally {
         this.starting = false;
+      }
+    },
+    // 停止Ansible任务
+    async stopAnsibleTask() {
+      if (!this.taskId) {
+        this.$message.error(tr('Ansible任务ID未定义'));
+        return;
+      }
+      try {
+        await this.$confirm(tr('确定要停止当前正在运行的Ansible任务吗？所有子任务将被终止。'), tr('确认停止'), {
+          confirmButtonText: '确定停止',
+          cancelButtonText: tr('取消'),
+          type: 'warning'
+        });
+      } catch {
+        return; // 用户取消
+      }
+
+      this.stopping = true;
+      try {
+        await StopAnsibleTask(this.taskId);
+        this.$message.success(tr('Ansible任务已停止'));
+        this.$emit('refresh');
+      } catch (error) {
+        console.error('停止Ansible任务失败:', error);
+        this.$message.error('停止Ansible任务失败: ' + (error.message || '未知错误'));
+      } finally {
+        this.stopping = false;
       }
     },
 
@@ -346,7 +420,7 @@ export default {
            });
            
            if (!historyResponse?.data?.data) {
-               throw new Error('无效的历史详情响应');
+               throw new Error(tr('无效的历史详情响应'));
            }
            
            const historyData = historyResponse.data.data;
@@ -368,7 +442,7 @@ export default {
             console.log('Ansible API完整响应:', response);
             
             if (!response?.data?.data?.task_info) {
-              throw new Error('无效的API响应');
+              throw new Error(tr('无效的API响应'));
             }
             
             // 深度拷贝API数据
@@ -422,7 +496,7 @@ export default {
             this.orderedSteps.map(s => `${s.entry_file_name}: ${s.status}`).join(', '));
         });
         
-        this.$message.success('Ansible任务状态已刷新');
+        this.$message.success(tr('Ansible任务状态已刷新'));
       } catch (error) {
         console.error('刷新Ansible任务状态失败:', error);
         this.$message.error('刷新Ansible任务状态失败: ' + (error.message || '未知错误'));
@@ -445,7 +519,7 @@ export default {
             workid: step.workid,
             id: step.id
           });
-          throw new Error('缺少任务ID或WorkID，请确保步骤数据包含task_id和work_id');
+          throw new Error(tr('缺少任务ID或WorkID，请确保步骤数据包含task_id和work_id'));
         }
         
         // 立即显示对话框，提升用户体验
@@ -486,10 +560,10 @@ export default {
         
         if (isTimeoutError && isRunningTask) {
           console.log('任务运行中的超时，切换到实时模式');
-          this.$message.warning('网络响应超时，将自动切换到实时日志模式');
+          this.$message.warning(tr('网络响应超时，将自动切换到实时日志模式'));
         } else if (isTimeoutError) {
           console.log('日志获取超时，可能是网络波动');
-          this.$message.warning('日志获取超时，请稍后重试');
+          this.$message.warning(tr('日志获取超时，请稍后重试'));
         } else {
           // WebSocket模式下错误处理由WebSocket事件处理器自动处理
           console.log('WebSocket模式下的错误将由连接处理器自动显示');

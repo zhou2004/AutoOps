@@ -5,7 +5,7 @@
         <el-card shadow="hover" class="profile-card">
           <template #header>
             <div class="card-header">
-              <span class="title">个人信息</span>
+              <span class="title">{{ $tr("个人信息") }}</span>
             </div>
           </template>
           
@@ -16,32 +16,32 @@
             <el-form label-width="100px" size="small" class="profile-form">
               <el-row>
                 <el-col :span="24">
-                  <el-form-item label="用户账号：">
+                  <el-form-item :label='$tr("用户账号：")'>
                     <span class="profile-value">{{ adminDetail.username }}</span>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label="用户昵称：">
+                  <el-form-item :label='$tr("用户昵称：")'>
                     <span class="profile-value">{{ adminDetail.nickname }}</span>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label="用户邮箱：">
+                  <el-form-item :label='$tr("用户邮箱：")'>
                     <span class="profile-value">{{ adminDetail.email }}</span>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label="用户电话：">
+                  <el-form-item :label='$tr("用户电话：")'>
                     <span class="profile-value">{{ adminDetail.phone }}</span>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label="用户备注：">
+                  <el-form-item :label='$tr("用户备注：")'>
                     <span class="profile-value">{{ adminDetail.note }}</span>
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                  <el-form-item label="创建时间：">
+                  <el-form-item :label='$tr("创建时间：")'>
                     <span class="profile-value">{{ adminDetail.createTime }}</span>
                   </el-form-item>
                 </el-col>
@@ -55,56 +55,56 @@
         <el-card shadow="hover" class="detail-card">
           <template #header>
             <div class="card-header">
-              <span class="title">基本资料</span>
+              <span class="title">{{ $tr("基本资料") }}</span>
             </div>
           </template>
           
           <div class="tabs-section">
             <el-tabs v-model="activeName" class="personal-tabs">
-              <el-tab-pane label="基本资料" name="first">
+              <el-tab-pane :label='$tr("基本资料")' name="first">
                 <el-form :model="adminDetail" :rules="editFormRules" ref="editFormRefForm" label-width="100px" class="edit-form">
-                  <el-form-item label="用户头像" prop="icon">
+                  <el-form-item :label='$tr("用户头像")' prop="icon">
                     <el-upload :headers="headers" class="avatar-uploader" :action="uploadIconUrl"
                                :show-file-list="false" :on-success="handleAvatarSuccess">
-                      <img v-if="icon" :src="icon" :key="avatarKey" class="avatar" title="点击更换头像">
-                      <img v-else :src="adminDetail.icon" :key="avatarKey" class="avatar" title="点击更换头像">
+                      <img v-if="icon" :src="icon" :key="avatarKey" class="avatar" :title='$tr("点击更换头像")'>
+                      <img v-else :src="adminDetail.icon" :key="avatarKey" class="avatar" :title='$tr("点击更换头像")'>
                     </el-upload>
                   </el-form-item>
-                  <el-form-item label="用户账号" prop="username">
+                  <el-form-item :label='$tr("用户账号")' prop="username">
                     <el-input v-model="adminDetail.username" size="small" />
                   </el-form-item>
-                  <el-form-item label="用户昵称" prop="nickname">
+                  <el-form-item :label='$tr("用户昵称")' prop="nickname">
                     <el-input v-model="adminDetail.nickname" size="small" />
                   </el-form-item>
-                  <el-form-item label="手机号码" prop="phone">
+                  <el-form-item :label='$tr("手机号码")' prop="phone">
                     <el-input v-model="adminDetail.phone" maxlength="11" size="small" />
                   </el-form-item>
-                  <el-form-item label="用户邮箱" prop="email">
+                  <el-form-item :label='$tr("用户邮箱")' prop="email">
                     <el-input v-model="adminDetail.email" maxlength="50" size="small" />
                   </el-form-item>
-                  <el-form-item label="用户备注" prop="note">
+                  <el-form-item :label='$tr("用户备注")' prop="note">
                     <el-input v-model="adminDetail.note" size="small" />
                   </el-form-item>
                   <el-form-item class="form-actions">
-                    <el-button type="primary" size="small" @click="submitFirst">保存</el-button>
-                    <el-button size="small" @click="closeFirst">关闭</el-button>
+                    <el-button type="primary" size="small" @click="submitFirst">{{ $tr("保存") }}</el-button>
+                    <el-button size="small" @click="closeFirst">{{ $tr("关闭") }}</el-button>
                   </el-form-item>
                 </el-form>
               </el-tab-pane>
-              <el-tab-pane label="修改密码" name="second">
+              <el-tab-pane :label='$tr("修改密码")' name="second">
                 <el-form :model="updateForm" :rules="updateFormRules" ref="updateFormRefForm" label-width="100px" class="edit-form">
-                  <el-form-item label="旧密码" prop="password">
-                    <el-input v-model="updateForm.password" placeholder="请输入旧密码" type="password" size="small" />
+                  <el-form-item :label='$tr("旧密码")' prop="password">
+                    <el-input v-model="updateForm.password" :placeholder='$tr("请输入旧密码")' type="password" size="small" />
                   </el-form-item>
-                  <el-form-item label="新密码" prop="newPassword">
-                    <el-input v-model="updateForm.newPassword" placeholder="请输入新密码" type="password" size="small" />
+                  <el-form-item :label='$tr("新密码")' prop="newPassword">
+                    <el-input v-model="updateForm.newPassword" :placeholder='$tr("请输入新密码")' type="password" size="small" />
                   </el-form-item>
-                  <el-form-item label="确认密码" prop="resetPassword">
-                    <el-input v-model="updateForm.resetPassword" placeholder="请确认密码" type="password" size="small" />
+                  <el-form-item :label='$tr("确认密码")' prop="resetPassword">
+                    <el-input v-model="updateForm.resetPassword" :placeholder='$tr("请确认密码")' type="password" size="small" />
                   </el-form-item>
                   <el-form-item class="form-actions">
-                    <el-button type="primary" size="small" @click="submitSecond">保存</el-button>
-                    <el-button size="small" @click="closeSecond">关闭</el-button>
+                    <el-button type="primary" size="small" @click="submitSecond">{{ $tr("保存") }}</el-button>
+                    <el-button size="small" @click="closeSecond">{{ $tr("关闭") }}</el-button>
                   </el-form-item>
                 </el-form>
               </el-tab-pane>
@@ -117,6 +117,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import storage from '@/utils/storage'
 
 export default {
@@ -131,11 +133,11 @@ export default {
       icon: '',
       avatarKey: Date.now(),
       editFormRules: {
-        username: [{ required: true, message: '请输入用户账号', trigger: 'blur' }],
-        email: [{ required: true, message: '请输入用户邮箱', trigger: 'blur' }],
-        nickname: [{ required: true, message: '请输入用户昵称', trigger: 'blur' }],
-        phone: [{ required: true, message: '请输入用户手机', trigger: 'blur' }],
-        note: [{ required: true, message: '请输入用户备注', trigger: 'blur' }],
+        username: [{ required: true, get message() { return tr('请输入用户账号'); }, trigger: 'blur' }],
+        email: [{ required: true, get message() { return tr('请输入用户邮箱'); }, trigger: 'blur' }],
+        nickname: [{ required: true, get message() { return tr('请输入用户昵称'); }, trigger: 'blur' }],
+        phone: [{ required: true, get message() { return tr('请输入用户手机'); }, trigger: 'blur' }],
+        note: [{ required: true, get message() { return tr('请输入用户备注'); }, trigger: 'blur' }],
       },
       updateForm: {
         password: '',
@@ -143,9 +145,9 @@ export default {
         resetPassword: ''
       },
       updateFormRules: {
-        password: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
-        newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
-        resetPassword: [{ required: true, message: '请输入重复密码', trigger: 'blur' }],
+        password: [{ required: true, get message() { return tr('请输入旧密码'); }, trigger: 'blur' }],
+        newPassword: [{ required: true, get message() { return tr('请输入新密码'); }, trigger: 'blur' }],
+        resetPassword: [{ required: true, get message() { return tr('请输入重复密码'); }, trigger: 'blur' }],
       }
     }
   },
@@ -176,7 +178,7 @@ export default {
           this.adminDetail = res.data
           this.icon = ''
           this.avatarKey = Date.now()
-          this.$message.success('修改用户成功')
+          this.$message.success(tr('修改用户成功'))
         }
       })
     },
@@ -197,7 +199,7 @@ export default {
         } else {
           this.$storage.clearAll()
           this.$router.push("/login")
-          this.$message.success('修改密码成功')
+          this.$message.success(tr('修改密码成功'))
         }
       })
     },

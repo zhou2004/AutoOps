@@ -2,25 +2,25 @@
   <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.1s' }">
     <div class="section-title">
       <span class="title-bar"></span>
-      <span>📦 CMDB 资产管理</span>
+      <span>{{ $tr("📦 CMDB 资产管理") }}</span>
     </div>
 
     <!-- 概览统计 -->
     <div class="dashboard-grid dashboard-grid-4" style="margin-bottom:16px">
-      <StatCard icon="🖥️" iconBg="linear-gradient(135deg, #e6f4ff, #bae0ff)" :value="stats.servers" label="服务器总数" tag="自建+云主机" />
-      <StatCard icon="🗄️" iconBg="linear-gradient(135deg, #f6ffed, #d9f7be)" :value="stats.databases" label="数据库总数" tag="MySQL/Redis/Mongo/ES/PG" />
-      <StatCard icon="🌐" iconBg="linear-gradient(135deg, #fff7e6, #ffe7ba)" :value="stats.network" label="网络设备" tag="交换机+路由器" />
-      <StatCard icon="☸️" iconBg="linear-gradient(135deg, #f9f0ff, #efdbff)" :value="stats.k8s" label="K8s集群" tag="健康: {{ stats.k8sHealthy }}/{{ stats.k8s }}" />
+      <StatCard icon="🖥️" iconBg="linear-gradient(135deg, #e6f4ff, #bae0ff)" :value="stats.servers" :label='$tr("服务器总数")' tag="自建+云主机" />
+      <StatCard icon="🗄️" iconBg="linear-gradient(135deg, #f6ffed, #d9f7be)" :value="stats.databases" :label='$tr("数据库总数")' tag="MySQL/Redis/Mongo/ES/PG" />
+      <StatCard icon="🌐" iconBg="linear-gradient(135deg, #fff7e6, #ffe7ba)" :value="stats.network" :label='$tr("网络设备")' tag="交换机+路由器" />
+      <StatCard icon="☸️" iconBg="linear-gradient(135deg, #f9f0ff, #efdbff)" :value="stats.k8s" :label='$tr("K8s集群")' tag="健康: {{ stats.k8sHealthy }}/{{ stats.k8s }}" />
     </div>
 
     <!-- 硬件资产分布 -->
     <div class="dashboard-grid dashboard-grid-2">
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">硬件资产分布</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("硬件资产分布") }}</div>
         <BaseChart :option="hardwareOption" size="sm" />
       </div>
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">软件系统健康状态</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("软件系统健康状态") }}</div>
         <BaseChart :option="softwareOption" size="sm" />
       </div>
     </div>

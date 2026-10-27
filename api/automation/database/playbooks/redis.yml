@@ -1,0 +1,37 @@
+---
+- name: Require Debian family for native Redis installation
+  ansible.builtin.assert:
+    that: ansible_os_family == 'Debian'
+    fail_msg: Redis installation currently supports Debian and Ubuntu
+- name: Install Redis
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+    update_cache: true
+- name: Configure authenticated Redis with AOF persistence
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  loop:
+    - {regexp: '^bind ', line: 'bind 0.0.0.0'}
+    - {regexp: '^port ', line: 'port {{ database_port }}'}
+    - {regexp: '^#?\s*requirepass ', line: 'requirepass {{ database_password }}'}
+    - {regexp: '^appendonly ', line: 'appendonly yes'}
+    - {regexp: '^protected-mode ', line: 'protected-mode yes'}
+  no_log: true
+  register: redis_config
+- name: Start Redis
+  ansible.builtin.service:
+    name: redis-server
+    state: "{{ 'restarted' if redis_config.changed else 'started' }}"
+    enabled: true
+- name: Verify Redis authentication
+  ansible.builtin.command:
+    argv: [redis-cli, -h, 127.0.0.1, -p, '{{ database_port | string }}', PING]
+  environment:
+    REDISCLI_AUTH: '{{ database_password }}'
+  register: redis_ping
+  changed_when: false
+  failed_when: redis_ping.stdout != 'PONG'
+  no_log: true

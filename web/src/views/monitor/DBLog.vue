@@ -3,26 +3,26 @@
     <el-card shadow="hover" class="dblog-card">
       <template #header>
         <div class="card-header">
-          <span class="title">数据库操作日志</span>
+          <span class="title">{{ $tr("数据库操作日志") }}</span>
         </div>
       </template>
       
       <!-- 搜索表单 -->
       <div class="search-section" v-show="showSearch">
         <el-form :model="queryParams" :inline="true" class="search-form">
-          <el-form-item prop="beginTime" label="开始时间">
+          <el-form-item prop="beginTime" :label='$tr("开始时间")'>
             <el-date-picker v-model="queryParams.beginTime" size="small" type="date"
-                            style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择开始时间"
+                            style="width: 190px" value-format="yyyy-MM-dd" clearable :placeholder='$tr("请选择开始时间")'
                             @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item prop="endTime" label="结束时间">
+          <el-form-item prop="endTime" :label='$tr("结束时间")'>
             <el-date-picker v-model="queryParams.endTime" size="small" type="date"
-                            style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择结束时间"
+                            style="width: 190px" value-format="yyyy-MM-dd" clearable :placeholder='$tr("请选择结束时间")'
                             @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleQuery">{{ $tr("搜索") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -30,9 +30,9 @@
       <!-- 操作按钮 -->
       <div class="action-section">
         <el-button type="danger" plain icon="Delete" size="small" :disabled="multiple"
-                   @click="batchHandleDelete">批量删除
+                   @click="batchHandleDelete">{{ $tr("批量删除") }}
         </el-button>
-        <el-button type="danger" plain icon="Delete" size="small" @click="handleClean">清空日志</el-button>
+        <el-button type="danger" plain icon="Delete" size="small" @click="handleClean">{{ $tr("清空日志") }}</el-button>
       </div>
 
       <!-- 列表区域 -->
@@ -41,9 +41,9 @@
                   class="dblog-table" @selection-change="handleSelectionChange">
           <el-table-column type="selection" />
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column label="实例ID" prop="instanceId" min-width="120" />
-          <el-table-column label="数据库" prop="database" min-width="120" />
-          <el-table-column label="操作类型" min-width="100">
+          <el-table-column :label='$tr("实例ID")' prop="instanceId" min-width="120" />
+          <el-table-column :label='$tr("数据库")' prop="database" min-width="120" />
+          <el-table-column :label='$tr("操作类型")' min-width="100">
             <template #default="scope">
               <el-tag
                   :type="{
@@ -59,29 +59,29 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="SQL内容" prop="sqlContent" min-width="200" show-overflow-tooltip />
-          <el-table-column label="执行用户" prop="execUser" min-width="100" />
-          <el-table-column label="用户IP" prop="ip" min-width="120" />
-          <el-table-column label="扫描行数" prop="scannedRows" min-width="100" align="right" />
-          <el-table-column label="影响行数" prop="affectedRows" min-width="100" align="right" />
-          <el-table-column label="执行耗时(ms)" prop="executionTime" min-width="120" align="right" />
-          <el-table-column label="返回行数" prop="returnedRows" min-width="100" align="right" />
-          <el-table-column label="执行结果" min-width="100">
+          <el-table-column :label='$tr("SQL内容")' prop="sqlContent" min-width="200" show-overflow-tooltip />
+          <el-table-column :label='$tr("执行用户")' prop="execUser" min-width="100" />
+          <el-table-column :label='$tr("用户IP")' prop="ip" min-width="120" />
+          <el-table-column :label='$tr("扫描行数")' prop="scannedRows" min-width="100" align="right" />
+          <el-table-column :label='$tr("影响行数")' prop="affectedRows" min-width="100" align="right" />
+          <el-table-column :label='$tr("执行耗时(ms)")' prop="executionTime" min-width="120" align="right" />
+          <el-table-column :label='$tr("返回行数")' prop="returnedRows" min-width="100" align="right" />
+          <el-table-column :label='$tr("执行结果")' min-width="100">
             <template #default="scope">
               <el-tag
                   :type="scope.row.result === 'SUCCESS' ? 'success' : 'danger'"
                   size="small"
                   effect="dark"
               >
-                {{ scope.row.result === 'SUCCESS' ? '成功' : '失败' }}
+                {{ scope.row.result === 'SUCCESS' ? $tr('成功') : $tr('失败') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="查询时间" prop="queryTime" min-width="180" />
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column :label='$tr("查询时间")' prop="queryTime" min-width="180" />
+          <el-table-column :label='$tr("操作")' width="120" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button
                     type="danger"
                     icon="Delete"
@@ -107,6 +107,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 export default {
   data() {
     return {
@@ -154,7 +156,7 @@ export default {
         pageSize: 10
       }
       this.getSqlLogList();
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // pageSize
     handleSizeChange(newSize) {
@@ -168,56 +170,56 @@ export default {
     },
     // 清空
     async handleClean() {
-      const confirmResult = await this.$confirm('是否清空SQL操作日志？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm(tr('是否清空SQL操作日志？'), tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消')
+        return this.$message.info(tr('已取消'))
       }
       const { data: res } = await this.$api.CleanCmdbSqlLog()
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('清空成功')
+        this.$message.success(tr('清空成功'))
         await this.getSqlLogList()
       }
     },
     // 删除
     async handleDelete(id) {
-      const confirmResult = await this.$confirm('是否确认删除SQL操作日志编号为"' + id + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除SQL操作日志编号为"' + id + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.DeleteCmdbSqlLogById(id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getSqlLogList()
       }
     },
     // 批量删除
     async batchHandleDelete() {
       const sqlLogIds = this.ids;
-      const confirmResult = await this.$confirm('是否确认删除SQL操作日志编号为"' + sqlLogIds + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除SQL操作日志编号为"' + sqlLogIds + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.DeleteCmdbSqlLogById(sqlLogIds)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getSqlLogList()
       }
     },

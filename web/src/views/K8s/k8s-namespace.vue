@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -103,14 +105,14 @@ const fetchClusterList = async () => {
     }
   } catch (error) {
     console.error('获取集群列表失败:', error)
-    ElMessage.warning('无法获取集群列表，请检查后端服务')
+    ElMessage.warning(tr('无法获取集群列表，请检查后端服务'))
   }
 }
 
 const handleQuery = async () => {
   try {
     if (!selectedClusterId.value) {
-      ElMessage.warning('请选择一个集群')
+      ElMessage.warning(tr('请选择一个集群'))
       return
     }
     
@@ -146,7 +148,7 @@ const handleQuery = async () => {
       
       console.log('命名空间列表加载成功:', tableData.value)
     } else {
-      ElMessage.error(responseData.message || '获取命名空间列表失败')
+      ElMessage.error(responseData.message || tr('获取命名空间列表失败'))
       tableData.value = []
     }
   } catch (error) {
@@ -155,11 +157,11 @@ const handleQuery = async () => {
     if (error.code === 'ERR_NETWORK' || 
         error.message?.includes('ERR_CONNECTION_REFUSED') ||
         error.message?.includes('Failed to fetch')) {
-      ElMessage.warning('后端服务连接失败，请检查服务状态')
+      ElMessage.warning(tr('后端服务连接失败，请检查服务状态'))
     } else if (error.response?.status === 401) {
-      ElMessage.error('认证失败，请重新登录')
+      ElMessage.error(tr('认证失败，请重新登录'))
     } else if (error.response?.status === 403) {
-      ElMessage.error('权限不足，请联系管理员')
+      ElMessage.error(tr('权限不足，请联系管理员'))
     } else {
       console.warn('API调用异常，但可能数据已正确加载')
     }
@@ -214,7 +216,7 @@ const handleCreateNamespace = async (data) => {
     const responseData = response.data || response
     
     if (responseData.code === 200 || responseData.success) {
-      ElMessage.success('命名空间创建成功')
+      ElMessage.success(tr('命名空间创建成功'))
       createNamespaceDialogVisible.value = false
       handleQuery()
     } else {
@@ -222,7 +224,7 @@ const handleCreateNamespace = async (data) => {
     }
   } catch (error) {
     console.error('创建命名空间失败:', error)
-    ElMessage.error('创建命名空间失败，请检查网络连接')
+    ElMessage.error(tr('创建命名空间失败，请检查网络连接'))
   } finally {
     if (createDialogRef.value) {
       createDialogRef.value.setSubmitting(false)
@@ -246,7 +248,7 @@ const viewNamespaceDetail = async (row) => {
     }
   } catch (error) {
     console.error('获取命名空间详情失败:', error)
-    ElMessage.error('获取命名空间详情失败，请检查网络连接')
+    ElMessage.error(tr('获取命名空间详情失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -270,7 +272,7 @@ const manageResourceQuotas = async (row) => {
     }
   } catch (error) {
     console.error('获取ResourceQuota失败:', error)
-    ElMessage.error('获取ResourceQuota失败，请检查网络连接')
+    ElMessage.error(tr('获取ResourceQuota失败，请检查网络连接'))
   }
 }
 
@@ -302,7 +304,7 @@ const manageLimitRanges = async (row) => {
     }
   } catch (error) {
     console.error('获取LimitRange失败:', error)
-    ElMessage.error('获取LimitRange失败，请检查网络连接')
+    ElMessage.error(tr('获取LimitRange失败，请检查网络连接'))
   }
 }
 
@@ -311,16 +313,16 @@ const deleteNamespace = async (row) => {
   try {
     // 额外检查系统命名空间
     if (isSystemNamespace(row.name)) {
-      ElMessage.warning('系统命名空间不可删除')
+      ElMessage.warning(tr('系统命名空间不可删除'))
       return
     }
     
     await ElMessageBox.confirm(
       `确定要删除命名空间 ${row.name} 吗？删除后将无法恢复，且会删除该命名空间下的所有资源！`,
-      '删除命名空间确认',
+      tr('删除命名空间确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'error',
       }
     )
@@ -336,10 +338,10 @@ const deleteNamespace = async (row) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     } else {
       console.error('删除命名空间失败:', error)
-      ElMessage.error('删除命名空间失败，请检查网络连接')
+      ElMessage.error(tr('删除命名空间失败，请检查网络连接'))
     }
   }
 }
@@ -400,7 +402,7 @@ const copyToClipboard = async (text, successMessage = '已复制到剪贴板') =
       document.execCommand('copy')
       ElMessage.success(successMessage)
     } catch (fallbackError) {
-      ElMessage.error('复制失败，请手动复制')
+      ElMessage.error(tr('复制失败，请手动复制'))
     }
     document.body.removeChild(textArea)
   }
@@ -515,7 +517,7 @@ const showCreateLimitRangeDialog = () => {
 const submitCreateQuota = async () => {
   try {
     if (!quotaForm.name) {
-      ElMessage.warning('请输入配额名称')
+      ElMessage.warning(tr('请输入配额名称'))
       return
     }
     
@@ -569,7 +571,7 @@ const submitCreateQuota = async () => {
     }
   } catch (error) {
     console.error((quotaForm.isEditing ? '更新' : '创建') + 'ResourceQuota失败:', error)
-    ElMessage.error((quotaForm.isEditing ? '更新' : '创建') + 'ResourceQuota失败，请检查网络连接')
+    ElMessage.error((quotaForm.isEditing ? tr('更新') : tr('创建')) + 'ResourceQuota失败，请检查网络连接')
   }
 }
 
@@ -577,7 +579,7 @@ const submitCreateQuota = async () => {
 const submitCreateLimitRange = async () => {
   try {
     if (!limitRangeForm.name) {
-      ElMessage.warning('请输入限制名称')
+      ElMessage.warning(tr('请输入限制名称'))
       return
     }
     
@@ -648,7 +650,7 @@ const submitCreateLimitRange = async () => {
     }
   } catch (error) {
     console.error((limitRangeForm.isEditing ? '更新' : '创建') + 'LimitRange失败:', error)
-    ElMessage.error((limitRangeForm.isEditing ? '更新' : '创建') + 'LimitRange失败，请检查网络连接')
+    ElMessage.error((limitRangeForm.isEditing ? tr('更新') : tr('创建')) + 'LimitRange失败，请检查网络连接')
   }
 }
 
@@ -698,10 +700,10 @@ const deleteResourceQuota = async (quota) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除资源配额 "${quota.name}" 吗？删除后将无法恢复！`,
-      '删除资源配额确认',
+      tr('删除资源配额确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'error',
       }
     )
@@ -718,10 +720,10 @@ const deleteResourceQuota = async (quota) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     } else {
       console.error('删除资源配额失败:', error)
-      ElMessage.error('删除资源配额失败，请检查网络连接')
+      ElMessage.error(tr('删除资源配额失败，请检查网络连接'))
     }
   }
 }
@@ -764,10 +766,10 @@ const deleteLimitRange = async (limitRange) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除资源限制 "${limitRange.name}" 吗？删除后将无法恢复！`,
-      '删除资源限制确认',
+      tr('删除资源限制确认'),
       {
         confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        cancelButtonText: tr('取消'),
         type: 'error',
       }
     )
@@ -784,10 +786,10 @@ const deleteLimitRange = async (limitRange) => {
     }
   } catch (error) {
     if (error === 'cancel') {
-      ElMessage.info('已取消删除操作')
+      ElMessage.info(tr('已取消删除操作'))
     } else {
       console.error('删除资源限制失败:', error)
-      ElMessage.error('删除资源限制失败，请检查网络连接')
+      ElMessage.error(tr('删除资源限制失败，请检查网络连接'))
     }
   }
 }
@@ -805,11 +807,11 @@ onMounted(async () => {
     <el-card shadow="hover" class="namespace-card">
       <template #header>
         <div class="card-header">
-          <span class="title">K8s 命名空间管理</span>
+          <span class="title">{{ $tr("K8s 命名空间管理") }}</span>
           <div class="header-actions">
             <el-select 
               v-model="selectedClusterId" 
-              placeholder="请选择集群"
+              :placeholder='$tr("请选择集群")'
               size="small" 
               style="width: 250px" 
               @change="handleClusterChange"
@@ -829,7 +831,7 @@ onMounted(async () => {
                     size="small"
                     class="cluster-status-tag"
                   >
-                    {{ getClusterStatusText(cluster.status) }}
+                    {{ $tr(getClusterStatusText(cluster.status)) }}
                   </el-tag>
                 </div>
               </el-option>
@@ -841,20 +843,20 @@ onMounted(async () => {
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="命名空间名称">
+          <el-form-item :label='$tr("命名空间名称")'>
             <el-input
               v-model="queryParams.namespaceName"
-              placeholder="请输入命名空间名称"
+              :placeholder='$tr("请输入命名空间名称")'
               clearable
               size="small"
               style="width: 200px"
               @keyup.enter="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="状态">
+          <el-form-item :label='$tr("状态")'>
             <el-select
               v-model="queryParams.status"
-              placeholder="请选择状态"
+              :placeholder='$tr("请选择状态")'
               clearable
               size="small"
               style="width: 150px"
@@ -862,20 +864,20 @@ onMounted(async () => {
               <el-option
                 v-for="item in statusOptions"
                 :key="item.value"
-                :label="item.label"
+                :label="$tr(item.label)"
                 :value="item.value"
               />
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" :icon="Search" size="small" @click="handleQuery">
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button :icon="Refresh" size="small" @click="resetQuery">
-              重置
+              {{ $tr("重置") }}
             </el-button>
             <el-button type="success" :icon="Plus" size="small" @click="showCreateNamespaceDialog">
-              创建命名空间
+              {{ $tr("创建命名空间") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -910,19 +912,19 @@ onMounted(async () => {
     >
       <div class="namespace-detail-content" v-if="currentNamespace">
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="名称">{{ currentNamespace.name }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
+          <el-descriptions-item :label='$tr("名称")'>{{ currentNamespace.name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("状态")'>
             <el-tag :type="getStatusTag(currentNamespace.status)" size="small">
-              {{ getStatusText(currentNamespace.status) }}
+              {{ $tr(getStatusText(currentNamespace.status)) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatAge(currentNamespace.createdAt) }}</el-descriptions-item>
-          <el-descriptions-item label="注解数量">{{ getAnnotationCount(currentNamespace.annotations) }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("创建时间")'>{{ formatAge(currentNamespace.createdAt) }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("注解数量")'>{{ getAnnotationCount(currentNamespace.annotations) }}</el-descriptions-item>
         </el-descriptions>
         
         <!-- 用户自定义标签 -->
         <div class="labels-section" v-if="Object.keys(getUserLabels(currentNamespace.labels)).length > 0">
-          <h4>用户标签</h4>
+          <h4>{{ $tr("用户标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getUserLabels(currentNamespace.labels)"
@@ -940,7 +942,7 @@ onMounted(async () => {
         
         <!-- 系统标签 -->
         <div class="labels-section" v-if="Object.keys(getSystemLabels(currentNamespace.labels)).length > 0">
-          <h4>系统标签</h4>
+          <h4>{{ $tr("系统标签") }}</h4>
           <div class="labels-list">
             <el-tag
               v-for="(value, key) in getSystemLabels(currentNamespace.labels)"
@@ -958,7 +960,7 @@ onMounted(async () => {
         
         <!-- 没有标签的提示 -->
         <div v-if="!currentNamespace.labels || Object.keys(currentNamespace.labels).length === 0" class="no-labels">
-          <el-empty description="该命名空间没有标签" :image-size="60" />
+          <el-empty :description='$tr("该命名空间没有标签")' :image-size="60" />
         </div>
       </div>
     </el-dialog>
@@ -974,39 +976,39 @@ onMounted(async () => {
         <!-- ResourceQuota列表 -->
         <div class="quota-list-section">
           <div class="section-header">
-            <h4>当前资源配额</h4>
-            <el-button type="primary" size="small" :icon="Plus" @click="showCreateQuotaDialog">添加配额</el-button>
+            <h4>{{ $tr("当前资源配额") }}</h4>
+            <el-button type="primary" size="small" :icon="Plus" @click="showCreateQuotaDialog">{{ $tr("添加配额") }}</el-button>
           </div>
           
           <el-table :data="resourceQuotas" size="small" style="width: 100%">
-            <el-table-column prop="name" label="配额名称" min-width="150" />
-            <el-table-column label="CPU限制" min-width="100">
+            <el-table-column prop="name" :label='$tr("配额名称")' min-width="150" />
+            <el-table-column :label='$tr("CPU限制")' min-width="100">
               <template #default="{ row }">
                 <span>{{ formatResourceValue(row.hard?.['limits.cpu']) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="内存限制" min-width="100">
+            <el-table-column :label='$tr("内存限制")' min-width="100">
               <template #default="{ row }">
                 <span>{{ formatResourceValue(row.hard?.['limits.memory']) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Pod数量限制" min-width="120">
+            <el-table-column :label='$tr("Pod数量限制")' min-width="120">
               <template #default="{ row }">
                 <span>{{ formatCountValue(row.hard?.['count/pods']) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150">
+            <el-table-column :label='$tr("操作")' width="150">
               <template #default="{ row }">
                 <div class="quota-operation-buttons">
-                  <el-button type="primary" size="small" :icon="Edit" @click="editResourceQuota(row)">编辑</el-button>
-                  <el-button type="danger" size="small" :icon="Delete" @click="deleteResourceQuota(row)">删除</el-button>
+                  <el-button type="primary" size="small" :icon="Edit" @click="editResourceQuota(row)">{{ $tr("编辑") }}</el-button>
+                  <el-button type="danger" size="small" :icon="Delete" @click="deleteResourceQuota(row)">{{ $tr("删除") }}</el-button>
                 </div>
               </template>
             </el-table-column>
           </el-table>
           
           <div v-if="resourceQuotas.length === 0" class="empty-state">
-            <el-empty description="暂无资源配额" :image-size="60" />
+            <el-empty :description='$tr("暂无资源配额")' :image-size="60" />
           </div>
         </div>
       </div>
@@ -1023,59 +1025,59 @@ onMounted(async () => {
         <!-- LimitRange列表 -->
         <div class="limit-range-list-section">
           <div class="section-header">
-            <h4>当前资源限制</h4>
-            <el-button type="primary" size="small" :icon="Plus" @click="showCreateLimitRangeDialog">添加限制</el-button>
+            <h4>{{ $tr("当前资源限制") }}</h4>
+            <el-button type="primary" size="small" :icon="Plus" @click="showCreateLimitRangeDialog">{{ $tr("添加限制") }}</el-button>
           </div>
           
           <el-table :data="limitRanges" size="small" style="width: 100%">
-            <el-table-column prop="name" label="限制名称" min-width="150" />
-            <el-table-column label="容器CPU最小值" min-width="120">
+            <el-table-column prop="name" :label='$tr("限制名称")' min-width="150" />
+            <el-table-column :label='$tr("容器CPU最小值")' min-width="120">
               <template #default="{ row }">
                 <el-tag size="small" type="info">
                   {{ row.spec?.limits?.[0]?.min?.cpu || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="容器CPU最大值" min-width="120">
+            <el-table-column :label='$tr("容器CPU最大值")' min-width="120">
               <template #default="{ row }">
                 <el-tag size="small" type="warning">
                   {{ row.spec?.limits?.[0]?.max?.cpu || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="容器内存最小值" min-width="130">
+            <el-table-column :label='$tr("容器内存最小值")' min-width="130">
               <template #default="{ row }">
                 <el-tag size="small" type="info">
                   {{ row.spec?.limits?.[0]?.min?.memory || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="容器内存最大值" min-width="130">
+            <el-table-column :label='$tr("容器内存最大值")' min-width="130">
               <template #default="{ row }">
                 <el-tag size="small" type="warning">
                   {{ row.spec?.limits?.[0]?.max?.memory || '-' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="创建时间" min-width="120">
+            <el-table-column :label='$tr("创建时间")' min-width="120">
               <template #default="{ row }">
                 <el-tag size="small">
                   {{ formatAge(row.createdAt) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150">
+            <el-table-column :label='$tr("操作")' width="150">
               <template #default="{ row }">
                 <div class="limit-range-operation-buttons">
-                  <el-button type="primary" size="small" :icon="Edit" @click="editLimitRange(row)">编辑</el-button>
-                  <el-button type="danger" size="small" :icon="Delete" @click="deleteLimitRange(row)">删除</el-button>
+                  <el-button type="primary" size="small" :icon="Edit" @click="editLimitRange(row)">{{ $tr("编辑") }}</el-button>
+                  <el-button type="danger" size="small" :icon="Delete" @click="deleteLimitRange(row)">{{ $tr("删除") }}</el-button>
                 </div>
               </template>
             </el-table-column>
           </el-table>
           
           <div v-if="limitRanges.length === 0" class="empty-state">
-            <el-empty description="暂无资源限制" :image-size="60" />
+            <el-empty :description='$tr("暂无资源限制")' :image-size="60" />
           </div>
         </div>
       </div>
@@ -1084,58 +1086,58 @@ onMounted(async () => {
     <!-- 创建ResourceQuota对话框 -->
     <el-dialog
       v-model="createQuotaDialogVisible"
-      :title="quotaForm.isEditing ? '编辑资源配额' : '创建资源配额'"
+      :title="$tr(quotaForm.isEditing ? '编辑资源配额' : '创建资源配额')"
       width="600px"
       class="create-quota-dialog"
     >
       <el-form :model="quotaForm" label-width="120px">
-        <el-form-item label="配额名称" required>
+        <el-form-item :label='$tr("配额名称")' required>
           <el-input
             v-model="quotaForm.name"
-            placeholder="请输入配额名称，如：compute-quota"
+            :placeholder='$tr("请输入配额名称，如：compute-quota")'
           />
         </el-form-item>
-        <el-form-item label="CPU限制">
+        <el-form-item :label='$tr("CPU限制")'>
           <el-input
             v-model="quotaForm.cpuLimit"
-            placeholder="如：4（自动添加核心单位）或 4000m（毫核心）"
+            :placeholder='$tr("如：4（自动添加核心单位）或 4000m（毫核心）")'
           >
             <template #append>cores</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="内存限制">
+        <el-form-item :label='$tr("内存限制")'>
           <el-input
             v-model="quotaForm.memoryLimit"
-            placeholder="如：8（自动添加Gi单位）或 8192Mi"
+            :placeholder='$tr("如：8（自动添加Gi单位）或 8192Mi")'
           >
             <template #append>Gi</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="存储限制">
+        <el-form-item :label='$tr("存储限制")'>
           <el-input
             v-model="quotaForm.storageLimit"
-            placeholder="如：100（自动添加Gi单位）或 100Gi"
+            :placeholder='$tr("如：100（自动添加Gi单位）或 100Gi")'
           >
             <template #append>Gi</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="Pod数量限制">
+        <el-form-item :label='$tr("Pod数量限制")'>
           <el-input
             v-model="quotaForm.podLimit"
-            placeholder="如：50（最多50个Pod）"
+            :placeholder='$tr("如：50（最多50个Pod）")'
           />
         </el-form-item>
-        <el-form-item label="Service数量限制">
+        <el-form-item :label='$tr("Service数量限制")'>
           <el-input
             v-model="quotaForm.serviceLimit"
-            placeholder="如：20（最多20个Service）"
+            :placeholder='$tr("如：20（最多20个Service）")'
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="createQuotaDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitCreateQuota">{{ quotaForm.isEditing ? '更新' : '创建' }}</el-button>
+          <el-button @click="createQuotaDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitCreateQuota">{{ quotaForm.isEditing ? '更新' : $tr('创建') }}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -1143,34 +1145,34 @@ onMounted(async () => {
     <!-- 创建LimitRange对话框 -->
     <el-dialog
       v-model="createLimitRangeDialogVisible"
-      :title="limitRangeForm.isEditing ? '编辑资源限制' : '创建资源限制'"
+      :title="$tr(limitRangeForm.isEditing ? '编辑资源限制' : '创建资源限制')"
       width="700px"
       class="create-limit-range-dialog"
     >
       <el-form :model="limitRangeForm" label-width="150px">
-        <el-form-item label="限制名称" required>
+        <el-form-item :label='$tr("限制名称")' required>
           <el-input
             v-model="limitRangeForm.name"
-            placeholder="请输入限制名称，如：container-limits"
+            :placeholder='$tr("请输入限制名称，如：container-limits")'
           />
         </el-form-item>
-        <el-divider>容器资源限制</el-divider>
+        <el-divider>{{ $tr("容器资源限制") }}</el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="CPU最小值">
+            <el-form-item :label='$tr("CPU最小值")'>
               <el-input
                 v-model="limitRangeForm.containerCpuMin"
-                placeholder="如：100（自动添加m单位）"
+                :placeholder='$tr("如：100（自动添加m单位）")'
               >
                 <template #append>m</template>
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="CPU最大值">
+            <el-form-item :label='$tr("CPU最大值")'>
               <el-input
                 v-model="limitRangeForm.containerCpuMax"
-                placeholder="如：2（核心数）"
+                :placeholder='$tr("如：2（核心数）")'
               >
                 <template #append>cores</template>
               </el-input>
@@ -1179,43 +1181,43 @@ onMounted(async () => {
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="内存最小值">
+            <el-form-item :label='$tr("内存最小值")'>
               <el-input
                 v-model="limitRangeForm.containerMemoryMin"
-                placeholder="如：128（自动添加Mi单位）"
+                :placeholder='$tr("如：128（自动添加Mi单位）")'
               >
                 <template #append>Mi</template>
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="内存最大值">
+            <el-form-item :label='$tr("内存最大值")'>
               <el-input
                 v-model="limitRangeForm.containerMemoryMax"
-                placeholder="如：4（自动添加Gi单位）"
+                :placeholder='$tr("如：4（自动添加Gi单位）")'
               >
                 <template #append>Gi</template>
               </el-input>
             </el-form-item>
           </el-col>
         </el-row>
-        <el-divider>默认资源配置</el-divider>
+        <el-divider>{{ $tr("默认资源配置") }}</el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="默认CPU">
+            <el-form-item :label='$tr("默认CPU")'>
               <el-input
                 v-model="limitRangeForm.containerCpuDefault"
-                placeholder="如：500（自动添加m单位）"
+                :placeholder='$tr("如：500（自动添加m单位）")'
               >
                 <template #append>m</template>
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="默认内存">
+            <el-form-item :label='$tr("默认内存")'>
               <el-input
                 v-model="limitRangeForm.containerMemoryDefault"
-                placeholder="如：1（自动添加Mi单位）"
+                :placeholder='$tr("如：1（自动添加Mi单位）")'
               >
                 <template #append>Mi</template>
               </el-input>
@@ -1225,8 +1227,8 @@ onMounted(async () => {
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="createLimitRangeDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitCreateLimitRange">{{ limitRangeForm.isEditing ? '更新' : '创建' }}</el-button>
+          <el-button @click="createLimitRangeDialogVisible = false">{{ $tr("取消") }}</el-button>
+          <el-button type="primary" @click="submitCreateLimitRange">{{ limitRangeForm.isEditing ? '更新' : $tr('创建') }}</el-button>
         </span>
       </template>
     </el-dialog>

@@ -3,70 +3,46 @@
     <el-card shadow="hover" class="tasktemplate-card">
       <template #header>
         <div class="card-header">
-          <span class="title">任务模板管理</span>
+          <span class="title">{{ $tr("任务模板管理") }}</span>
         </div>
       </template>
       
       <!-- 搜索区域 -->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="模板名称">
+          <el-form-item :label='$tr("模板名称")'>
             <el-input 
-              placeholder="请输入模板名称" 
+              :placeholder='$tr("请输入模板名称")' 
               size="small" 
               clearable 
               v-model="queryParams.name"
               @keyup.enter="searchByName(queryParams.name)"
             />
           </el-form-item>
-          <el-form-item label="模板类型" style="width: 200px">
+          <el-form-item :label='$tr("模板类型")' style="width: 200px">
             <el-select 
               size="small" 
-              placeholder="请选择模板类型" 
+              :placeholder='$tr("请选择模板类型")' 
               v-model="queryParams.type"
               @change="searchByType(queryParams.type)"
               style="width: 100%"
             >
-              <el-option :value="1">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <img 
-                    :src="$getAssetUrl('@/assets/image/shell.svg')" 
-                    alt="Shell"
-                    style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
-                  />
-                  <span>Shell</span>
-                </div>
-              </el-option>
-              <el-option :value="2">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <img 
-                    :src="$getAssetUrl('@/assets/image/Python.svg')" 
-                    alt="Python"
-                    style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
-                  />
-                  <span>Python</span>
-                </div>
-              </el-option>
-              <el-option :value="3">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <img 
-                    :src="$getAssetUrl('@/assets/image/ansible.svg')" 
-                    alt="Ansible"
-                    style="width: 14px; height: 14px; object-fit: contain; flex-shrink: 0;"
-                  />
-                  <span>Ansible</span>
-                </div>
-              </el-option>
+              <el-option
+                v-for="item in templateTypes"
+                :key="item.value"
+                :label="$tr(item.label)"
+                :value="item.value"
+              />
             </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" size="small" @click="searchByName(queryParams.name)" class="modern-btn primary-btn">
               <el-icon><Search /></el-icon>
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button size="small" @click="resetQuery" class="modern-btn reset-btn">
               <el-icon><Refresh /></el-icon>
-              重置
+              {{ $tr("重置") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -82,7 +58,7 @@
           class="modern-btn success-btn"
         >
           <el-icon><Plus /></el-icon>
-          新增模板
+          {{ $tr("新增模板") }}
         </el-button>
       </div>
 
@@ -96,19 +72,19 @@
           style="width: 100%"
 
         >
-          <el-table-column prop="name" label="模板名称" width="270">
+          <el-table-column prop="name" :label='$tr("模板名称")' width="270">
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
                   :src="$getAssetUrl('@/assets/image/moban.svg')" 
-                  alt="模板"
+                  :alt='$tr("模板")'
                   style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0;"
                 />
                 <span>{{ row.name }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="type" label="类型" width="140">
+          <el-table-column prop="type" :label='$tr("类型")' width="140">
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
@@ -122,9 +98,9 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="脚本内容" width="100">
+          <el-table-column :label='$tr("脚本内容")' width="100">
             <template #default="{row}">
-              <el-tooltip content="查看脚本" placement="top">
+              <el-tooltip :content='$tr("查看脚本")' placement="top">
                 <el-button
                   type="primary"
                   :icon="View"
@@ -135,29 +111,29 @@
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column prop="createdBy" label="创建人" width="140">
+          <el-table-column prop="createdBy" :label='$tr("创建人")' width="140">
             <template #default="{row}">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <img 
                   :src="$getAssetUrl('@/assets/image/ren.svg')" 
-                  alt="创建人"
+                  :alt='$tr("创建人")'
                   style="width: 18px; height: 18px; object-fit: contain; flex-shrink: 0;"
                 />
                 <span>{{ row.createdBy }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="180" />
-          <el-table-column prop="remark" label="备注信息" >
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="180" />
+          <el-table-column prop="remark" :label='$tr("备注信息")' >
             <template #default="{row}">
               {{ row.remark }}
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" width="120">
+          <el-table-column :label='$tr("操作")' width="120">
             <template #default="{row}">
               <div class="operation-buttons">
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button
                     type="warning"
                     :icon="Edit"
@@ -167,7 +143,7 @@
                     @click="handleEdit(row)"
                   />
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button
                     type="danger"
                     :icon="Delete"
@@ -199,7 +175,7 @@
 
     <!--模板表单对话框-->
     <el-dialog 
-      :title="currentTemplate.id ? '编辑模板' : '新增模板'" 
+      :title="currentTemplate.id ? '编辑模板' : $tr('新增模板')" 
       v-model="formVisible" 
       width="40%"
       @close="formDialogClosed"
@@ -210,59 +186,45 @@
         :model="currentTemplate" 
         :rules="templateRules"
       >
-        <el-form-item label="模板名称" prop="name">
-          <el-input v-model="currentTemplate.name" placeholder="请输入模板名称" />
+        <el-form-item :label='$tr("模板名称")' prop="name">
+          <el-input v-model="currentTemplate.name" :placeholder='$tr("请输入模板名称")' />
         </el-form-item>
-        <el-form-item label="模板类型" prop="type">
-          <el-select v-model="currentTemplate.type" placeholder="请选择模板类型">
-            <el-option :value="1">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <img 
-                  :src="$getAssetUrl('@/assets/image/shell.svg')" 
-                  alt="Shell"
-                  style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
-                />
-                <span>Shell</span>
-              </div>
-            </el-option>
-            <el-option :value="2">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <img 
-                  :src="$getAssetUrl('@/assets/image/Python.svg')" 
-                  alt="Python"
-                  style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;"
-                />
-                <span>Python</span>
-              </div>
-            </el-option>
+        <el-form-item :label='$tr("模板类型")' prop="type">
+          <el-select v-model="currentTemplate.type" :placeholder='$tr("请选择模板类型")'>
+            <el-option
+              v-for="item in templateTypes"
+              :key="item.value"
+              :label="$tr(item.label)"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="模板内容" prop="content">
+        <el-form-item :label='$tr("模板内容")' prop="content">
           <CodeEditor
             v-model="currentTemplate.content"
             :language="getLanguage(currentTemplate.type)"
             height="300px"
-            placeholder="请输入模板内容"
+            :placeholder='$tr("请输入模板内容")'
           />
         </el-form-item>
-        <el-form-item label="备注信息">
+        <el-form-item :label='$tr("备注信息")'>
           <el-input 
             v-model="currentTemplate.remark" 
             type="textarea" 
             :rows="2"
-            placeholder="请输入备注信息"
+            :placeholder='$tr("请输入备注信息")'
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="formVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleSubmit">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
 
     <!--脚本内容查看对话框-->
     <el-dialog 
-      title="脚本内容" 
+      :title='$tr("脚本内容")' 
       v-model="contentDialogVisible" 
       width="60%"
     >
@@ -271,13 +233,15 @@
         v-html="scriptContent"
       ></pre>
       <template #footer>
-        <el-button @click="contentDialogVisible = false">关闭</el-button>
+        <el-button @click="contentDialogVisible = false">{{ $tr("关闭") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted } from 'vue'
 import CodeEditor from '@/components/CodeEditor.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -317,10 +281,23 @@ const currentTemplate = ref({
 const contentDialogVisible = ref(false)
 const scriptContent = ref('')
 
+const templateTypes = [
+  { value: 1, label: 'Shell', language: 'bash' },
+  { value: 2, label: 'Python', language: 'python' },
+  { value: 3, label: 'Ansible Playbook', language: 'yaml' },
+  { value: 4, label: 'JavaScript (Node.js)', language: 'javascript' },
+  { value: 5, label: 'PowerShell', language: 'powershell' },
+  { value: 6, label: 'Go', language: 'go' },
+  { value: 7, label: 'Ruby', language: 'ruby' },
+  { value: 8, label: 'PHP', language: 'php' },
+  { value: 9, label: 'Perl', language: 'perl' },
+  { value: 10, label: '直接命令', language: 'bash' }
+]
+
 const templateRules = reactive({
-  name: [{ required: true, message: '请输入模板名称', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择模板类型', trigger: 'change' }],
-  content: [{ required: true, message: '请输入模板内容', trigger: 'blur' }]
+  name: [{ required: true, get message() { return tr('请输入模板名称'); }, trigger: 'blur' }],
+  type: [{ required: true, get message() { return tr('请选择模板类型'); }, trigger: 'change' }],
+  content: [{ required: true, get message() { return tr('请输入模板内容'); }, trigger: 'blur' }]
 })
 
 const fetchTemplates = async () => {
@@ -368,17 +345,17 @@ const handleEdit = (template) => {
 
 const handleDelete = async (id) => {
   try {
-    await ElMessageBox.confirm('确定要删除该模板吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(tr('确定要删除该模板吗？'), tr('提示'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning'
     })
     await DeleteTemplate({ id })
-    ElMessage.success('删除成功')
+    ElMessage.success(tr('删除成功'))
     fetchTemplates()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      ElMessage.error(tr('删除失败'))
     }
   }
 }
@@ -387,8 +364,7 @@ const handleViewContent = async (id) => {
   try {
     const response = await GetTemplateContent({ id })
     const template = templates.value.find(t => t.id === id)
-    const language = template?.type === 1 ? 'bash' : 
-                    template?.type === 2 ? 'python' : 'yaml'
+    const language = getLanguage(template?.type)
     scriptContent.value = highlight(response.data, language)
     contentDialogVisible.value = true
   } catch (error) {
@@ -438,7 +414,7 @@ const searchByName = async (name) => {
     } else {
       templates.value = []
       total.value = 0
-      ElMessage.warning('未获取到有效数据')
+      ElMessage.warning(tr('未获取到有效数据'))
     }
   } catch (error) {
     console.error('按名称搜索失败:', error)
@@ -449,6 +425,12 @@ const searchByName = async (name) => {
 }
 
 const searchByType = async (type) => {
+  if (!type) {
+    queryParams.type = null
+    queryParams.pageNum = 1
+    await fetchTemplates()
+    return
+  }
   try {
     loading.value = true
     queryParams.type = type
@@ -471,7 +453,7 @@ const searchByType = async (type) => {
     } else {
       templates.value = []
       total.value = 0
-      ElMessage.warning('未获取到有效数据')
+      ElMessage.warning(tr('未获取到有效数据'))
     }
   } catch (error) {
     console.error('按类型搜索失败:', error)
@@ -503,21 +485,11 @@ const handleCurrentChange = (val) => {
 }
 
 const getTypeClass = (type) => {
-  switch(type) {
-    case 1: return 'type-shell'
-    case 2: return 'type-python'
-    case 3: return 'type-ansible'
-    default: return ''
-  }
+  return `type-language type-language-${type}`
 }
 
 const getLanguage = (type) => {
-  switch(type) {
-    case 1: return 'bash'
-    case 2: return 'python'
-    case 3: return 'yaml'
-    default: return null
-  }
+  return templateTypes.find(item => item.value === type)?.language || 'bash'
 }
 
 const getTypeIcon = (type) => {
@@ -530,12 +502,7 @@ const getTypeIcon = (type) => {
 }
 
 const getTypeName = (type) => {
-  switch(type) {
-    case 1: return 'Shell'
-    case 2: return 'Python'
-    case 3: return 'Ansible'
-    default: return 'Shell'
-  }
+  return templateTypes.find(item => item.value === type)?.label || '未知类型'
 }
 
 onMounted(() => {
@@ -619,6 +586,11 @@ onMounted(() => {
 
 .type-ansible {
   color: var(--warning);
+  font-weight: 500;
+}
+
+.type-language {
+  color: var(--primary);
   font-weight: 500;
 }
 </style>

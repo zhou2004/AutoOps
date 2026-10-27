@@ -7,6 +7,7 @@ import (
 	"dodevops-api/common"
 	"dodevops-api/common/result"
 	"dodevops-api/common/util"
+	"dodevops-api/pkg/jwt"
 	"strconv"
 	"time"
 
@@ -38,8 +39,13 @@ func (c *CmdbSQLController) CreateDatabase(ctx *gin.Context) {
 		return
 	}
 
+	uid, _ := jwt.GetAdminId(ctx)
+	if admin, err := dao.NewCmdbAssetPermissionDao(common.GetDB()).IsAdministrator(uid); err != nil || !admin {
+		result.Failed(ctx, 403, "数据库连接与账号绑定由管理员配置")
+		return
+	}
 	if err := c.service.CreateDatabase(&db); err != nil {
-		result.Failed(ctx, 500, "创建失败: "+err.Error())
+		result.Failed(ctx, 400, "创建失败: "+err.Error())
 		return
 	}
 
@@ -74,12 +80,19 @@ func (c *CmdbSQLController) UpdateDatabase(ctx *gin.Context) {
 		return
 	}
 
+	if db.AccountID != existing.AccountID {
+		uid, _ := jwt.GetAdminId(ctx)
+		if admin, err := dao.NewCmdbAssetPermissionDao(common.GetDB()).IsAdministrator(uid); err != nil || !admin {
+			result.Failed(ctx, 403, "数据库连接与账号绑定由管理员配置")
+			return
+		}
+	}
 	// 保留原有时间字段
 	db.CreatedAt = existing.CreatedAt
 	db.UpdatedAt = util.HTime{Time: time.Now()}
 
 	if err := c.service.UpdateDatabase(&db); err != nil {
-		result.Failed(ctx, 500, "更新失败: "+err.Error())
+		result.Failed(ctx, 400, "更新失败: "+err.Error())
 		return
 	}
 
@@ -172,7 +185,19 @@ func (c *CmdbSQLController) ListDatabases(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "10"))
 
-	dbs, count, err := c.service.ListDatabases(page, pageSize)
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+	kind, _ := strconv.Atoi(ctx.Query("type"))
+	group, err := strconv.ParseUint(ctx.DefaultQuery("groupId", "0"), 10, 32)
+	if err != nil || kind < 0 || kind > 3 {
+		result.Failed(ctx, 400, "数据源筛选参数无效")
+		return
+	}
+	dbs, count, err := dao.NewCmdbSQLDao(common.GetDB()).Search(page, pageSize, ctx.Query("name"), kind, uint(group), service.AssetIDScope(ctx))
 	if err != nil {
 		result.Failed(ctx, 500, "查询失败: "+err.Error())
 		return
@@ -200,7 +225,7 @@ func (c *CmdbSQLController) GetDatabasesByName(ctx *gin.Context) {
 		return
 	}
 
-	dbs, err := c.service.GetDatabasesByName(name)
+	dbs, err := c.service.GetDatabasesByName(name, service.AssetIDScope(ctx))
 	if err != nil {
 		result.Failed(ctx, 500, "查询失败: "+err.Error())
 		return
@@ -214,22 +239,31 @@ func (c *CmdbSQLController) GetDatabasesByName(ctx *gin.Context) {
 // @Tags CMDB数据库
 // @Accept json
 // @Produce json
-// @Param type query int true "数据库类型(1=MySQL 2=PostgreSQL 3=Redis 4=MongoDB 5=Elasticsearch)"
+// @Param type query int true "数据库类型(1=MySQL 2=PostgreSQL 3=Redis)"
 // @Success 200 {object} result.Result
 // @Router /api/v1/cmdb/database/bytype [get]
 // @Security ApiKeyAuth
 func (c *CmdbSQLController) GetDatabasesByType(ctx *gin.Context) {
 	dbType, err := strconv.Atoi(ctx.Query("type"))
-	if err != nil || dbType < 1 || dbType > 5 {
+	if err != nil || dbType < 1 || dbType > 3 {
 		result.Failed(ctx, 400, "无效的数据库类型")
 		return
 	}
 
-	dbs, err := c.service.GetDatabasesByType(dbType)
+	dbs, err := c.service.GetDatabasesByType(dbType, service.AssetIDScope(ctx))
 	if err != nil {
 		result.Failed(ctx, 500, "查询失败: "+err.Error())
 		return
 	}
 
 	result.Success(ctx, dbs)
+}
+
+func (c *CmdbSQLController) SourceGroups(ctx *gin.Context) {
+	groups, err := dao.NewCmdbSQLDao(common.GetDB()).SourceGroups(service.AssetIDScope(ctx))
+	if err != nil {
+		result.Failed(ctx, 500, "数据源业务分组读取失败")
+		return
+	}
+	result.Success(ctx, groups)
 }

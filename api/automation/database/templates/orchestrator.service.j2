@@ -1,0 +1,15 @@
+[Unit]
+Description=AutoOps Orchestrator MySQL HA
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=orchestrator
+Group=orchestrator
+WorkingDirectory={{ orc_binary_path | dirname }}
+ExecStart={{ orc_binary_path }} --config=/etc/autoops-orchestrator.json http
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+[Install]
+WantedBy=multi-user.target

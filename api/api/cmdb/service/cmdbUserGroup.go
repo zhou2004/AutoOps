@@ -173,15 +173,24 @@ func NewCmdbCredentialPermissionService() ICmdbCredentialPermissionService {
 }
 
 func (s *CmdbCredentialPermissionServiceImpl) Create(c *gin.Context, req *model.CmdbCredentialPermissionReq) {
-	data := &model.CmdbCredentialPermission{
-		Name:         req.Name,
-		CredentialID: req.CredentialID,
-		UserIDs:      toJSONStr(req.UserIDs),
-		GroupIDs:     toJSONStr(req.GroupIDs),
-		IsActive:     req.IsActive,
+	if req.IsActive != 0 && req.IsActive != 1 {
+		result.Failed(c, http.StatusBadRequest, "授权状态必须为0或1")
+		return
 	}
-	if data.IsActive == 0 {
-		data.IsActive = 1
+	if req.CredentialType == "" {
+		req.CredentialType = "ssh"
+	}
+	if req.CredentialType != "ssh" && req.CredentialType != "database" {
+		result.Failed(c, http.StatusBadRequest, "凭据来源无效")
+		return
+	}
+	data := &model.CmdbCredentialPermission{
+		Name:           req.Name,
+		CredentialType: req.CredentialType,
+		CredentialID:   req.CredentialID,
+		UserIDs:        toJSONStr(req.UserIDs),
+		GroupIDs:       toJSONStr(req.GroupIDs),
+		IsActive:       req.IsActive,
 	}
 	if err := s.dao.Create(data); err != nil {
 		result.Failed(c, http.StatusInternalServerError, "创建凭据授权失败: "+err.Error())
@@ -191,12 +200,24 @@ func (s *CmdbCredentialPermissionServiceImpl) Create(c *gin.Context, req *model.
 }
 
 func (s *CmdbCredentialPermissionServiceImpl) Update(c *gin.Context, id uint, req *model.CmdbCredentialPermissionReq) {
+	if req.IsActive != 0 && req.IsActive != 1 {
+		result.Failed(c, http.StatusBadRequest, "授权状态必须为0或1")
+		return
+	}
+	if req.CredentialType == "" {
+		req.CredentialType = "ssh"
+	}
+	if req.CredentialType != "ssh" && req.CredentialType != "database" {
+		result.Failed(c, http.StatusBadRequest, "凭据来源无效")
+		return
+	}
 	data, err := s.dao.GetByID(id)
 	if err != nil {
 		result.Failed(c, http.StatusNotFound, "凭据授权不存在")
 		return
 	}
 	data.Name = req.Name
+	data.CredentialType = req.CredentialType
 	data.CredentialID = req.CredentialID
 	data.UserIDs = toJSONStr(req.UserIDs)
 	data.GroupIDs = toJSONStr(req.GroupIDs)

@@ -3,7 +3,6 @@ package dao
 import (
 	"dodevops-api/api/cmdb/model"
 	"dodevops-api/common"
-	"encoding/json"
 
 	"gorm.io/gorm"
 )
@@ -103,9 +102,10 @@ func (d *CmdbUserGroupDao) GetMembers(groupID uint) ([]model.CmdbGroupMemberVo, 
 
 func (d *CmdbUserGroupDao) GetUserGroupIDs(userID uint) ([]uint, error) {
 	var ids []uint
-	err := d.db.Table("cmdb_user_group_member").
-		Where("user_id = ?", userID).
-		Pluck("group_id", &ids).Error
+	err := d.db.Table("cmdb_user_group_member m").
+		Joins("JOIN cmdb_user_group g ON g.id = m.group_id").
+		Where("m.user_id = ? AND g.status = 1", userID).
+		Pluck("m.group_id", &ids).Error
 	return ids, err
 }
 
@@ -129,7 +129,10 @@ type CmdbCredentialPermissionDao struct {
 	db *gorm.DB
 }
 
-func NewCmdbCredentialPermissionDao() *CmdbCredentialPermissionDao {
+func NewCmdbCredentialPermissionDao(databases ...*gorm.DB) *CmdbCredentialPermissionDao {
+	if len(databases) > 0 && databases[0] != nil {
+		return &CmdbCredentialPermissionDao{db: databases[0]}
+	}
 	return &CmdbCredentialPermissionDao{db: common.GetDB()}
 }
 
@@ -159,6 +162,9 @@ func (d *CmdbCredentialPermissionDao) GetList(query model.CmdbCredentialPermissi
 	if query.Name != "" {
 		db = db.Where("name LIKE ?", "%"+query.Name+"%")
 	}
+	if query.CredentialType != "" {
+		db = db.Where("credential_type = ?", query.CredentialType)
+	}
 	if query.CredentialID > 0 {
 		db = db.Where("credential_id = ?", query.CredentialID)
 	}
@@ -178,23 +184,28 @@ func (d *CmdbCredentialPermissionDao) GetList(query model.CmdbCredentialPermissi
 	return list, total, err
 }
 
-// GetUserCredentials 获取用户有权限使用的凭据
+// GetUserCredentials matches complete user/group IDs, never numeric substrings.
 func (d *CmdbCredentialPermissionDao) GetUserCredentials(userID uint, userGroupIDs []uint) ([]model.CmdbCredentialPermission, error) {
-	var list []model.CmdbCredentialPermission
-	db := d.db.Model(&model.CmdbCredentialPermission{}).
-		Where("is_active = 1")
-
-	userJSON, _ := json.Marshal(userID)
-	cond := "user_ids LIKE ?"
-	args := []interface{}{"%" + string(userJSON) + "%"}
-
-	for _, gid := range userGroupIDs {
-		groupJSON, _ := json.Marshal(gid)
-		cond += " OR group_ids LIKE ?"
-		args = append(args, "%"+string(groupJSON)+"%")
+	active, err := NewCmdbAssetPermissionDao(d.db).UserActive(userID)
+	if err != nil {
+		return nil, err
 	}
-
-	db = db.Where("("+cond+")", args...)
-	err := db.Order("id DESC").Find(&list).Error
-	return list, err
+	if !active {
+		return []model.CmdbCredentialPermission{}, nil
+	}
+	var candidates []model.CmdbCredentialPermission
+	if err := d.db.Where("is_active = 1").Order("id DESC").Find(&candidates).Error; err != nil {
+		return nil, err
+	}
+	result := make([]model.CmdbCredentialPermission, 0)
+	for _, p := range candidates {
+		matches := JSONContainsID(p.UserIDs, userID)
+		for _, gid := range userGroupIDs {
+			matches = matches || JSONContainsID(p.GroupIDs, gid)
+		}
+		if matches {
+			result = append(result, p)
+		}
+	}
+	return result, nil
 }

@@ -11,7 +11,7 @@
     </div>
 
     <div v-else-if="events.length === 0" class="empty-events">
-      <el-empty description="暂无事件记录" />
+      <el-empty :description='$tr("暂无事件记录")' />
     </div>
 
     <div v-else class="events-container">
@@ -22,7 +22,7 @@
         size="small"
         :default-sort="{ prop: 'lastTime', order: 'descending' }"
       >
-        <el-table-column prop="type" label="类型" width="100">
+        <el-table-column prop="type" :label='$tr("类型")' width="100">
           <template #default="{ row }">
             <el-tag
               :type="getEventTypeTag(row.type)"
@@ -34,19 +34,19 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="reason" label="原因" width="150">
+        <el-table-column prop="reason" :label='$tr("原因")' width="150">
           <template #default="{ row }">
             <span class="event-reason">{{ row.reason }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="message" label="消息" min-width="300">
+        <el-table-column prop="message" :label='$tr("消息")' min-width="300">
           <template #default="{ row }">
             <div class="event-message">{{ row.message }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="count" label="次数" width="80">
+        <el-table-column prop="count" :label='$tr("次数")' width="80">
           <template #default="{ row }">
             <el-tag size="small" :type="row.count > 1 ? 'warning' : 'info'">
               {{ row.count }}
@@ -54,13 +54,13 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="firstTime" label="首次发生" width="180" sortable>
+        <el-table-column prop="firstTime" :label='$tr("首次发生")' width="180" sortable>
           <template #default="{ row }">
             <div class="timestamp">{{ formatTimestamp(row.firstTime) }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="lastTime" label="最后发生" width="180" sortable>
+        <el-table-column prop="lastTime" :label='$tr("最后发生")' width="180" sortable>
           <template #default="{ row }">
             <div class="timestamp">{{ formatTimestamp(row.lastTime) }}</div>
           </template>
@@ -70,9 +70,9 @@
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">关闭</el-button>
+        <el-button @click="handleClose">{{ $tr("关闭") }}</el-button>
         <el-button type="primary" @click="refreshEvents" :loading="loading">
-          刷新
+          {{ $tr("刷新") }}
         </el-button>
       </div>
     </template>
@@ -80,6 +80,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, watch, defineProps, defineEmits } from 'vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
@@ -139,7 +141,7 @@ const loadEvents = async () => {
     }
   } catch (error) {
     console.error('获取Pod事件失败:', error)
-    ElMessage.error('获取Pod事件失败，请重试')
+    ElMessage.error(tr('获取Pod事件失败，请重试'))
     events.value = []
   } finally {
     loading.value = false

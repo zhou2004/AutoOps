@@ -3,36 +3,36 @@
     <el-card shadow="hover" class="loginlog-card">
       <template #header>
         <div class="card-header">
-          <span class="title">登录日志管理</span>
+          <span class="title">{{ $tr("登录日志管理") }}</span>
         </div>
       </template>
       
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form">
-          <el-form-item prop="username" label="用户名称">
-            <el-input v-model="queryParams.username" placeholder="请输入用户名称" clearable size="small"
+          <el-form-item prop="username" :label='$tr("用户名称")'>
+            <el-input v-model="queryParams.username" :placeholder='$tr("请输入用户名称")' clearable size="small"
                       style="width: 200px" @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item prop="loginStatus" label="登录状态">
-            <el-select size="small" placeholder="请选择状态" v-model="queryParams.loginStatus" style="width: 150px" clearable>
-              <el-option v-for="item in loginStatusList" :key="item.value" :label="item.label" :value="item.value">
+          <el-form-item prop="loginStatus" :label='$tr("登录状态")'>
+            <el-select size="small" :placeholder='$tr("请选择状态")' v-model="queryParams.loginStatus" style="width: 150px" clearable>
+              <el-option v-for="item in loginStatusList" :key="item.value" :label="$tr(item.label)" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item prop="beginTime" label="开始时间">
+          <el-form-item prop="beginTime" :label='$tr("开始时间")'>
             <el-date-picker v-model="queryParams.beginTime" size="small" type="date"
-                            style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择开始时间"
+                            style="width: 190px" value-format="yyyy-MM-dd" clearable :placeholder='$tr("请选择开始时间")'
                             @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item prop="endTime" label="结束时间">
+          <el-form-item prop="endTime" :label='$tr("结束时间")'>
             <el-date-picker v-model="queryParams.endTime" size="small" type="date"
-                            style="width: 190px" value-format="yyyy-MM-dd" clearable placeholder="请选择结束时间"
+                            style="width: 190px" value-format="yyyy-MM-dd" clearable :placeholder='$tr("请选择结束时间")'
                             @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleQuery">{{ $tr("搜索") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -40,10 +40,10 @@
       <!-- 操作按钮 -->
       <div class="action-section">
         <el-button type="danger" plain icon="Delete" size="small" :disabled="multiple"
-                   @click="batchHandleDelete" v-authority="['monitor:loginLog:delete']">批量删除
+                   @click="batchHandleDelete" v-authority="['monitor:loginLog:delete']">{{ $tr("批量删除") }}
         </el-button>
         <el-button type="danger" plain icon="Delete" size="small" @click="handleClean" 
-                   v-authority="['monitor:loginLog:clean']">清空日志</el-button>
+                   v-authority="['monitor:loginLog:clean']">{{ $tr("清空日志") }}</el-button>
       </div>
 
       <!-- 列表区域 -->
@@ -52,23 +52,23 @@
                   class="loginlog-table" @selection-change="handleSelectionChange">
           <el-table-column type="selection" />
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column label="用户账号" prop="username" min-width="120" />
-          <el-table-column label="登录IP" prop="ipAddress" min-width="140" />
-          <el-table-column label="登录地点" prop="loginLocation" min-width="150" show-overflow-tooltip />
-          <el-table-column label="浏览器" prop="browser" min-width="120" show-overflow-tooltip />
-          <el-table-column label="操作系统" prop="os" min-width="120" show-overflow-tooltip />
-          <el-table-column label="登录状态" prop="loginStatus" min-width="100">
+          <el-table-column :label='$tr("用户账号")' prop="username" min-width="120" />
+          <el-table-column :label='$tr("登录IP")' prop="ipAddress" min-width="140" />
+          <el-table-column :label='$tr("登录地点")' prop="loginLocation" min-width="150" show-overflow-tooltip />
+          <el-table-column :label='$tr("浏览器")' prop="browser" min-width="120" show-overflow-tooltip />
+          <el-table-column :label='$tr("操作系统")' prop="os" min-width="120" show-overflow-tooltip />
+          <el-table-column :label='$tr("登录状态")' prop="loginStatus" min-width="100">
             <template #default="scope">
-              <el-tag v-if="scope.row.loginStatus === 1" type="success" size="small" effect="dark">成功</el-tag>
-              <el-tag v-else-if="scope.row.loginStatus === 2" type="danger" size="small" effect="dark">失败</el-tag>
+              <el-tag v-if="scope.row.loginStatus === 1" type="success" size="small" effect="dark">{{ $tr("成功") }}</el-tag>
+              <el-tag v-else-if="scope.row.loginStatus === 2" type="danger" size="small" effect="dark">{{ $tr("失败") }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="提示消息" prop="message" min-width="150" show-overflow-tooltip />
-          <el-table-column label="访问时间" prop="loginTime" min-width="180" />
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column :label='$tr("提示消息")' prop="message" min-width="150" show-overflow-tooltip />
+          <el-table-column :label='$tr("访问时间")' prop="loginTime" min-width="180" />
+          <el-table-column :label='$tr("操作")' width="120" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button
                     type="danger"
                     icon="Delete"
@@ -95,6 +95,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 export default {
   data() {
     return {
@@ -141,7 +143,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getSysLoginInfoList();
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // pageSize
     handleSizeChange(newSize) {
@@ -155,56 +157,56 @@ export default {
     },
     // 清空
     async handleClean() {
-      const confirmResult = await this.$confirm('是否清空登录日志？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm(tr('是否清空登录日志？'), tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消')
+        return this.$message.info(tr('已取消'))
       }
       const { data: res } = await this.$api.cleanSysLoginInfo()
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('清空成功')
+        this.$message.success(tr('清空成功'))
         await this.getSysLoginInfoList()
       }
     },
     // 删除
     async handleDelete(id) {
-      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + id + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + id + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.deleteSysLoginInfo(id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getSysLoginInfoList()
       }
     },
     // 批量删除
     async batchHandleDelete() {
       const loginInfoIds = this.ids;
-      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + loginInfoIds + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除登录日志编号为"' + loginInfoIds + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.batchDeleteSysLoginInfo(loginInfoIds)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getSysLoginInfoList()
       }
     },

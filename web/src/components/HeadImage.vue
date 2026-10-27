@@ -15,8 +15,8 @@
       <!-- 下拉菜单 -->
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-          <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+          <el-dropdown-item command="profile">{{ $tr("个人信息") }}</el-dropdown-item>
+          <el-dropdown-item command="logout">{{ $tr("退出登录") }}</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import storage from '@/utils/storage';
 import touxiangImg from './../assets/image/touxiang.jpg';
 
@@ -50,19 +52,19 @@ export default {
           },
           // 退出登录
           async logout() {
-            const confirmResult = await this.$confirm('确定要退出登录吗, 是否继续?', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
+            const confirmResult = await this.$confirm(tr('确定要退出登录吗, 是否继续?'), tr('提示'), {
+              confirmButtonText: tr('确定'),
+              cancelButtonText: tr('取消'),
               type: 'warning'
             }).catch(err => err)
 
             if (confirmResult !== 'confirm') {
-              return this.$message.info('已取消退出')
+              return this.$message.info(tr('已取消退出'))
             }
             // 清除本地存储并跳转到登录页
             this.$storage.clearAll()
             this.$router.push('/login')
-            this.$message.success('退出成功')
+            this.$message.success(tr('退出成功'))
           }
   }
 };

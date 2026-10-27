@@ -427,6 +427,16 @@ curl -X POST "http://localhost:8000/api/v1/cmdb/permission" \
 curl "http://localhost:8000/api/v1/cmdb/permission/my" -H "Authorization: Bearer $TOKEN"
 ```
 
+## 数据与 Docker 工作台（2026-10）
+
+当前数据工作台只支持 `CmdbSQL.Type` 1=MySQL、2=PostgreSQL、3=Redis。数据源通过 `AccountID` 引用 `config_account`，保存时必须校验账号类型、地址、端口和业务分组。`DefaultDB` 保存 SQL 默认数据库或 Redis DB 编号，`TLSMode` 保存显式 TLS 策略。
+
+真实操作由 `DatabaseOperationService` 完成：SQL 查询使用只读事务、30 秒超时和 500 行上限；写入口只允许单条 INSERT/UPDATE/DELETE，UPDATE/DELETE 必须有 WHERE，并用完整数据源名称确认；Redis 使用 SCAN，写入和删除都有确认。数据库动作使用 `db_query`、`db_execute`、`audit`，并同时校验数据源资产授权与连接账号的凭据授权。审计模型是 `CmdbDatabaseAudit`，不能写入 SQL 正文、Redis 值或密码。
+
+Docker 不保存第二套 SSH 密码。`DockerOperationService` 必须通过 `CmdbAssetConnection` 和固定主机指纹连接 host/physical 资产。权限动作是 `docker_view`、`docker_logs`、`docker_operate`、`docker_remove`、`audit`，同时校验 SSH 凭据授权。凭据规则必须用 `credentialType=ssh|database` 区分来源，禁止用相同数字 ID 跨来源授权。创建功能只使用目标机已有镜像，不开放 privileged、host network 或任意宿主机目录挂载；删除不能添加 `--force`。审计模型是 `CmdbDockerAudit`。
+
+详细接口、验证命令和部署说明见 `docs/2026-10-14-data-and-docker-management.md`。
+
 ## 数据库迁移
 
 所有 CMDB 模型通过 GORM AutoMigrate 自动建表，注册在 `api/pkg/db/migrate.go`：
@@ -465,3 +475,9 @@ if len(data.PermissionActions) <= 3 {
 ### IDCIDs 列名
 
 `CmdbAssetPermission` 模型中的 `IDCIDs` 字段需要使用 `column:idc_ids` 显式指定列名，否则 GORM 会将驼峰的 `IDC` 拆分为 `id_c`。
+
+## 业务分组页面与告警关联（2026-10-24）
+
+`web/src/views/cmdb/cmdbGroup.vue` 使用层级树表、搜索和父级树选择器。创建、编辑、删除统一经过 `dao/cmdbGroupValidation.go` 校验，禁止默认分组修改、循环层级和删除仍被主机/数据库/告警群组引用的分组。更新使用显式字段 map，必须允许 `parent_id=0` 移回顶级。主机统计仅汇总根层级以免重复计数。
+
+告警群组通过 `monitor_alert_group_rule.cmdb_group_id` 引用业务分组。监控选择器只暴露有 `group/get` 权限的元数据，不能调用不受资源范围限制的目录查询。详见 `docs/2026-10-24-alert-business-groups.md`。

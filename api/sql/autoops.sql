@@ -1367,6 +1367,34 @@ INSERT INTO `monitor_domain_schedule` VALUES (1,1,'29 13 * * *',NULL,NULL,'runni
 UNLOCK TABLES;
 
 --
+-- Monitoring categories and targets (category_id = 0 means uncategorized)
+CREATE TABLE IF NOT EXISTS `monitor_category` (
+ `id` bigint unsigned NOT NULL AUTO_INCREMENT, `scope` varchar(32) NOT NULL,
+ `name` varchar(64) NOT NULL, `description` varchar(255) DEFAULT '',
+ `create_time` datetime(3) DEFAULT NULL, `update_time` datetime(3) DEFAULT NULL,
+ PRIMARY KEY (`id`), UNIQUE KEY `idx_monitor_category_scope_name` (`scope`,`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS `monitor_domain_cert` (
+ `id` bigint unsigned NOT NULL AUTO_INCREMENT, `category_id` bigint unsigned NOT NULL DEFAULT 0,
+ `domain` varchar(255) NOT NULL, `port` int DEFAULT 443,
+ `issuer` varchar(512) DEFAULT '', `subject` varchar(512) DEFAULT '',
+ `not_before` varchar(64) DEFAULT '', `not_after` varchar(64) DEFAULT '',
+ `remaining_days` int DEFAULT -1, `status` tinyint DEFAULT 1,
+ `check_time` varchar(64) DEFAULT '', `error_msg` text,
+ `create_time` datetime(3) NOT NULL, `update_time` datetime(3) NOT NULL,
+ PRIMARY KEY (`id`), UNIQUE KEY `idx_domain` (`domain`), KEY `idx_monitor_domain_cert_category_id` (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS `monitor_api_endpoint` (
+ `id` bigint unsigned NOT NULL AUTO_INCREMENT, `category_id` bigint unsigned NOT NULL DEFAULT 0,
+ `name` varchar(255) NOT NULL, `url` varchar(1024) NOT NULL, `method` varchar(16) DEFAULT 'GET',
+ `headers` json, `body` text, `check_interval` int DEFAULT 300, `timeout` int DEFAULT 10,
+ `expected_code` int DEFAULT 200, `expected_body` varchar(512) DEFAULT '',
+ `last_status_code` int DEFAULT 0, `last_response_time` bigint DEFAULT 0, `status` tinyint DEFAULT 1,
+ `check_time` varchar(64) DEFAULT '', `error_msg` text,
+ `create_time` datetime(3) NOT NULL, `update_time` datetime(3) NOT NULL,
+ PRIMARY KEY (`id`), KEY `idx_monitor_api_endpoint_category_id` (`category_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Table structure for table `monitor_incident`
 --
 
@@ -1374,8 +1402,16 @@ DROP TABLE IF EXISTS `monitor_incident`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `monitor_incident` (
+  `event_key` varchar(64) DEFAULT NULL,
+  `title` varchar(512) NOT NULL DEFAULT '',
+  `source` varchar(128) DEFAULT '',
+  `source_id` int unsigned NOT NULL DEFAULT 0,
+  `level` varchar(32) DEFAULT 'warning',
+  `description` text,
+  `resolved_at` varchar(64) DEFAULT '',
+  UNIQUE KEY `idx_monitor_incident_event_key` (`event_key`),
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '''主键''',
-  `alert_time` datetime(3) NOT NULL COMMENT '''告警时间''',
+  `alert_time` varchar(64) NOT NULL COMMENT '''告警时间''',
   `business_line` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''业务线(saas3/saas4/saas5等)''',
   `frequency` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''频率(偶发/频繁)''',
   `alert_desc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''告警描述''',
@@ -1386,7 +1422,7 @@ CREATE TABLE `monitor_incident` (
   `detail_url` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''故障详情URL链接''',
   `handler` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''处理人(用户名)''',
   `handler_id` bigint unsigned DEFAULT NULL COMMENT '''处理人ID''',
-  `status` bigint DEFAULT '1' COMMENT '''处理状态:1->未处理,2->处理中,3->已完成''',
+  `status` varchar(32) DEFAULT 'firing' COMMENT 'firing/resolved',
   `remark` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '''备注信息''',
   `create_time` datetime(3) NOT NULL COMMENT '''创建时间''',
   `update_time` datetime(3) DEFAULT NULL COMMENT '''更新时间''',
@@ -1401,9 +1437,16 @@ CREATE TABLE `monitor_incident` (
 
 LOCK TABLES `monitor_incident` WRITE;
 /*!40000 ALTER TABLE `monitor_incident` DISABLE KEYS */;
-INSERT INTO `monitor_incident` VALUES (4,'2025-12-05 00:00:00.000',NULL,'偶发','al-hz-s3-pgsql-prod01-slave1   事务执行耗时_warning  379','P4','','研发部','','https://us-west-2.console.aws.amazon.com/eks/clusters/aws-uw2-lku-k8s-test01?region=us-west-2&selectedResourceId=services&selectedTab=cluster-resources-tab','admin',89,1,'','2025-12-10 17:47:02.925','2025-12-10 17:52:44.598',16),(7,'2025-12-06 00:00:00.000',NULL,'偶发','al-hz-b-ops-monitor-prod01磁盘使用超过90%','P4','','运维部','','','admin',89,3,'','2025-12-10 17:48:39.865','2025-12-10 17:48:39.865',4),(8,'2025-12-05 00:00:00.000',NULL,'偶发','sun阳光雨露项目cpu使用率打满 ','P4','','运维部','','','admin',89,3,'','2025-12-10 17:49:14.614','2025-12-10 17:49:14.614',4);
+INSERT INTO `monitor_incident` (`id`, `alert_time`, `business_line`, `frequency`, `alert_desc`, `alert_level`, `incident_cause`, `department`, `solution`, `detail_url`, `handler`, `handler_id`, `status`, `remark`, `create_time`, `update_time`, `business_line_id`) VALUES (4,'2025-12-05 00:00:00.000',NULL,'偶发','al-hz-s3-pgsql-prod01-slave1   事务执行耗时_warning  379','P4','','研发部','','https://us-west-2.console.aws.amazon.com/eks/clusters/aws-uw2-lku-k8s-test01?region=us-west-2&selectedResourceId=services&selectedTab=cluster-resources-tab','admin',89,1,'','2025-12-10 17:47:02.925','2025-12-10 17:52:44.598',16),(7,'2025-12-06 00:00:00.000',NULL,'偶发','al-hz-b-ops-monitor-prod01磁盘使用超过90%','P4','','运维部','','','admin',89,3,'','2025-12-10 17:48:39.865','2025-12-10 17:48:39.865',4),(8,'2025-12-05 00:00:00.000',NULL,'偶发','sun阳光雨露项目cpu使用率打满 ','P4','','运维部','','','admin',89,3,'','2025-12-10 17:49:14.614','2025-12-10 17:49:14.614',4);
 /*!40000 ALTER TABLE `monitor_incident` ENABLE KEYS */;
 UNLOCK TABLES;
+UPDATE `monitor_incident` SET
+ `title` = COALESCE(NULLIF(SUBSTR(`alert_desc`,1,512),''),'历史故障'),
+ `description` = COALESCE(`alert_desc`,''), `source` = 'legacy',
+ `level` = CASE WHEN `alert_level` IN ('P0','P1','P2') THEN 'critical' WHEN `alert_level` = 'P4' THEN 'info' ELSE 'warning' END,
+ `resolved_at` = CASE WHEN `status` = '3' THEN COALESCE(CAST(`update_time` AS CHAR),`alert_time`) ELSE '' END,
+ `status` = CASE WHEN `status` = '3' THEN 'resolved' ELSE 'firing' END
+WHERE `status` IN ('1','2','3');
 
 --
 -- Table structure for table `monitor_notify_robot`
@@ -2577,3 +2620,62 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-02-19 23:34:37
+
+-- 2026-10-24 导航统一。升级已有数据库由 api/pkg/db/navigation_migrate.go 幂等迁移。
+UPDATE sys_menu SET menu_name = '基础管理' WHERE parent_id = 0 AND menu_name = '系统管理';
+SET @autoops_container_menu = (SELECT id FROM sys_menu WHERE parent_id = 0 AND menu_name = '容器管理' ORDER BY id LIMIT 1);
+SET @autoops_system_menu = (SELECT id FROM sys_menu WHERE parent_id = 0 AND menu_name = '基础管理' ORDER BY id LIMIT 1);
+INSERT INTO sys_menu (parent_id, menu_name, icon, value, menu_type, url, menu_status, sort, create_time)
+SELECT @autoops_container_menu, 'Docker管理', 'Box', 'docker:read', 2, 'k8s/docker', 2, 1, NOW()
+WHERE @autoops_container_menu IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys_menu WHERE url IN ('k8s/docker','/k8s/docker'));
+INSERT INTO sys_menu (parent_id, menu_name, icon, value, menu_type, url, menu_status, sort, create_time)
+SELECT @autoops_system_menu, '授权管理', 'Lock', '', 2, 'system/authorization', 2, 1, NOW()
+WHERE @autoops_system_menu IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys_menu WHERE url IN ('system/authorization','/system/authorization'));
+INSERT INTO sys_role_menu (role_id, menu_id)
+SELECT r.id, m.id FROM sys_role r CROSS JOIN sys_menu m
+WHERE r.role_key = 'admin' AND r.status = 1 AND m.url IN ('k8s/docker','system/authorization')
+AND NOT EXISTS (SELECT 1 FROM sys_role_menu rm WHERE rm.role_id = r.id AND rm.menu_id = m.id);
+
+-- API Key：新 Key 以 scoped 模式保存明确的模块权限；旧 Key 由启动时 AutoMigrate 保持原模式。
+CREATE TABLE IF NOT EXISTS sys_api_key (
+  id bigint unsigned NOT NULL AUTO_INCREMENT,
+  user_id bigint unsigned NOT NULL,
+  issued_by bigint unsigned DEFAULT NULL,
+  name varchar(100) DEFAULT NULL,
+  prefix varchar(20) DEFAULT NULL,
+  hash varchar(64) DEFAULT NULL,
+  grant_mode varchar(16) NOT NULL DEFAULT '',
+  scopes text,
+  expires_at datetime(3) DEFAULT NULL,
+  revoked_at datetime(3) DEFAULT NULL,
+  last_used_at datetime(3) DEFAULT NULL,
+  created_at datetime(3) DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY idx_sys_api_key_hash (hash),
+  KEY idx_sys_api_key_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+UPDATE sys_menu SET menu_name = 'API Key' WHERE url IN ('system/api-keys','/system/api-keys');
+INSERT INTO sys_menu (parent_id, menu_name, icon, value, menu_type, url, menu_status, sort, create_time)
+SELECT @autoops_system_menu, 'API Key', 'Key', '', 2, 'system/api-keys', 2, 2, NOW()
+WHERE @autoops_system_menu IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sys_menu WHERE url IN ('system/api-keys','/system/api-keys'));
+INSERT INTO sys_role_menu (role_id, menu_id)
+SELECT r.id, m.id FROM sys_role r CROSS JOIN sys_menu m
+WHERE r.role_key = 'admin' AND r.status = 1 AND m.url IN ('system/api-keys','/system/api-keys')
+AND NOT EXISTS (SELECT 1 FROM sys_role_menu rm WHERE rm.role_id = r.id AND rm.menu_id = m.id);
+-- 旧角色权限入口及关联菜单由启动迁移合并到 API Key，保留原角色登录权限数据。
+
+-- 2026-10-24 告警群组关联 CMDB 业务分组，旧记录 cmdb_group_id=0 保留待编辑关联。
+CREATE TABLE IF NOT EXISTS monitor_alert_group_rule (
+  id bigint unsigned NOT NULL AUTO_INCREMENT,
+  created_at datetime(3) DEFAULT NULL,
+  updated_at datetime(3) DEFAULT NULL,
+  deleted_at datetime(3) DEFAULT NULL,
+  data_source_id bigint unsigned DEFAULT NULL,
+  cmdb_group_id bigint unsigned DEFAULT 0,
+  group_name varchar(255) DEFAULT NULL,
+  rule_content text,
+  labels text,
+  PRIMARY KEY (id),
+  KEY idx_monitor_alert_group_rule_deleted_at (deleted_at),
+  KEY idx_monitor_alert_group_rule_cmdb_group_id (cmdb_group_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

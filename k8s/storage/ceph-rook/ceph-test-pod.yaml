@@ -1,0 +1,18 @@
+# Ceph RBD 存储验证 Pod（挂载 rook-ceph-block PVC，验证数据读写）
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ceph-test-pod
+  namespace: test-pv
+spec:
+  containers:
+    - name: alpine
+      image: docker.io/library/alpine:latest
+      command: ["/bin/sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: test-pvc-ceph-rbd

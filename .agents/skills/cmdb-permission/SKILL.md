@@ -1,18 +1,26 @@
 ---
 name: cmdb-permission
-description: "AutoOps CMDB 资产授权模块实现了类JumpServer的细粒度资产授权系统，支持用户组管理、凭据授权、主机/物理机/网络设备精细授权和RBAC风格权限操作。"
+description: "AutoOps CMDB 资产授权模块实现了类JumpServer的细粒度资产授权系统，支持用户组管理、主机/物理机/网络设备精细授权和RBAC风格权限操作。"
 ---
 
 # CMDB 资产授权模块 (cmdb-permission)
 
+## 2026-10-24 授权整合
+
+- 唯一管理入口：`/system/authorization`；`tab=assets` 为资产授权，`tab=containers` 为容器授权，`tab=groups` 为统一用户组，`groupType=assets|containers` 区分资产用户组和容器用户组。旧地址仅作隐藏重定向。
+- Docker 页面位于 `/k8s/docker`，API 保持 `/cmdb/docker/...`；目标发现 `/cmdb/docker/targets` 和连接列表 `/cmdb/docker/assets/:assetType/:assetId/connections` 使用 Docker 模块及资产权限，不要求额外 CMDB 列表权限。
+- `credentialPermission.vue` 及 `/cmdb/permission/credential*` 路由已移除。历史模型、DAO 和记录仅兼容保留，不参与运行时授权；不得再将 `CanUseCredential*` 接回连接、Docker、网络配置、数据库或任务执行。
+- SSH/VNC/RDP 连接档案的增删改、凭据枚举、主机 SSH 新绑定和数据库账号新绑定仅活动管理员可配置；已有连接的使用依赖目标资产对应动作。资产有效期、用户状态和会话期间撤权检查继续生效。
+- 数据库菜单由 `api/pkg/db/navigation_migrate.go` 在启动时幂等迁移，不删除历史规则或角色关系。
+
 ## 概述
 
-CMDB 资产授权模块是 AutoOps 的类 JumpServer 授权控制系统，支持**用户组管理**、**凭据授权**、**细粒度资产授权**和**RBAC风格权限操作**。
+CMDB 资产授权模块是 AutoOps 的类 JumpServer 授权控制系统，支持**用户组管理**、**细粒度资产授权**和**RBAC风格权限操作**。
 
 ### 核心功能
 
 - **用户组管理**：CMDB 用户组（区别于 K8s 用户组），支持创建/编辑/删除用户组、管理组成员
-- **凭据授权**：将 SSH 认证凭据（密码/密钥）授权给用户或用户组
+- **凭据绑定**：管理员配置资产连接及凭据；使用连接按目标资产授权，不再单独授予凭据使用权。
 - **细粒度资产授权**：支持按主机分组、业务线、具体主机、物理机、网络设备授权
 - **RBAC 风格权限**：`get/list/connect/create/update/delete/admin` 等细粒度权限操作
 - **强制权限校验**：中间件自动拦截非管理员用户，仅返回授权资产
@@ -132,14 +140,8 @@ api/pkg/db/migrate.go                            # AutoMigrate 注册点
 | POST | /cmdb/permission/user-group/members | 添加组成员 |
 | DELETE | /cmdb/permission/user-group/member | 移除组成员 |
 
-#### 凭据授权管理
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /cmdb/permission/credential | 创建凭据授权 |
-| PUT | /cmdb/permission/credential/:id | 更新凭据授权 |
-| DELETE | /cmdb/permission/credential/:id | 删除凭据授权 |
-| GET | /cmdb/permission/credential | 凭据授权列表(分页) |
-| GET | /cmdb/permission/credential/my | 我的可用凭据 |
+#### 独立凭据授权（已移除）
+原 `/cmdb/permission/credential*` 接口不再注册；历史表保留，不影响资产使用权限。
 
 #### 资产授权管理 (增强)
 | 方法 | 路径 | 说明 |
@@ -198,7 +200,6 @@ web/src/
 ├── views/cmdb/
 │   ├── assetPermission.vue       # 资产授权页面(管理员, 勾选/筛选)
 │   ├── cmdbUserGroup.vue         # 用户组管理页面(管理员)
-│   ├── credentialPermission.vue  # 凭据授权管理页面(管理员)
 │   └── myAssetPermissions.vue    # 我的授权资产页面(所有用户)
 ├── router/cmdb.js                # 路由(含所有页面路由)
 ```
@@ -207,9 +208,9 @@ web/src/
 
 | 路径 | 页面 | 访问权限 |
 |------|------|---------|
-| /cmdb/asset-permission | 资产授权管理 | 管理员 |
-| /cmdb/user-group | 用户组管理 | 管理员 |
-| /cmdb/credential-permission | 凭据授权管理 | 管理员 |
+| /system/authorization?tab=assets | 资产授权管理 | 管理员 |
+| /system/authorization?tab=groups | 资产用户组管理 | 管理员 |
+| /system/authorization?tab=containers | 容器授权管理 | 管理员 |
 | /cmdb/my-assets | 我的授权资产 | 所有用户 |
 
 ### 资产授权页面功能

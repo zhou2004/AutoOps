@@ -35,30 +35,41 @@ func (d *CmdbAssetPermissionDao) GetByID(id uint) (*model.CmdbAssetPermission, e
 }
 
 func (d *CmdbAssetPermissionDao) GetList(query model.CmdbAssetPermissionQuery) ([]model.CmdbAssetPermission, int64, error) {
-	var list []model.CmdbAssetPermission
-	var total int64
 	db := d.db.Model(&model.CmdbAssetPermission{})
-
 	if query.Name != "" {
 		db = db.Where("name LIKE ?", "%"+query.Name+"%")
 	}
 	if query.IsActive > 0 {
 		db = db.Where("is_active = ?", query.IsActive)
 	}
-	if query.AssetTypes != "" {
-		db = db.Where("asset_types LIKE ?", "%"+query.AssetTypes+"%")
+	var candidates []model.CmdbAssetPermission
+	if err := db.Order("id DESC").Find(&candidates).Error; err != nil {
+		return nil, 0, err
 	}
-	// 按授权主体筛选
-	if query.SubjectType == "user" && query.SubjectID > 0 {
-		idJSON, _ := json.Marshal(query.SubjectID)
-		db = db.Where("user_ids LIKE ?", "%"+string(idJSON)+"%")
+	filtered := make([]model.CmdbAssetPermission, 0)
+	for _, p := range candidates {
+		if query.SubjectID > 0 && query.SubjectType == "user" && !JSONContainsID(p.UserIDs, query.SubjectID) {
+			continue
+		}
+		if query.SubjectID > 0 && query.SubjectType == "group" && !JSONContainsID(p.GroupIDs, query.SubjectID) {
+			continue
+		}
+		if query.AssetTypes != "" {
+			var types []string
+			json.Unmarshal([]byte(p.AssetTypes), &types)
+			found := false
+			for _, kind := range types {
+				if kind == query.AssetTypes {
+					found = true
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		filtered = append(filtered, p)
 	}
-	if query.SubjectType == "group" && query.SubjectID > 0 {
-		idJSON, _ := json.Marshal(query.SubjectID)
-		db = db.Where("group_ids LIKE ?", "%"+string(idJSON)+"%")
-	}
-
-	db.Count(&total)
+	total := int64(len(filtered))
 	page, size := query.Page, query.Size
 	if page <= 0 {
 		page = 1
@@ -66,32 +77,51 @@ func (d *CmdbAssetPermissionDao) GetList(query model.CmdbAssetPermissionQuery) (
 	if size <= 0 {
 		size = 10
 	}
-	err := db.Order("id DESC").Offset((page - 1) * size).Limit(size).Find(&list).Error
-	return list, total, err
+	if size > 1000 {
+		size = 1000
+	}
+	start := (page - 1) * size
+	if start < 0 || start >= len(filtered) {
+		return []model.CmdbAssetPermission{}, total, nil
+	}
+	end := start + size
+	if end > len(filtered) {
+		end = len(filtered)
+	}
+	return filtered[start:end], total, nil
 }
 
-// GetUserPermissions 获取用户的所有有效授权
+// GetUserPermissions matches complete JSON array members; substring matching can grant another user's rules.
 func (d *CmdbAssetPermissionDao) GetUserPermissions(userID uint, userGroupIDs []uint) ([]model.CmdbAssetPermission, error) {
-	var list []model.CmdbAssetPermission
-	db := d.db.Model(&model.CmdbAssetPermission{}).
-		Where("is_active = 1").
-		Where("(date_start IS NULL OR date_start = '' OR date_start <= ?)", time.Now().Format("2006-01-02")).
-		Where("(date_expired IS NULL OR date_expired = '' OR date_expired >= ?)", time.Now().Format("2006-01-02"))
-
-	// 构建查询条件：用户直接授权 OR 用户组授权
-	userJSON, _ := json.Marshal(userID)
-	userCond := "user_ids LIKE ?"
-	args := []interface{}{"%" + string(userJSON) + "%"}
-
-	for _, gid := range userGroupIDs {
-		groupJSON, _ := json.Marshal(gid)
-		userCond += " OR group_ids LIKE ?"
-		args = append(args, "%"+string(groupJSON)+"%")
+	active, err := d.UserActive(userID)
+	if err != nil {
+		return nil, err
 	}
+	if !active {
+		return []model.CmdbAssetPermission{}, nil
+	}
+	return d.getUserPermissions(userID, userGroupIDs)
+}
 
-	db = db.Where("("+userCond+")", args...)
-	err := db.Order("id DESC").Find(&list).Error
-	return list, err
+func (d *CmdbAssetPermissionDao) getUserPermissions(userID uint, userGroupIDs []uint) ([]model.CmdbAssetPermission, error) {
+	var candidates []model.CmdbAssetPermission
+	if err := d.db.Where("is_active = 1").Order("id DESC").Find(&candidates).Error; err != nil {
+		return nil, err
+	}
+	list := make([]model.CmdbAssetPermission, 0)
+	for _, p := range candidates {
+		if !ruleEffective(p, time.Now()) {
+			continue
+		}
+		matches := JSONContainsID(p.UserIDs, userID)
+		for _, gid := range userGroupIDs {
+			matches = matches || JSONContainsID(p.GroupIDs, gid)
+		}
+		if matches {
+			list = append(list, p)
+		}
+	}
+	return list, nil
 }
 
 // GetAll 获取所有授权

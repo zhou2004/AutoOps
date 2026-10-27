@@ -3,43 +3,43 @@
     <el-card shadow="hover" class="key-card">
       <template #header>
         <div class="card-header">
-          <span class="title">云厂商密钥管理</span>
+          <span class="title">{{ $tr("云厂商密钥管理") }}</span>
         </div>
       </template>
       
       <!-- 搜索表单 -->
       <div class="search-section">
         <el-form :model="queryParams" :inline="true" class="search-form" ref="queryForm">
-          <el-form-item label="云厂商类型" prop="keyType">
-            <el-select placeholder="请选择云厂商类型" clearable size="small" v-model="queryParams.keyType" style="width: 150px">
-              <el-option v-for="item in keyTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-form-item :label='$tr("云厂商类型")' prop="keyType">
+            <el-select :placeholder='$tr("请选择云厂商类型")' clearable size="small" v-model="queryParams.keyType" style="width: 150px">
+              <el-option v-for="item in keyTypeOptions" :key="item.value" :label="$tr(item.label)" :value="item.value" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" icon="Search" size="small" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" size="small" @click="resetQuery">重置</el-button>
+            <el-button type="primary" icon="Search" size="small" @click="handleQuery">{{ $tr("搜索") }}</el-button>
+            <el-button icon="Refresh" size="small" @click="resetQuery">{{ $tr("重置") }}</el-button>
           </el-form-item>
         </el-form>
       </div>
     
       <!-- 标签页导航 -->
       <el-tabs v-model="activeTab" class="config-tabs" @tab-change="handleTabChange">
-        <el-tab-pane label="密钥管理" name="keys">
+        <el-tab-pane :label='$tr("密钥管理")' name="keys">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ keyList.length }} 个密钥配置</span>
+              <span class="resource-count">{{ $tr("共") }} {{ keyList.length }} {{ $tr("个密钥配置") }}</span>
               <el-button type="primary" icon="Plus" size="small" v-authority="['config:keymanage:create']" @click="showAddDialog">
-                创建密钥
+                {{ $tr("创建密钥") }}
               </el-button>
             </div>
           </div>
         </el-tab-pane>
-        <el-tab-pane label="定时同步配置" name="schedule">
+        <el-tab-pane :label='$tr("定时同步配置")' name="schedule">
           <div class="tab-content">
             <div class="content-header">
-              <span class="resource-count">共 {{ scheduleList.length }} 个同步任务</span>
+              <span class="resource-count">{{ $tr("共") }} {{ scheduleList.length }} {{ $tr("个同步任务") }}</span>
               <el-button type="primary" icon="Plus" size="small" @click="showSyncScheduleDialog">
-                创建定时同步
+                {{ $tr("创建定时同步") }}
               </el-button>
             </div>
           </div>
@@ -53,19 +53,19 @@
           v-loading="loading"
           element-loading-text="加载中..."
           class="resource-table"
-          empty-text="暂无密钥配置"
+          :empty-text='$tr("暂无密钥配置")'
         >
-          <el-table-column label="云厂商类型" prop="keyType" width="180" min-width="150">
+          <el-table-column :label='$tr("云厂商类型")' prop="keyType" width="180" min-width="150">
             <template #default="{ row }">
               <div class="resource-name">
                 <img :src="getKeyTypeIcon(row.keyType)" class="cloud-icon"/>
                 <el-tag :type="getKeyTypeTag(row.keyType).type">
-                  {{ getKeyTypeTag(row.keyType).label }}
+                  {{ $tr(getKeyTypeTag(row.keyType).label) }}
                 </el-tag>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="密钥ID" prop="keyId" min-width="180">
+          <el-table-column :label='$tr("密钥ID")' prop="keyId" min-width="180">
             <template #default="{ row }">
               <div class="key-info">
                 <el-icon class="key-icon"><Key /></el-icon>
@@ -73,7 +73,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="密钥Secret" prop="keySecret" min-width="180">
+          <el-table-column :label='$tr("密钥Secret")' prop="keySecret" min-width="180">
             <template #default="{ row }">
               <div class="key-info">
                 <el-icon class="secret-icon"><Lock /></el-icon>
@@ -81,26 +81,26 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" prop="createdAt" width="180">
+          <el-table-column :label='$tr("创建时间")' prop="createdAt" width="180">
             <template #default="{ row }">
               <span class="time-text">{{ row.createdAt }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="备注" prop="remark" min-width="150">
+          <el-table-column :label='$tr("备注")' prop="remark" min-width="150">
             <template #default="{ row }">
               <span class="remark-text">{{ row.remark || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column :label='$tr("操作")' width="200" fixed="right">
             <template #default="{ row }">
               <div class="operation-buttons">
-                <el-tooltip content="修改" placement="top">
+                <el-tooltip :content='$tr("修改")' placement="top">
                   <el-button size="small" type="primary" v-authority="['config:keymanage:edit']" icon="Edit" circle @click="showEditDialog(row)" />
                 </el-tooltip>
-                <el-tooltip content="同步主机" placement="top">
+                <el-tooltip :content='$tr("同步主机")' placement="top">
                   <el-button size="small" type="success" v-authority="['config:keymanage:rsync']" icon="Refresh" circle @click="handleSyncHosts(row)" />
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button size="small" type="danger" v-authority="['config:keymanage:delete']" icon="Delete" circle @click="handleDelete(row)" />
                 </el-tooltip>
               </div>
@@ -116,9 +116,9 @@
           v-loading="scheduleLoading"
           element-loading-text="加载中..."
           class="resource-table"
-          empty-text="暂无定时同步配置"
+          :empty-text='$tr("暂无定时同步配置")'
         >
-          <el-table-column label="配置名称" prop="name" min-width="160">
+          <el-table-column :label='$tr("配置名称")' prop="name" min-width="160">
             <template #default="{ row }">
               <div class="resource-name">
                 <el-icon class="schedule-icon"><Setting /></el-icon>
@@ -126,7 +126,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="Cron表达式" prop="cronExpr" min-width="150">
+          <el-table-column :label='$tr("Cron表达式")' prop="cronExpr" min-width="150">
             <template #default="{ row }">
               <div class="cron-info">
                 <el-icon class="cron-icon"><Timer /></el-icon>
@@ -134,7 +134,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="云厂商类型" prop="keyTypes" min-width="200">
+          <el-table-column :label='$tr("云厂商类型")' prop="keyTypes" min-width="200">
             <template #default="{ row }">
               <div class="cloud-types">
                 <el-tag
@@ -144,12 +144,12 @@
                   size="small"
                   class="cloud-tag"
                 >
-                  {{ getKeyTypeTag(type).label }}
+                  {{ $tr(getKeyTypeTag(type).label) }}
                 </el-tag>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="状态" prop="status" width="100">
+          <el-table-column :label='$tr("状态")' prop="status" width="100">
             <template #default="{ row }">
               <el-switch
                 v-model="row.status"
@@ -161,7 +161,7 @@
               />
             </template>
           </el-table-column>
-          <el-table-column label="下次同步时间" prop="nextRunTime" width="180">
+          <el-table-column :label='$tr("下次同步时间")' prop="nextRunTime" width="180">
             <template #default="{ row }">
               <div class="next-run-time">
                 <el-icon class="time-icon"><Timer /></el-icon>
@@ -169,26 +169,26 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="备注" prop="remark" min-width="120">
+          <el-table-column :label='$tr("备注")' prop="remark" min-width="120">
             <template #default="{ row }">
               <span class="remark-text">{{ row.remark || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" prop="createdAt" width="180">
+          <el-table-column :label='$tr("创建时间")' prop="createdAt" width="180">
             <template #default="{ row }">
               <span class="time-text">{{ row.createdAt }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column :label='$tr("操作")' width="200" fixed="right">
             <template #default="{ row }">
               <div class="operation-buttons">
-                <el-tooltip content="同步日志" placement="top">
+                <el-tooltip :content='$tr("同步日志")' placement="top">
                   <el-button size="small" type="info" icon="Document" circle @click="showSyncLog(row)" />
                 </el-tooltip>
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button size="small" type="primary" icon="Edit" circle @click="showEditSyncScheduleDialog(row)" />
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button size="small" type="danger" icon="Delete" circle @click="handleDeleteSchedule(row)" />
                 </el-tooltip>
               </div>
@@ -224,75 +224,75 @@
       </div>
     
       <!--新增/编辑对话框-->
-      <el-dialog :title="dialogTitle" v-model="dialogVisible" width="35%" :modal="false">
+      <el-dialog :title="$tr(dialogTitle)" v-model="dialogVisible" width="35%" :modal="false">
         <el-form :model="formData" :rules="formRules" ref="formRef" label-width="120px">
-          <el-form-item label="云厂商类型" prop="keyType">
-            <el-select v-model="formData.keyType" placeholder="请选择云厂商类型" style="width: 100%">
-              <el-option v-for="item in keyTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          <el-form-item :label='$tr("云厂商类型")' prop="keyType">
+            <el-select v-model="formData.keyType" :placeholder='$tr("请选择云厂商类型")' style="width: 100%">
+              <el-option v-for="item in keyTypeOptions" :key="item.value" :label="$tr(item.label)" :value="item.value" />
             </el-select>
           </el-form-item>
-          <el-form-item label="密钥ID" prop="keyId">
-            <el-input v-model="formData.keyId" placeholder="请输入密钥ID" show-password></el-input>
+          <el-form-item :label='$tr("密钥ID")' prop="keyId">
+            <el-input v-model="formData.keyId" :placeholder='$tr("请输入密钥ID")' show-password></el-input>
           </el-form-item>
-          <el-form-item label="密钥Secret" prop="keySecret">
-            <el-input v-model="formData.keySecret" placeholder="请输入密钥Secret" show-password></el-input>
+          <el-form-item :label='$tr("密钥Secret")' prop="keySecret">
+            <el-input v-model="formData.keySecret" :placeholder='$tr("请输入密钥Secret")' show-password></el-input>
           </el-form-item>
-          <el-form-item label="备注信息" prop="remark">
-            <el-input v-model="formData.remark" type="textarea" :rows="3" placeholder="请输入备注信息"></el-input>
+          <el-form-item :label='$tr("备注信息")' prop="remark">
+            <el-input v-model="formData.remark" type="textarea" :rows="3" :placeholder='$tr("请输入备注信息")'></el-input>
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitForm">{{ $tr("确 定") }}</el-button>
+          <el-button @click="dialogVisible = false">{{ $tr("取 消") }}</el-button>
         </span>
       </el-dialog>
 
       <!--同步日志对话框-->
-      <el-dialog title="同步日志" v-model="syncLogDialogVisible" width="50%" :modal="false">
+      <el-dialog :title='$tr("同步日志")' v-model="syncLogDialogVisible" width="50%" :modal="false">
         <div v-loading="syncLogLoading" class="sync-log-container">
           <div v-if="currentSyncLog" class="log-info">
             <div class="log-header">
               <div class="log-header-item">
-                <span class="log-label">配置名称:</span>
+                <span class="log-label">{{ $tr("配置名称:") }}</span>
                 <span class="log-value">{{ currentSyncLog.name }}</span>
               </div>
               <div class="log-header-item">
-                <span class="log-label">上次执行时间:</span>
+                <span class="log-label">{{ $tr("上次执行时间:") }}</span>
                 <span class="log-value">{{ currentSyncLog.lastRunTime || '-' }}</span>
               </div>
               <div class="log-header-item">
-                <span class="log-label">下次执行时间:</span>
+                <span class="log-label">{{ $tr("下次执行时间:") }}</span>
                 <span class="log-value">{{ currentSyncLog.nextRunTime || '-' }}</span>
               </div>
             </div>
             <div class="log-content">
-              <div class="log-title">同步日志:</div>
+              <div class="log-title">{{ $tr("同步日志:") }}</div>
               <pre class="log-text">{{ currentSyncLog.syncLog || '暂无日志' }}</pre>
             </div>
           </div>
-          <el-empty v-else description="暂无日志数据" />
+          <el-empty v-else :description='$tr("暂无日志数据")' />
         </div>
         <template #footer>
-          <el-button @click="syncLogDialogVisible = false">关闭</el-button>
+          <el-button @click="syncLogDialogVisible = false">{{ $tr("关闭") }}</el-button>
         </template>
       </el-dialog>
 
       <!--定时同步配置对话框-->
-      <el-dialog :title="scheduleDialogTitle" v-model="scheduleDialogVisible" width="40%" :modal="false">
+      <el-dialog :title="$tr(scheduleDialogTitle)" v-model="scheduleDialogVisible" width="40%" :modal="false">
         <el-form :model="scheduleFormData" :rules="scheduleFormRules" ref="scheduleFormRef" label-width="120px">
-          <el-form-item label="配置名称" prop="name">
-            <el-input v-model="scheduleFormData.name" placeholder="请输入配置名称"></el-input>
+          <el-form-item :label='$tr("配置名称")' prop="name">
+            <el-input v-model="scheduleFormData.name" :placeholder='$tr("请输入配置名称")'></el-input>
           </el-form-item>
-          <el-form-item label="Cron表达式" prop="cronExpr">
+          <el-form-item :label='$tr("Cron表达式")' prop="cronExpr">
             <el-input
               v-model="scheduleFormData.cronExpr"
-              placeholder="请输入Cron表达式"
+              :placeholder='$tr("请输入Cron表达式")'
               @input="handleCronExprChange"
             >
               <template #append>
                 <el-popover placement="bottom" width="300" trigger="click">
                   <template #reference>
-                    <el-button>模板</el-button>
+                    <el-button>{{ $tr("模板") }}</el-button>
                   </template>
                   <div class="cron-templates">
                     <div
@@ -301,7 +301,7 @@
                       class="cron-template-item"
                       @click="selectCronTemplate(template.value)"
                     >
-                      <strong>{{ template.label }}</strong>: {{ template.value }}
+                      <strong>{{ $tr(template.label) }}</strong>: {{ template.value }}
                     </div>
                   </div>
                 </el-popover>
@@ -311,7 +311,7 @@
             <!-- Cron表达式预览 - 参考TaskJob.vue的简洁设计 -->
             <div v-if="scheduleFormData.cronExpr && nextExecutionTimes.length > 0" style="margin-top: 8px;">
               <span style="margin-left: 10px; color: #67C23A; font-weight: 500;">
-                下次执行时间: {{ nextExecutionTimes[0] }}
+                {{ $tr("下次执行时间:") }} {{ nextExecutionTimes[0] }}
               </span>
             </div>
             <div v-else-if="scheduleFormData.cronExpr && cronPreviewError" style="margin-top: 8px;">
@@ -320,39 +320,39 @@
               </span>
             </div>
           </el-form-item>
-          <el-form-item label="云厂商类型" prop="keyTypes">
+          <el-form-item :label='$tr("云厂商类型")' prop="keyTypes">
             <el-checkbox-group v-model="scheduleFormData.keyTypes">
               <el-checkbox
                 v-for="option in keyTypeOptions"
                 :key="option.value"
-                :label="option.value"
+                :label="$tr(option.value)"
                 :value="option.value"
               >
-                {{ option.label }}
+                {{ $tr(option.label) }}
               </el-checkbox>
             </el-checkbox-group>
           </el-form-item>
-          <el-form-item label="启用状态" prop="status">
+          <el-form-item :label='$tr("启用状态")' prop="status">
             <el-switch
               v-model="scheduleFormData.status"
               :active-value="1"
               :inactive-value="0"
-              active-text="启用"
-              inactive-text="禁用"
+              :active-text='$tr("启用")'
+              :inactive-text='$tr("禁用")'
             />
           </el-form-item>
-          <el-form-item label="备注信息" prop="remark">
+          <el-form-item :label='$tr("备注信息")' prop="remark">
             <el-input
               v-model="scheduleFormData.remark"
               type="textarea"
               :rows="3"
-              placeholder="请输入备注信息"
+              :placeholder='$tr("请输入备注信息")'
             ></el-input>
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="submitScheduleForm">确 定</el-button>
-          <el-button @click="scheduleDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitScheduleForm">{{ $tr("确 定") }}</el-button>
+          <el-button @click="scheduleDialogVisible = false">{{ $tr("取 消") }}</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -360,6 +360,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import { Plus, Edit, Delete, Refresh, Setting, Key, Lock, Timer, Loading, Warning, Document } from '@element-plus/icons-vue'
 import API from '@/api/config'
 
@@ -411,9 +413,9 @@ export default {
         remark: ''
       },
       formRules: {
-        keyType: [{ required: true, message: '请选择云厂商类型', trigger: 'change' }],
-        keyId: [{ required: true, message: '请输入密钥ID', trigger: 'blur' }],
-        keySecret: [{ required: true, message: '请输入密钥Secret', trigger: 'blur' }]
+        keyType: [{ required: true, get message() { return tr('请选择云厂商类型'); }, trigger: 'change' }],
+        keyId: [{ required: true, get message() { return tr('请输入密钥ID'); }, trigger: 'blur' }],
+        keySecret: [{ required: true, get message() { return tr('请输入密钥Secret'); }, trigger: 'blur' }]
       },
       scheduleFormData: {
         id: '',
@@ -424,9 +426,9 @@ export default {
         remark: ''
       },
       scheduleFormRules: {
-        name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-        cronExpr: [{ required: true, message: '请输入Cron表达式', trigger: 'blur' }],
-        keyTypes: [{ required: true, message: '请选择云厂商类型', trigger: 'change' }]
+        name: [{ required: true, get message() { return tr('请输入配置名称'); }, trigger: 'blur' }],
+        cronExpr: [{ required: true, get message() { return tr('请输入Cron表达式'); }, trigger: 'blur' }],
+        keyTypes: [{ required: true, get message() { return tr('请选择云厂商类型'); }, trigger: 'change' }]
       },
       cronPreviewLoading: false,
       cronPreviewError: '',
@@ -449,11 +451,11 @@ export default {
           this.keyList = res.data?.list || []
           this.total = res.data?.total || 0
         } else {
-          this.$message.error(res.message || '获取密钥列表失败')
+          this.$message.error(res.message || tr('获取密钥列表失败'))
         }
       } catch (error) {
         console.error('获取密钥列表失败:', error)
-        this.$message.error('获取密钥列表失败')
+        this.$message.error(tr('获取密钥列表失败'))
       } finally {
         this.loading = false
       }
@@ -534,11 +536,11 @@ export default {
         }
 
         if (res.data.code === 200) {
-          this.$message.success(formData.id ? '修改成功' : '创建成功')
+          this.$message.success(formData.id ? tr('修改成功') : tr('创建成功'))
           this.dialogVisible = false
           await this.getList()
         } else {
-          this.$message.error(res.data.message || (formData.id ? '修改失败' : '创建失败'))
+          this.$message.error(res.data.message || (formData.id ? tr('修改失败') : tr('创建失败')))
         }
       } catch (error) {
         console.error('操作失败:', error)
@@ -549,18 +551,18 @@ export default {
     // 删除密钥
     async handleDelete(row) {
       try {
-        await this.$confirm(`确定删除该密钥配置?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+        await this.$confirm(`确定删除该密钥配置?`, tr('提示'), {
+          confirmButtonText: tr('确定'),
+          cancelButtonText: tr('取消'),
           type: 'warning'
         })
         
         const { data: res } = await API.deleteKeyManage(row.id)
         if (res.code === 200) {
-          this.$message.success('删除成功')
+          this.$message.success(tr('删除成功'))
           this.getList()
         } else {
-          this.$message.error(res.message || '删除失败')
+          this.$message.error(res.message || tr('删除失败'))
         }
       } catch (error) {
         console.error('删除失败:', error)
@@ -570,9 +572,9 @@ export default {
     // 同步主机
     async handleSyncHosts(row) {
       try {
-        await this.$confirm(`确定同步${this.getKeyTypeTag(row.keyType).label}主机?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+        await this.$confirm(`确定同步${this.getKeyTypeTag(row.keyType).label}主机?`, tr('提示'), {
+          confirmButtonText: tr('确定'),
+          cancelButtonText: tr('取消'),
           type: 'info'
         })
         
@@ -584,13 +586,13 @@ export default {
         const { data: res } = await API.syncCloudHosts(syncData)
         
         if (res.code === 200) {
-          this.$message.success('同步成功')
+          this.$message.success(tr('同步成功'))
         } else {
-          this.$message.error(res.message || '同步失败')
+          this.$message.error(res.message || tr('同步失败'))
         }
       } catch (error) {
         console.error('同步失败:', error)
-        this.$message.error('同步失败')
+        this.$message.error(tr('同步失败'))
       }
     },
     
@@ -644,11 +646,11 @@ export default {
           this.scheduleList = res.data?.list || []
           this.scheduleTotal = res.data?.total || 0
         } else {
-          this.$message.error(res.message || '获取定时同步配置列表失败')
+          this.$message.error(res.message || tr('获取定时同步配置列表失败'))
         }
       } catch (error) {
         console.error('获取定时同步配置列表失败:', error)
-        this.$message.error('获取定时同步配置列表失败')
+        this.$message.error(tr('获取定时同步配置列表失败'))
       } finally {
         this.scheduleLoading = false
       }
@@ -807,11 +809,11 @@ export default {
         }
 
         if (res.data.code === 200) {
-          this.$message.success(formData.id ? '更新成功' : '创建成功')
+          this.$message.success(formData.id ? '更新成功' : tr('创建成功'))
           this.scheduleDialogVisible = false
           await this.getScheduleList()
         } else {
-          this.$message.error(res.data.message || (formData.id ? '更新失败' : '创建失败'))
+          this.$message.error(res.data.message || (formData.id ? '更新失败' : tr('创建失败')))
         }
       } catch (error) {
         console.error('操作失败:', error)
@@ -828,33 +830,33 @@ export default {
         })
 
         if (res.code === 200) {
-          this.$message.success(`${row.status === 1 ? '启用' : '禁用'}成功`)
+          this.$message.success(`${row.status === 1 ? tr('启用') : tr('禁用')}成功`)
         } else {
           row.status = row.status === 1 ? 0 : 1
-          this.$message.error(res.message || '状态切换失败')
+          this.$message.error(res.message || tr('状态切换失败'))
         }
       } catch (error) {
         row.status = row.status === 1 ? 0 : 1
         console.error('状态切换失败:', error)
-        this.$message.error('状态切换失败')
+        this.$message.error(tr('状态切换失败'))
       }
     },
 
     // 删除定时同步配置
     async handleDeleteSchedule(row) {
       try {
-        await this.$confirm(`确定删除定时同步配置"${row.name}"?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+        await this.$confirm(`确定删除定时同步配置"${row.name}"?`, tr('提示'), {
+          confirmButtonText: tr('确定'),
+          cancelButtonText: tr('取消'),
           type: 'warning'
         })
 
         const { data: res } = await API.deleteSyncSchedule(row.id)
         if (res.code === 200) {
-          this.$message.success('删除成功')
+          this.$message.success(tr('删除成功'))
           this.getScheduleList()
         } else {
-          this.$message.error(res.message || '删除失败')
+          this.$message.error(res.message || tr('删除失败'))
         }
       } catch (error) {
         console.error('删除失败:', error)
@@ -889,11 +891,11 @@ export default {
             nextRunTime: res.data.nextRunTime ? this.formatTime(res.data.nextRunTime) : '-'
           }
         } else {
-          this.$message.warning(res.message || '暂无日志数据')
+          this.$message.warning(res.message || tr('暂无日志数据'))
         }
       } catch (error) {
         console.error('获取同步日志失败:', error)
-        this.$message.error('获取同步日志失败')
+        this.$message.error(tr('获取同步日志失败'))
       } finally {
         this.syncLogLoading = false
       }

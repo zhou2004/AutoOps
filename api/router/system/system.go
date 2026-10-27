@@ -9,6 +9,16 @@ import (
 
 // RegisterSystemRoutes 注册系统相关路由
 func RegisterSystemRoutes(router *gin.RouterGroup) {
+	router.GET("/system/permissions/me", controller.MyPermissions)
+	router.GET("/system/permissions/catalog", controller.PermissionCatalog)
+	router.GET("/system/permissions/roles/:id", controller.RolePermissions)
+	router.PUT("/system/permissions/roles/:id", controller.SaveRolePermissions)
+	router.GET("/system/api-keys/catalog", controller.APIKeyCatalog)
+	router.GET("/system/api-keys/users", controller.APIKeyUsers)
+	router.GET("/system/api-keys/users/:id/permissions", controller.APIKeyUserPermissions)
+	router.GET("/system/api-keys", controller.ListAPIKeys)
+	router.POST("/system/api-keys", controller.CreateAPIKey)
+	router.DELETE("/system/api-keys/:id", controller.RevokeAPIKey)
 	// 岗位
 	router.POST("/post/add", controller.CreateSysPost)
 	router.GET("/post/list", controller.GetSysPostList)

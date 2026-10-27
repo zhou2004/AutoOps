@@ -44,163 +44,19 @@ func NewK8sPermissionMiddleware() *K8sPermissionMiddleware {
 // CheckNamespacePermission 检查命名空间级别的权限
 // 从URL路径中提取 clusterId 和 namespace，验证当前用户是否有权限
 func (m *K8sPermissionMiddleware) CheckNamespacePermission() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// 获取当前用户
-		admin, err := jwt.GetAdmin(c)
-		if err != nil {
-			result.Failed(c, http.StatusUnauthorized, "未授权")
-			c.Abort()
-			return
-		}
-
-		// 检查是否为管理员 - 管理员拥有所有权限
-		isAdmin, _ := m.permDao.IsAdmin(admin.ID)
-		if isAdmin {
-			c.Next()
-			return
-		}
-
-		// 从URL路径中提取 clusterId
-		clusterIDStr := c.Param("id")
-		if clusterIDStr == "" {
-			clusterIDStr = c.Param("clusterId")
-		}
-
-		if clusterIDStr == "" {
-			c.Next()
-			return
-		}
-
-		// 从URL路径中提取 namespace
-		namespace := c.Param("namespaceName")
-		if namespace == "" {
-			// 没有命名空间参数，检查用户是否有该集群的任意权限
-			hasPerm, _ := m.hasAnyClusterPermission(admin.ID, clusterIDStr)
-			if !hasPerm {
-				result.Failed(c, http.StatusForbidden, "您没有该集群的访问权限")
-				c.Abort()
-				return
-			}
-			c.Next()
-			return
-		}
-
-		// 检查用户是否有该集群命名空间的传统粗粒度权限
-		hasPerm, _ := m.hasNamespacePermission(admin.ID, clusterIDStr, namespace)
-		if !hasPerm {
-			// 没有粗粒度权限，则检查确切的资源与动词权限
-			clusterIDUint, _ := strconv.ParseUint(clusterIDStr, 10, 32)
-			resource, verb := m.getResourceAndVerbFromCtx(c)
-			if !m.hasRbacResourceVerb(admin.ID, uint(clusterIDUint), namespace, resource, verb) {
-				result.Failed(c, http.StatusForbidden, "您没有该资源的访问权限")
-				c.Abort()
-				return
-			}
-		}
-
-		c.Next()
-	}
+	return m.checkResourcePermission()
 }
 
 // CheckNamespaceWritePermission 检查命名空间的写权限
 // 只允许 write 和 admin 级别的用户通过，readonly 用户将被拒绝
 func (m *K8sPermissionMiddleware) CheckNamespaceWritePermission() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		admin, err := jwt.GetAdmin(c)
-		if err != nil {
-			result.Failed(c, http.StatusUnauthorized, "未授权")
-			c.Abort()
-			return
-		}
-
-		// 管理员拥有所有权限
-		isAdmin, _ := m.permDao.IsAdmin(admin.ID)
-		if isAdmin {
-			c.Next()
-			return
-		}
-
-		// 从URL路径中提取 clusterId
-		clusterIDStr := c.Param("id")
-		if clusterIDStr == "" {
-			clusterIDStr = c.Param("clusterId")
-		}
-
-		if clusterIDStr == "" {
-			result.Failed(c, http.StatusBadRequest, "缺少集群ID")
-			c.Abort()
-			return
-		}
-
-		clusterID, err := strconv.ParseUint(clusterIDStr, 10, 32)
-		if err != nil {
-			result.Failed(c, http.StatusBadRequest, "无效的集群ID")
-			c.Abort()
-			return
-		}
-
-		// 从URL路径中提取 namespace
-		namespace := c.Param("namespaceName")
-		if namespace == "" {
-			result.Failed(c, http.StatusBadRequest, "缺少命名空间参数")
-			c.Abort()
-			return
-		}
-
-		// 检查用户是否有写权限（write 或 admin）或匹配细粒度RBAC规则
-		hasTraditionalWrite := m.hasWritePermission(admin.ID, uint(clusterID), namespace)
-		if !hasTraditionalWrite {
-			resource, verb := m.getResourceAndVerbFromCtx(c)
-			if !m.hasRbacResourceVerb(admin.ID, uint(clusterID), namespace, resource, verb) {
-				result.Failed(c, http.StatusForbidden, "您没有该资源的写操作权限")
-				c.Abort()
-				return
-			}
-		}
-
-		c.Next()
-	}
+	return m.checkResourcePermission()
 }
 
 // CheckClusterPermission 检查集群级别的权限
 // 验证当前用户是否有权限访问指定集群
 func (m *K8sPermissionMiddleware) CheckClusterPermission() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		admin, err := jwt.GetAdmin(c)
-		if err != nil {
-			result.Failed(c, http.StatusUnauthorized, "未授权")
-			c.Abort()
-			return
-		}
-
-		// 管理员拥有所有权限
-		isAdmin, _ := m.permDao.IsAdmin(admin.ID)
-		if isAdmin {
-			c.Next()
-			return
-		}
-
-		// 从URL路径中提取 clusterId
-		clusterIDStr := c.Param("id")
-		if clusterIDStr == "" {
-			clusterIDStr = c.Param("clusterId")
-		}
-
-		if clusterIDStr == "" {
-			c.Next()
-			return
-		}
-
-		// 检查用户是否有该集群的任意权限
-		hasPerm, _ := m.hasAnyClusterPermission(admin.ID, clusterIDStr)
-		if !hasPerm {
-			result.Failed(c, http.StatusForbidden, "您没有该集群的访问权限")
-			c.Abort()
-			return
-		}
-
-		c.Next()
-	}
+	return m.checkResourcePermission()
 }
 
 // FilterAllowedNamespaces 过滤命名空间列表
@@ -421,7 +277,14 @@ func (m *K8sPermissionMiddleware) getUserRbacBindings(userID uint) []model.K8sRb
 	if err != nil || len(bindings) == 0 {
 		return nil
 	}
-	return bindings
+	valid := make([]model.K8sRbacBinding, 0, len(bindings))
+	for _, binding := range bindings {
+		role, err := m.rbacDao.GetRoleByID(binding.RoleID)
+		if err == nil && role.ClusterID == binding.ClusterID && (role.Namespace == "" || role.Namespace == binding.Namespace) {
+			valid = append(valid, binding)
+		}
+	}
+	return valid
 }
 
 // getUserRbacRules 获取用户有效的RBAC规则映射 cluster:namespace -> []K8sRule
@@ -453,7 +316,7 @@ func (m *K8sPermissionMiddleware) getUserRbacRules(userID uint) map[string][]mod
 	ruleMap := make(map[string][]model.K8sRule)
 	for _, b := range bindings {
 		role, ok := roleMap[b.RoleID]
-		if !ok {
+		if !ok || role.ClusterID != b.ClusterID || (role.Namespace != "" && role.Namespace != b.Namespace) {
 			continue
 		}
 		var rules []model.K8sRule
@@ -776,6 +639,37 @@ func (m *K8sPermissionMiddleware) getResourceAndVerbFromCtx(c *gin.Context) (str
 		resource = c.Param("workloadType")
 		if resource == "" {
 			resource = "workloads"
+		}
+	}
+
+	resource = canonicalK8sResource(resource)
+	if strings.Contains(path, "/pods/:podName/terminal") || strings.Contains(path, "/pods/:podName/files") || strings.HasSuffix(path, "/hot-reload") {
+		return "pods/exec", "create"
+	}
+	if strings.HasSuffix(path, "/logs") && strings.Contains(path, "/pods/") {
+		return "pods/log", "get"
+	}
+	if strings.HasSuffix(path, "/events") {
+		return "events", "list"
+	}
+	if strings.HasSuffix(path, "/pods") {
+		return "pods", "list"
+	}
+	if strings.HasSuffix(path, "/scale") {
+		return resource + "/scale", "update"
+	}
+	if strings.Contains(path, "/nodes/:nodeName/") && c.Request.Method != "GET" {
+		return "nodes", "update"
+	}
+	if strings.HasSuffix(path, "/restart") || strings.HasSuffix(path, "/rollback") || strings.HasSuffix(path, "/pause") || strings.HasSuffix(path, "/resume") {
+		verb = "update"
+	}
+	if c.Request.Method == "GET" {
+		for _, key := range []string{"podName", "workloadName", "deploymentName", "pvName", "pvcName", "serviceName", "ingressName", "configMapName", "secretName", "storageClassName", "nodeName"} {
+			if c.Param(key) != "" {
+				verb = "get"
+				break
+			}
 		}
 	}
 

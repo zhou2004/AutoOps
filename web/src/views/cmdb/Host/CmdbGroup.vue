@@ -9,14 +9,14 @@
             <el-icon class="main-icon"><DataBoard /></el-icon>
           </div>
           <div class="title-content">
-            <h3 class="title">资产分组</h3>
+            <h3 class="title">{{ $tr("资产分组") }}</h3>
             <span class="subtitle">Asset Groups</span>
           </div>
         </div>
         <div class="stats-indicator">
           <span class="stats-text">{{ groupList.length }}</span>
           <span class="stats-label">Groups</span>
-          <div class="toggle-btn" @click="toggleAll" :title="isExpanded ? '折叠全部' : '展开全部'">
+          <div class="toggle-btn" @click="toggleAll" :title="$tr(isExpanded ? '折叠全部' : '展开全部')">
             <img 
               :src="getAssetUrl('@/assets/image/折叠.svg')" 
               class="toggle-icon" 
@@ -33,7 +33,7 @@
           <div class="search-input-wrapper">
             <el-input
               v-model="groupSearchText"
-              placeholder="搜索分组..."
+              :placeholder='$tr("搜索分组...")'
               clearable
               size="small"
               @input="handleGroupSearch"
@@ -103,7 +103,7 @@
                 </div>
                 <div class="node-text">
                   <span class="node-label">
-                    {{ node.label }}
+                    {{ $tr(node.label) }}
                     <span class="host-count" v-if="data.hostCount !== undefined">({{ data.hostCount }})</span>
                   </span>
                   <div class="connection-line" v-if="!data.parentId"></div>
@@ -125,11 +125,11 @@
     >
       <div class="context-menu-item" @click="createRootGroup">
         <el-icon><Plus /></el-icon>
-        <span>创建根分组</span>
+        <span>{{ $tr("创建根分组") }}</span>
       </div>
       <div class="context-menu-item" @click="createSubGroup" v-if="contextMenuData.data">
         <el-icon><FolderAdd /></el-icon>
-        <span>创建子分组</span>
+        <span>{{ $tr("创建子分组") }}</span>
       </div>
       <div 
         class="context-menu-item" 
@@ -137,7 +137,7 @@
         v-if="contextMenuData.data && contextMenuData.data.id !== 1"
       >
         <el-icon><EditPen /></el-icon>
-        <span>重命名</span>
+        <span>{{ $tr("重命名") }}</span>
       </div>
       <div 
         class="context-menu-item" 
@@ -145,7 +145,7 @@
         v-if="contextMenuData.data && contextMenuData.data.id !== 1"
       >
         <el-icon><Edit /></el-icon>
-        <span>修改分组</span>
+        <span>{{ $tr("修改分组") }}</span>
       </div>
       <div 
         class="context-menu-item danger" 
@@ -153,13 +153,13 @@
         v-if="contextMenuData.data && contextMenuData.data.id !== 1"
       >
         <el-icon><Delete /></el-icon>
-        <span>删除分组</span>
+        <span>{{ $tr("删除分组") }}</span>
       </div>
     </div>
     
     <!-- 创建/编辑分组对话框 -->
     <el-dialog 
-      :title="getDialogTitle()" 
+      :title="$tr(getDialogTitle())" 
       v-model="groupDialogVisible" 
       width="400px"
       @close="handleDialogClose"
@@ -170,15 +170,15 @@
         ref="groupFormRef" 
         label-width="80px"
       >
-        <el-form-item label="分组名称" prop="name">
+        <el-form-item :label='$tr("分组名称")' prop="name">
           <el-input 
             v-model="groupForm.name" 
-            placeholder="请输入分组名称"
+            :placeholder='$tr("请输入分组名称")'
             :disabled="groupForm.id === 1"
           />
         </el-form-item>
         <el-form-item 
-          label="父级分组" 
+          :label='$tr("父级分组")' 
           prop="parentId" 
           v-if="dialogMode === 'create' || dialogMode === 'edit'"
         >
@@ -191,21 +191,23 @@
               disabled: (data) => data.id === groupForm.id
             }"
             check-strictly
-            placeholder="请选择父级分组（不选择为根分组）"
+            :placeholder='$tr("请选择父级分组（不选择为根分组）")'
             clearable
             :disabled="groupForm.id === 1"
           />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="groupDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitGroupForm">确定</el-button>
+        <el-button @click="groupDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="submitGroupForm">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 export default {
   name: 'CmdbGroup',
   props: {
@@ -239,7 +241,7 @@ export default {
         parentId: null
       },
       groupRules: {
-        name: [{ required: true, message: '请输入分组名称', trigger: 'blur' }]
+        name: [{ required: true, get message() { return tr('请输入分组名称'); }, trigger: 'blur' }]
       },
       groupSelectOptions: []
     }
@@ -400,10 +402,10 @@ export default {
       try {
         await this.$confirm(
           `确定要删除分组"${groupData.name}"吗？如果该分组下有主机，将无法删除。`,
-          '确认删除',
+          tr('确认删除'),
           {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
+            confirmButtonText: tr('确定'),
+            cancelButtonText: tr('取消'),
             type: 'warning'
           }
         )

@@ -3,10 +3,15 @@
     <el-card shadow="hover" class="market-card">
       <template #header>
         <div class="card-header">
-          <span class="title">运维工具箱 - 服务市场</span>
+          <span class="title">{{ $tr("运维工具箱 - 服务市场") }}</span>
           <el-tabs v-model="innerTab" class="inner-tabs">
-            <el-tab-pane label="服务市场" name="market" />
-            <el-tab-pane label="部署管理" name="deploy" />
+            <el-tab-pane :label="$tr('服务市场')" name="market" />
+            <el-tab-pane :label="$tr('部署管理')" name="deploy" />
+            <el-tab-pane
+              v-if="platformAccess.isAdmin"
+              label="数据库 Ansible 部署"
+              name="database"
+            />
           </el-tabs>
         </div>
       </template>
@@ -15,8 +20,12 @@
       <template v-if="innerTab === 'market'">
         <!-- 分类筛选 -->
         <div class="category-filter">
-          <el-radio-group v-model="selectedCategory" @change="handleCategoryChange" size="small">
-            <el-radio-button label="">全部</el-radio-button>
+          <el-radio-group
+            v-model="selectedCategory"
+            @change="handleCategoryChange"
+            size="small"
+          >
+            <el-radio-button label="">{{ $tr("全部") }}</el-radio-button>
             <el-radio-button
               v-for="cat in categories"
               :key="cat.id"
@@ -44,7 +53,7 @@
               />
             </div>
             <h3>{{ service.name }}</h3>
-            <p class="description">{{ service.description }}</p>
+            <p class="description">{{ $tr(service.description) }}</p>
             <div class="versions">
               <el-tag
                 v-for="version in service.versions.slice(0, 2)"
@@ -60,11 +69,15 @@
       </template>
 
       <!-- 部署管理视图（嵌入模式） -->
-      <template v-else>
+      <template v-else-if="innerTab === 'deploy'">
         <div class="embedded-deploy-wrapper">
           <DeployManage :embedded="true" />
         </div>
       </template>
+      <DatabaseDeployments
+        v-if="innerTab === 'database' && platformAccess.isAdmin"
+        ref="databaseDeployments"
+      />
     </el-card>
 
     <!-- 部署对话框 -->
@@ -77,112 +90,127 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getServicesList } from '@/api/tool'
-import { ElMessage } from 'element-plus'
-import DeployDialog from './DeployDialog.vue'
-import DeployManage from './DeployManage.vue'
+import DatabaseDeployments from "@/views/cmdb/components/DatabaseDeployments.vue";
+import { platformAccess } from "@/utils/platformAccess";
+import { tr } from "@/locales";
 
-const services = ref([])
-const categories = ref([])
-const selectedCategory = ref('')
-const deployDialogVisible = ref(false)
-const selectedService = ref(null)
-const loading = ref(false)
-const innerTab = ref('market')
+import { ref, computed, onMounted, nextTick } from "vue";
+import { getServicesList } from "@/api/tool";
+import { ElMessage } from "element-plus";
+import DeployDialog from "./DeployDialog.vue";
+import DeployManage from "./DeployManage.vue";
+
+const services = ref([]);
+const categories = ref([]);
+const selectedCategory = ref("");
+const deployDialogVisible = ref(false);
+const selectedService = ref(null);
+const loading = ref(false);
+const innerTab = ref("market");
 
 // 获取服务图标 - 使用动态 require
-const getServiceIcon = (serviceId) => {
+const getServiceIcon = serviceId => {
   try {
     // 文件名映射（处理大小写）
     const fileNameMap = {
-      'mysql': 'mysql',
-      'redis': 'redis',
-      'postgresql': 'PostgreSQL',
-      'jenkins': 'Jenkins',
-      'gitlab': 'gitlab',
-      'grafana': 'grafana',
-      'elasticsearch': 'Elasticsearch',
-      'loki': 'loki',
-      'prometheus': 'Prometheus',
-      'elk': 'ELK',
-      'n9e': 'n9e',
-      'jumpserver': 'jumpserver',
-      'nodejs': 'nodejs',
-      'java': 'java',
-      'golang': 'golang',
-      'mongodb': 'mongodb',
-      'fluentd': 'fluentd'
-    }
+      mysql: "mysql",
+      redis: "redis",
+      postgresql: "PostgreSQL",
+      jenkins: "Jenkins",
+      gitlab: "gitlab",
+      grafana: "grafana",
+      elasticsearch: "Elasticsearch",
+      loki: "loki",
+      prometheus: "Prometheus",
+      elk: "ELK",
+      n9e: "n9e",
+      jumpserver: "jumpserver",
+      nodejs: "nodejs",
+      java: "java",
+      golang: "golang",
+      mongodb: "mongodb",
+      fluentd: "fluentd"
+    };
 
     // 转换为小写查找
-    const key = serviceId.toLowerCase()
-    const fileName = fileNameMap[key]
+    const key = serviceId.toLowerCase();
+    const fileName = fileNameMap[key];
 
     if (fileName) {
-      return new URL(`/src/assets/image/${fileName}.svg`, import.meta.url).href
+      return new URL(`/src/assets/image/${fileName}.svg`, import.meta.url).href;
     }
   } catch (error) {
-    console.warn(`加载图标失败: ${serviceId}`, error)
+    console.warn(`加载图标失败: ${serviceId}`, error);
   }
 
   // 返回默认图标
-  return new URL('/src/assets/image/云主机服务器.svg', import.meta.url).href
-}
+  return new URL("/src/assets/image/云主机服务器.svg", import.meta.url).href;
+};
 
 // 过滤服务
 const filteredServices = computed(() => {
-  if (!selectedCategory.value) return services.value
-  return services.value.filter(s => s.category === selectedCategory.value)
-})
+  if (!selectedCategory.value) return services.value;
+  return services.value.filter(s => s.category === selectedCategory.value);
+});
 
 // 显示服务（全部分类显示所有，其他分类显示前10个）
 const displayServices = computed(() => {
   // 如果是"全部"分类，显示所有服务
   if (!selectedCategory.value) {
-    return filteredServices.value
+    return filteredServices.value;
   }
   // 其他分类只显示前10个
-  return filteredServices.value.slice(0, 10)
-})
+  return filteredServices.value.slice(0, 10);
+});
 
 // 加载服务列表
 const loadServices = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const res = await getServicesList()
+    const res = await getServicesList();
     if (res.data?.code === 200) {
-      services.value = res.data.data?.services || []
-      categories.value = res.data.data?.categories || []
+      services.value = res.data.data?.services || [];
+      categories.value = res.data.data?.categories || [];
     } else {
-      throw new Error(res.data?.message || '获取服务列表失败')
+      throw new Error(res.data?.message || "获取服务列表失败");
     }
   } catch (error) {
-    console.error('加载服务列表失败:', error)
-    ElMessage.error(`加载服务列表失败: ${error.message}`)
+    console.error("加载服务列表失败:", error);
+    ElMessage.error(`加载服务列表失败: ${error.message}`);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 打开部署对话框
-const openDeployDialog = (service) => {
-  selectedService.value = service
-  deployDialogVisible.value = true
-}
+const databaseDeployments = ref(null);
+const openDeployDialog = async service => {
+  if (["mysql", "postgresql", "redis"].includes(service.id)) {
+    if (!platformAccess.isAdmin) {
+      ElMessage.error(tr("数据库部署需要管理员权限"));
+      return;
+    }
+    innerTab.value = "database";
+    await nextTick();
+    databaseDeployments.value?.showCreate(service.id);
+    return;
+  }
+  selectedService.value = service;
+  deployDialogVisible.value = true;
+};
 
 // 部署完成回调
-const handleDeployed = (deployId) => {
-  ElMessage.success('部署任务已创建')
-}
+const handleDeployed = deployId => {
+  ElMessage.success(tr("部署任务已创建"));
+};
 
 const handleCategoryChange = () => {
   // 分类变化处理
-}
+};
 
 onMounted(() => {
-  loadServices()
-})
+  loadServices();
+});
 </script>
 
 <style scoped>
@@ -242,7 +270,7 @@ onMounted(() => {
 }
 
 .inner-tabs :deep(.el-tabs__item.is-active) {
-  color: #409EFF;
+  color: #409eff;
   font-weight: 600;
 }
 

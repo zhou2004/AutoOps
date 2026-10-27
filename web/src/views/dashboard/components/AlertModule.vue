@@ -2,23 +2,23 @@
   <div class="glass-card module-section animate-fade-in-up" :style="{ animationDelay: '0.4s' }">
     <div class="section-title">
       <span class="title-bar"></span>
-      <span>🔔 告警中心</span>
+      <span>{{ $tr("🔔 告警中心") }}</span>
     </div>
 
     <div class="dashboard-grid dashboard-grid-4" style="margin-bottom:16px">
-      <StatCard icon="🔴" iconBg="linear-gradient(135deg,#fff2f0,#ffd8d2)" :value="alertStats.critical" label="严重告警" tag="立即处理" tagType="danger" />
-      <StatCard icon="🟡" iconBg="linear-gradient(135deg,#fff7e6,#ffe7ba)" :value="alertStats.warning" label="警告" tag="关注" tagType="warning" />
-      <StatCard icon="🔵" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="alertStats.info" label="提示" />
-      <StatCard icon="✅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="alertStats.resolved" label="已处理" tag="今日" />
+      <StatCard icon="🔴" iconBg="linear-gradient(135deg,#fff2f0,#ffd8d2)" :value="alertStats.critical" :label='$tr("严重告警")' tag="立即处理" tagType="danger" />
+      <StatCard icon="🟡" iconBg="linear-gradient(135deg,#fff7e6,#ffe7ba)" :value="alertStats.warning" :label='$tr("警告")' tag="关注" tagType="warning" />
+      <StatCard icon="🔵" iconBg="linear-gradient(135deg,#e6f4ff,#bae0ff)" :value="alertStats.info" :label='$tr("提示")' />
+      <StatCard icon="✅" iconBg="linear-gradient(135deg,#f6ffed,#d9f7be)" :value="alertStats.resolved" :label='$tr("已处理")' tag="今日" />
     </div>
 
     <div class="dashboard-grid dashboard-grid-2">
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">告警趋势（近7天）</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("告警趋势（近7天）") }}</div>
         <BaseChart :option="trendOption" size="sm" />
       </div>
       <div class="stat-card">
-        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">告警对比分析</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">{{ $tr("告警对比分析") }}</div>
         <BaseChart :option="compareOption" size="sm" />
       </div>
     </div>

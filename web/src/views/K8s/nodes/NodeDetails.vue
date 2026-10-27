@@ -8,7 +8,7 @@
         size="small"
         class="back-btn"
       >
-        返回
+        {{ $tr("返回") }}
       </el-button>
       <h1 class="page-title">{{ nodeData?.basic?.name || '节点详情' }}</h1>
     </div>
@@ -31,11 +31,11 @@
                         class="status-tag-large"
                         effect="dark"
                       >
-                        {{ getStatusText(nodeData.basic?.status) }}
+                        {{ $tr(getStatusText(nodeData.basic?.status)) }}
                       </el-tag>
                     </div>
-                    <div class="card-label">节点状态</div>
-                    <div class="card-sub">{{ nodeData.basic?.role || 'Unknown' }} 节点</div>
+                    <div class="card-label">{{ $tr("节点状态") }}</div>
+                    <div class="card-sub">{{ nodeData.basic?.role || 'Unknown' }} {{ $tr("节点") }}</div>
                   </div>
                 </div>
               </el-card>
@@ -48,8 +48,8 @@
                   </div>
                   <div class="card-info">
                     <div class="card-value" :class="getCpuUsageClass()">{{ cpuUsageRate }}%</div>
-                    <div class="card-label">CPU使用率</div>
-                    <div class="card-sub">{{ nodeData.resources?.cpu?.capacity || 0 }}核可用</div>
+                    <div class="card-label">{{ $tr("CPU使用率") }}</div>
+                    <div class="card-sub">{{ nodeData.resources?.cpu?.capacity || 0 }}{{ $tr("核可用") }}</div>
                     <el-progress 
                       :percentage="cpuUsageRate" 
                       :color="getProgressColor(cpuUsageRate)"
@@ -68,7 +68,7 @@
                   </div>
                   <div class="card-info">
                     <div class="card-value" :class="getMemoryUsageClass()">{{ memoryUsageRate }}%</div>
-                    <div class="card-label">Memory使用率</div>
+                    <div class="card-label">{{ $tr("Memory使用率") }}</div>
                     <div class="card-sub">{{ formatMemory(nodeData.resources?.memory?.capacity) }}</div>
                     <el-progress 
                       :percentage="memoryUsageRate" 
@@ -88,8 +88,8 @@
                   </div>
                   <div class="card-info">
                     <div class="card-value">{{ nodeData.resources?.pods?.current || 0 }}</div>
-                    <div class="card-label">运行Pod数</div>
-                    <div class="card-sub">总容量: {{ nodeData.resources?.pods?.capacity || 0 }}</div>
+                    <div class="card-label">{{ $tr("运行Pod数") }}</div>
+                    <div class="card-sub">{{ $tr("总容量:") }} {{ nodeData.resources?.pods?.capacity || 0 }}</div>
                     <el-progress 
                       :percentage="podUsageRate" 
                       :color="getProgressColor(podUsageRate)"
@@ -109,36 +109,36 @@
         <div class="info-card">
           <div class="card-header">
             <el-icon><InfoFilled /></el-icon>
-            <h3>基本信息</h3>
+            <h3>{{ $tr("基本信息") }}</h3>
           </div>
           <div class="card-content">
             <div class="info-row">
-              <span class="label">节点名称：</span>
+              <span class="label">{{ $tr("节点名称：") }}</span>
               <span class="value">{{ nodeData.basic?.name || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">节点角色：</span>
+              <span class="label">{{ $tr("节点角色：") }}</span>
               <span class="value">{{ nodeData.basic?.role || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">节点状态：</span>
+              <span class="label">{{ $tr("节点状态：") }}</span>
               <el-tag 
                 :type="getStatusType(nodeData.basic?.status)"
                 class="status-tag"
               >
-                {{ getStatusText(nodeData.basic?.status) }}
+                {{ $tr(getStatusText(nodeData.basic?.status)) }}
               </el-tag>
             </div>
             <div class="info-row">
-              <span class="label">创建时间：</span>
+              <span class="label">{{ $tr("创建时间：") }}</span>
               <span class="value">{{ formatTime(nodeData.basic?.creationTime) || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">Kubernetes版本：</span>
+              <span class="label">{{ $tr("Kubernetes版本：") }}</span>
               <span class="value">{{ nodeData.basic?.k8sVersion || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">容器运行时：</span>
+              <span class="label">{{ $tr("容器运行时：") }}</span>
               <span class="value">{{ nodeData.basic?.containerRuntime || 'N/A' }}</span>
             </div>
           </div>
@@ -148,27 +148,27 @@
         <div class="info-card">
           <div class="card-header">
             <el-icon><Monitor /></el-icon>
-            <h3>系统信息</h3>
+            <h3>{{ $tr("系统信息") }}</h3>
           </div>
           <div class="card-content">
             <div class="info-row">
-              <span class="label">操作系统：</span>
+              <span class="label">{{ $tr("操作系统：") }}</span>
               <span class="value">{{ nodeData.system?.osImage || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">内核版本：</span>
+              <span class="label">{{ $tr("内核版本：") }}</span>
               <span class="value">{{ nodeData.system?.kernelVersion || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">架构：</span>
+              <span class="label">{{ $tr("架构：") }}</span>
               <span class="value">{{ nodeData.system?.architecture || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">主机名：</span>
+              <span class="label">{{ $tr("主机名：") }}</span>
               <span class="value">{{ nodeData.system?.hostname || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">机器ID：</span>
+              <span class="label">{{ $tr("机器ID：") }}</span>
               <span class="value">{{ nodeData.system?.machineId || 'N/A' }}</span>
             </div>
           </div>
@@ -178,15 +178,15 @@
         <div class="info-card">
           <div class="card-header">
             <el-icon><Connection as Network /></el-icon>
-            <h3>网络信息</h3>
+            <h3>{{ $tr("网络信息") }}</h3>
           </div>
           <div class="card-content">
             <div class="info-row">
-              <span class="label">内部IP：</span>
+              <span class="label">{{ $tr("内部IP：") }}</span>
               <span class="value">{{ nodeData.network?.internalIP || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">外部IP：</span>
+              <span class="label">{{ $tr("外部IP：") }}</span>
               <span class="value">{{ nodeData.network?.externalIP || 'N/A' }}</span>
             </div>
             <div class="info-row">
@@ -200,10 +200,10 @@
         <div class="info-card resources-card">
           <div class="card-header">
             <el-icon><Monitor /></el-icon>
-            <h3>资源监控</h3>
+            <h3>{{ $tr("资源监控") }}</h3>
             <div class="resource-status-indicator">
               <div class="status-dot" :class="getOverallResourceStatus()"></div>
-              <span class="status-text">{{ getResourceStatusText() }}</span>
+              <span class="status-text">{{ $tr(getResourceStatusText()) }}</span>
             </div>
           </div>
           <div class="card-content">
@@ -214,17 +214,17 @@
                 </div>
                 <div class="resource-info">
                   <div class="resource-header">
-                    <span class="resource-name">CPU处理器</span>
+                    <span class="resource-name">{{ $tr("CPU处理器") }}</span>
                     <span class="resource-usage" :class="getCpuUsageClass()">{{ cpuUsageRate }}%</span>
                   </div>
                   <div class="resource-details">
                     <div class="detail-item">
-                      <span class="detail-label">已使用:</span>
-                      <span class="detail-value">{{ getCpuUsed() }}核</span>
+                      <span class="detail-label">{{ $tr("已使用:") }}</span>
+                      <span class="detail-value">{{ getCpuUsed() }}{{ $tr("核") }}</span>
                     </div>
                     <div class="detail-item">
-                      <span class="detail-label">总容量:</span>
-                      <span class="detail-value">{{ nodeData.resources?.cpu?.capacity || 0 }}核</span>
+                      <span class="detail-label">{{ $tr("总容量:") }}</span>
+                      <span class="detail-value">{{ nodeData.resources?.cpu?.capacity || 0 }}{{ $tr("核") }}</span>
                     </div>
                   </div>
                   <div class="advanced-progress">
@@ -249,16 +249,16 @@
                 </div>
                 <div class="resource-info">
                   <div class="resource-header">
-                    <span class="resource-name">Memory存储</span>
+                    <span class="resource-name">{{ $tr("Memory存储") }}</span>
                     <span class="resource-usage" :class="getMemoryUsageClass()">{{ memoryUsageRate }}%</span>
                   </div>
                   <div class="resource-details">
                     <div class="detail-item">
-                      <span class="detail-label">已使用:</span>
+                      <span class="detail-label">{{ $tr("已使用:") }}</span>
                       <span class="detail-value">{{ getMemoryUsed() }}</span>
                     </div>
                     <div class="detail-item">
-                      <span class="detail-label">总容量:</span>
+                      <span class="detail-label">{{ $tr("总容量:") }}</span>
                       <span class="detail-value">{{ formatMemory(nodeData.resources?.memory?.capacity) }}</span>
                     </div>
                   </div>
@@ -284,17 +284,17 @@
                 </div>
                 <div class="resource-info">
                   <div class="resource-header">
-                    <span class="resource-name">容器Pod</span>
+                    <span class="resource-name">{{ $tr("容器Pod") }}</span>
                     <span class="resource-usage">{{ nodeData.resources?.pods?.current || 0 }}/{{ nodeData.resources?.pods?.capacity || 0 }}</span>
                   </div>
                   <div class="resource-details">
                     <div class="detail-item">
-                      <span class="detail-label">运行中:</span>
-                      <span class="detail-value">{{ nodeData.resources?.pods?.current || 0 }}个</span>
+                      <span class="detail-label">{{ $tr("运行中:") }}</span>
+                      <span class="detail-value">{{ nodeData.resources?.pods?.current || 0 }}{{ $tr("个") }}</span>
                     </div>
                     <div class="detail-item">
-                      <span class="detail-label">最大数:</span>
-                      <span class="detail-value">{{ nodeData.resources?.pods?.capacity || 0 }}个</span>
+                      <span class="detail-label">{{ $tr("最大数:") }}</span>
+                      <span class="detail-value">{{ nodeData.resources?.pods?.capacity || 0 }}{{ $tr("个") }}</span>
                     </div>
                   </div>
                   <div class="advanced-progress">
@@ -320,7 +320,7 @@
         <div class="info-card">
           <div class="card-header">
             <el-icon><Setting /></el-icon>
-            <h3>标签信息</h3>
+            <h3>{{ $tr("标签信息") }}</h3>
           </div>
           <div class="card-content">
             <div class="labels-container">
@@ -333,7 +333,7 @@
                 {{ key }}: {{ value }}
               </el-tag>
               <div v-if="!nodeData.labels || Object.keys(nodeData.labels).length === 0" class="no-data">
-                暂无标签信息
+                {{ $tr("暂无标签信息") }}
               </div>
             </div>
           </div>
@@ -343,7 +343,7 @@
         <div class="info-card">
           <div class="card-header">
             <el-icon><FolderOpened /></el-icon>
-            <h3>注解信息</h3>
+            <h3>{{ $tr("注解信息") }}</h3>
           </div>
           <div class="card-content">
             <div class="annotations-container">
@@ -356,7 +356,7 @@
                 <div class="annotation-value">{{ value }}</div>
               </div>
               <div v-if="!nodeData.annotations || Object.keys(nodeData.annotations).length === 0" class="no-data">
-                暂无注解信息
+                {{ $tr("暂无注解信息") }}
               </div>
             </div>
           </div>
@@ -366,7 +366,7 @@
         <div class="info-card full-width">
           <div class="card-header">
             <el-icon><Monitor /></el-icon>
-            <h3>运行中的Pod ({{ podList.length }})</h3>
+            <h3>{{ $tr("运行中的Pod (") }}{{ podList.length }})</h3>
           </div>
           <div class="card-content">
             <el-table 
@@ -374,9 +374,9 @@
               style="width: 100%"
               :header-cell-style="{ background: 'rgba(255, 255, 255, 0.1)', color: '#333' }"
             >
-              <el-table-column prop="name" label="Pod名称" width="200" />
-              <el-table-column prop="namespace" label="命名空间" width="150" />
-              <el-table-column prop="status" label="状态" width="100">
+              <el-table-column prop="name" :label='$tr("Pod名称")' width="200" />
+              <el-table-column prop="namespace" :label='$tr("命名空间")' width="150" />
+              <el-table-column prop="status" :label='$tr("状态")' width="100">
                 <template #default="scope">
                   <el-tag 
                     :type="getPodStatusType(scope.row.status)"
@@ -386,21 +386,21 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="cpuUsage" label="CPU使用" width="120" />
-              <el-table-column prop="memUsage" label="Memory使用" width="120" />
-              <el-table-column label="重启次数" width="100">
+              <el-table-column prop="cpuUsage" :label='$tr("CPU使用")' width="120" />
+              <el-table-column prop="memUsage" :label='$tr("Memory使用")' width="120" />
+              <el-table-column :label='$tr("重启次数")' width="100">
                 <template #default="scope">
                   {{ scope.row.restarts || 0 }}
                 </template>
               </el-table-column>
-              <el-table-column label="运行时间">
+              <el-table-column :label='$tr("运行时间")'>
                 <template #default="scope">
                   {{ scope.row.age || '未知' }}
                 </template>
               </el-table-column>
             </el-table>
             <div v-if="podList.length === 0" class="no-data">
-              暂无Pod信息
+              {{ $tr("暂无Pod信息") }}
             </div>
           </div>
         </div>
@@ -409,7 +409,7 @@
         <div class="info-card full-width">
           <div class="card-header">
             <el-icon><InfoFilled /></el-icon>
-            <h3>节点条件</h3>
+            <h3>{{ $tr("节点条件") }}</h3>
           </div>
           <div class="card-content">
             <el-table 
@@ -417,8 +417,8 @@
               style="width: 100%"
               :header-cell-style="{ background: 'rgba(255, 255, 255, 0.1)', color: '#333' }"
             >
-              <el-table-column prop="type" label="类型" width="150" />
-              <el-table-column prop="status" label="状态" width="100">
+              <el-table-column prop="type" :label='$tr("类型")' width="150" />
+              <el-table-column prop="status" :label='$tr("状态")' width="100">
                 <template #default="scope">
                   <el-tag 
                     :type="scope.row.status === 'True' ? 'success' : 'danger'"
@@ -428,16 +428,16 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="reason" label="原因" width="150" />
-              <el-table-column prop="message" label="消息" />
-              <el-table-column prop="lastTransitionTime" label="最后更新时间" width="180">
+              <el-table-column prop="reason" :label='$tr("原因")' width="150" />
+              <el-table-column prop="message" :label='$tr("消息")' />
+              <el-table-column prop="lastTransitionTime" :label='$tr("最后更新时间")' width="180">
                 <template #default="scope">
                   {{ formatTime(scope.row.lastTransitionTime) }}
                 </template>
               </el-table-column>
             </el-table>
             <div v-if="conditionsList.length === 0" class="no-data">
-              暂无条件信息
+              {{ $tr("暂无条件信息") }}
             </div>
           </div>
         </div>
@@ -445,13 +445,15 @@
       </div>
 
       <div v-else-if="!loading && !nodeData" class="no-data-container">
-        <el-empty description="未找到节点信息" />
+        <el-empty :description='$tr("未找到节点信息")' />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft, InfoFilled, Monitor, Connection as Network, FolderOpened, Setting, Box, Cpu, Grid, Files, CircleCheck, Warning, Timer } from '@element-plus/icons-vue'
@@ -597,7 +599,7 @@ const fetchNodeDetail = async () => {
       
       if (!data) {
         console.error('API响应中没有数据')
-        ElMessage.error('获取节点详情失败: API响应中没有数据')
+        ElMessage.error(tr('获取节点详情失败: API响应中没有数据'))
         return
       }
       
@@ -660,7 +662,7 @@ const fetchNodeDetail = async () => {
   } catch (error) {
     console.error('获取节点详情失败:', error)
     console.error('错误堆栈:', error.stack)
-    ElMessage.error('获取节点详情失败: ' + (error.message || '网络错误'))
+    ElMessage.error('获取节点详情失败: ' + (error.message || tr('网络错误')))
   } finally {
     loading.value = false
   }
@@ -744,7 +746,7 @@ onMounted(() => {
   if (clusterId.value && nodeName.value) {
     fetchNodeDetail()
   } else {
-    ElMessage.error('缺少必要参数')
+    ElMessage.error(tr('缺少必要参数'))
     goBack()
   }
 })

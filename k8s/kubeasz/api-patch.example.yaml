@@ -1,0 +1,48 @@
+# Strategic merge patch example; review the namespace, storage, SSH Secret and
+# image before applying. Keep the executor outside the cluster it may stop/restore.
+# kubectl -n autoops patch deployment devops-api --type strategic --patch-file k8s/kubeasz/api-patch.example.yaml
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  template:
+    spec:
+      initContainers:
+        - name: init-kubeasz-state
+          image: busybox:1.37.0
+          command: ["sh", "-c", "mkdir -p /state/clusters /state/operations && chmod 700 /state/clusters /state/operations"]
+          volumeMounts:
+            - name: kubeasz-state
+              mountPath: /state
+      containers:
+        - name: devops-api
+          # Use the API image rebuilt from this repository's docker/api/Dockerfile.
+          volumeMounts:
+            - name: kubeasz-artifacts
+              mountPath: /etc/kubeasz/bin
+              subPath: bin
+            - name: kubeasz-artifacts
+              mountPath: /etc/kubeasz/down
+              subPath: down
+              readOnly: true
+            - name: kubeasz-state
+              mountPath: /etc/kubeasz/clusters
+              subPath: clusters
+            - name: kubeasz-state
+              mountPath: /etc/kubeasz/.autoops
+              subPath: operations
+            - name: kubeasz-ssh
+              mountPath: /root/.ssh
+              readOnly: true
+      volumes:
+        - name: kubeasz-artifacts
+          persistentVolumeClaim:
+            claimName: autoops-kubeasz-artifacts
+        - name: kubeasz-state
+          persistentVolumeClaim:
+            claimName: autoops-kubeasz-state
+        - name: kubeasz-ssh
+          secret:
+            secretName: autoops-kubeasz-ssh
+            defaultMode: 0400

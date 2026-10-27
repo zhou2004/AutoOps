@@ -79,6 +79,16 @@ func (d *monitorAlertRuleDao) GetListByQuery(req *model.MonitorAlertRuleQuery) (
 	var total int64
 	query := d.db.Model(&model.MonitorAlertRule{})
 
+	if req.DataSourceID > 0 || req.CmdbGroupID > 0 {
+		groups := d.db.Model(&model.MonitorAlertGroupRule{}).Select("id")
+		if req.DataSourceID > 0 {
+			groups = groups.Where("data_source_id = ?", req.DataSourceID)
+		}
+		if req.CmdbGroupID > 0 {
+			groups = groups.Where("cmdb_group_id = ?", req.CmdbGroupID)
+		}
+		query = query.Where("group_id IN (?)", groups)
+	}
 	if req.GroupID > 0 {
 		query = query.Where("group_id = ?", req.GroupID)
 	}

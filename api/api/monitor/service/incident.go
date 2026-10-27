@@ -1,7 +1,9 @@
 package service
 
 import (
+	"dodevops-api/api/monitor/model"
 	"strconv"
+	"time"
 
 	"dodevops-api/api/monitor/dao"
 	"dodevops-api/common/result"
@@ -27,13 +29,24 @@ func NewIncidentService() IncidentServiceInterface {
 }
 
 func (s *IncidentServiceImpl) GetList(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
-	status := c.Query("status")
-	level := c.Query("level")
-	source := c.Query("source")
-
-	list, total, err := s.dao.GetList(page, pageSize, status, level, source)
+	var req model.IncidentListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		result.Failed(c, 400, "筛选参数错误")
+		return
+	}
+	for _, date := range []string{req.StartDate, req.EndDate} {
+		if date != "" {
+			if _, err := time.Parse("2006-01-02", date); err != nil {
+				result.Failed(c, 400, "日期格式应为 YYYY-MM-DD")
+				return
+			}
+		}
+	}
+	if req.StartDate != "" && req.EndDate != "" && req.StartDate > req.EndDate {
+		result.Failed(c, 400, "开始日期不能晚于结束日期")
+		return
+	}
+	list, total, err := s.dao.GetList(&req)
 	if err != nil {
 		result.Failed(c, 500, "查询失败: "+err.Error())
 		return
@@ -53,7 +66,7 @@ func (s *IncidentServiceImpl) GetStats(c *gin.Context) {
 func (s *IncidentServiceImpl) Resolve(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
+	if err != nil || id == 0 {
 		result.Failed(c, 400, "无效的ID")
 		return
 	}
@@ -67,7 +80,7 @@ func (s *IncidentServiceImpl) Resolve(c *gin.Context) {
 func (s *IncidentServiceImpl) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
+	if err != nil || id == 0 {
 		result.Failed(c, 400, "无效的ID")
 		return
 	}

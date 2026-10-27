@@ -9,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var sysDept model.CmdbGroup
-
 // @Summary 新增资产分组接口
 // @Produce json
 // @Tags CMDB资产管理
@@ -20,8 +18,12 @@ var sysDept model.CmdbGroup
 // @router /api/v1/cmdb/groupadd [post]
 // @Security ApiKeyAuth
 func CreateCmdbGroup(c *gin.Context) {
-	_ = c.BindJSON(&sysDept)
-	service.GetCmdbGroupService().CreateCmdbGroup(c, sysDept)
+	var group model.CmdbGroup
+	if err := c.ShouldBindJSON(&group); err != nil {
+		result.Failed(c, 400, "分组参数无效")
+		return
+	}
+	service.GetCmdbGroupService().CreateCmdbGroup(c, group)
 }
 
 // @Summary 查询所有资产分组（树形结构）
@@ -56,7 +58,10 @@ func GetAllCmdbGroupsWithHosts(c *gin.Context) {
 // @Security ApiKeyAuth
 func UpdateCmdbGroup(c *gin.Context) {
 	var group model.CmdbGroup
-	_ = c.BindJSON(&group)
+	if err := c.ShouldBindJSON(&group); err != nil {
+		result.Failed(c, 400, "分组参数无效")
+		return
+	}
 	service.GetCmdbGroupService().UpdateCmdbGroup(c, group)
 }
 

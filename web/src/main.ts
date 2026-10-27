@@ -1,4 +1,5 @@
 import App from "./App.vue";
+import { i18n, tr } from "@/locales";
 import router from "./router";
 import { setupStore } from "@/store";
 import { getPlatformConfig } from "./config";
@@ -23,11 +24,16 @@ import "./style/global.css";
 // 一定要在main.ts中导入tailwind.css，防止vite每次hmr都会请求src/style/index.scss整体css文件导致热更新慢的问题
 import "./style/tailwind.css";
 import "element-plus/dist/index.css";
+// 集中覆盖历史页面样式，包含传送到 body 的弹窗。
+import "./style/design-system.css";
+document.body.classList.add("autoops-ui");
 // 导入字体图标
 import "./assets/iconfont/iconfont.js";
 import "./assets/iconfont/iconfont.css";
 
 const app = createApp(App);
+app.use(i18n);
+app.config.globalProperties.$tr = tr;
 
 // 自定义指令
 import * as directives from "@/directives";

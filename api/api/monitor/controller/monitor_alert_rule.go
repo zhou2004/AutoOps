@@ -1,9 +1,12 @@
 package controller
 
 import (
+	cmdbdao "dodevops-api/api/cmdb/dao"
 	"dodevops-api/api/monitor/model"
 	"dodevops-api/api/monitor/service"
+	"dodevops-api/common"
 	"dodevops-api/common/result"
+	"dodevops-api/pkg/jwt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +30,10 @@ func (c *MonitorAlertRuleController) CreateGroup(ctx *gin.Context) {
 		result.Failed(ctx, int(result.ApiCode.FAILED), "参数绑定失败: "+err.Error())
 		return
 	}
+	if !canSelectAlertBusinessGroup(ctx, group.CmdbGroupID) {
+		return
+	}
+	group.ID = 0
 	if err := c.ruleService.CreateGroup(&group); err != nil {
 		result.Failed(ctx, int(result.ApiCode.FAILED), err.Error())
 		return
@@ -42,6 +49,9 @@ func (c *MonitorAlertRuleController) UpdateGroup(ctx *gin.Context) {
 	}
 	if group.ID == 0 {
 		result.Failed(ctx, int(result.ApiCode.FAILED), "群组ID不能为空")
+		return
+	}
+	if !canSelectAlertBusinessGroup(ctx, group.CmdbGroupID) {
 		return
 	}
 	if err := c.ruleService.UpdateGroup(&group); err != nil {
@@ -219,4 +229,36 @@ func (c *MonitorAlertRuleController) CheckRuleExpr(ctx *gin.Context) {
 	}
 
 	result.Success(ctx, data)
+}
+
+func canSelectAlertBusinessGroup(ctx *gin.Context, id uint) bool {
+	if id == 0 {
+		result.Failed(ctx, 400, "请选择业务分组")
+		return false
+	}
+	user, err := jwt.GetAdminId(ctx)
+	if err != nil {
+		result.Failed(ctx, 401, "请先登录")
+		return false
+	}
+	allowed, err := cmdbdao.NewCmdbAssetPermissionDao(common.GetDB().WithContext(ctx.Request.Context())).CanUserAccess(user, "group", id, "get")
+	if err != nil || !allowed {
+		result.Failed(ctx, 403, "无权选择该业务分组")
+		return false
+	}
+	return true
+}
+
+func (c *MonitorAlertRuleController) BusinessGroups(ctx *gin.Context) {
+	user, err := jwt.GetAdminId(ctx)
+	if err != nil {
+		result.Failed(ctx, 401, "请先登录")
+		return
+	}
+	groups, err := service.AlertBusinessGroups(ctx.Request.Context(), common.GetDB(), user)
+	if err != nil {
+		result.Failed(ctx, 500, "读取业务分组失败")
+		return
+	}
+	result.Success(ctx, groups)
 }

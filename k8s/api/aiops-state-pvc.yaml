@@ -1,0 +1,11 @@
+# Dedicated private volume: never reuse the publicly served upload volume for encryption keys.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aiops-state
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

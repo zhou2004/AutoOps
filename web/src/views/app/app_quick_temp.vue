@@ -16,10 +16,10 @@
             </el-tag>
           </template>
           <el-tag :type="getStatusType(deploymentInfo.status)" size="small">
-            {{ getStatusText(deploymentInfo.status) }}
+            {{ $tr(getStatusText(deploymentInfo.status)) }}
           </el-tag>
-          <span class="meta-text">创建人: {{ deploymentInfo.creator_name || '-' }}</span>
-          <span class="meta-text">创建时间: {{ deploymentInfo.created_at ? new Date(deploymentInfo.created_at).toLocaleString() : '-' }}</span>
+          <span class="meta-text">{{ $tr("创建人:") }} {{ deploymentInfo.creator_name || '-' }}</span>
+          <span class="meta-text">{{ $tr("创建时间:") }} {{ deploymentInfo.created_at ? new Date(deploymentInfo.created_at).toLocaleString() : '-' }}</span>
         </div>
       </div>
       <div class="header-actions">
@@ -30,7 +30,7 @@
             class="modern-btn green-btn"
             :loading="executing">
             <el-icon><VideoPlay /></el-icon>
-            启动jenkins任务
+            {{ $tr("启动jenkins任务") }}
             <el-icon class="el-icon--right"><ArrowDown /></el-icon>
           </el-button>
           <template #dropdown>
@@ -39,18 +39,18 @@
                 <div class="mode-option">
                   <el-icon><Sort /></el-icon>
                   <div class="mode-info">
-                    <div class="mode-title">串行执行</div>
-                    <div class="mode-desc">按顺序执行，适合有依赖关系的任务</div>
+                    <div class="mode-title">{{ $tr("串行执行") }}</div>
+                    <div class="mode-desc">{{ $tr("按顺序执行，适合有依赖关系的任务") }}</div>
                   </div>
-                  <el-tag size="small" type="success">默认</el-tag>
+                  <el-tag size="small" type="success">{{ $tr("默认") }}</el-tag>
                 </div>
               </el-dropdown-item>
               <el-dropdown-item :command="1" class="execution-mode-item">
                 <div class="mode-option">
                   <el-icon><Grid /></el-icon>
                   <div class="mode-info">
-                    <div class="mode-title">并行执行</div>
-                    <div class="mode-desc">同时执行，适合独立的部署任务</div>
+                    <div class="mode-title">{{ $tr("并行执行") }}</div>
+                    <div class="mode-desc">{{ $tr("同时执行，适合独立的部署任务") }}</div>
                   </div>
                 </div>
               </el-dropdown-item>
@@ -59,12 +59,12 @@
         </el-dropdown>
         <el-button @click="handleRefresh" size="small" class="modern-btn blue-btn">
           <el-icon><Refresh /></el-icon>
-          刷新状态
+          {{ $tr("刷新状态") }}
         </el-button>
 
         <el-button @click="handleGoBack" size="small" class="modern-btn green-btn">
           <el-icon><ArrowLeft /></el-icon>
-          返回列表
+          {{ $tr("返回列表") }}
         </el-button>
       </div>
       </div>
@@ -103,8 +103,8 @@
         <div class="status-text" :class="'status-' + getTaskStatusName(task.status)">
           {{
             task.status === 3 ? '完成' :
-            task.status === 2 ? '运行中' :
-            task.status === 4 ? '异常' : '等待'
+            task.status === 2 ? $tr('运行中') :
+            task.status === 4 ? $tr('异常') : '等待'
           }}
         </div>
 
@@ -117,46 +117,46 @@
           {{ task.app_name }}
         </h3>
 
-        <p class="card-content">应用: {{ task.app_code }}</p>
-        <p class="card-content">环境: {{ task.environment }}</p>
+        <p class="card-content">{{ $tr("应用:") }} {{ task.app_code }}</p>
+        <p class="card-content">{{ $tr("环境:") }} {{ task.environment }}</p>
         <div class="card-duration" v-if="task.duration > 0">
-          执行时长: {{ formatDuration(task.duration) }}
+          {{ $tr("执行时长:") }} {{ formatDuration(task.duration) }}
         </div>
         <div class="card-buttons">
           <!-- 调试信息 -->
           <div style="font-size: 10px; color: #999; margin-bottom: 5px;">
-            任务ID: {{ task.id }} | 状态: {{ task.status }} | 应用: {{ task.app_name }}<br>
+            {{ $tr("任务ID:") }} {{ task.id }} {{ $tr("| 状态:") }} {{ task.status }} {{ $tr("| 应用:") }} {{ task.app_name }}<br>
             Jenkins URL: {{ task.jenkins_job_url || task.log_url || '无' }}
           </div>
 
-          <el-tooltip effect="dark" content="查看日志" placement="top">
-            <button @click.stop="showTaskDetail(task)" class="btn-icon">
-              <img :src="$getAssetUrl('@/assets/image/日志.svg')" width="20" height="20" alt="日志" />
-            </button>
+          <el-tooltip effect="dark" :content='$tr("查看日志")' placement="top">
+            <el-button @click.stop="showTaskDetail(task)" class="btn-icon">
+              <img :src="$getAssetUrl('@/assets/image/日志.svg')" width="20" height="20" :alt='$tr("日志")' />
+            </el-button>
           </el-tooltip>
-          <el-tooltip effect="dark" content="停止任务" placement="top">
-            <button v-authority="['app:quick-release:jobstop']" @click.stop="handleStopTask(task)" class="btn-icon stop-btn">
+          <el-tooltip effect="dark" :content='$tr("停止任务")' placement="top">
+            <el-button v-authority="['app:quick-release:jobstop']" @click.stop="handleStopTask(task)" class="btn-icon stop-btn">
               <img
                 :src="$getAssetUrl('@/assets/image/停止.svg')"
                 width="20"
                 height="20"
-                alt="停止" />
-            </button>
+                :alt='$tr("停止")' />
+            </el-button>
           </el-tooltip>
-          <el-tooltip v-if="task.jenkins_job_url || task.log_url" effect="dark" content="Jenkins任务" placement="top">
-            <button @click.stop="openJenkinsJob(task.jenkins_job_url || task.log_url)" class="btn-icon">
+          <el-tooltip v-if="task.jenkins_job_url || task.log_url" effect="dark" :content='$tr("Jenkins任务")' placement="top">
+            <el-button @click.stop="openJenkinsJob(task.jenkins_job_url || task.log_url)" class="btn-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="white" stroke-width="2" stroke-linecap="round"/>
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="white" stroke-width="2" stroke-linecap="round"/>
               </svg>
-            </button>
+            </el-button>
           </el-tooltip>
         </div>
 
         <!-- 错误信息显示 -->
         <div v-if="task.status === 4 && task.error_message" class="error-message">
           <el-alert
-            :title="task.error_message"
+            :title="$tr(task.error_message)"
             type="error"
             :closable="false"
             show-icon>
@@ -166,7 +166,7 @@
         <!-- 构建信息 -->
         <div v-if="task.build_number" class="build-info">
           <el-tag size="small" type="info">
-            构建 #{{ task.build_number }}
+            {{ $tr("构建 #") }}{{ task.build_number }}
           </el-tag>
         </div>
       </div>
@@ -178,37 +178,37 @@
     <!-- 任务详情对话框 -->
     <el-dialog
       v-model="taskDetailVisible"
-      :title="currentTask?.app_name || '任务详情'"
+      :title="$tr(currentTask?.app_name || '任务详情')"
       width="600px"
       class="modern-dialog task-detail-dialog">
       <div v-if="currentTask" class="task-detail-content">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="应用名称">{{ currentTask.app_name }}</el-descriptions-item>
-          <el-descriptions-item label="应用编码">{{ currentTask.app_code }}</el-descriptions-item>
-          <el-descriptions-item label="环境">{{ currentTask.environment }}</el-descriptions-item>
-          <el-descriptions-item label="执行顺序">{{ currentTask.execute_order }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getTaskStatusType(currentTask.status)">{{ getTaskStatusText(currentTask.status) }}</el-tag>
+          <el-descriptions-item :label='$tr("应用名称")'>{{ currentTask.app_name }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("应用编码")'>{{ currentTask.app_code }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("环境")'>{{ currentTask.environment }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("执行顺序")'>{{ currentTask.execute_order }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("状态")'>
+            <el-tag :type="getTaskStatusType(currentTask.status)">{{ $tr(getTaskStatusText(currentTask.status)) }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="Jenkins任务ID">{{ currentTask.jenkins_env_id || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="开始时间">
+          <el-descriptions-item :label='$tr("Jenkins任务ID")'>{{ currentTask.jenkins_env_id || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("开始时间")'>
             {{ currentTask.start_time ? new Date(currentTask.start_time).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="结束时间">
+          <el-descriptions-item :label='$tr("结束时间")'>
             {{ currentTask.end_time ? new Date(currentTask.end_time).toLocaleString() : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="耗时">
+          <el-descriptions-item :label='$tr("耗时")'>
             {{ currentTask.duration ? formatDuration(currentTask.duration) : '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="构建号">
+          <el-descriptions-item :label='$tr("构建号")'>
             {{ currentTask.build_number || '-' }}
           </el-descriptions-item>
         </el-descriptions>
 
         <div v-if="currentTask.error_message" class="error-section">
-          <h4>错误信息</h4>
+          <h4>{{ $tr("错误信息") }}</h4>
           <el-alert
-            :title="currentTask.error_message"
+            :title="$tr(currentTask.error_message)"
             type="error"
             :closable="false"
             show-icon>
@@ -218,10 +218,10 @@
         <!-- 实时日志显示 -->
         <div class="log-section">
           <div class="log-header">
-            <h4>实时日志 <small>（任务ID: {{ currentTask.id }}）</small></h4>
+            <h4>{{ $tr("实时日志") }} <small>{{ $tr("（任务ID:") }} {{ currentTask.id }}）</small></h4>
             <el-button size="small" @click="fetchTaskLogImmediately(currentTask.id)" type="primary">
               <el-icon><Refresh /></el-icon>
-              刷新日志
+              {{ $tr("刷新日志") }}
             </el-button>
           </div>
           <div class="log-container">
@@ -234,8 +234,7 @@
             />
           </div>
           <div class="log-info">
-            <small>日志长度: {{ getTaskLog(currentTask.id).length }} 字符 |
-            实时更新: {{ monitoringIntervals.has(`log_${currentTask.id}`) ? '开启' : '关闭' }}</small>
+            <small>{{ $tr("日志长度:") }} {{ getTaskLog(currentTask.id).length }} {{ $tr("字符 | 实时更新:") }} {{ monitoringIntervals.has(`log_${currentTask.id}`) ? '开启' : $tr('关闭') }}</small>
           </div>
         </div>
 
@@ -245,14 +244,14 @@
             @click="openJenkinsJob(currentTask.jenkins_job_url || currentTask.log_url)"
             type="primary">
             <el-icon><Link /></el-icon>
-            打开Jenkins任务
+            {{ $tr("打开Jenkins任务") }}
           </el-button>
           <el-button
             v-if="currentTask.log_url"
             @click="openLogUrl(currentTask.log_url)"
             type="success">
             <el-icon><Document /></el-icon>
-            查看构建日志
+            {{ $tr("查看构建日志") }}
           </el-button>
         </div>
       </div>
@@ -261,6 +260,8 @@
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, computed, nextTick, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -426,11 +427,11 @@ const fetchDeploymentDetail = async () => {
       // 开始监控任务
       startAllTasksMonitoring()
     } else {
-      ElMessage.error(response.data.message || '获取部署详情失败')
+      ElMessage.error(response.data.message || tr('获取部署详情失败'))
     }
   } catch (error) {
     console.error('获取部署详情失败:', error)
-    ElMessage.error('获取部署详情失败')
+    ElMessage.error(tr('获取部署详情失败'))
   } finally {
     loading.value = false
   }
@@ -531,10 +532,10 @@ const handleExecuteDeployment = async (executionMode = 2) => {
     const modeText = executionMode === 1 ? '并行执行' : '串行执行'
     await ElMessageBox.confirm(
       `确定要${modeText}发布任务"${deploymentInfo.value.title}"吗？`,
-      '确认执行',
+      tr('确认执行'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     )
@@ -556,7 +557,7 @@ const handleExecuteDeployment = async (executionMode = 2) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('执行发布失败:', error)
-      ElMessage.error('执行发布失败')
+      ElMessage.error(tr('执行发布失败'))
     }
   } finally {
     executing.value = false
@@ -620,17 +621,17 @@ const openLogUrl = (url) => {
 const handleStopTask = async (task) => {
   // 如果任务已完成或失败，不允许停止
   if (task.status === 3 || task.status === 4) {
-    ElMessage.warning('任务已完成或失败，无法停止')
+    ElMessage.warning(tr('任务已完成或失败，无法停止'))
     return
   }
 
   try {
     await ElMessageBox.confirm(
       `确定要停止任务"${task.app_name}"吗？`,
-      '确认停止',
+      tr('确认停止'),
       {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }
     )
@@ -638,18 +639,18 @@ const handleStopTask = async (task) => {
     // 调用停止任务的API
     const response = await appApi.stopTask(task.id)
     if (response.data.code === 200) {
-      ElMessage.success('任务停止成功')
+      ElMessage.success(tr('任务停止成功'))
       // 停止对该任务的监控
       stopTaskMonitoring(task.id)
       // 刷新数据
       fetchDeploymentDetail()
     } else {
-      ElMessage.error(response.data.message || '停止任务失败')
+      ElMessage.error(response.data.message || tr('停止任务失败'))
     }
   } catch (error) {
     if (error !== 'cancel') {
       console.error('停止任务失败:', error)
-      ElMessage.error('停止任务失败')
+      ElMessage.error(tr('停止任务失败'))
     }
   }
 }

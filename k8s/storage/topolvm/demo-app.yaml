@@ -1,0 +1,27 @@
+# 演示：使用 demo-pvc 的 Deployment（触发 TopoLVM 动态供给自动绑定）
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: test-pv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+        - name: alpine
+          image: docker.io/library/alpine:latest
+          command: ["/bin/sh", "-c", "sleep 3600"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: demo-pvc

@@ -1,39 +1,39 @@
 <template>
   <div class="k8s-permission">
-    <div class="page-header">
-      <h2>K8s 权限管理</h2>
+    <div v-if="!embedded" class="page-header">
+      <h2>{{ $tr("K8s 权限管理") }}</h2>
     </div>
 
     <!-- 标签页切换 -->
-    <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+    <el-tabs :class="{ 'groups-only': section === 'groups' }" v-model="activeTab" @tab-click="handleTabClick">
       <!-- ==================== 用户权限管理 ==================== -->
-      <el-tab-pane label="用户权限" name="userPermission">
+      <el-tab-pane :label='$tr("用户权限")' name="userPermission" v-if="section !== 'groups'">
         <div class="header-actions">
-          <el-button type="primary" @click="showCreateDialog">+ 新增权限</el-button>
-          <el-button type="success" @click="showBatchCreateDialog" >批量授权</el-button>
+          <el-button type="primary" @click="showCreateDialog">{{ $tr("+ 新增权限") }}</el-button>
+          <el-button @click="showBatchCreateDialog" >{{ $tr("批量授权") }}</el-button>
         </div>
 
         <!-- 搜索区域 -->
         <div class="search-area">
           <el-form :inline="true" :model="queryParams" size="small">
-            <el-form-item label="用户">
-              <el-select v-model="queryParams.userId" placeholder="选择用户" clearable filterable style="width: 180px">
-                <el-option v-for="user in userList" :key="user.id" :label="(user.username||'') + ' (' + (user.nickname||'') + ')'" :value="user.id" />
+            <el-form-item :label='$tr("用户")'>
+              <el-select v-model="queryParams.userId" :placeholder='$tr("选择用户")' clearable filterable style="width: 180px">
+                <el-option v-for="user in userList" :key="user.id" :label="$tr((user.username||'') + ' (' + (user.nickname||'') + ')')" :value="user.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="集群">
-              <el-select v-model="queryParams.clusterId" placeholder="选择集群" clearable filterable style="width: 180px" @change="onClusterChangeForFilter">
-                <el-option v-for="cluster in clusterList" :key="cluster.id" :label="cluster.name" :value="cluster.id" />
+            <el-form-item :label='$tr("集群")'>
+              <el-select v-model="queryParams.clusterId" :placeholder='$tr("选择集群")' clearable filterable style="width: 180px" @change="onClusterChangeForFilter">
+                <el-option v-for="cluster in clusterList" :key="cluster.id" :label="$tr(cluster.name)" :value="cluster.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="命名空间">
-              <el-select v-model="queryParams.namespace" placeholder="选择命名空间" clearable filterable style="width: 180px">
-                <el-option v-for="ns in filterNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+            <el-form-item :label='$tr("命名空间")'>
+              <el-select v-model="queryParams.namespace" :placeholder='$tr("选择命名空间")' clearable filterable style="width: 180px">
+                <el-option v-for="ns in filterNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
               </el-select>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="handleSearch">查询</el-button>
-              <el-button @click="handleReset">重置</el-button>
+              <el-button type="primary" @click="handleSearch">{{ $tr("查询") }}</el-button>
+              <el-button @click="handleReset">{{ $tr("重置") }}</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -41,43 +41,43 @@
         <!-- 权限列表 -->
         <el-table :data="permissionList" v-loading="loading" class="modern-table">
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column prop="username" label="用户名" min-width="120">
+          <el-table-column prop="username" :label='$tr("用户名")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.username || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="nickname" label="昵称" min-width="120">
+          <el-table-column prop="nickname" :label='$tr("昵称")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.nickname || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="clusterName" label="集群名称" min-width="150">
+          <el-table-column prop="clusterName" :label='$tr("集群名称")' min-width="150">
             <template #default="scope">
               <span>{{ scope.row.clusterName || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="命名空间" min-width="150">
+          <el-table-column :label='$tr("命名空间")' min-width="150">
             <template #default="scope">
               <span>{{ scope.row.namespace || '(集群级别)' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="permissionType" label="权限类型" width="120" align="center">
+          <el-table-column prop="permissionType" :label='$tr("权限类型")' width="120" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.permissionType === 'admin' ? 'danger' : scope.row.permissionType === 'write' ? 'warning' : 'info'" size="small">
-                {{ scope.row.permissionType === 'admin' ? '管理员' : scope.row.permissionType === 'write' ? '读写' : '只读' }}
+                {{ scope.row.permissionType === 'admin' ? '管理员' : scope.row.permissionType === 'write' ? '读写' : $tr('只读') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="180" />
-          <el-table-column label="操作" width="200" align="center" fixed="right">
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="180" />
+          <el-table-column :label='$tr("操作")' width="200" align="center" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button type="warning" size="small"  @click="showEditDialog(scope.row)">
                     <el-icon><Edit /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button type="danger" size="small"  @click="handleDelete(scope.row)">
                     <el-icon><Delete /></el-icon>
                   </el-button>
@@ -102,18 +102,18 @@
       </el-tab-pane>
 
       <!-- ==================== 用户组管理 ==================== -->
-      <el-tab-pane label="用户组管理" name="userGroup">
+      <el-tab-pane :label='$tr("用户组管理")' name="userGroup" v-if="section === 'groups'">
         <div class="header-actions">
-          <el-button type="primary" @click="showGroupCreateDialog" >+ 新增用户组</el-button>
+          <el-button type="primary" @click="showGroupCreateDialog" >{{ $tr("+ 新增用户组") }}</el-button>
         </div>
         <div class="search-area">
           <el-form :inline="true" size="small">
-            <el-form-item label="用户组名称">
-              <el-input v-model="groupQuery.name" placeholder="用户组名称" clearable style="width: 200px" @keyup.enter="handleGroupSearch" />
+            <el-form-item :label='$tr("用户组名称")'>
+              <el-input v-model="groupQuery.name" :placeholder='$tr("用户组名称")' clearable style="width: 200px" @keyup.enter="handleGroupSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="handleGroupSearch">查询</el-button>
-              <el-button @click="groupQuery={page:1,size:10,name:''};fetchGroupList()">重置</el-button>
+              <el-button type="primary" @click="handleGroupSearch">{{ $tr("查询") }}</el-button>
+              <el-button @click="groupQuery={page:1,size:10,name:''};fetchGroupList()">{{ $tr("重置") }}</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -121,36 +121,36 @@
         <!-- 用户组列表 -->
         <el-table :data="groupList" v-loading="groupLoading" class="modern-table">
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column prop="name" label="用户组名称" min-width="150" />
-          <el-table-column prop="code" label="编码" min-width="120" />
-          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="status" label="状态" width="80" align="center">
+          <el-table-column prop="name" :label='$tr("用户组名称")' min-width="150" />
+          <el-table-column prop="code" :label='$tr("编码")' min-width="120" />
+          <el-table-column prop="description" :label='$tr("描述")' min-width="200" show-overflow-tooltip />
+          <el-table-column prop="status" :label='$tr("状态")' width="80" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.status === 1 ? 'success' : 'info'" size="small">
-                {{ scope.row.status === 1 ? '启用' : '禁用' }}
+                {{ scope.row.status === 1 ? $tr('启用') : $tr('禁用') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="180" />
-          <el-table-column label="操作" width="300" align="center" fixed="right">
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="180" />
+          <el-table-column :label='$tr("操作")' width="300" align="center" fixed="right">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button type="warning" size="small"  @click="showGroupEditDialog(scope.row)">
                     <el-icon><Edit /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="成员" placement="top">
+                <el-tooltip :content='$tr("成员")' placement="top">
                   <el-button type="primary" size="small"  @click="showGroupMembersDialog(scope.row)">
                     <el-icon><User /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="权限" placement="top">
+                <el-tooltip :content='$tr("权限")' placement="top">
                   <el-button type="success" size="small"  @click="showGroupPermissionsDialog(scope.row)">
                     <el-icon><Key /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button type="danger" size="small"  @click="handleDeleteGroup(scope.row)">
                     <el-icon><Delete /></el-icon>
                   </el-button>
@@ -175,56 +175,56 @@
       </el-tab-pane>
 
       <!-- ==================== RBAC 角色管理 ==================== -->
-      <el-tab-pane label="RBAC 角色" name="rbacRole">
+      <el-tab-pane :label='$tr("RBAC 角色")' name="rbacRole" v-if="section !== 'groups'">
         <div class="header-actions">
-          <el-button type="primary" @click="showRbacRoleCreateDialog">+ 新增角色</el-button>
+          <el-button type="primary" @click="showRbacRoleCreateDialog">{{ $tr("+ 新增角色") }}</el-button>
         </div>
         <div class="search-area">
           <el-form :inline="true" size="small">
-            <el-form-item label="集群">
-              <el-select v-model="rbacRoleQuery.clusterId" placeholder="选择集群" clearable filterable style="width: 180px" @change="onRbacRoleFilterClusterChange">
-                <el-option v-for="c in clusterList" :key="c.id" :label="c.name" :value="c.id" />
+            <el-form-item :label='$tr("集群")'>
+              <el-select v-model="rbacRoleQuery.clusterId" :placeholder='$tr("选择集群")' clearable filterable style="width: 180px" @change="onRbacRoleFilterClusterChange">
+                <el-option v-for="c in clusterList" :key="c.id" :label="$tr(c.name)" :value="c.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="命名空间">
-              <el-select v-model="rbacRoleQuery.namespace" placeholder="选择命名空间" clearable filterable multiple style="width: 200px">
-                <el-option v-for="ns in rbacRoleFilterNsOptions" :key="ns" :label="ns" :value="ns" />
+            <el-form-item :label='$tr("命名空间")'>
+              <el-select v-model="rbacRoleQuery.namespace" :placeholder='$tr("选择命名空间")' clearable filterable multiple style="width: 200px">
+                <el-option v-for="ns in rbacRoleFilterNsOptions" :key="ns" :label="$tr(ns)" :value="ns" />
               </el-select>
             </el-form-item>
-            <el-form-item label="角色名称">
-              <el-input v-model="rbacRoleQuery.name" placeholder="角色名称" clearable style="width: 150px" />
+            <el-form-item :label='$tr("角色名称")'>
+              <el-input v-model="rbacRoleQuery.name" :placeholder='$tr("角色名称")' clearable style="width: 150px" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="rbacRoleQuery.page=1;fetchRbacRoleList()">查询</el-button>
-              <el-button @click="rbacRoleQuery={clusterId:undefined,namespace:'',name:'',page:1,size:10};rbacRoleFilterNsOptions=[];fetchRbacRoleList()">重置</el-button>
+              <el-button type="primary" @click="rbacRoleQuery.page=1;fetchRbacRoleList()">{{ $tr("查询") }}</el-button>
+              <el-button @click="rbacRoleQuery={clusterId:undefined,namespace:'',name:'',page:1,size:10};rbacRoleFilterNsOptions=[];fetchRbacRoleList()">{{ $tr("重置") }}</el-button>
             </el-form-item>
           </el-form>
         </div>
         <el-table :data="rbacRoleList" v-loading="rbacRoleLoading" class="modern-table">
           <el-table-column prop="id" label="ID" width="60" />
-          <el-table-column prop="name" label="角色名称" min-width="140" />
-          <el-table-column label="集群" min-width="120">
+          <el-table-column prop="name" :label='$tr("角色名称")' min-width="140" />
+          <el-table-column :label='$tr("集群")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.clusterName || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="命名空间" width="120">
+          <el-table-column :label='$tr("命名空间")' width="120">
             <template #default="scope">
               <span>{{ scope.row.namespace || '(集群级别)' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="规则 (Rules)" min-width="300">
+          <el-table-column :label='$tr("规则 (Rules)")' min-width="300">
             <template #default="scope">
               <div v-if="scope.row.rules && scope.row.rules.length" v-for="(rule, i) in scope.row.rules" :key="i" class="rbac-rule-item">
                 <el-tag size="small" type="primary">API: {{ (rule.apiGroups||['']).join(',') }}</el-tag>
-                <el-tag size="small" type="success">资源: {{ (rule.resources||['']).join(',') }}</el-tag>
-                <el-tag size="small" :type="getVerbsTagType(rule.verbs)">操作: {{ (rule.verbs||['']).join(',') }}</el-tag>
+                <el-tag size="small" type="success">{{ $tr("资源:") }} {{ (rule.resources||['']).join(',') }}</el-tag>
+                <el-tag size="small" :type="getVerbsTagType(rule.verbs)">{{ $tr("操作:") }} {{ (rule.verbs||['']).join(',') }}</el-tag>
               </div>
-              <span v-else class="no-verbs">无规则</span>
+              <span v-else class="no-verbs">{{ $tr("无规则") }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="170" />
-          <el-table-column label="操作" width="160" align="center" fixed="right">
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="170" />
+          <el-table-column :label='$tr("操作")' width="160" align="center" fixed="right">
             <template #default="scope">
               <el-button type="warning" size="small" @click="showRbacRoleEditDialog(scope.row)">
                 <el-icon><Edit /></el-icon>
@@ -249,68 +249,68 @@
       </el-tab-pane>
 
       <!-- ==================== RBAC 绑定管理 ==================== -->
-      <el-tab-pane label="RBAC 绑定" name="rbacBinding">
+      <el-tab-pane :label='$tr("RBAC 绑定")' name="rbacBinding" v-if="section !== 'groups'">
         <div class="header-actions">
-          <el-button type="primary" @click="showRbacBindingCreateDialog">+ 新增绑定</el-button>
+          <el-button type="primary" @click="showRbacBindingCreateDialog">{{ $tr("+ 新增绑定") }}</el-button>
         </div>
         <div class="search-area">
           <el-form :inline="true" size="small">
-            <el-form-item label="集群">
-              <el-select v-model="rbacBindingQuery.clusterId" placeholder="选择集群" clearable filterable style="width: 180px" @change="onRbacBindingFilterClusterChange">
-                <el-option v-for="c in clusterList" :key="c.id" :label="c.name" :value="c.id" />
+            <el-form-item :label='$tr("集群")'>
+              <el-select v-model="rbacBindingQuery.clusterId" :placeholder='$tr("选择集群")' clearable filterable style="width: 180px" @change="onRbacBindingFilterClusterChange">
+                <el-option v-for="c in clusterList" :key="c.id" :label="$tr(c.name)" :value="c.id" />
               </el-select>
             </el-form-item>
-            <el-form-item label="命名空间">
-              <el-select v-model="rbacBindingQuery.namespace" placeholder="选择命名空间" clearable filterable multiple style="width: 200px">
-                <el-option v-for="ns in rbacBindingFilterNsOptions" :key="ns" :label="ns" :value="ns" />
+            <el-form-item :label='$tr("命名空间")'>
+              <el-select v-model="rbacBindingQuery.namespace" :placeholder='$tr("选择命名空间")' clearable filterable multiple style="width: 200px">
+                <el-option v-for="ns in rbacBindingFilterNsOptions" :key="ns" :label="$tr(ns)" :value="ns" />
               </el-select>
             </el-form-item>
-            <el-form-item label="主体类型">
-              <el-select v-model="rbacBindingQuery.subjectType" placeholder="主体类型" clearable style="width: 120px">
-                <el-option label="用户" value="User" />
-                <el-option label="用户组" value="Group" />
+            <el-form-item :label='$tr("主体类型")'>
+              <el-select v-model="rbacBindingQuery.subjectType" :placeholder='$tr("主体类型")' clearable style="width: 120px">
+                <el-option :label='$tr("用户")' value="User" />
+                <el-option :label='$tr("用户组")' value="Group" />
               </el-select>
             </el-form-item>
-            <el-form-item label="主体名称">
-              <el-input v-model="rbacBindingQuery.subjectName" placeholder="主体名称" clearable style="width: 150px" />
+            <el-form-item :label='$tr("主体名称")'>
+              <el-input v-model="rbacBindingQuery.subjectName" :placeholder='$tr("主体名称")' clearable style="width: 150px" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="rbacBindingQuery.page=1;fetchRbacBindingList()">查询</el-button>
-              <el-button @click="rbacBindingQuery={clusterId:undefined,namespace:'',subjectType:'',subjectName:'',page:1,size:10};rbacBindingFilterNsOptions=[];fetchRbacBindingList()">重置</el-button>
+              <el-button type="primary" @click="rbacBindingQuery.page=1;fetchRbacBindingList()">{{ $tr("查询") }}</el-button>
+              <el-button @click="rbacBindingQuery={clusterId:undefined,namespace:'',subjectType:'',subjectName:'',page:1,size:10};rbacBindingFilterNsOptions=[];fetchRbacBindingList()">{{ $tr("重置") }}</el-button>
             </el-form-item>
           </el-form>
         </div>
         <el-table :data="rbacBindingList" v-loading="rbacBindingLoading" class="modern-table">
           <el-table-column prop="id" label="ID" width="60" />
-          <el-table-column label="集群" min-width="120">
+          <el-table-column :label='$tr("集群")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.clusterName || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="命名空间" width="120">
+          <el-table-column :label='$tr("命名空间")' width="120">
             <template #default="scope">
               <span>{{ scope.row.namespace || '(集群级别)' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="角色" min-width="140">
+          <el-table-column :label='$tr("角色")' min-width="140">
             <template #default="scope">
               <span>{{ scope.row.roleName || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="subjectType" label="主体类型" width="100" align="center">
+          <el-table-column prop="subjectType" :label='$tr("主体类型")' width="100" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.subjectType==='User'?'primary':'success'" size="small">
-                {{ scope.row.subjectType==='User'?'用户':'用户组' }}
+                {{ scope.row.subjectType==='User'?'用户':$tr('用户组') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="主体名称" min-width="140">
+          <el-table-column :label='$tr("主体名称")' min-width="140">
             <template #default="scope">
               <span>{{ scope.row.subjectName || scope.row.subjectId || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="170" />
-          <el-table-column label="操作" width="150" align="center" fixed="right">
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="170" />
+          <el-table-column :label='$tr("操作")' width="150" align="center" fixed="right">
             <template #default="scope">
               <el-button type="warning" size="small" @click="showRbacBindingEditDialog(scope.row)">
                 <el-icon><Edit /></el-icon>
@@ -335,36 +335,36 @@
       </el-tab-pane>
 
       <!-- ==================== 我的权限 ==================== -->
-      <el-tab-pane label="我的权限" name="myPermissions">
-        <el-alert title="以下显示您在当前 K8s 模块中的有效权限，合并自直接授权、用户组继承和 RBAC 角色绑定" type="info" show-icon :closable="false" style="margin-bottom:16px" />
+      <el-tab-pane :label='$tr("我的权限")' name="myPermissions" v-if="section !== 'groups'">
+        <el-alert :title='$tr("以下显示您在当前 K8s 模块中的有效权限，合并自直接授权、用户组继承和 RBAC 角色绑定")' type="info" show-icon :closable="false" style="margin-bottom:16px" />
         <div class="header-actions">
-          <el-button type="primary" @click="fetchMyPermissions">刷新权限</el-button>
+          <el-button type="primary" @click="fetchMyPermissions">{{ $tr("刷新权限") }}</el-button>
         </div>
         <el-table :data="myPermList" v-loading="myPermLoading" class="modern-table">
-          <el-table-column label="集群" min-width="140">
+          <el-table-column :label='$tr("集群")' min-width="140">
             <template #default="scope">
               <span>{{ scope.row.clusterName || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="namespace" label="命名空间" width="140">
+          <el-table-column prop="namespace" :label='$tr("命名空间")' width="140">
             <template #default="scope">
-              <span v-if="scope.row.clusterId===0 && scope.row.namespace==='*'" style="font-weight:bold">所有命名空间</span>
+              <span v-if="scope.row.clusterId===0 && scope.row.namespace==='*'" style="font-weight:bold">{{ $tr("所有命名空间") }}</span>
               <span v-else>{{ scope.row.namespace || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="permissionType" label="权限级别" width="120" align="center">
+          <el-table-column prop="permissionType" :label='$tr("权限级别")' width="120" align="center">
             <template #default="scope">
               <el-tag v-if="scope.row.permissionType" :type="scope.row.permissionType==='admin'?'danger':scope.row.permissionType==='write'?'warning':'info'" size="small">
-                {{ scope.row.permissionType==='admin'?'管理员':scope.row.permissionType==='write'?'读写':'只读' }}
+                {{ scope.row.permissionType==='admin'?'管理员':scope.row.permissionType==='write'?'读写':$tr('只读') }}
               </el-tag>
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column prop="source" label="来源" width="100" align="center">
+          <el-table-column prop="source" :label='$tr("来源")' width="100" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.source==='system'" type="danger" size="small">系统</el-tag>
-              <el-tag v-else-if="scope.row.source==='direct'" type="primary" size="small">直接授权</el-tag>
-              <el-tag v-else-if="scope.row.source==='group'" type="success" size="small">用户组</el-tag>
+              <el-tag v-if="scope.row.source==='system'" type="danger" size="small">{{ $tr("系统") }}</el-tag>
+              <el-tag v-else-if="scope.row.source==='direct'" type="primary" size="small">{{ $tr("直接授权") }}</el-tag>
+              <el-tag v-else-if="scope.row.source==='group'" type="success" size="small">{{ $tr("用户组") }}</el-tag>
               <el-tag v-else-if="scope.row.source==='rbac'" type="warning" size="small">RBAC</el-tag>
               <span v-else>-</span>
             </template>
@@ -395,119 +395,119 @@
     </el-tabs>
 
     <!-- ==================== 创建/编辑权限对话框 ==================== -->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" @close="resetDialog">
+    <el-dialog :title="$tr(dialogTitle)" v-model="dialogVisible" width="500px" @close="resetDialog">
       <el-form :model="formData" :rules="formRules" ref="formRef" label-width="100px">
-        <el-form-item label="用户" prop="userId">
-          <el-select v-model="formData.userId" placeholder="选择用户" filterable style="width: 100%">
-            <el-option v-for="user in userList" :key="user.id" :label="user.username + ' (' + user.nickname + ')'" :value="user.id" />
+        <el-form-item :label='$tr("用户")' prop="userId">
+          <el-select v-model="formData.userId" :placeholder='$tr("选择用户")' filterable style="width: 100%">
+            <el-option v-for="user in userList" :key="user.id" :label="$tr(user.username + ' (' + user.nickname + ')')" :value="user.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="formData.clusterId" placeholder="选择集群" filterable style="width: 100%" @change="onDialogClusterChange">
-            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="cluster.name" :value="cluster.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="formData.clusterId" :placeholder='$tr("选择集群")' filterable style="width: 100%" @change="onDialogClusterChange">
+            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="$tr(cluster.name)" :value="cluster.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespace">
-          <el-select v-model="formData.namespace" placeholder="选择命名空间" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespace">
+          <el-select v-model="formData.namespace" :placeholder='$tr("选择命名空间")' filterable allow-create default-first-option style="width: 100%">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">{{ $tr("选择命名空间，也可手动输入") }}</div>
         </el-form-item>
-        <el-form-item label="权限类型" prop="permissionType">
-          <el-select v-model="formData.permissionType" placeholder="选择权限类型" style="width: 100%">
-            <el-option label="只读 (readonly)" value="readonly" />
-            <el-option label="读写 (write)" value="write" />
-            <el-option label="管理员 (admin)" value="admin" />
+        <el-form-item :label='$tr("权限类型")' prop="permissionType">
+          <el-select v-model="formData.permissionType" :placeholder='$tr("选择权限类型")' style="width: 100%">
+            <el-option :label='$tr("只读 (readonly)")' value="readonly" />
+            <el-option :label='$tr("读写 (write)")' value="write" />
+            <el-option :label='$tr("管理员 (admin)")' value="admin" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- ==================== 批量授权对话框 ==================== -->
-    <el-dialog title="批量授权" v-model="batchDialogVisible" width="550px" @close="resetBatchDialog">
+    <el-dialog :title='$tr("批量授权")' v-model="batchDialogVisible" width="550px" @close="resetBatchDialog">
       <el-form :model="batchFormData" :rules="batchFormRules" ref="batchFormRef" label-width="100px">
-        <el-form-item label="用户" prop="userId">
-          <el-select v-model="batchFormData.userId" placeholder="选择用户" filterable style="width: 100%">
-            <el-option v-for="user in userList" :key="user.id" :label="user.username + ' (' + user.nickname + ')'" :value="user.id" />
+        <el-form-item :label='$tr("用户")' prop="userId">
+          <el-select v-model="batchFormData.userId" :placeholder='$tr("选择用户")' filterable style="width: 100%">
+            <el-option v-for="user in userList" :key="user.id" :label="$tr(user.username + ' (' + user.nickname + ')')" :value="user.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="batchFormData.clusterId" placeholder="选择集群" filterable style="width: 100%" @change="onBatchClusterChange">
-            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="cluster.name" :value="cluster.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="batchFormData.clusterId" :placeholder='$tr("选择集群")' filterable style="width: 100%" @change="onBatchClusterChange">
+            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="$tr(cluster.name)" :value="cluster.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespaces">
-          <el-select v-model="batchFormData.namespaces" multiple filterable allow-create default-first-option placeholder="选择或输入命名空间" style="width: 100%">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespaces">
+          <el-select v-model="batchFormData.namespaces" multiple filterable allow-create default-first-option :placeholder='$tr("选择或输入命名空间")' style="width: 100%">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">{{ $tr("支持手动输入多个命名空间，按回车确认") }}</div>
         </el-form-item>
-        <el-form-item label="权限类型" prop="permissionType">
-          <el-select v-model="batchFormData.permissionType" placeholder="选择权限类型" style="width: 100%">
-            <el-option label="只读 (readonly)" value="readonly" />
-            <el-option label="读写 (write)" value="write" />
-            <el-option label="管理员 (admin)" value="admin" />
+        <el-form-item :label='$tr("权限类型")' prop="permissionType">
+          <el-select v-model="batchFormData.permissionType" :placeholder='$tr("选择权限类型")' style="width: 100%">
+            <el-option :label='$tr("只读 (readonly)")' value="readonly" />
+            <el-option :label='$tr("读写 (write)")' value="write" />
+            <el-option :label='$tr("管理员 (admin)")' value="admin" />
           </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="batchDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleBatchSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="batchDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleBatchSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== 创建/编辑用户组对话框 ==================== -->
-    <el-dialog :title="groupDialogTitle" v-model="groupDialogVisible" width="500px" @close="resetGroupDialog">
+    <el-dialog :title="$tr(groupDialogTitle)" v-model="groupDialogVisible" width="500px" @close="resetGroupDialog">
       <el-form :model="groupFormData" :rules="groupFormRules" ref="groupFormRef" label-width="100px">
-        <el-form-item label="用户组名称" prop="name">
-          <el-input v-model="groupFormData.name" placeholder="输入用户组名称" />
+        <el-form-item :label='$tr("用户组名称")' prop="name">
+          <el-input v-model="groupFormData.name" :placeholder='$tr("输入用户组名称")' />
         </el-form-item>
-        <el-form-item label="编码" prop="code">
-          <el-input v-model="groupFormData.code" placeholder="输入用户组编码（可选）" />
+        <el-form-item :label='$tr("编码")' prop="code">
+          <el-input v-model="groupFormData.code" :placeholder='$tr("输入用户组编码（可选）")' />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="groupFormData.description" type="textarea" :rows="3" placeholder="输入描述（可选）" />
+        <el-form-item :label='$tr("描述")' prop="description">
+          <el-input v-model="groupFormData.description" type="textarea" :rows="3" :placeholder='$tr("输入描述（可选）")' />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item :label='$tr("状态")' prop="status">
           <el-radio-group v-model="groupFormData.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
+            <el-radio :label="1">{{ $tr("启用") }}</el-radio>
+            <el-radio :label="0">{{ $tr("禁用") }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="groupDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleGroupSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="groupDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleGroupSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== 用户组成员管理对话框 ==================== -->
-    <el-dialog title="用户组成员管理" v-model="memberDialogVisible" width="700px" @close="resetMemberDialog">
+    <el-dialog :title='$tr("用户组成员管理")' v-model="memberDialogVisible" width="700px" @close="resetMemberDialog">
       <div v-if="currentGroup">
         <div style="margin-bottom: 16px;">
-          <strong>用户组：</strong>{{ currentGroup.name }}
-          <el-button type="primary" size="small" style="float: right;"  @click="showAddMemberDialog">+ 添加成员</el-button>
+          <strong>{{ $tr("用户组：") }}</strong>{{ currentGroup.name }}
+          <el-button type="primary" size="small" style="float: right;"  @click="showAddMemberDialog">{{ $tr("+ 添加成员") }}</el-button>
         </div>
         <el-table :data="memberList" v-loading="memberLoading" class="modern-table">
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column label="用户名" min-width="120">
+          <el-table-column :label='$tr("用户名")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.username || scope.row.name || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="昵称" min-width="120">
+          <el-table-column :label='$tr("昵称")' min-width="120">
             <template #default="scope">
               <span>{{ scope.row.nickname || '-' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100" align="center">
+          <el-table-column :label='$tr("操作")' width="100" align="center">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="移除" placement="top">
+                <el-tooltip :content='$tr("移除")' placement="top">
                   <el-button type="danger" size="small"  @click="handleRemoveMember(scope.row)">
                     <el-icon><Delete /></el-icon>
                   </el-button>
@@ -520,49 +520,49 @@
     </el-dialog>
 
     <!-- ==================== 添加成员对话框 ==================== -->
-    <el-dialog title="添加成员" v-model="addMemberDialogVisible" width="500px">
+    <el-dialog :title='$tr("添加成员")' v-model="addMemberDialogVisible" width="500px">
       <el-form :model="addMemberForm" ref="addMemberFormRef" label-width="80px">
-        <el-form-item label="选择用户" prop="userIds" :rules="[{ required: true, message: '请选择用户', trigger: 'change' }]">
-          <el-select v-model="addMemberForm.userIds" multiple filterable placeholder="选择用户" style="width: 100%">
-            <el-option v-for="user in userList" :key="user.id" :label="user.username + ' (' + user.nickname + ')'" :value="user.id" />
+        <el-form-item :label='$tr("选择用户")' prop="userIds" :rules="[{ required: true, message: $tr('请选择用户'), trigger: 'change' }]">
+          <el-select v-model="addMemberForm.userIds" multiple filterable :placeholder='$tr("选择用户")' style="width: 100%">
+            <el-option v-for="user in userList" :key="user.id" :label="$tr(user.username + ' (' + user.nickname + ')')" :value="user.id" />
           </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="addMemberDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleAddMembers" :loading="submitLoading">确定</el-button>
+        <el-button @click="addMemberDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleAddMembers" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== 用户组权限管理对话框 ==================== -->
-    <el-dialog title="用户组权限管理" v-model="groupPermDialogVisible" width="800px" @close="resetGroupPermDialog">
+    <el-dialog :title='$tr("用户组权限管理")' v-model="groupPermDialogVisible" width="800px" @close="resetGroupPermDialog">
       <div v-if="currentGroup">
         <div style="margin-bottom: 16px;">
-          <strong>用户组：</strong>{{ currentGroup.name }}
-            <el-button type="primary" size="small" style="float: right;"  @click="showGroupPermCreateDialog">+ 新增权限</el-button>
-            <el-button type="success" size="small" style="float: right; margin-right: 8px;"  @click="showGroupPermBatchDialog">批量授权</el-button>
+          <strong>{{ $tr("用户组：") }}</strong>{{ currentGroup.name }}
+            <el-button type="primary" size="small" style="float: right;"  @click="showGroupPermCreateDialog">{{ $tr("+ 新增权限") }}</el-button>
+            <el-button type="success" size="small" style="float: right; margin-right: 8px;"  @click="showGroupPermBatchDialog">{{ $tr("批量授权") }}</el-button>
         </div>
         <el-table :data="groupPermList" v-loading="groupPermLoading" class="modern-table">
           <el-table-column label="ID" prop="id" v-if="false" />
-          <el-table-column prop="clusterName" label="集群名称" min-width="150" />
-          <el-table-column prop="namespace" label="命名空间" min-width="150" />
-          <el-table-column prop="permissionType" label="权限类型" width="120" align="center">
+          <el-table-column prop="clusterName" :label='$tr("集群名称")' min-width="150" />
+          <el-table-column prop="namespace" :label='$tr("命名空间")' min-width="150" />
+          <el-table-column prop="permissionType" :label='$tr("权限类型")' width="120" align="center">
             <template #default="scope">
               <el-tag :type="scope.row.permissionType === 'admin' ? 'danger' : scope.row.permissionType === 'write' ? 'warning' : 'info'" size="small">
-                {{ scope.row.permissionType === 'admin' ? '管理员' : scope.row.permissionType === 'write' ? '读写' : '只读' }}
+                {{ scope.row.permissionType === 'admin' ? '管理员' : scope.row.permissionType === 'write' ? '读写' : $tr('只读') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createdAt" label="创建时间" width="180" />
-          <el-table-column label="操作" width="150" align="center">
+          <el-table-column prop="createdAt" :label='$tr("创建时间")' width="180" />
+          <el-table-column :label='$tr("操作")' width="150" align="center">
             <template #default="scope">
               <div class="operation-buttons">
-                <el-tooltip content="编辑" placement="top">
+                <el-tooltip :content='$tr("编辑")' placement="top">
                   <el-button type="warning" size="small"  @click="showGroupPermEditDialog(scope.row)">
                     <el-icon><Edit /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button type="danger" size="small"  @click="handleDeleteGroupPerm(scope.row)">
                     <el-icon><Delete /></el-icon>
                   </el-button>
@@ -575,102 +575,106 @@
     </el-dialog>
 
     <!-- ==================== 用户组权限创建/编辑对话框 ==================== -->
-    <el-dialog :title="groupPermDialogTitle" v-model="groupPermFormVisible" width="500px" @close="resetGroupPermForm">
+    <el-dialog :title="$tr(groupPermDialogTitle)" v-model="groupPermFormVisible" width="500px" @close="resetGroupPermForm">
       <el-form :model="groupPermForm" :rules="groupPermFormRules" ref="groupPermFormRef" label-width="100px">
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="groupPermForm.clusterId" placeholder="选择集群" filterable style="width: 100%" @change="onGroupPermClusterChange">
-            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="cluster.name" :value="cluster.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="groupPermForm.clusterId" :placeholder='$tr("选择集群")' filterable style="width: 100%" @change="onGroupPermClusterChange">
+            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="$tr(cluster.name)" :value="cluster.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespace">
-          <el-select v-model="groupPermForm.namespace" placeholder="选择命名空间" filterable allow-create default-first-option style="width: 100%">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespace">
+          <el-select v-model="groupPermForm.namespace" :placeholder='$tr("选择命名空间")' filterable allow-create default-first-option style="width: 100%">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">选择命名空间，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">{{ $tr("选择命名空间，也可手动输入") }}</div>
         </el-form-item>
-        <el-form-item label="权限类型" prop="permissionType">
-          <el-select v-model="groupPermForm.permissionType" placeholder="选择权限类型" style="width: 100%">
-            <el-option label="只读 (readonly)" value="readonly" />
-            <el-option label="读写 (write)" value="write" />
-            <el-option label="管理员 (admin)" value="admin" />
+        <el-form-item :label='$tr("权限类型")' prop="permissionType">
+          <el-select v-model="groupPermForm.permissionType" :placeholder='$tr("选择权限类型")' style="width: 100%">
+            <el-option :label='$tr("只读 (readonly)")' value="readonly" />
+            <el-option :label='$tr("读写 (write)")' value="write" />
+            <el-option :label='$tr("管理员 (admin)")' value="admin" />
           </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="groupPermFormVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleGroupPermSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="groupPermFormVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleGroupPermSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== 用户组批量授权对话框 ==================== -->
-    <el-dialog title="用户组批量授权" v-model="groupPermBatchVisible" width="550px" @close="resetGroupPermBatchForm">
+    <el-dialog :title='$tr("用户组批量授权")' v-model="groupPermBatchVisible" width="550px" @close="resetGroupPermBatchForm">
       <el-form :model="groupPermBatchForm" :rules="groupPermBatchRules" ref="groupPermBatchRef" label-width="100px">
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="groupPermBatchForm.clusterId" placeholder="选择集群" filterable style="width: 100%" @change="onGroupPermBatchClusterChange">
-            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="cluster.name" :value="cluster.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="groupPermBatchForm.clusterId" :placeholder='$tr("选择集群")' filterable style="width: 100%" @change="onGroupPermBatchClusterChange">
+            <el-option v-for="cluster in clusterList" :key="cluster.id" :label="$tr(cluster.name)" :value="cluster.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespaces">
-          <el-select v-model="groupPermBatchForm.namespaces" multiple filterable allow-create default-first-option placeholder="选择或输入命名空间" style="width: 100%">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespaces">
+          <el-select v-model="groupPermBatchForm.namespaces" multiple filterable allow-create default-first-option :placeholder='$tr("选择或输入命名空间")' style="width: 100%">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">支持手动输入多个命名空间，按回车确认</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">{{ $tr("支持手动输入多个命名空间，按回车确认") }}</div>
         </el-form-item>
-        <el-form-item label="权限类型" prop="permissionType">
-          <el-select v-model="groupPermBatchForm.permissionType" placeholder="选择权限类型" style="width: 100%">
-            <el-option label="只读 (readonly)" value="readonly" />
-            <el-option label="读写 (write)" value="write" />
-            <el-option label="管理员 (admin)" value="admin" />
+        <el-form-item :label='$tr("权限类型")' prop="permissionType">
+          <el-select v-model="groupPermBatchForm.permissionType" :placeholder='$tr("选择权限类型")' style="width: 100%">
+            <el-option :label='$tr("只读 (readonly)")' value="readonly" />
+            <el-option :label='$tr("读写 (write)")' value="write" />
+            <el-option :label='$tr("管理员 (admin)")' value="admin" />
           </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="groupPermBatchVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleGroupPermBatchSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="groupPermBatchVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleGroupPermBatchSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== RBAC 角色创建/编辑对话框 ==================== -->
-    <el-dialog :title="rbacRoleDialogTitle" v-model="rbacRoleDialogVisible" width="750px" @close="resetRbacRoleDialog">
+    <el-dialog :title="$tr(rbacRoleDialogTitle)" v-model="rbacRoleDialogVisible" width="750px" @close="resetRbacRoleDialog">
       <el-form :model="rbacRoleForm" :rules="rbacRoleFormRules" ref="rbacRoleFormRef" label-width="100px">
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="rbacRoleForm.clusterId" placeholder="选择集群" filterable style="width: 100%" @change="onRbacRoleClusterChange">
-            <el-option v-for="c in clusterList" :key="c.id" :label="c.name" :value="c.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="rbacRoleForm.clusterId" :placeholder='$tr("选择集群")' filterable style="width: 100%" @change="onRbacRoleClusterChange">
+            <el-option v-for="c in clusterList" :key="c.id" :label="$tr(c.name)" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespace">
-          <el-select v-model="rbacRoleForm.namespace" placeholder="留空=集群级别" filterable allow-create clearable default-first-option style="width:100%">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespace">
+          <el-select v-model="rbacRoleForm.namespace" :placeholder='$tr("留空=集群级别")' filterable allow-create clearable default-first-option style="width:100%">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color:var(--text-secondary);font-size:12px;margin-top:2px">留空 = ClusterRole（集群级别），选择或输入 = Role（命名空间级别）</div>
+          <div style="color:var(--text-secondary);font-size:12px;margin-top:2px">{{ $tr("留空 = ClusterRole（集群级别），选择或输入 = Role（命名空间级别）") }}</div>
         </el-form-item>
-        <el-form-item label="角色名称" prop="name">
-          <el-input v-model="rbacRoleForm.name" placeholder="例如: pod-reader, deployment-admin" />
+        <el-form-item :label='$tr("角色名称")' prop="name">
+          <el-input v-model="rbacRoleForm.name" :placeholder='$tr("例如: pod-reader, deployment-admin")' />
         </el-form-item>
-        <el-form-item label="权限规则">
+        <el-form-item :label='$tr("权限规则")'>
           <div style="width:100%">
             <div v-for="(rule, idx) in rbacRoleForm.rules" :key="idx" class="rbac-rule-card">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <strong>规则 #{{ idx+1 }}</strong>
-                <el-button type="danger" size="small" @click="removeRbacRule(idx)" v-if="rbacRoleForm.rules.length>1">移除</el-button>
+                <strong>{{ $tr("规则 #") }}{{ idx+1 }}</strong>
+                <el-button type="danger" size="small" @click="removeRbacRule(idx)" v-if="rbacRoleForm.rules.length>1">{{ $tr("移除") }}</el-button>
               </div>
               <el-form :model="rule" label-width="60px" size="small">
-                <el-form-item label="API组">
-                  <el-select v-model="rule.apiGroups" multiple filterable allow-create default-first-option placeholder="例如: apps, batch, '' (核心)" style="width:100%">
-                    <el-option label="空(核心API)" value="" />
+                <el-form-item :label='$tr("API组")'>
+                  <el-select v-model="rule.apiGroups" multiple filterable allow-create default-first-option :placeholder='$tr("例如: apps, batch, &#39;&#39; (核心)")' style="width:100%">
+                    <el-option :label='$tr("空(核心API)")' value="" />
                     <el-option label="apps" value="apps" />
                     <el-option label="batch" value="batch" />
                     <el-option label="extensions" value="extensions" />
                     <el-option label="networking.k8s.io" value="networking.k8s.io" />
                     <el-option label="storage.k8s.io" value="storage.k8s.io" />
                     <el-option label="rbac.authorization.k8s.io" value="rbac.authorization.k8s.io" />
-                    <el-option label="* (所有)" value="*" />
+                    <el-option :label='$tr("* (所有)")' value="*" />
                   </el-select>
                 </el-form-item>
-                <el-form-item label="资源">
-                  <el-select v-model="rule.resources" multiple filterable allow-create default-first-option placeholder="例如: pods, deployments, services" style="width:100%">
-                    <el-option label="* (所有资源)" value="*" />
+                <el-form-item :label='$tr("资源")'>
+                  <el-select v-model="rule.resources" multiple filterable allow-create default-first-option :placeholder='$tr("例如: pods, deployments, services")' style="width:100%">
+                    <el-option :label='$tr("* (所有资源)")' value="*" />
                     <el-option label="pods" value="pods" />
+                    <el-option :label='$tr("pods/exec · 终端与文件操作（create）")' value="pods/exec" />
+                    <el-option :label='$tr("pods/log · 日志（get）")' value="pods/log" />
+                    <el-option :label='$tr("pods/eviction · 驱逐（create）")' value="pods/eviction" />
+                    <el-option :label='$tr("deployments/scale · 扩缩容（update）")' value="deployments/scale" />
                     <el-option label="deployments" value="deployments" />
                     <el-option label="services" value="services" />
                     <el-option label="ingresses" value="ingresses" />
@@ -684,9 +688,9 @@
                     <el-option label="endpoints" value="endpoints" />
                   </el-select>
                 </el-form-item>
-                <el-form-item label="操作(verbs)">
-                  <el-select v-model="rule.verbs" multiple filterable allow-create default-first-option placeholder="例如: get, list, watch" style="width:100%">
-                    <el-option label="* (所有操作)" value="*" />
+                <el-form-item :label='$tr("操作(verbs)")'>
+                  <el-select v-model="rule.verbs" multiple filterable allow-create default-first-option :placeholder='$tr("例如: get, list, watch")' style="width:100%">
+                    <el-option :label='$tr("* (所有操作)")' value="*" />
                     <el-option label="get" value="get" />
                     <el-option label="list" value="list" />
                     <el-option label="watch" value="watch" />
@@ -699,66 +703,69 @@
                 </el-form-item>
               </el-form>
             </div>
-            <el-button type="primary" size="small" @click="addRbacRule" style="margin-top:8px">+ 添加规则</el-button>
+            <el-button type="primary" size="small" @click="addRbacRule" style="margin-top:8px">{{ $tr("+ 添加规则") }}</el-button>
           </div>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="rbacRoleDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleRbacRoleSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="rbacRoleDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleRbacRoleSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
 
     <!-- ==================== RBAC 绑定创建/编辑对话框 ==================== -->
-    <el-dialog :title="rbacBindingDialogTitle" v-model="rbacBindingDialogVisible" width="550px" @close="resetRbacBindingDialog">
+    <el-dialog :title="$tr(rbacBindingDialogTitle)" v-model="rbacBindingDialogVisible" width="550px" @close="resetRbacBindingDialog">
       <el-form :model="rbacBindingForm" :rules="rbacBindingFormRules" ref="rbacBindingFormRef" label-width="100px">
-        <el-form-item label="集群" prop="clusterId">
-          <el-select v-model="rbacBindingForm.clusterId" placeholder="选择集群" filterable style="width:100%" @change="onRbacBindingClusterChange">
-            <el-option v-for="c in clusterList" :key="c.id" :label="c.name" :value="c.id" />
+        <el-form-item :label='$tr("集群")' prop="clusterId">
+          <el-select v-model="rbacBindingForm.clusterId" :placeholder='$tr("选择集群")' filterable style="width:100%" @change="onRbacBindingClusterChange">
+            <el-option v-for="c in clusterList" :key="c.id" :label="$tr(c.name)" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="命名空间" prop="namespace">
-          <el-select v-model="rbacBindingForm.namespace" placeholder="留空=集群级别绑定" filterable allow-create clearable default-first-option style="width: 100%" @change="updateRbacRoleOptions">
-            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="ns" :value="ns" />
+        <el-form-item :label='$tr("命名空间")' prop="namespace">
+          <el-select v-model="rbacBindingForm.namespace" :placeholder='$tr("留空=集群级别绑定")' filterable allow-create clearable default-first-option style="width: 100%" @change="updateRbacRoleOptions">
+            <el-option v-for="ns in dialogNamespaceOptions" :key="ns" :label="$tr(ns)" :value="ns" />
           </el-select>
-          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;">选择命名空间(选填)，也可手动输入</div>
+          <div style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;">{{ $tr("选择命名空间(选填)，也可手动输入") }}</div>
         </el-form-item>
-        <el-form-item label="角色" prop="roleId">
-          <el-select v-model="rbacBindingForm.roleId" placeholder="选择RBAC角色" filterable style="width:100%">
+        <el-form-item :label='$tr("角色")' prop="roleId">
+          <el-select v-model="rbacBindingForm.roleId" :placeholder='$tr("选择RBAC角色")' filterable style="width:100%">
             <el-option v-for="r in rbacRoleOptions" :key="r.id" :label="`${r.name} (${r.namespace||'集群级'})`" :value="r.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="主体类型" prop="subjectType">
+        <el-form-item :label='$tr("主体类型")' prop="subjectType">
           <el-radio-group v-model="rbacBindingForm.subjectType">
-            <el-radio label="User">用户</el-radio>
-            <el-radio label="Group">用户组</el-radio>
+            <el-radio label="User">{{ $tr("用户") }}</el-radio>
+            <el-radio label="Group">{{ $tr("用户组") }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="主体" prop="subjectId">
-          <el-select v-model="rbacBindingForm.subjectId" placeholder="选择用户或用户组" filterable style="width:100%">
+        <el-form-item :label='$tr("主体")' prop="subjectId">
+          <el-select v-model="rbacBindingForm.subjectId" :placeholder='$tr("选择用户或用户组")' filterable style="width:100%">
             <el-option v-if="rbacBindingForm.subjectType==='User'" v-for="u in userList" :key="u.id" :label="`${u.username} (${u.nickname})`" :value="u.id" />
-            <el-option v-if="rbacBindingForm.subjectType==='Group'" v-for="g in groupListForBinding" :key="g.id" :label="g.name" :value="g.id" />
+            <el-option v-if="rbacBindingForm.subjectType==='Group'" v-for="g in groupListForBinding" :key="g.id" :label="$tr(g.name)" :value="g.id" />
           </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer">
-        <el-button @click="rbacBindingDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleRbacBindingSubmit" :loading="submitLoading">确定</el-button>
+        <el-button @click="rbacBindingDialogVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="handleRbacBindingSubmit" :loading="submitLoading">{{ $tr("确定") }}</el-button>
       </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import k8sApi from '@/api/k8s'
 import systemApi from '@/api/system'
 
 export default {
   name: 'K8sPermission',
+  props: { embedded: Boolean, section: { type: String, default: 'permissions' } },
   data() {
     return {
       // 标签页
-      activeTab: 'userPermission',
+      activeTab: this.section === 'groups' ? 'userGroup' : 'userPermission',
 
       // ===== 命名空间选项（从集群动态获取）=====
       filterNamespaceOptions: [],
@@ -790,10 +797,10 @@ export default {
         permissionType: 'readonly'
       },
       formRules: {
-        userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        namespace: [{ required: true, message: '请输入命名空间', trigger: 'blur' }],
-        permissionType: [{ required: true, message: '请选择权限类型', trigger: 'change' }]
+        userId: [{ required: true, get message() { return tr('请选择用户'); }, trigger: 'change' }],
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        namespace: [{ required: true, get message() { return tr('请输入命名空间'); }, trigger: 'blur' }],
+        permissionType: [{ required: true, get message() { return tr('请选择权限类型'); }, trigger: 'change' }]
       },
       batchDialogVisible: false,
       batchFormData: {
@@ -803,10 +810,10 @@ export default {
         permissionType: 'readonly'
       },
       batchFormRules: {
-        userId: [{ required: true, message: '请选择用户', trigger: 'change' }],
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        namespaces: [{ required: true, message: '请选择或输入命名空间', trigger: 'change' }],
-        permissionType: [{ required: true, message: '请选择权限类型', trigger: 'change' }]
+        userId: [{ required: true, get message() { return tr('请选择用户'); }, trigger: 'change' }],
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        namespaces: [{ required: true, get message() { return tr('请选择或输入命名空间'); }, trigger: 'change' }],
+        permissionType: [{ required: true, get message() { return tr('请选择权限类型'); }, trigger: 'change' }]
       },
 
       // ===== 用户组相关 =====
@@ -829,7 +836,7 @@ export default {
         status: 1
       },
       groupFormRules: {
-        name: [{ required: true, message: '请输入用户组名称', trigger: 'blur' }]
+        name: [{ required: true, get message() { return tr('请输入用户组名称'); }, trigger: 'blur' }]
       },
 
       // ===== 用户组成员相关 =====
@@ -856,9 +863,9 @@ export default {
         permissionType: 'readonly'
       },
       groupPermFormRules: {
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        namespace: [{ required: true, message: '请输入命名空间', trigger: 'blur' }],
-        permissionType: [{ required: true, message: '请选择权限类型', trigger: 'change' }]
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        namespace: [{ required: true, get message() { return tr('请输入命名空间'); }, trigger: 'blur' }],
+        permissionType: [{ required: true, get message() { return tr('请选择权限类型'); }, trigger: 'change' }]
       },
       groupPermBatchVisible: false,
       groupPermBatchForm: {
@@ -867,9 +874,9 @@ export default {
         permissionType: 'readonly'
       },
       groupPermBatchRules: {
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        namespaces: [{ required: true, message: '请选择或输入命名空间', trigger: 'change' }],
-        permissionType: [{ required: true, message: '请选择权限类型', trigger: 'change' }]
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        namespaces: [{ required: true, get message() { return tr('请选择或输入命名空间'); }, trigger: 'change' }],
+        permissionType: [{ required: true, get message() { return tr('请选择权限类型'); }, trigger: 'change' }]
       },
 
       // 通用
@@ -897,8 +904,8 @@ export default {
         rules: [{ apiGroups: [''], resources: ['*'], verbs: ['get', 'list', 'watch'] }]
       },
       rbacRoleFormRules: {
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }]
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        name: [{ required: true, get message() { return tr('请输入角色名称'); }, trigger: 'blur' }]
       },
 
       // ===== RBAC 绑定管理 =====
@@ -925,10 +932,10 @@ export default {
         subjectId: undefined
       },
       rbacBindingFormRules: {
-        clusterId: [{ required: true, message: '请选择集群', trigger: 'change' }],
-        roleId: [{ required: true, message: '请选择角色', trigger: 'change' }],
-        subjectType: [{ required: true, message: '请选择主体类型', trigger: 'change' }],
-        subjectId: [{ required: true, message: '请选择主体', trigger: 'change' }]
+        clusterId: [{ required: true, get message() { return tr('请选择集群'); }, trigger: 'change' }],
+        roleId: [{ required: true, get message() { return tr('请选择角色'); }, trigger: 'change' }],
+        subjectType: [{ required: true, get message() { return tr('请选择主体类型'); }, trigger: 'change' }],
+        subjectId: [{ required: true, get message() { return tr('请选择主体'); }, trigger: 'change' }]
       },
       rbacRoleOptions: [],
       groupListForBinding: [],
@@ -943,7 +950,8 @@ export default {
   created() {
     this.fetchUserList()
     this.fetchClusterList()
-    this.fetchPermissionList()
+    if (this.section === 'groups') this.fetchGroupList()
+    else this.fetchPermissionList()
   },
   watch: {
     // 标签页切换时响应式触发数据加载
@@ -1150,11 +1158,11 @@ export default {
           }
           const data = res.data
           if (data.code === 200) {
-            this.$message.success(this.isEdit ? '更新成功' : '创建成功')
+            this.$message.success(this.isEdit ? '更新成功' : tr('创建成功'))
             this.dialogVisible = false
             this.fetchPermissionList()
           } else {
-            this.$message.error(data.message || '操作失败')
+            this.$message.error(data.message || tr('操作失败'))
           }
         } catch (err) {
           const errMsg = err.response?.data?.message || err.message || '操作失败'
@@ -1167,19 +1175,19 @@ export default {
 
     // 删除权限
     handleDelete(row) {
-      this.$confirm(`确定删除用户 "${row.username}" 在集群 "${row.clusterName}" 的命名空间 "${row.namespace}" 权限吗？`, '确认删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定删除用户 "${row.username}" 在集群 "${row.clusterName}" 的命名空间 "${row.namespace}" 权限吗？`, tr('确认删除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
           const res = await k8sApi.deletePermission(row.id)
           const data = res.data
           if (data.code === 200) {
-            this.$message.success('删除成功')
+            this.$message.success(tr('删除成功'))
             this.fetchPermissionList()
           } else {
-            this.$message.error(data.message || '删除失败')
+            this.$message.error(data.message || tr('删除失败'))
           }
         } catch (err) {
           this.$message.error('删除失败: ' + (err.response?.data?.message || err.message))
@@ -1213,7 +1221,7 @@ export default {
           const res = await k8sApi.batchCreatePermission(this.batchFormData)
           const data = res.data
           if (data.code === 200) {
-            this.$message.success('批量授权成功')
+            this.$message.success(tr('批量授权成功'))
             this.batchDialogVisible = false
             this.fetchPermissionList()
           } else {
@@ -1240,7 +1248,7 @@ export default {
           this.groupList = result.list || []
           this.groupTotal = result.total || 0
         } else {
-          this.$message.error(data.message || '获取用户组列表失败')
+          this.$message.error(data.message || tr('获取用户组列表失败'))
         }
       } catch (err) {
         this.$message.error('获取用户组列表失败: ' + (err.msg || err.message))
@@ -1312,11 +1320,11 @@ export default {
           }
           const data = res.data
           if (data.code === 200) {
-            this.$message.success(this.isGroupEdit ? '更新成功' : '创建成功')
+            this.$message.success(this.isGroupEdit ? '更新成功' : tr('创建成功'))
             this.groupDialogVisible = false
             this.fetchGroupList()
           } else {
-            this.$message.error(data.message || '操作失败')
+            this.$message.error(data.message || tr('操作失败'))
           }
         } catch (err) {
           this.$message.error('操作失败: ' + (err.response?.data?.message || err.message))
@@ -1328,19 +1336,19 @@ export default {
 
     // 删除用户组
     handleDeleteGroup(row) {
-      this.$confirm(`确定删除用户组 "${row.name}" 吗？`, '确认删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定删除用户组 "${row.name}" 吗？`, tr('确认删除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
           const res = await k8sApi.deleteUserGroup(row.id)
           const data = res.data
           if (data.code === 200) {
-            this.$message.success('删除成功')
+            this.$message.success(tr('删除成功'))
             this.fetchGroupList()
           } else {
-            this.$message.error(data.message || '删除失败')
+            this.$message.error(data.message || tr('删除失败'))
           }
         } catch (err) {
           this.$message.error('删除失败: ' + (err.response?.data?.message || err.message))
@@ -1370,7 +1378,7 @@ export default {
             this.memberList = result.users
           }
         } else {
-          this.$message.error(res.data?.message || '获取成员失败')
+          this.$message.error(res.data?.message || tr('获取成员失败'))
         }
       } catch (err) {
         this.$message.error('获取成员失败: ' + (err.response?.data?.message || err.message))
@@ -1384,7 +1392,7 @@ export default {
     },
     async handleAddMembers() {
       if (!this.addMemberForm.userIds || this.addMemberForm.userIds.length === 0) {
-        this.$message.warning('请选择用户')
+        this.$message.warning(tr('请选择用户'))
         return
       }
       this.submitLoading = true
@@ -1394,11 +1402,11 @@ export default {
           userIds: this.addMemberForm.userIds
         })
         if (res.data && res.data.code === 200) {
-          this.$message.success('添加成功')
+          this.$message.success(tr('添加成功'))
           this.addMemberDialogVisible = false
           this.fetchGroupMembers()
         } else {
-          this.$message.error(res.data?.message || '添加失败')
+          this.$message.error(res.data?.message || tr('添加失败'))
         }
       } catch (err) {
         this.$message.error('添加失败: ' + (err.response?.data?.message || err.message))
@@ -1407,9 +1415,9 @@ export default {
       }
     },
     handleRemoveMember(row) {
-      this.$confirm(`确定移除成员 "${row.username || row.nickname}" 吗？`, '确认移除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定移除成员 "${row.username || row.nickname}" 吗？`, tr('确认移除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
@@ -1418,10 +1426,10 @@ export default {
             userId: row.userId
           })
           if (res.data && res.data.code === 200) {
-            this.$message.success('移除成功')
+            this.$message.success(tr('移除成功'))
             this.fetchGroupMembers()
           } else {
-            this.$message.error(res.data?.message || '移除失败')
+            this.$message.error(res.data?.message || tr('移除失败'))
           }
         } catch (err) {
           this.$message.error('移除失败: ' + (err.response?.data?.message || err.message))
@@ -1498,11 +1506,11 @@ export default {
             res = await k8sApi.createGroupPermission(payload)
           }
           if (res.data && res.data.code === 200) {
-            this.$message.success(this.isGroupPermEdit ? '更新成功' : '创建成功')
+            this.$message.success(this.isGroupPermEdit ? '更新成功' : tr('创建成功'))
             this.groupPermFormVisible = false
             this.fetchGroupPermList()
           } else {
-            this.$message.error(res.data?.message || '操作失败')
+            this.$message.error(res.data?.message || tr('操作失败'))
           }
         } catch (err) {
           this.$message.error('操作失败: ' + (err.response?.data?.message || err.message))
@@ -1531,7 +1539,7 @@ export default {
           const payload = { ...this.groupPermBatchForm, groupId: this.currentGroup.id }
           const res = await k8sApi.batchCreateGroupPermission(payload)
           if (res.data && res.data.code === 200) {
-            this.$message.success('批量授权成功')
+            this.$message.success(tr('批量授权成功'))
             this.groupPermBatchVisible = false
             this.fetchGroupPermList()
           } else {
@@ -1545,18 +1553,18 @@ export default {
       })
     },
     handleDeleteGroupPerm(row) {
-      this.$confirm(`确定删除命名空间 "${row.namespace}" 的组权限吗？`, '确认删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定删除命名空间 "${row.namespace}" 的组权限吗？`, tr('确认删除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
           const res = await k8sApi.deleteGroupPermission(row.id)
           if (res.data && res.data.code === 200) {
-            this.$message.success('删除成功')
+            this.$message.success(tr('删除成功'))
             this.fetchGroupPermList()
           } else {
-            this.$message.error(res.data?.message || '删除失败')
+            this.$message.error(res.data?.message || tr('删除失败'))
           }
         } catch (err) {
           this.$message.error('删除失败: ' + (err.response?.data?.message || err.message))
@@ -1680,11 +1688,11 @@ export default {
           }
           const data = res.data
           if (data.code === 200) {
-            this.$message.success(this.isRbacRoleEdit ? '更新成功' : '创建成功')
+            this.$message.success(this.isRbacRoleEdit ? '更新成功' : tr('创建成功'))
             this.rbacRoleDialogVisible = false
             this.fetchRbacRoleList()
           } else {
-            this.$message.error(data.message || '操作失败')
+            this.$message.error(data.message || tr('操作失败'))
           }
         } catch (err) {
           this.$message.error('操作失败: ' + (err.response?.data?.message || err.message))
@@ -1696,19 +1704,19 @@ export default {
 
     // 删除RBAC角色
     handleDeleteRbacRole(row) {
-      this.$confirm(`确定删除 RBAC 角色 "${row.name}" 吗？`, '确认删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(`确定删除 RBAC 角色 "${row.name}" 吗？`, tr('确认删除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
           const res = await k8sApi.deleteRbacRole(row.id)
           const data = res.data
           if (data.code === 200) {
-            this.$message.success('删除成功')
+            this.$message.success(tr('删除成功'))
             this.fetchRbacRoleList()
           } else {
-            this.$message.error(data.message || '删除失败')
+            this.$message.error(data.message || tr('删除失败'))
           }
         } catch (err) {
           this.$message.error('删除失败: ' + (err.response?.data?.message || err.message))
@@ -1845,7 +1853,7 @@ export default {
             this.rbacBindingDialogVisible = false
             this.fetchRbacBindingList()
           } else {
-            this.$message.error(data.message || '操作失败')
+            this.$message.error(data.message || tr('操作失败'))
           }
         } catch (err) {
           this.$message.error('操作失败: ' + (err.response?.data?.message || err.message))
@@ -1857,19 +1865,19 @@ export default {
 
     // 删除RBAC绑定
     handleDeleteRbacBinding(row) {
-      this.$confirm('确定删除此 RBAC 绑定吗？', '确认删除', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(tr('确定删除此 RBAC 绑定吗？'), tr('确认删除'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).then(async () => {
         try {
           const res = await k8sApi.deleteRbacBinding(row.id)
           const data = res.data
           if (data.code === 200) {
-            this.$message.success('删除成功')
+            this.$message.success(tr('删除成功'))
             this.fetchRbacBindingList()
           } else {
-            this.$message.error(data.message || '删除失败')
+            this.$message.error(data.message || tr('删除失败'))
           }
         } catch (err) {
           this.$message.error('删除失败: ' + (err.response?.data?.message || err.message))
@@ -1993,4 +2001,8 @@ export default {
 .el-alert {
   border-radius: 6px;
 }
+</style>
+
+<style scoped>
+.groups-only :deep(> .el-tabs__header) { display: none; }
 </style>

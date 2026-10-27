@@ -1,0 +1,72 @@
+# Optional infrastructure for AutoOps Ceph maintenance. Review storageClassName
+# and bind this ServiceAccount's kubeconfig to AutoOps if using limited credentials.
+# The storage class must already exist and provide an independent RWX filesystem.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: autoops-ceph-backups
+  namespace: rook-ceph
+  labels:
+    autoops.io/ceph-backup: "true"
+spec:
+  accessModes: [ReadWriteMany]
+  volumeMode: Filesystem
+  storageClassName: backup-nfs
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: autoops-ceph-maintenance
+  namespace: rook-ceph
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: autoops-ceph-maintenance
+  namespace: rook-ceph
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [pods/exec]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [pods/log]
+    verbs: [get]
+  - apiGroups: [""]
+    resources: [persistentvolumeclaims]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [get, list, create]
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, create]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, create, patch]
+  - apiGroups: [batch]
+    resources: [cronjobs]
+    verbs: [get, list, create, update, delete]
+  - apiGroups: [ceph.rook.io]
+    resources: [cephclusters]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: autoops-ceph-maintenance
+  namespace: rook-ceph
+subjects:
+  - kind: ServiceAccount
+    name: autoops-ceph-maintenance
+    namespace: rook-ceph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: autoops-ceph-maintenance

@@ -2,15 +2,15 @@
   <div class="dept-container">
     <div class="glass-card">
       <div class="card-header">
-        <h2 class="gradient-title">部门管理</h2>
+        <h2 class="gradient-title">{{ $tr("部门管理") }}</h2>
       </div>
       
       <!--搜索-->
       <div class="search-section">
         <el-form :inline="true" :model="queryParams" class="search-form">
-          <el-form-item label="部门名称">
+          <el-form-item :label='$tr("部门名称")'>
             <el-input 
-              placeholder="请输入部门名称" 
+              :placeholder='$tr("请输入部门名称")' 
               clearable 
               v-model="queryParams.deptName"
               @keyup.enter="handleQuery"
@@ -18,9 +18,9 @@
               class="modern-input"
             />
           </el-form-item>
-          <el-form-item label="部门状态">
+          <el-form-item :label='$tr("部门状态")'>
             <el-select 
-              placeholder="部门状态"  
+              :placeholder='$tr("部门状态")'  
               v-model="queryParams.deptStatus" 
               style="width: 150px;" 
               size="small"
@@ -29,7 +29,7 @@
               <el-option 
                 v-for="item in deptStatusList" 
                 :key="item.value" 
-                :label="item.label" 
+                :label="$tr(item.label)" 
                 :value="item.value"
               />
             </el-select>
@@ -42,7 +42,7 @@
               class="modern-btn primary-btn"
             >
               <el-icon><Search /></el-icon>
-              搜索
+              {{ $tr("搜索") }}
             </el-button>
             <el-button 
               size="small"
@@ -50,7 +50,7 @@
               class="modern-btn reset-btn"
             >
               <el-icon><Refresh /></el-icon>
-              重置
+              {{ $tr("重置") }}
             </el-button>
           </el-form-item>
         </el-form>
@@ -67,7 +67,7 @@
             class="modern-btn success-btn"
           >
             <el-icon><Plus /></el-icon>
-            新增部门
+            {{ $tr("新增部门") }}
           </el-button>
           <el-button 
             size="small"
@@ -75,7 +75,7 @@
             class="modern-btn secondary-btn"
           >
             <el-icon><Sort /></el-icon>
-            展开/折叠
+            {{ $tr("展开/折叠") }}
           </el-button>
         </div>
       </div>
@@ -93,50 +93,50 @@
           :header-cell-style="{ background: 'transparent', color: 'var(--text-primary)', fontWeight: 'bold' }"
           :row-style="{ background: 'rgba(255, 255, 255, 0.05)' }"
         >
-          <el-table-column label="部门名称" prop="deptName" />
-          <el-table-column label="部门类型" prop="deptType">
+          <el-table-column :label='$tr("部门名称")' prop="deptName" />
+          <el-table-column :label='$tr("部门类型")' prop="deptType">
             <template v-slot="scope">
               <el-tag 
                 v-if="scope.row.deptType === 1" 
                 class="modern-tag company-tag"
               >
-                公司
+                {{ $tr("公司") }}
               </el-tag>
               <el-tag 
                 v-else-if="scope.row.deptType === 2" 
                 class="modern-tag center-tag"
               >
-                中心
+                {{ $tr("中心") }}
               </el-tag>
               <el-tag 
                 v-else-if="scope.row.deptType === 3" 
                 class="modern-tag dept-tag"
               >
-                部门
+                {{ $tr("部门") }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="部门状态" prop="deptStatus">
+          <el-table-column :label='$tr("部门状态")' prop="deptStatus">
             <template v-slot="scope">
               <el-tag 
                 v-if="scope.row.deptStatus === 1" 
                 class="modern-tag success-tag"
               >
-                正常
+                {{ $tr("正常") }}
               </el-tag>
               <el-tag 
                 v-else-if="scope.row.deptStatus === 2" 
                 class="modern-tag danger-tag"
               >
-                停用
+                {{ $tr("停用") }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" prop="createTime" />
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column :label='$tr("创建时间")' prop="createTime" />
+          <el-table-column :label='$tr("操作")' width="150" fixed="right">
             <template v-slot="scope">
               <div class="operation-buttons">
-                <el-tooltip content="修改" placement="top">
+                <el-tooltip :content='$tr("修改")' placement="top">
                   <el-button
                     type="warning"
                     size="small"
@@ -147,7 +147,7 @@
                     <el-icon><Edit /></el-icon>
                   </el-button>
                 </el-tooltip>
-                <el-tooltip content="删除" placement="top">
+                <el-tooltip :content='$tr("删除")' placement="top">
                   <el-button
                     type="danger"
                     size="small"
@@ -168,7 +168,7 @@
 
     <!--新增部门-->
     <el-dialog 
-      title="新增部门" 
+      :title='$tr("新增部门")' 
       v-model="addDeptDialogVisible" 
       width="35%" 
       @close="addDeptDialogClosed"
@@ -182,43 +182,43 @@
           label-width="90px"
           class="modern-form"
         >
-          <el-form-item label="部门类型" prop="deptType">
+          <el-form-item :label='$tr("部门类型")' prop="deptType">
             <el-radio-group v-model="addDeptForm.deptType" class="modern-radio-group">
-              <el-radio :label="1" class="modern-radio">公司</el-radio>
-              <el-radio :label="2" class="modern-radio">中心</el-radio>
-              <el-radio :label="3" class="modern-radio">部门</el-radio>
+              <el-radio :label="1" class="modern-radio">{{ $tr("公司") }}</el-radio>
+              <el-radio :label="2" class="modern-radio">{{ $tr("中心") }}</el-radio>
+              <el-radio :label="3" class="modern-radio">{{ $tr("部门") }}</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="上级部门" prop="parentId" v-if="addDeptForm.deptType != 1">
+          <el-form-item :label='$tr("上级部门")' prop="parentId" v-if="addDeptForm.deptType != 1">
             <treeselect 
               :options="optionsDeptList" 
-              placeholder="请选择上级部门" 
+              :placeholder='$tr("请选择上级部门")' 
               v-model="addDeptForm.parentId"
               class="modern-treeselect"
             />
           </el-form-item>
-          <el-form-item label="部门名称" prop="deptName">
+          <el-form-item :label='$tr("部门名称")' prop="deptName">
             <el-input v-model="addDeptForm.deptName" class="modern-input" />
           </el-form-item>
-          <el-form-item label="部门状态" prop="deptStatus" >
+          <el-form-item :label='$tr("部门状态")' prop="deptStatus" >
             <el-radio-group v-model="addDeptForm.deptStatus" class="modern-radio-group">
-              <el-radio :label="1" class="modern-radio">正常</el-radio>
-              <el-radio :label="2" class="modern-radio">停用</el-radio>
+              <el-radio :label="1" class="modern-radio">{{ $tr("正常") }}</el-radio>
+              <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-form>
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="addDept" class="modern-btn primary-btn">确 定</el-button>
-          <el-button @click="addDeptDialogVisible = false" class="modern-btn secondary-btn">取 消</el-button>
+          <el-button type="primary" @click="addDept" class="modern-btn primary-btn">{{ $tr("确 定") }}</el-button>
+          <el-button @click="addDeptDialogVisible = false" class="modern-btn secondary-btn">{{ $tr("取 消") }}</el-button>
         </div>
       </template>
     </el-dialog>
 
     <!--修改部门-->
     <el-dialog 
-      title="编辑部门" 
+      :title='$tr("编辑部门")' 
       v-model="editDeptDialogVisible" 
       width="35%"
       class="modern-dialog"
@@ -231,36 +231,36 @@
           label-width="90px"
           class="modern-form"
         >
-          <el-form-item label="部门类型" prop="deptType">
+          <el-form-item :label='$tr("部门类型")' prop="deptType">
             <el-radio-group v-model="deptInfo.deptType" class="modern-radio-group">
-              <el-radio :label="1" class="modern-radio">公司</el-radio>
-              <el-radio :label="2" class="modern-radio">中心</el-radio>
-              <el-radio :label="3" class="modern-radio">部门</el-radio>
+              <el-radio :label="1" class="modern-radio">{{ $tr("公司") }}</el-radio>
+              <el-radio :label="2" class="modern-radio">{{ $tr("中心") }}</el-radio>
+              <el-radio :label="3" class="modern-radio">{{ $tr("部门") }}</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="上级部门" prop="parentId" v-if="deptInfo.deptType != 1">
+          <el-form-item :label='$tr("上级部门")' prop="parentId" v-if="deptInfo.deptType != 1">
             <treeselect 
               :options="optionsDeptList" 
-              placeholder="请选择上级部门" 
+              :placeholder='$tr("请选择上级部门")' 
               v-model="deptInfo.parentId"
               class="modern-treeselect"
             />
           </el-form-item>
-          <el-form-item label="部门名称" prop="deptName">
+          <el-form-item :label='$tr("部门名称")' prop="deptName">
             <el-input v-model="deptInfo.deptName" class="modern-input" />
           </el-form-item>
-          <el-form-item label="部门状态" prop="deptStatus">
+          <el-form-item :label='$tr("部门状态")' prop="deptStatus">
             <el-radio-group v-model="deptInfo.deptStatus" class="modern-radio-group">
-              <el-radio :label="1" class="modern-radio">正常</el-radio>
-              <el-radio :label="2" class="modern-radio">停用</el-radio>
+              <el-radio :label="1" class="modern-radio">{{ $tr("正常") }}</el-radio>
+              <el-radio :label="2" class="modern-radio">{{ $tr("停用") }}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-form>
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="editDept" class="modern-btn primary-btn">确 定</el-button>
-          <el-button @click="editDeptDialogVisible = false" class="modern-btn secondary-btn">取 消</el-button>
+          <el-button type="primary" @click="editDept" class="modern-btn primary-btn">{{ $tr("确 定") }}</el-button>
+          <el-button @click="editDeptDialogVisible = false" class="modern-btn secondary-btn">{{ $tr("取 消") }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -268,6 +268,8 @@
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 import Treeselect from 'vue3-treeselect'
 import 'vue3-treeselect/dist/vue3-treeselect.css'
 import {
@@ -306,8 +308,8 @@ export default {
       optionsDeptList: [],
       addDeptDialogVisible: false,
       addDeptFormRules: {
-        deptType: [{ required: true, message: "请选择部门类型", trigger: "blur" }],
-        deptName: [{ required: true, message: '请输入部门名称', trigger: 'blur' }],
+        deptType: [{ required: true, get message() { return tr("请选择部门类型"); }, trigger: "blur" }],
+        deptName: [{ required: true, get message() { return tr('请输入部门名称'); }, trigger: 'blur' }],
       },
       addDeptForm: {
         deptStatus: 1
@@ -315,8 +317,8 @@ export default {
       editDeptDialogVisible: false,
       deptInfo: {},
       editDeptFormRules: {
-        deptType: [{ required: true, message: "请选择部门类型", trigger: "blur" }],
-        deptName: [{ required: true, message: '请输入部门名称', trigger: 'blur' }],
+        deptType: [{ required: true, get message() { return tr("请选择部门类型"); }, trigger: "blur" }],
+        deptName: [{ required: true, get message() { return tr('请输入部门名称'); }, trigger: 'blur' }],
       }
     }
   },
@@ -340,7 +342,7 @@ export default {
     resetQuery() {
       this.queryParams = {}
       this.getList()
-      this.$message.success("重置成功")
+      this.$message.success(tr("重置成功"))
     },
     // 展开和折叠
     toggleExpandAll() {
@@ -372,7 +374,7 @@ export default {
         if (res.code !== 200) {
           this.$message.error(res.message)
         } else {
-          this.$message.success('新增部门成功')
+          this.$message.success(tr('新增部门成功'))
           this.addDeptDialogVisible = false
           await this.getList()
           await this.getDeptVoList()
@@ -403,25 +405,25 @@ export default {
         } else {
           this.editDeptDialogVisible = false
           await this.getList()
-          this.$message.success("修改部门成功")
+          this.$message.success(tr("修改部门成功"))
         }
       })
     },
     // 删除部门
     async handleDeptDelete(row) {
-      const confirmResult = await this.$confirm('是否确认删除部门为"' + row.deptName + '"的数据项？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      const confirmResult = await this.$confirm('是否确认删除部门为"' + row.deptName + '"的数据项？', tr('提示'), {
+        confirmButtonText: tr('确定'),
+        cancelButtonText: tr('取消'),
         type: 'warning'
       }).catch(err => err)
       if (confirmResult !== 'confirm') {
-        return this.$message.info('已取消删除')
+        return this.$message.info(tr('已取消删除'))
       }
       const { data: res } = await this.$api.deleteDept(row.id)
       if (res.code !== 200) {
         this.$message.error(res.message)
       } else {
-        this.$message.success('删除成功')
+        this.$message.success(tr('删除成功'))
         await this.getList()
       }
     }

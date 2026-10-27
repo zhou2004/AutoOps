@@ -1,4 +1,6 @@
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -491,7 +493,7 @@ const handleQuery = async (forceRefresh = false) => {
               console.log('🔄 自动选择当前Pod用于日志:', selectedContainerForLogs.value)
             }
           } else {
-            throw new Error('在工作负载Pod列表中未找到目标Pod')
+            throw new Error(tr('在工作负载Pod列表中未找到目标Pod'))
           }
         } else {
           throw new Error(responseData.message || '工作负载API调用失败')
@@ -537,11 +539,11 @@ const handleQuery = async (forceRefresh = false) => {
       // 获取历史版本数据
       await getHistoryVersions()
     } else {
-      ElMessage.error('获取Pod详情失败')
+      ElMessage.error(tr('获取Pod详情失败'))
     }
   } catch (error) {
     console.error('获取Pod详情失败:', error)
-    ElMessage.error('获取Pod详情失败，请检查网络连接')
+    ElMessage.error(tr('获取Pod详情失败，请检查网络连接'))
   } finally {
     loading.value = false
   }
@@ -1131,7 +1133,7 @@ const showPodDetailEvents = () => {
     if (!foundEvents) {
       console.log('Pod详情中未找到任何事件数据')
       console.log('Pod详情的所有字段:', Object.keys(podDetail.value))
-      ElMessage.warning('Pod详情中未找到事件数据')
+      ElMessage.warning(tr('Pod详情中未找到事件数据'))
     }
   }
 }
@@ -1186,7 +1188,7 @@ const getHistoryVersions = async () => {
           }))
           console.log('✅ 获取到Deployment历史版本:', historyVersions.value.length, '个版本')
         } else {
-          throw new Error('Deployment API返回失败或无历史版本数据')
+          throw new Error(tr('Deployment API返回失败或无历史版本数据'))
         }
       } catch (deploymentError) {
         console.log('⚠️  获取Deployment详情失败，生成基础版本信息')
@@ -1218,7 +1220,7 @@ const getHistoryVersions = async () => {
             status: 'Active'
           }]
         } else {
-          throw new Error('ReplicaSet API返回失败')
+          throw new Error(tr('ReplicaSet API返回失败'))
         }
       } catch (replicaSetError) {
         console.log('⚠️  获取ReplicaSet详情失败，使用基础信息')
@@ -1257,7 +1259,7 @@ const getHistoryVersions = async () => {
       error: error.message
     }]
     
-    ElMessage.warning('历史版本获取失败，显示当前Pod信息')
+    ElMessage.warning(tr('历史版本获取失败，显示当前Pod信息'))
   }
 }
 
@@ -1288,7 +1290,7 @@ const handleContainerChange = (podName) => {
 // 刷新日志
 const handleRefreshLogs = async () => {
   if (!selectedContainerForLogs.value) {
-    ElMessage.warning('请先选择Pod')
+    ElMessage.warning(tr('请先选择Pod'))
     return
   }
   
@@ -1376,7 +1378,7 @@ const handleRefreshLogs = async () => {
         // 静默加载日志，不显示成功提示
         console.log(`✅ 日志加载成功，共 ${logLineCount} 行`)
       } else {
-        ElMessage.info('该容器暂无日志输出')
+        ElMessage.info(tr('该容器暂无日志输出'))
         currentLogs.value = '# 该容器暂无日志输出\n# Container has no log output'
       }
     } else {
@@ -1388,10 +1390,10 @@ const handleRefreshLogs = async () => {
     console.error('❌ 获取容器日志异常:', error)
     
     if (error.response?.status === 404) {
-      ElMessage.error('容器不存在或日志不可用')
+      ElMessage.error(tr('容器不存在或日志不可用'))
       currentLogs.value = '# 容器不存在或日志不可用\n# Container not found or logs not available'
     } else if (error.response?.status === 400) {
-      ElMessage.error('日志参数错误，请检查容器状态')
+      ElMessage.error(tr('日志参数错误，请检查容器状态'))
       currentLogs.value = '# 日志参数错误\n# Invalid log parameters'
     } else {
       ElMessage.error('获取日志失败: ' + (error.message || '网络连接异常'))
@@ -1405,12 +1407,12 @@ const handleRefreshLogs = async () => {
 // 下载日志文件
 const handleDownloadLogs = () => {
   if (!selectedContainerForLogs.value) {
-    ElMessage.warning('请先选择Pod')
+    ElMessage.warning(tr('请先选择Pod'))
     return
   }
   
   if (!currentLogs.value) {
-    ElMessage.warning('请先获取日志')
+    ElMessage.warning(tr('请先获取日志'))
     return
   }
   
@@ -1492,10 +1494,10 @@ const handleViewYaml = async () => {
       if (yamlContent.value && yamlContent.value.trim()) {
         dialogStates.yamlVisible = true
         console.log('✅ YAML内容获取成功，打开对话框')
-        ElMessage.success('YAML内容加载成功')
+        ElMessage.success(tr('YAML内容加载成功'))
       } else {
         console.log('⚠️ YAML内容为空')
-        ElMessage.warning('YAML内容为空，可能Pod资源不存在')
+        ElMessage.warning(tr('YAML内容为空，可能Pod资源不存在'))
       }
     } else {
       console.log('❌ YAML API返回错误:', responseData)
@@ -1516,20 +1518,20 @@ const handleViewYaml = async () => {
       
       switch (status) {
         case 404:
-          ElMessage.error('Pod不存在或已被删除')
+          ElMessage.error(tr('Pod不存在或已被删除'))
           break
         case 403:
-          ElMessage.error('没有权限访问该Pod的YAML')
+          ElMessage.error(tr('没有权限访问该Pod的YAML'))
           break
         case 500:
-          ElMessage.error('服务器内部错误，请稍后重试')
+          ElMessage.error(tr('服务器内部错误，请稍后重试'))
           break
         default:
           ElMessage.error(`获取YAML失败: ${status} ${statusText}`)
       }
     } else if (error.request) {
       console.log('网络请求错误:', error.request)
-      ElMessage.error('网络连接失败，请检查网络连接')
+      ElMessage.error(tr('网络连接失败，请检查网络连接'))
     } else {
       console.log('其他错误:', error.message)
       ElMessage.error('获取YAML内容失败: ' + error.message)
@@ -1596,7 +1598,7 @@ const handleRollback = (version) => {
 // 确认回滚
 const handleConfirmRollback = async () => {
   if (!rollbackForm.targetVersion) {
-    ElMessage.error('请选择回滚版本')
+    ElMessage.error(tr('请选择回滚版本'))
     return
   }
 
@@ -1637,7 +1639,7 @@ const handleConfirmRollback = async () => {
   }
 
   if (!deploymentName) {
-    ElMessage.error('无法找到关联的Deployment，无法执行回滚')
+    ElMessage.error(tr('无法找到关联的Deployment，无法执行回滚'))
     return
   }
 
@@ -1784,7 +1786,7 @@ const handleSaveYaml = async () => {
     console.log('💾 开始保存YAML内容...')
     
     if (!yamlContent.value || !yamlContent.value.trim()) {
-      ElMessage.warning('YAML内容不能为空')
+      ElMessage.warning(tr('YAML内容不能为空'))
       return
     }
     
@@ -1792,7 +1794,7 @@ const handleSaveYaml = async () => {
     try {
       // 简单的YAML格式验证
       if (!yamlContent.value.includes('apiVersion') || !yamlContent.value.includes('kind')) {
-        ElMessage.warning('YAML格式不正确，缺少必要的apiVersion或kind字段')
+        ElMessage.warning(tr('YAML格式不正确，缺少必要的apiVersion或kind字段'))
         return
       }
     } catch (yamlError) {
@@ -1806,7 +1808,7 @@ const handleSaveYaml = async () => {
     const responseData = response.data || response
     
     if (responseData.code === 200) {
-      ElMessage.success('YAML保存成功！')
+      ElMessage.success(tr('YAML保存成功！'))
       dialogStates.yamlVisible = false
       
       // 刷新页面数据
@@ -1823,7 +1825,7 @@ const handleSaveYaml = async () => {
     console.error('❌ 保存YAML异常:', error)
     
     if (error.response && error.response.status === 404) {
-      ElMessage.error('kubectl apply接口未实现，请联系管理员')
+      ElMessage.error(tr('kubectl apply接口未实现，请联系管理员'))
     } else {
       ElMessage.error('保存YAML失败: ' + (error.message || '网络连接异常'))
     }
@@ -1835,7 +1837,7 @@ const handleSaveYaml = async () => {
 // 打开终端
 const handleTerminal = (container) => {
   selectedContainer.value = container
-  ElMessage.success('正在跳转到终端页面...')
+  ElMessage.success(tr('正在跳转到终端页面...'))
   
   // 跳转到终端页面
   router.push({
@@ -1851,9 +1853,9 @@ const handleDelete = async (podRow) => {
   const podToDelete = podRow || { name: routeParams.podName }
 
   try {
-    await ElMessageBox.confirm(`确定要删除Pod "${podToDelete.name}" 吗？`, '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`确定要删除Pod "${podToDelete.name}" 吗？`, tr('警告'), {
+      confirmButtonText: tr('确定'),
+      cancelButtonText: tr('取消'),
       type: 'warning'
     })
 
@@ -1877,7 +1879,7 @@ const handleDelete = async (podRow) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Pod删除失败:', error)
-      ElMessage.error('Pod删除失败，请检查网络连接')
+      ElMessage.error(tr('Pod删除失败，请检查网络连接'))
     }
   } finally {
     loading.value = false
@@ -1921,7 +1923,7 @@ const copyToClipboard = (text, message = '已复制到剪贴板') => {
   navigator.clipboard.writeText(text).then(() => {
     ElMessage.success(message)
   }).catch(() => {
-    ElMessage.error('复制失败')
+    ElMessage.error(tr('复制失败'))
   })
 }
 
@@ -1964,7 +1966,7 @@ const searchYamlContent = () => {
   if (yamlSearchResults.value.length > 0) {
     ElMessage.success(`找到 ${yamlSearchResults.value.length} 个匹配项`)
   } else {
-    ElMessage.info('未找到匹配内容')
+    ElMessage.info(tr('未找到匹配内容'))
   }
 }
 
@@ -2058,7 +2060,7 @@ const searchLogsContent = () => {
     ElMessage.success(`找到 ${logsSearchResults.value.length} 个匹配项`)
     scrollToLogsSearchResult()
   } else {
-    ElMessage.info('未找到匹配内容')
+    ElMessage.info(tr('未找到匹配内容'))
   }
 }
 
@@ -2118,7 +2120,7 @@ const generateYamlFromDetail = () => {
     console.log('Pod详情数据:', podDetail.value)
     
     if (!podDetail.value || Object.keys(podDetail.value).length === 0) {
-      ElMessage.warning('Pod详情数据为空，无法生成YAML')
+      ElMessage.warning(tr('Pod详情数据为空，无法生成YAML'))
       return
     }
     
@@ -2222,7 +2224,7 @@ status:
     } else {
       yamlContent.value = yamlString
       dialogStates.yamlVisible = true
-      ElMessage.success('YAML已从Pod详情生成')
+      ElMessage.success(tr('YAML已从Pod详情生成'))
       console.log('✅ YAML对话框生成成功')
     }
     
@@ -2245,12 +2247,12 @@ const handleGoBack = () => {
       <template #header>
         <div class="card-header">
           <div class="header-left">
-            <el-button type="success" :icon="ArrowLeft" size="small" @click="handleGoBack">返回</el-button>
-            <span class="page-title">容器详情 - {{ workloadName }}</span>
+            <el-button type="success" :icon="ArrowLeft" size="small" @click="handleGoBack">{{ $tr("返回") }}</el-button>
+            <span class="page-title">{{ $tr("容器详情 -") }} {{ workloadName }}</span>
           </div>
           <div class="header-actions">
-            <el-button type="success" :icon="Refresh" size="small" @click="() => handleQuery(true)">刷新</el-button>
-            <el-button type="primary" :icon="View" size="small" @click="handleViewYaml">查看YAML</el-button>
+            <el-button type="success" :icon="Refresh" size="small" @click="() => handleQuery(true)">{{ $tr("刷新") }}</el-button>
+            <el-button type="primary" :icon="View" size="small" @click="handleViewYaml">{{ $tr("查看YAML") }}</el-button>
           </div>
         </div>
       </template>
@@ -2262,9 +2264,9 @@ const handleGoBack = () => {
           <el-col :span="12">
             <el-card class="info-card" header="基本信息">
               <el-descriptions :column="1" border size="small">
-                <el-descriptions-item label="名称">{{ workloadName }}</el-descriptions-item>
-                <el-descriptions-item label="命名空间">{{ routeParams.namespace }}</el-descriptions-item>
-                <el-descriptions-item label="节点选择器">
+                <el-descriptions-item :label='$tr("名称")'>{{ workloadName }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("命名空间")'>{{ routeParams.namespace }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("节点选择器")'>
                   <div v-if="podDetail.spec?.nodeSelector && Object.keys(podDetail.spec.nodeSelector).length > 0">
                     <el-tag
                       v-for="(value, key) in podDetail.spec.nodeSelector"
@@ -2278,7 +2280,7 @@ const handleGoBack = () => {
                   </div>
                   <span v-else>-</span>
                 </el-descriptions-item>
-                <el-descriptions-item label="标签">
+                <el-descriptions-item :label='$tr("标签")'>
                   <div v-if="Object.keys(podLabels).length > 0" class="labels-container">
                     <div class="labels-display">
                       <el-tag
@@ -2312,11 +2314,11 @@ const handleGoBack = () => {
           <el-col :span="12">
             <el-card class="info-card" header="状态信息">
               <el-descriptions :column="1" border size="small">
-                <el-descriptions-item label="创建时间">{{ formatTime(podCreationTime) }}</el-descriptions-item>
-                <el-descriptions-item label="重启策略">{{ podDetail.spec?.restartPolicy || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="运行时间">{{ formatRunningTime(podDetail.runningTime) }}</el-descriptions-item>
-                <el-descriptions-item label="期望Pod数量">{{ expectedPodCount }}</el-descriptions-item>
-                <el-descriptions-item label="状态">
+                <el-descriptions-item :label='$tr("创建时间")'>{{ formatTime(podCreationTime) }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("重启策略")'>{{ podDetail.spec?.restartPolicy || '-' }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("运行时间")'>{{ formatRunningTime(podDetail.runningTime) }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("期望Pod数量")'>{{ expectedPodCount }}</el-descriptions-item>
+                <el-descriptions-item :label='$tr("状态")'>
                   <el-tag :type="getStatusType(podStatus)" effect="dark">{{ podStatus }}</el-tag>
                 </el-descriptions-item>
               </el-descriptions>
@@ -2329,7 +2331,7 @@ const handleGoBack = () => {
       <div class="tabs-section">
         <el-tabs v-model="activeTab" type="border-card" @tab-change="handleTabChange">
           <!-- 容器组标签页 -->
-          <el-tab-pane label="容器组" name="containers">
+          <el-tab-pane :label='$tr("容器组")' name="containers">
             <el-table
               :data="allRelatedPods"
               v-loading="loading"
@@ -2337,7 +2339,7 @@ const handleGoBack = () => {
               style="width: 100%"
               size="small"
             >
-              <el-table-column prop="name" label="Pod名称" min-width="200">
+              <el-table-column prop="name" :label='$tr("Pod名称")' min-width="200">
                 <template #default="{ row }">
                   <div class="pod-name-container">
                     <img :src="$getAssetUrl('@/assets/image/k8s.svg')" alt="k8s" class="k8s-icon" width="16" height="16" />
@@ -2345,14 +2347,14 @@ const handleGoBack = () => {
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="状态" min-width="100">
+              <el-table-column prop="status" :label='$tr("状态")' min-width="100">
                 <template #default="{ row }">
                   <el-tag :type="getPodStatusTag(row.status)" size="small">
-                    {{ getPodStatusText(row.status) }}
+                    {{ $tr(getPodStatusText(row.status)) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="restartCount" label="重启次数" min-width="100">
+              <el-table-column prop="restartCount" :label='$tr("重启次数")' min-width="100">
                 <template #default="{ row }">
                   <el-tag size="small" :type="row.restartCount > 0 ? 'warning' : 'success'">
                     {{ row.restartCount }}
@@ -2360,7 +2362,7 @@ const handleGoBack = () => {
                 </template>
               </el-table-column>
               
-              <el-table-column label="监控" min-width="60" align="center">
+              <el-table-column :label='$tr("监控")' min-width="60" align="center">
                 <template #default="{ row }">
                   <el-button 
                     :icon="Monitor" 
@@ -2368,35 +2370,35 @@ const handleGoBack = () => {
                     circle 
                     type="primary" 
                     @click="handleShowMonitoring(row)"
-                    title="查看监控"
+                    :title='$tr("查看监控")'
                   />
                 </template>
               </el-table-column>
               
-              <el-table-column prop="nodeName" label="节点" min-width="150"></el-table-column>
+              <el-table-column prop="nodeName" :label='$tr("节点")' min-width="150"></el-table-column>
               
               <el-table-column prop="podIP" label="Pod IP" min-width="120"></el-table-column>
               
-              <el-table-column prop="age" label="运行时间" min-width="120">
+              <el-table-column prop="age" :label='$tr("运行时间")' min-width="120">
                 <template #default="{ row }">
                   <div class="time-info">
                     <el-tag size="small" type="info">{{ row.age }}</el-tag>
                     <div v-if="row.runningTime" class="running-time">
-                      运行: {{ formatRunningTime(row.runningTime) }}
+                      {{ $tr("运行:") }} {{ formatRunningTime(row.runningTime) }}
                     </div>
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" min-width="380" fixed="right">
+              <el-table-column :label='$tr("操作")' min-width="380" fixed="right">
                 <template #default="{ row }">
                   <div class="operation-buttons-container">
-                    <el-button size="small" type="warning" :icon="Edit" @click="handleEditYaml(row)">YAML编辑</el-button>
-                    <el-button size="small" type="primary" :icon="Document" @click="handleViewLogs(row)">日志</el-button>
+                    <el-button size="small" type="warning" :icon="Edit" @click="handleEditYaml(row)">{{ $tr("YAML编辑") }}</el-button>
+                    <el-button size="small" type="primary" :icon="Document" @click="handleViewLogs(row)">{{ $tr("日志") }}</el-button>
                     <el-button size="small" type="success"  @click="handleTerminal(row)">
                       <img :src="$getAssetUrl('@/assets/image/终端.svg')" alt="terminal" class="custom-icon" />
-                      终端
+                      {{ $tr("终端") }}
                     </el-button>
-                    <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row)">删除</el-button>
+                    <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row)">{{ $tr("删除") }}</el-button>
                   </div>
                 </template>
               </el-table-column>
@@ -2404,7 +2406,7 @@ const handleGoBack = () => {
           </el-tab-pane>
 
           <!-- 历史版本标签页 -->
-          <el-tab-pane label="历史版本" name="history">
+          <el-tab-pane :label='$tr("历史版本")' name="history">
             <el-table
               :data="historyVersions"
               stripe
@@ -2412,14 +2414,14 @@ const handleGoBack = () => {
               size="small"
               v-loading="loading"
             >
-              <el-table-column prop="revision" label="版本" min-width="80" />
-              <el-table-column prop="description" label="描述" min-width="250" />
-              <el-table-column prop="status" label="状态" min-width="100">
+              <el-table-column prop="revision" :label='$tr("版本")' min-width="80" />
+              <el-table-column prop="description" :label='$tr("描述")' min-width="250" />
+              <el-table-column prop="status" :label='$tr("状态")' min-width="100">
                 <template #default="{ row }">
                   <el-tag :type="getStatusType(row.status)" effect="dark" size="small">{{ row.status }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="image" label="镜像" min-width="200">
+              <el-table-column prop="image" :label='$tr("镜像")' min-width="200">
                 <template #default="{ row }">
                   <div class="image-cell">
                     <span v-if="row.image" class="image-info">{{ row.image }}</span>
@@ -2427,35 +2429,35 @@ const handleGoBack = () => {
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="replicas" label="副本数" min-width="100" />
-              <el-table-column prop="creationTime" label="创建时间" min-width="180">
+              <el-table-column prop="replicas" :label='$tr("副本数")' min-width="100" />
+              <el-table-column prop="creationTime" :label='$tr("创建时间")' min-width="180">
                 <template #default="{ row }">
                   {{ formatTime(row.creationTime) }}
                 </template>
               </el-table-column>
-              <el-table-column prop="changeDescription" label="变更描述" min-width="200">
+              <el-table-column prop="changeDescription" :label='$tr("变更描述")' min-width="200">
                 <template #default="{ row }">
-                  <span v-if="row.changeDescription">{{ row.changeDescription }}</span>
+                  <span v-if="row.changeDescription">{{ $tr(row.changeDescription) }}</span>
                   <span v-else>-</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" min-width="150" fixed="right">
+              <el-table-column :label='$tr("操作")' min-width="150" fixed="right">
                 <template #default="{ row }">
-                  <el-button size="small" type="primary" @click="handleRollback(row)">回滚到此版本</el-button>
+                  <el-button size="small" type="primary" @click="handleRollback(row)">{{ $tr("回滚到此版本") }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
             <div v-if="!loading && historyVersions.length === 0" style="padding: 20px; text-align: center;">
-              <el-empty description="暂无历史版本数据">
+              <el-empty :description='$tr("暂无历史版本数据")'>
                 <div style="margin-top: 16px;">
-                  <el-button type="primary" @click="getHistoryVersions">重新获取历史版本</el-button>
+                  <el-button type="primary" @click="getHistoryVersions">{{ $tr("重新获取历史版本") }}</el-button>
                 </div>
               </el-empty>
             </div>
           </el-tab-pane>
 
           <!-- 事件标签页 -->
-          <el-tab-pane label="事件" name="events">
+          <el-tab-pane :label='$tr("事件")' name="events">
             <el-table
               :data="events"
               stripe
@@ -2463,45 +2465,45 @@ const handleGoBack = () => {
               size="small"
               v-loading="loading"
             >
-              <el-table-column prop="type" label="事件类型" min-width="100">
+              <el-table-column prop="type" :label='$tr("事件类型")' min-width="100">
                 <template #default="{ row }">
                   <el-tag :type="row.type === 'Warning' ? 'warning' : 'success'" effect="dark" size="small">
                     {{ row.type }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="来源" min-width="150">
+              <el-table-column :label='$tr("来源")' min-width="150">
                 <template #default="{ row }">
                   <span>{{ row.source || '未知' }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="次数" min-width="80">
+              <el-table-column :label='$tr("次数")' min-width="80">
                 <template #default="{ row }">
                   <el-tag size="small" type="info">{{ row.count || 1 }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="reason" label="原因" min-width="150" />
-              <el-table-column prop="message" label="消息" min-width="300" />
-              <el-table-column label="最后时间" min-width="180">
+              <el-table-column prop="reason" :label='$tr("原因")' min-width="150" />
+              <el-table-column prop="message" :label='$tr("消息")' min-width="300" />
+              <el-table-column :label='$tr("最后时间")' min-width="180">
                 <template #default="{ row }">
                   {{ formatTime(row.lastTime || row.firstTime) }}
                 </template>
               </el-table-column>
             </el-table>
             <div v-if="!loading && events.length === 0" style="padding: 20px; text-align: center;">
-              <el-empty description="暂无事件数据">
+              <el-empty :description='$tr("暂无事件数据")'>
                 <div style="margin-top: 16px;">
-                  <el-button type="primary" @click="getEvents">重新获取事件</el-button>
-                  <el-button type="success" @click="showPodDetailEvents" style="margin-left: 8px;">显示Pod详情事件</el-button>
+                  <el-button type="primary" @click="getEvents">{{ $tr("重新获取事件") }}</el-button>
+                  <el-button type="success" @click="showPodDetailEvents" style="margin-left: 8px;">{{ $tr("显示Pod详情事件") }}</el-button>
                 </div>
               </el-empty>
             </div>
           </el-tab-pane>
 
           <!-- 容器伸缩标签页 -->
-          <el-tab-pane label="容器伸缩" name="scale">
+          <el-tab-pane :label='$tr("容器伸缩")' name="scale">
             <div style="padding: 20px;">
-              <el-button type="primary" @click="handleScale">容器扩缩容</el-button>
+              <el-button type="primary" @click="handleScale">{{ $tr("容器扩缩容") }}</el-button>
             </div>
           </el-tab-pane>
 
@@ -2509,7 +2511,7 @@ const handleGoBack = () => {
           <el-tab-pane label="yaml" name="yaml">
             <div v-loading="yamlTabLoading" style="padding: 20px;">
               <div style="margin-bottom: 10px; text-align: right;">
-                <el-button type="primary" size="small" :icon="Copy" @click="copyToClipboard(yamlTabContent, 'YAML已复制')">复制YAML</el-button>
+                <el-button type="primary" size="small" :icon="Copy" @click="copyToClipboard(yamlTabContent, 'YAML已复制')">{{ $tr("复制YAML") }}</el-button>
               </div>
               <CodeEditor 
                 v-model="yamlTabContent" 
@@ -2537,7 +2539,7 @@ const handleGoBack = () => {
     <!-- YAML查看/编辑对话框 -->
     <el-dialog
       v-model="dialogStates.yamlVisible"
-      title="YAML内容"
+      :title='$tr("YAML内容")'
       width="50%"
       class="yaml-dialog"
       @closed="clearYamlSearch"
@@ -2548,7 +2550,7 @@ const handleGoBack = () => {
           <el-col :span="8">
             <el-input
               v-model="yamlSearchText"
-              placeholder="搜索YAML内容..."
+              :placeholder='$tr("搜索YAML内容...")'
               :prefix-icon="Search"
               clearable
               @keyup.enter="searchYamlContent"
@@ -2559,7 +2561,7 @@ const handleGoBack = () => {
           </el-col>
           <el-col :span="8">
             <el-button-group size="small">
-              <el-button type="warning" :icon="Search" @click="searchYamlContent">搜索</el-button>
+              <el-button type="warning" :icon="Search" @click="searchYamlContent">{{ $tr("搜索") }}</el-button>
               <el-button type="success" :icon="ArrowUp" @click="goToPreviousSearchResult" :disabled="yamlSearchResults.length === 0"></el-button>
               <el-button type="primary" :icon="ArrowDown" @click="goToNextSearchResult" :disabled="yamlSearchResults.length === 0"></el-button>
             </el-button-group>
@@ -2584,19 +2586,19 @@ const handleGoBack = () => {
         />
       </div>
       <template #footer>
-        <el-button @click="copyToClipboard(yamlContent, 'YAML已复制')">复制YAML</el-button>
-        <el-button type="primary" @click="handleSaveYaml">保存</el-button>
+        <el-button @click="copyToClipboard(yamlContent, 'YAML已复制')">{{ $tr("复制YAML") }}</el-button>
+        <el-button type="primary" @click="handleSaveYaml">{{ $tr("保存") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 容器扩缩容对话框 -->
     <el-dialog
       v-model="dialogStates.scaleVisible"
-      title="容器扩缩容"
+      :title='$tr("容器扩缩容")'
       width="400px"
     >
       <el-form :model="scaleForm" label-width="80px">
-        <el-form-item label="副本数">
+        <el-form-item :label='$tr("副本数")'>
           <el-input-number
             v-model="scaleForm.replicas"
             :min="0"
@@ -2606,43 +2608,43 @@ const handleGoBack = () => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogStates.scaleVisible = false">取消</el-button>
-        <el-button type="primary" @click="ElMessage.success('扩缩容功能开发中')">确定</el-button>
+        <el-button @click="dialogStates.scaleVisible = false">{{ $tr("取消") }}</el-button>
+        <el-button type="primary" @click="ElMessage.success('扩缩容功能开发中')">{{ $tr("确定") }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 回滚确认对话框 -->
     <el-dialog
       v-model="dialogStates.rollbackVisible"
-      title="回滚确认"
+      :title='$tr("回滚确认")'
       width="500px"
     >
       <div class="rollback-confirmation">
         <el-alert
-          title="回滚操作风险提示"
+          :title='$tr("回滚操作风险提示")'
           type="warning"
-          description="回滚操作将会替换当前运行的版本，请确认您要执行此操作。"
+          :description='$tr("回滚操作将会替换当前运行的版本，请确认您要执行此操作。")'
           show-icon
           :closable="false"
           style="margin-bottom: 20px;"
         />
 
-        <el-descriptions title="回滚详情" :column="1" border>
-          <el-descriptions-item label="目标版本">{{ rollbackForm.targetVersion }}</el-descriptions-item>
-          <el-descriptions-item label="版本描述">{{ rollbackForm.versionInfo.description }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatTime(rollbackForm.versionInfo.creationTime) }}</el-descriptions-item>
-          <el-descriptions-item label="镜像" v-if="rollbackForm.versionInfo.image">{{ rollbackForm.versionInfo.image }}</el-descriptions-item>
+        <el-descriptions :title='$tr("回滚详情")' :column="1" border>
+          <el-descriptions-item :label='$tr("目标版本")'>{{ rollbackForm.targetVersion }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("版本描述")'>{{ $tr(rollbackForm.versionInfo.description) }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("创建时间")'>{{ formatTime(rollbackForm.versionInfo.creationTime) }}</el-descriptions-item>
+          <el-descriptions-item :label='$tr("镜像")' v-if="rollbackForm.versionInfo.image">{{ rollbackForm.versionInfo.image }}</el-descriptions-item>
         </el-descriptions>
       </div>
 
       <template #footer>
-        <el-button @click="dialogStates.rollbackVisible = false">取消</el-button>
+        <el-button @click="dialogStates.rollbackVisible = false">{{ $tr("取消") }}</el-button>
         <el-button
           type="danger"
           :loading="rollbackLoading"
           @click="handleConfirmRollback"
         >
-          确认回滚
+          {{ $tr("确认回滚") }}
         </el-button>
       </template>
     </el-dialog>
@@ -2650,17 +2652,17 @@ const handleGoBack = () => {
     <!-- 终端 — 跳转到专用终端页面 -->
     <el-dialog
       v-model="dialogStates.terminalVisible"
-      title="终端"
+      :title='$tr("终端")'
       width="500px"
       class="terminal-dialog"
     >
       <div class="terminal-container">
-        <p>点击确认将跳转到容器终端页面</p>
+        <p>{{ $tr("点击确认将跳转到容器终端页面") }}</p>
       </div>
       <template #footer>
-        <el-button @click="dialogStates.terminalVisible = false">取消</el-button>
+        <el-button @click="dialogStates.terminalVisible = false">{{ $tr("取消") }}</el-button>
         <el-button type="primary" @click="dialogStates.terminalVisible = false; handleTerminal(selectedContainer)">
-          前往终端
+          {{ $tr("前往终端") }}
         </el-button>
       </template>
     </el-dialog>
@@ -2677,7 +2679,7 @@ const handleGoBack = () => {
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">CPU使用率</span>
+                <span class="metric-title">{{ $tr("CPU使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.cpu.percentage }}%</span>
               </div>
               <el-progress 
@@ -2686,15 +2688,15 @@ const handleGoBack = () => {
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.cpu.used }}</span>
-                <span>限制: {{ monitoringData.cpu.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.cpu.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.cpu.limit }}</span>
               </div>
             </el-card>
           </el-col>
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">内存使用率</span>
+                <span class="metric-title">{{ $tr("内存使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.memory.percentage }}%</span>
               </div>
               <el-progress 
@@ -2703,8 +2705,8 @@ const handleGoBack = () => {
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.memory.used }}</span>
-                <span>限制: {{ monitoringData.memory.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.memory.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.memory.limit }}</span>
               </div>
             </el-card>
           </el-col>
@@ -2714,15 +2716,15 @@ const handleGoBack = () => {
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">网络流量</span>
+                <span class="metric-title">{{ $tr("网络流量") }}</span>
               </div>
               <div class="network-metrics">
                 <div class="network-item">
-                  <span class="network-label">入站:</span>
+                  <span class="network-label">{{ $tr("入站:") }}</span>
                   <span class="network-value">{{ monitoringData.network.rx }}</span>
                 </div>
                 <div class="network-item">
-                  <span class="network-label">出站:</span>
+                  <span class="network-label">{{ $tr("出站:") }}</span>
                   <span class="network-value">{{ monitoringData.network.tx }}</span>
                 </div>
               </div>
@@ -2731,7 +2733,7 @@ const handleGoBack = () => {
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">磁盘使用率</span>
+                <span class="metric-title">{{ $tr("磁盘使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.disk.percentage }}%</span>
               </div>
               <el-progress 
@@ -2740,8 +2742,8 @@ const handleGoBack = () => {
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.disk.used }}</span>
-                <span>限制: {{ monitoringData.disk.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.disk.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.disk.limit }}</span>
               </div>
             </el-card>
           </el-col>
@@ -2751,16 +2753,16 @@ const handleGoBack = () => {
         <el-card v-if="monitoringData.containers && monitoringData.containers.length > 0" style="margin-top: 16px;">
           <template #header>
             <div class="card-header">
-              <span>容器监控详情</span>
+              <span>{{ $tr("容器监控详情") }}</span>
               <el-tag v-if="monitoringData.timestamp" type="info" size="small">
-                更新时间: {{ formatTimestamp(monitoringData.timestamp) }}
+                {{ $tr("更新时间:") }} {{ formatTimestamp(monitoringData.timestamp) }}
               </el-tag>
             </div>
           </template>
           
           <el-table :data="monitoringData.containers" size="small" stripe>
-            <el-table-column prop="name" label="容器名称" min-width="120" />
-            <el-table-column label="CPU使用" min-width="100">
+            <el-table-column prop="name" :label='$tr("容器名称")' min-width="120" />
+            <el-table-column :label='$tr("CPU使用")' min-width="100">
               <template #default="{ row }">
                 <div class="container-metric">
                   <span class="metric-text">{{ row.usage?.cpu || '0m' }}</span>
@@ -2774,7 +2776,7 @@ const handleGoBack = () => {
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="内存使用" min-width="100">
+            <el-table-column :label='$tr("内存使用")' min-width="100">
               <template #default="{ row }">
                 <div class="container-metric">
                   <span class="metric-text">{{ row.usage?.memory || '0Mi' }}</span>
@@ -2788,7 +2790,7 @@ const handleGoBack = () => {
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="CPU使用率" min-width="80">
+            <el-table-column :label='$tr("CPU使用率")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.usageRate?.cpuRate > 80 ? 'danger' : row.usageRate?.cpuRate > 60 ? 'warning' : 'success'"
@@ -2798,7 +2800,7 @@ const handleGoBack = () => {
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="内存使用率" min-width="80">
+            <el-table-column :label='$tr("内存使用率")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.usageRate?.memoryRate > 80 ? 'danger' : row.usageRate?.memoryRate > 60 ? 'warning' : 'success'"
@@ -2808,7 +2810,7 @@ const handleGoBack = () => {
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="状态" min-width="80">
+            <el-table-column :label='$tr("状态")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.state === 'Running' ? 'success' : row.state === 'Waiting' ? 'warning' : 'danger'"
@@ -2823,8 +2825,8 @@ const handleGoBack = () => {
       </div>
       
       <template #footer>
-        <el-button @click="dialogStates.monitoringVisible = false">关闭</el-button>
-        <el-button type="primary" @click="loadMonitoringData(selectedPodForMonitoring)" :loading="monitoringLoading">刷新数据</el-button>
+        <el-button @click="dialogStates.monitoringVisible = false">{{ $tr("关闭") }}</el-button>
+        <el-button type="primary" @click="loadMonitoringData(selectedPodForMonitoring)" :loading="monitoringLoading">{{ $tr("刷新数据") }}</el-button>
       </template>
     </el-dialog>
   </div>

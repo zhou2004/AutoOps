@@ -1,3 +1,4 @@
+import { tr } from "@/locales";
 import { reactive } from "vue";
 import type { FormRules } from "element-plus";
 
@@ -7,7 +8,7 @@ const loginRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error("请输入密码"));
+          callback(new Error(tr("请输入密码")));
         } else {
           callback();
         }
@@ -19,7 +20,7 @@ const loginRules = reactive<FormRules>({
     {
       validator: (rule, value, callback) => {
         if (value === "") {
-          callback(new Error("请输入验证码"));
+          callback(new Error(tr("请输入验证码")));
         } else {
           callback();
         }

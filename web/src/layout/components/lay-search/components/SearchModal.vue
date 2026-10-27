@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tr, locale } from "@/locales";
 import { match } from "pinyin-pro";
 import { getConfig } from "@/config";
 import { useRouter } from "vue-router";
@@ -102,12 +103,14 @@ function flatTree(arr) {
   return res;
 }
 
+watch(locale, () => search());
+
 /** 查询 */
 function search() {
   const flatMenusData = flatTree(menusData.value);
   resultOptions.value = flatMenusData.filter(menu =>
     keyword.value
-      ? menu.meta?.title
+      ? tr(menu.meta?.title)
           .toLocaleLowerCase()
           .includes(keyword.value.toLocaleLowerCase().trim()) ||
         !isAllEmpty(
@@ -289,7 +292,7 @@ onKeyStroke("ArrowDown", handleDown);
       v-model="keyword"
       size="large"
       clearable
-      placeholder="搜索菜单（支持拼音搜索）"
+      :placeholder='$tr("搜索菜单（支持拼音搜索）")'
       @input="handleSearch"
     >
       <template #prefix>
@@ -301,7 +304,7 @@ onKeyStroke("ArrowDown", handleDown);
     </el-input>
     <div class="search-content">
       <el-scrollbar ref="scrollbarRef" max-height="calc(90vh - 140px)">
-        <el-empty v-if="showEmpty" description="暂无搜索结果" />
+        <el-empty v-if="showEmpty" :description='$tr("暂无搜索结果")' />
         <SearchHistory
           v-if="showSearchHistory"
           ref="historyRef"

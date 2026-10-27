@@ -12,7 +12,7 @@
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">CPU使用率</span>
+                <span class="metric-title">{{ $tr("CPU使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.cpu.percentage }}%</span>
               </div>
               <el-progress 
@@ -21,15 +21,15 @@
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.cpu.used }}</span>
-                <span>限制: {{ monitoringData.cpu.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.cpu.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.cpu.limit }}</span>
               </div>
             </el-card>
           </el-col>
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">内存使用率</span>
+                <span class="metric-title">{{ $tr("内存使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.memory.percentage }}%</span>
               </div>
               <el-progress 
@@ -38,8 +38,8 @@
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.memory.used }}</span>
-                <span>限制: {{ monitoringData.memory.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.memory.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.memory.limit }}</span>
               </div>
             </el-card>
           </el-col>
@@ -49,15 +49,15 @@
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">网络流量</span>
+                <span class="metric-title">{{ $tr("网络流量") }}</span>
               </div>
               <div class="network-metrics">
                 <div class="network-item">
-                  <span class="network-label">入站:</span>
+                  <span class="network-label">{{ $tr("入站:") }}</span>
                   <span class="network-value">{{ monitoringData.network.rx }}</span>
                 </div>
                 <div class="network-item">
-                  <span class="network-label">出站:</span>
+                  <span class="network-label">{{ $tr("出站:") }}</span>
                   <span class="network-value">{{ monitoringData.network.tx }}</span>
                 </div>
               </div>
@@ -66,7 +66,7 @@
           <el-col :span="12">
             <el-card class="metric-card">
               <div class="metric-header">
-                <span class="metric-title">磁盘使用率</span>
+                <span class="metric-title">{{ $tr("磁盘使用率") }}</span>
                 <span class="metric-value">{{ monitoringData.disk.percentage }}%</span>
               </div>
               <el-progress 
@@ -75,8 +75,8 @@
                 :stroke-width="8"
               />
               <div class="metric-details">
-                <span>已用: {{ monitoringData.disk.used }}</span>
-                <span>限制: {{ monitoringData.disk.limit }}</span>
+                <span>{{ $tr("已用:") }} {{ monitoringData.disk.used }}</span>
+                <span>{{ $tr("限制:") }} {{ monitoringData.disk.limit }}</span>
               </div>
             </el-card>
           </el-col>
@@ -86,16 +86,16 @@
         <el-card v-if="monitoringData.containers && monitoringData.containers.length > 0" style="margin-top: 16px;">
           <template #header>
             <div class="card-header">
-              <span>容器监控详情</span>
+              <span>{{ $tr("容器监控详情") }}</span>
               <el-tag v-if="monitoringData.timestamp" type="info" size="small">
-                更新时间: {{ formatTimestamp(monitoringData.timestamp) }}
+                {{ $tr("更新时间:") }} {{ formatTimestamp(monitoringData.timestamp) }}
               </el-tag>
             </div>
           </template>
           
           <el-table :data="monitoringData.containers" size="small" stripe>
-            <el-table-column prop="name" label="容器名称" min-width="120" />
-            <el-table-column label="CPU使用" min-width="100">
+            <el-table-column prop="name" :label='$tr("容器名称")' min-width="120" />
+            <el-table-column :label='$tr("CPU使用")' min-width="100">
               <template #default="{ row }">
                 <div class="container-metric">
                   <span class="metric-text">{{ row.usage?.cpu || '0m' }}</span>
@@ -109,7 +109,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="内存使用" min-width="100">
+            <el-table-column :label='$tr("内存使用")' min-width="100">
               <template #default="{ row }">
                 <div class="container-metric">
                   <span class="metric-text">{{ row.usage?.memory || '0Mi' }}</span>
@@ -123,7 +123,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="CPU使用率" min-width="80">
+            <el-table-column :label='$tr("CPU使用率")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.usageRate?.cpuRate > 80 ? 'danger' : row.usageRate?.cpuRate > 60 ? 'warning' : 'success'"
@@ -133,7 +133,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="内存使用率" min-width="80">
+            <el-table-column :label='$tr("内存使用率")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.usageRate?.memoryRate > 80 ? 'danger' : row.usageRate?.memoryRate > 60 ? 'warning' : 'success'"
@@ -143,7 +143,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="状态" min-width="80">
+            <el-table-column :label='$tr("状态")' min-width="80">
               <template #default="{ row }">
                 <el-tag 
                   :type="row.state === 'Running' ? 'success' : row.state === 'Waiting' ? 'warning' : 'danger'"
@@ -158,14 +158,16 @@
       </div>
       
       <template #footer>
-        <el-button @click="monitoringVisible = false">关闭</el-button>
-        <el-button type="primary" @click="refreshMonitoring" :loading="monitoringLoading">刷新数据</el-button>
+        <el-button @click="monitoringVisible = false">{{ $tr("关闭") }}</el-button>
+        <el-button type="primary" @click="refreshMonitoring" :loading="monitoringLoading">{{ $tr("刷新数据") }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { tr } from "@/locales";
+
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import k8sApi from '@/api/k8s'
@@ -270,7 +272,7 @@ const loadMonitoringData = async (pod) => {
 
   } catch (error) {
     console.error('⚠️ 监控API调用失败:', error)
-    ElMessage.error('监控数据获取失败，请检查网络连接或稍后重试')
+    ElMessage.error(tr('监控数据获取失败，请检查网络连接或稍后重试'))
   } finally {
     monitoringLoading.value = false
   }

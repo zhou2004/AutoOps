@@ -49,6 +49,14 @@ func CreateSysAdmin(c *gin.Context) {
 // @router /api/v1/admin/info [get]
 // @Security ApiKeyAuth
 func GetSysAdminInfo(c *gin.Context) {
+	identity, ok := currentIdentity(c)
+	if !ok {
+		return
+	}
+	if !identity.Admin {
+		service.SysAdminService().GetSysAdminInfo(c, int(identity.UserID))
+		return
+	}
 	Id, _ := strconv.Atoi(c.Query("id"))
 	service.SysAdminService().GetSysAdminInfo(c, Id)
 }
@@ -84,7 +92,9 @@ func DeleteSysAdminById(c *gin.Context) {
 }
 
 // @Tags System系统管理
+//
 //	用户状态启用/停用
+//
 // @Summary 用户状态启用/停用接口
 // @Produce json
 // @Description 用户状态启用/停用接口

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="扩缩容" width="400px">
+  <el-dialog v-model="visible" :title='$tr("扩缩容")' width="400px">
     <div>Scale Dialog - Placeholder</div>
   </el-dialog>
 </template>

@@ -11,6 +11,20 @@ type AccountAuthController struct {
 	service *service.AccountAuthService
 }
 
+func hideAccountSecret(account *model.AccountAuth) *model.AccountAuth {
+	if account != nil {
+		account.Password = ""
+	}
+	return account
+}
+
+func hideAccountSecrets(accounts []model.AccountAuth) []model.AccountAuth {
+	for i := range accounts {
+		accounts[i].Password = ""
+	}
+	return accounts
+}
+
 func NewAccountAuthController() *AccountAuthController {
 	return &AccountAuthController{
 		service: service.NewAccountAuthService(),
@@ -32,11 +46,11 @@ func (c *AccountAuthController) Create(ctx *gin.Context) {
 	}
 
 	if err := c.service.Create(&account); err != nil {
-		result.Failed(ctx, 500, "创建失败: "+err.Error())
+		result.Failed(ctx, 400, "创建失败: "+err.Error())
 		return
 	}
 
-	result.Success(ctx, account)
+	result.Success(ctx, hideAccountSecret(&account))
 }
 
 // Update 更新账号
@@ -54,11 +68,11 @@ func (c *AccountAuthController) Update(ctx *gin.Context) {
 	}
 
 	if err := c.service.Update(&account); err != nil {
-		result.Failed(ctx, 500, "更新失败: "+err.Error())
+		result.Failed(ctx, 400, "更新失败: "+err.Error())
 		return
 	}
 
-	result.Success(ctx, account)
+	result.Success(ctx, hideAccountSecret(&account))
 }
 
 // Delete 删除账号
@@ -105,7 +119,7 @@ func (c *AccountAuthController) GetByID(ctx *gin.Context) {
 		return
 	}
 
-	result.Success(ctx, account)
+	result.Success(ctx, hideAccountSecret(account))
 }
 
 // List 获取账号列表（分页）
@@ -130,7 +144,7 @@ func (c *AccountAuthController) List(ctx *gin.Context) {
 	}
 
 	pageResult := result.PageResult{
-		List:     accounts,
+		List:     hideAccountSecrets(accounts),
 		Total:    total,
 		Page:     params.Page,
 		PageSize: params.PageSize,
@@ -178,7 +192,7 @@ func (c *AccountAuthController) GetByType(ctx *gin.Context) {
 		result.Failed(ctx, 500, "查询失败: "+err.Error())
 		return
 	}
-	result.Success(ctx, accounts)
+	result.Success(ctx, hideAccountSecrets(accounts))
 }
 
 // GetByAlias 根据别名查询账号
@@ -195,5 +209,5 @@ func (c *AccountAuthController) GetByAlias(ctx *gin.Context) {
 		result.Failed(ctx, 500, "查询失败: "+err.Error())
 		return
 	}
-	result.Success(ctx, account)
+	result.Success(ctx, hideAccountSecret(account))
 }

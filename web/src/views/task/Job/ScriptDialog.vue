@@ -3,12 +3,12 @@
     <div class="dialog-mask"></div>
     <div class="dialog-container">
       <div class="dialog-header">
-        <h3>{{ title }}</h3>
-        <button @click="handleClose">×</button>
+        <h3>{{ $tr(title) }}</h3>
+        <el-button text :aria-label="$tr('关闭')" @click="handleClose">×</el-button>
       </div>
       <div class="dialog-body" v-html="content"></div>
       <div class="dialog-footer">
-        <button @click="handleClose">关闭</button>
+        <el-button @click="handleClose">{{ $tr("关闭") }}</el-button>
       </div>
     </div>
   </div>

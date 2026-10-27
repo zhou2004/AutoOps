@@ -30,6 +30,12 @@ export default {
             meta: { title: "Ansible任务" }
         },
         {
+            path: "/task/ansible/history",
+            name: "AnsibleTaskHistory",
+            component: () => import("@/views/task/AnsibleTaskHistory.vue"),
+            meta: { title: "Ansible执行记录", showLink: false, activePath: "/task/ansible" }
+        },
+        {
             path: "/task/config",
             name: "TaskConfig",
             component: () => import("@/views/task/TaskConfig.vue"),

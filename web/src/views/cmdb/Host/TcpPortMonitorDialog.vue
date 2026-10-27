@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="TCP端口监控"
+    :title='$tr("TCP端口监控")'
     v-model:visible="dialogVisible"
     width="60%"
     top="8vh"
@@ -12,10 +12,10 @@
     <div class="tcp-port-monitor-header">
       <div class="host-info">
         <span class="host-name">{{ portData.hostName || '未知主机' }}</span>
-        <span class="update-time">最后更新: {{ formatTime(portData.updateTime) }}</span>
+        <span class="update-time">{{ $tr("最后更新:") }} {{ formatTime(portData.updateTime) }}</span>
         <div class="port-summary">
-          <el-tag type="info" size="small">总端口数: {{ portData.total || 0 }}</el-tag>
-          <el-tag type="success" size="small">监听中: {{ listeningPortsCount }}</el-tag>
+          <el-tag type="info" size="small">{{ $tr("总端口数:") }} {{ portData.total || 0 }}</el-tag>
+          <el-tag type="success" size="small">{{ $tr("监听中:") }} {{ listeningPortsCount }}</el-tag>
         </div>
       </div>
       <el-button
@@ -25,7 +25,7 @@
         :loading="loading"
         @click="fetchPortData"
       >
-        手动刷新
+        {{ $tr("手动刷新") }}
       </el-button>
     </div>
 
@@ -34,7 +34,7 @@
         <el-col :span="5">
           <el-input
             v-model="searchPort"
-            placeholder="端口号"
+            :placeholder='$tr("端口号")'
             clearable
             prefix-icon="Search"
             size="small"
@@ -43,7 +43,7 @@
         <el-col :span="5">
           <el-input
             v-model="searchService"
-            placeholder="服务名"
+            :placeholder='$tr("服务名")'
             clearable
             prefix-icon="Search"
             size="small"
@@ -52,32 +52,32 @@
         <el-col :span="4">
           <el-select
             v-model="statusFilter"
-            placeholder="状态"
+            :placeholder='$tr("状态")'
             clearable
             size="small"
           >
-            <el-option label="全部" value="" />
-            <el-option label="监听中" :value="1" />
-            <el-option label="未监听" :value="0" />
+            <el-option :label='$tr("全部")' value="" />
+            <el-option :label='$tr("监听中")' :value="1" />
+            <el-option :label='$tr("未监听")' :value="0" />
           </el-select>
         </el-col>
         <el-col :span="5">
           <el-select
             v-model="resourceFilter"
-            placeholder="资源筛选"
+            :placeholder='$tr("资源筛选")'
             clearable
             size="small"
           >
-            <el-option label="全部" value="" />
-            <el-option label="高CPU (>5%)" value="high-cpu" />
-            <el-option label="高内存 (>5%)" value="high-mem" />
-            <el-option label="高负载" value="high-load" />
+            <el-option :label='$tr("全部")' value="" />
+            <el-option :label='$tr("高CPU (>5%)")' value="high-cpu" />
+            <el-option :label='$tr("高内存 (>5%)")' value="high-mem" />
+            <el-option :label='$tr("高负载")' value="high-load" />
           </el-select>
         </el-col>
         <el-col :span="5">
           <el-button type="primary" size="small" @click="exportPorts">
             <el-icon><Download /></el-icon>
-            导出
+            {{ $tr("导出") }}
           </el-button>
         </el-col>
       </el-row>
@@ -92,7 +92,7 @@
       class="port-table"
       size="small"
     >
-      <el-table-column label="端口" prop="port" sortable width="100" align="center">
+      <el-table-column :label='$tr("端口")' prop="port" sortable width="100" align="center">
         <template v-slot="scope">
           <el-tag
             :type="scope.row.status === 1 ? 'success' : 'info'"
@@ -107,7 +107,7 @@
           <span class="pid-text">{{ scope.row.pid }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="服务名称" prop="service" show-overflow-tooltip width="180">
+      <el-table-column :label='$tr("服务名称")' prop="service" show-overflow-tooltip width="180">
         <template v-slot="scope">
           <div class="service-cell">
             <el-icon size="12"><Setting /></el-icon>
@@ -115,7 +115,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="状态" prop="status" width="110" align="center">
+      <el-table-column :label='$tr("状态")' prop="status" width="110" align="center">
         <template v-slot="scope">
           <el-tag
             :type="scope.row.status === 1 ? 'success' : 'danger'"
@@ -123,7 +123,7 @@
           >
             <el-icon v-if="scope.row.status === 1" size="10"><CircleCheck /></el-icon>
             <el-icon v-else size="10"><CircleClose /></el-icon>
-            {{ scope.row.status === 1 ? '监听' : '停止' }}
+            {{ scope.row.status === 1 ? '监听' : $tr('停止') }}
           </el-tag>
         </template>
       </el-table-column>
@@ -141,7 +141,7 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
-      <el-table-column label="内存%" prop="memUsage" sortable width="130" align="center">
+      <el-table-column :label='$tr("内存%")' prop="memUsage" sortable width="130" align="center">
         <template v-slot="scope">
           <div v-if="scope.row.memUsage !== undefined && scope.row.memUsage !== null">
             <el-progress
@@ -155,12 +155,12 @@
           <span v-else class="text-muted">-</span>
         </template>
       </el-table-column>
-      <el-table-column label="协议" width="80" align="center">
+      <el-table-column :label='$tr("协议")' width="80" align="center">
         <template v-slot="scope">
           <el-tag type="info" size="mini">TCP</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" min-width="90" align="center">
+      <el-table-column :label='$tr("操作")' min-width="90" align="center">
         <template v-slot="scope">
           <el-button
             type="primary"
@@ -168,7 +168,7 @@
             icon="InfoFilled"
             circle
             @click="showPortDetails(scope.row)"
-            title="查看详情"
+            :title='$tr("查看详情")'
           />
         </template>
       </el-table-column>
@@ -176,25 +176,25 @@
 
     <!-- 端口详情弹窗 -->
     <el-dialog
-      title="端口详情"
+      :title='$tr("端口详情")'
       v-model="showDetailDialog"
       width="50%"
       append-to-body
     >
       <el-descriptions :column="2" border v-if="selectedPort">
-        <el-descriptions-item label="端口号">
+        <el-descriptions-item :label='$tr("端口号")'>
           <el-tag :type="selectedPort.status === 1 ? 'success' : 'danger'">
             {{ selectedPort.port }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="进程ID">{{ selectedPort.pid }}</el-descriptions-item>
-        <el-descriptions-item label="服务名称">{{ selectedPort.service || '未知服务' }}</el-descriptions-item>
-        <el-descriptions-item label="监听状态">
+        <el-descriptions-item :label='$tr("进程ID")'>{{ selectedPort.pid }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("服务名称")'>{{ selectedPort.service || '未知服务' }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("监听状态")'>
           <el-tag :type="selectedPort.status === 1 ? 'success' : 'danger'">
-            {{ selectedPort.status === 1 ? '监听中' : '未监听' }}
+            {{ selectedPort.status === 1 ? $tr('监听中') : $tr('未监听') }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="CPU使用率" v-if="selectedPort.cpuUsage !== undefined">
+        <el-descriptions-item :label='$tr("CPU使用率")' v-if="selectedPort.cpuUsage !== undefined">
           <el-progress
             :percentage="Math.min(parseFloat(selectedPort.cpuUsage.toFixed(2)), 100)"
             :color="getUsageColor(selectedPort.cpuUsage)"
@@ -203,7 +203,7 @@
             :format="() => `${selectedPort.cpuUsage.toFixed(2)}%`"
           />
         </el-descriptions-item>
-        <el-descriptions-item label="内存使用率" v-if="selectedPort.memUsage !== undefined">
+        <el-descriptions-item :label='$tr("内存使用率")' v-if="selectedPort.memUsage !== undefined">
           <el-progress
             :percentage="Math.min(parseFloat(selectedPort.memUsage.toFixed(2)), 100)"
             :color="getUsageColor(selectedPort.memUsage)"
@@ -212,14 +212,16 @@
             :format="() => `${selectedPort.memUsage.toFixed(2)}%`"
           />
         </el-descriptions-item>
-        <el-descriptions-item label="协议类型">TCP</el-descriptions-item>
-        <el-descriptions-item label="最后更新">{{ formatTime(portData.updateTime) }}</el-descriptions-item>
+        <el-descriptions-item :label='$tr("协议类型")'>TCP</el-descriptions-item>
+        <el-descriptions-item :label='$tr("最后更新")'>{{ formatTime(portData.updateTime) }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
   </el-dialog>
 </template>
 
 <script>
+import { tr } from "@/locales";
+
 
 export default {
   name: 'TcpPortMonitorDialog',
@@ -333,11 +335,11 @@ export default {
         if (res.code === 200) {
           this.portData = res.data
         } else {
-          this.$message.error(res.message || '获取端口数据失败')
+          this.$message.error(res.message || tr('获取端口数据失败'))
         }
       } catch (error) {
         console.error('获取端口数据失败:', error)
-        this.$message.error('获取端口数据失败')
+        this.$message.error(tr('获取端口数据失败'))
       } finally {
         this.loading = false
       }
@@ -398,7 +400,7 @@ export default {
 
     exportPorts() {
       if (!this.filteredPorts || this.filteredPorts.length === 0) {
-        this.$message.warning('没有数据可导出')
+        this.$message.warning(tr('没有数据可导出'))
         return
       }
 
@@ -429,7 +431,7 @@ export default {
       link.click()
       document.body.removeChild(link)
 
-      this.$message.success('数据导出成功')
+      this.$message.success(tr('数据导出成功'))
     }
   },
 
