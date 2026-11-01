@@ -1,0 +1,26 @@
+[mysqld]
+user=autoopsdb
+port={{ member.port }}
+bind-address={{ member.address }}
+basedir={{ mysql_install_dir }}
+datadir={{ member.dataDir }}/data
+socket={{ member.dataDir }}/mysql.sock
+pid-file={{ member.dataDir }}/mysql.pid
+log-error={{ member.dataDir }}/mysql.log
+server-id={{ db_cluster.id * 1000 + member.id }}
+report_host={{ member.address }}
+report_port={{ member.port }}
+mysqlx=OFF
+log_bin=mysql-bin
+binlog_format=ROW
+log_slave_updates=ON
+gtid_mode=ON
+enforce_gtid_consistency=ON
+relay_log=relay-bin
+skip_name_resolve=ON
+innodb_buffer_pool_size={{ db_cluster.policy.memoryMB | default(256) }}M
+max_connections=150
+sync_binlog=1
+innodb_flush_log_at_trx_commit=1
+read_only=OFF
+super_read_only=OFF

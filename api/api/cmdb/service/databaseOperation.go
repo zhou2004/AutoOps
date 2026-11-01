@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"database/sql"
+	"dodevops-api/pkg/rediscompat"
 	"encoding/json"
 	"errors"
 	"net"
@@ -14,6 +15,7 @@ import (
 
 	"dodevops-api/api/cmdb/model"
 	configmodel "dodevops-api/api/configcenter/model"
+	databaseModel "dodevops-api/api/database/model"
 	"github.com/go-redis/redis/v8"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -28,9 +30,10 @@ const (
 type DatabaseOperationService struct{ db *gorm.DB }
 
 type databaseTarget struct {
-	Asset   model.CmdbSQL
-	Account configmodel.AccountAuth
-	Secret  string
+	Asset    model.CmdbSQL
+	Account  configmodel.AccountAuth
+	Secret   string
+	Endpoint *databaseModel.Endpoint
 }
 
 type DatabaseOverview struct {
@@ -74,6 +77,9 @@ func (s *DatabaseOperationService) target(id uint) (*databaseTarget, error) {
 	if id == 0 || s.db.First(&target.Asset, id).Error != nil {
 		return nil, errors.New("数据源不存在")
 	}
+	if target.Asset.Retired {
+		return nil, errors.New("该实例已退役，数据源保留用于历史审计")
+	}
 	if target.Asset.Type < 1 || target.Asset.Type > 3 {
 		return nil, errors.New("仅支持 MySQL、PostgreSQL 和 Redis")
 	}
@@ -83,6 +89,13 @@ func (s *DatabaseOperationService) target(id uint) (*databaseTarget, error) {
 	secret, err := target.Account.DecryptPassword()
 	if err != nil {
 		return nil, errors.New("数据源凭据无法解密")
+	}
+	if target.Asset.ConnectionMode == "cluster" {
+		var endpoint databaseModel.Endpoint
+		if target.Asset.ClusterID == 0 || s.db.Where("id = ? AND cluster_id = ?", target.Asset.EndpointID, target.Asset.ClusterID).First(&endpoint).Error != nil || endpoint.AccountID != target.Asset.AccountID {
+			return nil, errors.New("集群入口与数据源凭据关联无效")
+		}
+		target.Endpoint = &endpoint
 	}
 	target.Secret = secret
 	if strings.TrimSpace(target.Account.Host) == "" || target.Account.Port < 1 || target.Account.Port > 65535 {
@@ -116,6 +129,34 @@ func (s *DatabaseOperationService) openSQL(ctx context.Context, id uint, databas
 	if err != nil {
 		return nil, nil, err
 	}
+	if target.Endpoint != nil {
+		var addresses []string
+		if json.Unmarshal(target.Endpoint.Addresses, &addresses) != nil || len(addresses) == 0 {
+			return nil, nil, errors.New("集群入口地址无效")
+		}
+		for _, address := range addresses {
+			host, port, e := net.SplitHostPort(address)
+			if e != nil {
+				continue
+			}
+			n, e := strconv.Atoi(port)
+			if e != nil {
+				continue
+			}
+			target.Account.Host, target.Account.Port = host, n
+			db, _, e := s.openSQLTarget(ctx, target, database)
+			if e == nil {
+				return db, target, nil
+			}
+			if ctx.Err() != nil {
+				break
+			}
+		}
+		return nil, nil, errors.New("集群访问入口均不可用")
+	}
+	return s.openSQLTarget(ctx, target, database)
+}
+func (s *DatabaseOperationService) openSQLTarget(ctx context.Context, target *databaseTarget, database string) (*sql.DB, *databaseTarget, error) {
 	if target.Asset.Type == 3 {
 		return nil, nil, errors.New("Redis 不支持 SQL 操作")
 	}
@@ -165,7 +206,7 @@ func (s *DatabaseOperationService) openSQL(ctx context.Context, id uint, databas
 	return db, target, nil
 }
 
-func (s *DatabaseOperationService) redisClient(id uint) (*redis.Client, *databaseTarget, error) {
+func (s *DatabaseOperationService) redisClient(id uint) (redis.UniversalClient, *databaseTarget, error) {
 	target, err := s.target(id)
 	if err != nil {
 		return nil, nil, err
@@ -187,6 +228,32 @@ func (s *DatabaseOperationService) redisClient(id uint) (*redis.Client, *databas
 	options := &redis.Options{Addr: net.JoinHostPort(target.Account.Host, strconv.Itoa(target.Account.Port)), Username: target.Account.Name, Password: target.Secret, DB: dbNumber, DialTimeout: 8 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, PoolSize: 3}
 	if tlsMode == "verify-full" {
 		options.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12, ServerName: target.Account.Host}
+	}
+	options.MaxRetries = -1
+	if target.Endpoint != nil {
+		var addresses []string
+		if json.Unmarshal(target.Endpoint.Addresses, &addresses) != nil || len(addresses) == 0 {
+			return nil, nil, errors.New("Redis 集群种子无效")
+		}
+		switch target.Endpoint.Mode {
+		case "cluster":
+			if dbNumber != 0 {
+				return nil, nil, errors.New("Redis Cluster 仅支持 DB 0")
+			}
+			return rediscompat.NewCluster(&redis.ClusterOptions{Addrs: addresses, Username: options.Username, Password: options.Password, TLSConfig: options.TLSConfig, DialTimeout: options.DialTimeout, ReadTimeout: options.ReadTimeout, WriteTimeout: options.WriteTimeout, PoolSize: 3, MaxRetries: -1, MaxRedirects: 8}), target, nil
+		case "sentinel":
+			var sentinel configmodel.AccountAuth
+			if s.db.First(&sentinel, target.Endpoint.SentinelAccountID).Error != nil {
+				return nil, nil, errors.New("Sentinel 凭据不存在")
+			}
+			password, e := sentinel.DecryptPassword()
+			if e != nil {
+				return nil, nil, errors.New("Sentinel 凭据无法解密")
+			}
+			return redis.NewFailoverClient(&redis.FailoverOptions{MasterName: target.Endpoint.MasterName, SentinelAddrs: addresses, SentinelUsername: sentinel.Name, SentinelPassword: password, Username: options.Username, Password: options.Password, DB: dbNumber, TLSConfig: options.TLSConfig, DialTimeout: options.DialTimeout, ReadTimeout: options.ReadTimeout, WriteTimeout: options.WriteTimeout, PoolSize: 3, MaxRetries: -1}), target, nil
+		default:
+			return nil, nil, errors.New("Redis 入口模式无效")
+		}
 	}
 	return redis.NewClient(options), target, nil
 }

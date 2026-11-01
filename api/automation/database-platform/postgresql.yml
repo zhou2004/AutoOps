@@ -1,0 +1,48 @@
+---
+- name: Install PostgreSQL 15 and Patroni without starting distribution services
+  ansible.builtin.apt:
+    lock_timeout: 300
+    name: [postgresql-15, postgresql-client-15, patroni, python3-etcd, python3-psycopg2, pgbackrest]
+    state: present
+    policy_rc_d: 101
+    update_cache: true
+    cache_valid_time: 3600
+- name: Install pinned Patroni controller with corrected etcd3 cache handling
+  ansible.builtin.include_tasks: patroni-runtime.yml
+  when: db_cluster.topology == 'postgresql-patroni'
+- name: Configure Patroni
+  ansible.builtin.template:
+    src: patroni.yml.j2
+    dest: '{{ member.dataDir }}/patroni.yml'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+  no_log: true
+  when: db_cluster.topology == 'postgresql-patroni'
+- name: Configure standalone instance
+  when: db_cluster.topology == 'standalone'
+  block:
+    - name: Initialize isolated PostgreSQL directory
+      become_user: autoopsdb
+      ansible.builtin.command:
+        argv: [/usr/lib/postgresql/15/bin/initdb, -D, '{{ member.dataDir }}/data', -U, postgres, --data-checksums, --auth-local=trust, --auth-host=scram-sha-256]
+    - name: Configure listening and memory
+      ansible.builtin.blockinfile:
+        path: '{{ member.dataDir }}/data/postgresql.conf'
+        block: |
+          listen_addresses = '{{ member.address }}'
+          port = {{ member.port }}
+          unix_socket_directories = '{{ member.dataDir }}'
+          shared_buffers = '64MB'
+          max_connections = 100
+    - name: Allow authenticated connections
+      ansible.builtin.lineinfile:
+        path: '{{ member.dataDir }}/data/pg_hba.conf'
+        line: 'host all all 0.0.0.0/0 scram-sha-256'
+- name: Install isolated PostgreSQL unit
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ member.service }}.service'
+    mode: '0644'
+  vars:
+    executable: "{{ '/opt/autoops/patroni-4.1.5/bin/patroni ' + member.dataDir + '/patroni.yml' if db_cluster.topology == 'postgresql-patroni' else '/usr/lib/postgresql/15/bin/postgres -D ' + member.dataDir + '/data' }}"

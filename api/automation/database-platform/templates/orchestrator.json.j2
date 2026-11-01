@@ -1,0 +1,17 @@
+{
+  "ListenAddress": ":{{ member.port }}",
+  "BackendDB": "sqlite",
+  "SQLite3DataFile": "{{ member.dataDir }}/orchestrator.db",
+  "AuthenticationMethod": "basic", "HTTPAuthUser": "autoops", "HTTPAuthPassword": {{ db_secrets.control | to_json }},
+  "MySQLTopologyUser": "autoops_orc", "MySQLTopologyPassword": {{ (db_secrets.topology | default(db_secrets.control, true)) | to_json }},
+  "MySQLConnectTimeoutSeconds": 3, "DefaultInstancePort": {{ (db_cluster.members | selectattr('kind','equalto','data') | first).port }},
+  "InstancePollSeconds": 5, "UseSuperReadOnly": true,
+  "HostnameResolveMethod": "none", "MySQLHostnameResolveMethod": "@@report_host",
+  "DetectClusterAliasQuery": "SELECT '{{ db_cluster.name }}'",
+  "RecoverMasterClusterFilters": ["*"], "RecoverIntermediateMasterClusterFilters": ["*"],
+  "ApplyMySQLPromotionAfterMasterFailover": true, "RecoveryPeriodBlockSeconds": 60,
+  "PreFailoverProcesses": ["/usr/bin/python3 {{ member.dataDir }}/fence.py {{ member.dataDir }}/fencing.json {failedHost} {failedPort}"],
+  "RaftEnabled": true, "RaftDataDir": "{{ member.dataDir }}/raft",
+  "RaftBind": "{{ member.address }}", "RaftAdvertise": "{{ member.address }}", "DefaultRaftPort": {{ member.port + 2000 }},
+  "RaftNodes": [{% for node in db_cluster.members | selectattr('kind','equalto','orchestrator') %}{{ (node.address + ':' + (node.port+2000)|string) | to_json }}{{ ',' if not loop.last else '' }}{% endfor %}]
+}

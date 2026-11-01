@@ -7,6 +7,7 @@ import (
 	"dodevops-api/common/config"
 	"dodevops-api/middleware"
 	"dodevops-api/pkg/log"
+	databaseRoutes "dodevops-api/router/database"
 
 	"path/filepath"
 	"reflect"
@@ -112,6 +113,7 @@ func register(router *gin.Engine) {
 			system.RegisterSystemRoutes(jwtGroup)
 			aiops.RegisterRoutes(jwtGroup)
 			cmdb.RegisterCmdbRoutes(jwtGroup)
+			databaseRoutes.RegisterRoutes(jwtGroup)
 			configCenter.RegisterConfigCenterRoutes(jwtGroup)
 			app.RegisterJenkinsRoutes(jwtGroup)         // Jenkins模块路由
 			app.RegisterApplicationRoutes(jwtGroup)     // 应用管理路由

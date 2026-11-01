@@ -1,0 +1,53 @@
+---
+- name: Load pinned MySQL release metadata
+  ansible.builtin.include_vars: ../database/defaults.yml
+- name: Install MySQL runtime dependencies
+  ansible.builtin.apt:
+    lock_timeout: 300
+    name: [libnuma1, libaio1, libncurses6, python3-pymysql, xz-utils]
+    state: present
+    policy_rc_d: 101
+    update_cache: true
+    cache_valid_time: 3600
+- name: Inspect pinned binary
+  ansible.builtin.stat:
+    path: '{{ mysql_install_dir }}/bin/mysqld'
+  register: mysql_binary
+- name: Install pinned binary when absent
+  when: not mysql_binary.stat.exists
+  block:
+    - name: Download verified MySQL distribution
+      ansible.builtin.get_url:
+        url: '{{ mysql_download_url }}'
+        checksum: '{{ mysql_package_checksum }}'
+        dest: '/tmp/{{ mysql_tarball }}'
+        mode: '0644'
+        timeout: 600
+    - name: Create binary directory
+      ansible.builtin.file:
+        path: '{{ install_base_dir }}'
+        state: directory
+        mode: '0755'
+    - name: Extract versioned distribution
+      ansible.builtin.unarchive:
+        src: '/tmp/{{ mysql_tarball }}'
+        dest: '{{ install_base_dir }}'
+        remote_src: true
+- name: Write isolated MySQL configuration
+  ansible.builtin.template:
+    src: mysql.cnf.j2
+    dest: '{{ member.dataDir }}/mysql.cnf'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+- name: Initialize empty isolated MySQL data
+  become_user: autoopsdb
+  ansible.builtin.command:
+    argv: ['{{ mysql_install_dir }}/bin/mysqld', '--defaults-file={{ member.dataDir }}/mysql.cnf', --initialize-insecure]
+- name: Install isolated MySQL unit
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ member.service }}.service'
+    mode: '0644'
+  vars:
+    executable: '{{ mysql_install_dir }}/bin/mysqld --defaults-file={{ member.dataDir }}/mysql.cnf'

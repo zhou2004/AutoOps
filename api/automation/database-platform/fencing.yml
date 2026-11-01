@@ -1,0 +1,118 @@
+---
+- name: Install a forced-command SSH fence on data nodes
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install data-node fencing guard
+      when: member.kind == 'data'
+      block:
+        - name: Create root-owned fencing policy directory
+          ansible.builtin.file:
+            path: /etc/autoops-fencing
+            state: directory
+            mode: '0700'
+        - name: Write exact service allowlist
+          ansible.builtin.template:
+            src: fencing-services.json.j2
+            dest: '/etc/autoops-fencing/{{ db_cluster.id }}.json'
+            mode: '0600'
+          no_log: true
+        - name: Install root-owned forced-command dispatcher
+          ansible.builtin.copy:
+            src: files/fence-dispatch.py
+            dest: /usr/local/sbin/autoops-fence-dispatch
+            owner: root
+            group: root
+            mode: '0700'
+        - name: Ensure root SSH directory
+          ansible.builtin.file:
+            path: /root/.ssh
+            state: directory
+            owner: root
+            group: root
+            mode: '0700'
+        - name: Authorize only the isolated forced fencing command
+          ansible.builtin.lineinfile:
+            path: /root/.ssh/authorized_keys
+            create: true
+            owner: root
+            group: root
+            mode: '0600'
+            line: 'restrict,command="/usr/local/sbin/autoops-fence-dispatch {{ db_cluster.id }}" {{ fencing_public_key }} autoops-fence-{{ db_cluster.id }}'
+          no_log: true
+- name: Configure recovery hooks on every Orchestrator voter
+  hosts: all
+  serial: 1
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Install manager fencing material
+      when: member.kind == 'orchestrator'
+      block:
+        - name: Resolve owned control service paths
+          ansible.builtin.set_fact:
+            fence_dir: '/var/lib/autoops-fencing/{{ db_cluster.id }}'
+            fence_owner: "{{ 'orchestrator' if member.service == 'autoops-orchestrator' else 'autoopsdb' }}"
+            orchestrator_config: "{{ '/etc/autoops-orchestrator.json' if member.service == 'autoops-orchestrator' else member.dataDir + '/orchestrator.json' }}"
+        - name: Create private manager material directory
+          ansible.builtin.file:
+            path: '{{ fence_dir }}'
+            state: directory
+            owner: root
+            group: '{{ fence_owner }}'
+            mode: '0750'
+        - name: Write dedicated private key
+          ansible.builtin.copy:
+            dest: '{{ fence_dir }}/id_ed25519'
+            content: '{{ fencing_private_key }}'
+            owner: '{{ fence_owner }}'
+            group: '{{ fence_owner }}'
+            mode: '0600'
+          no_log: true
+        - name: Pin independent channel host fingerprints
+          ansible.builtin.copy:
+            dest: '{{ fence_dir }}/known_hosts'
+            content: '{{ fencing_known_hosts }}'
+            owner: root
+            group: '{{ fence_owner }}'
+            mode: '0640'
+        - name: Write root-owned fencing configuration
+          ansible.builtin.copy:
+            dest: '{{ fence_dir }}/fencing.json'
+            content: "{{ {'privateKey':fence_dir + '/id_ed25519','knownHosts':fence_dir + '/known_hosts','targets':fencing_targets} | to_json }}"
+            owner: root
+            group: '{{ fence_owner }}'
+            mode: '0640'
+        - name: Install independent pre-failover executor
+          ansible.builtin.copy:
+            src: files/fence.py
+            dest: '{{ fence_dir }}/fence.py'
+            owner: root
+            group: '{{ fence_owner }}'
+            mode: '0750'
+        - name: Verify forced command connectivity without stopping services
+          become_user: '{{ fence_owner }}'
+          ansible.builtin.command:
+            argv: [ssh, -o, BatchMode=yes, -o, StrictHostKeyChecking=yes, -o, 'UserKnownHostsFile={{ fence_dir }}/known_hosts', -i, '{{ fence_dir }}/id_ed25519', -p, '{{ item.value.sshPort | string }}', 'root@{{ item.value.address }}', check, '{{ item.value.service }}']
+          loop: '{{ fencing_targets | dict2items }}'
+          register: fence_check
+          failed_when: fence_check.rc != 0 or fence_check.stdout != 'READY:' + item.value.service
+          changed_when: false
+        - name: Install additive recovery hook while preserving existing policy
+          ansible.builtin.command:
+            argv: [python3, -c, "import json,sys,os; p=sys.argv[1]; c=json.load(open(p)); before=json.dumps(c,sort_keys=True); hook=sys.argv[2]; hooks=c.get('PreFailoverProcesses',[]); hooks=[h for h in hooks if '/fence.py ' not in h]; c['PreFailoverProcesses']=[hook]+hooks; post=sys.argv[3]; posts=c.get('PostMasterFailoverProcesses') or []; c['PostMasterFailoverProcesses']=[h for h in posts if '/fence.py ' not in h]+[post]; changed=before!=json.dumps(c,sort_keys=True); tmp=p+'.autoops.tmp'; f=open(tmp,'w'); json.dump(c,f,indent=2); f.flush(); os.fsync(f.fileno()); f.close(); st=os.stat(p); os.chmod(tmp,st.st_mode); os.chown(tmp,st.st_uid,st.st_gid); os.replace(tmp,p); print('changed' if changed else 'unchanged')", '{{ orchestrator_config }}', '/usr/bin/python3 {{ fence_dir }}/fence.py {{ fence_dir }}/fencing.json {failedHost} {failedPort}', '/usr/bin/python3 {{ fence_dir }}/fence.py {{ fence_dir }}/fencing.json {successorHost} {successorPort} persist-promotion']
+          register: fencing_hook
+          changed_when: fencing_hook.stdout == 'changed'
+          no_log: true
+        - name: Restart one control voter after hook validation
+          when: fencing_hook.changed
+          ansible.builtin.systemd:
+            name: '{{ member.service }}'
+            state: restarted
+        - name: Wait for recovered control API
+          ansible.builtin.wait_for:
+            host: '{{ member.address }}'
+            port: '{{ member.port }}'
+            timeout: 45

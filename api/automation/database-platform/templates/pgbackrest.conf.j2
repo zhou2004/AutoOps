@@ -1,0 +1,19 @@
+[global]
+repo1-path={{ archive_base }}/repo
+repo1-retention-full=14
+repo1-retention-full-type=time
+expire-auto=n
+log-path={{ archive_base }}/log
+lock-path={{ archive_base }}/lock
+spool-path={{ archive_base }}/spool
+archive-async=n
+process-max=1
+start-fast=y
+compress-type=gz
+log-level-console=warn
+
+[autoops]
+pg1-path={{ member.dataDir }}
+pg1-port={{ member.port }}
+pg1-socket-path={{ member.dataDir | dirname }}
+pg1-user=postgres

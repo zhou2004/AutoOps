@@ -448,7 +448,7 @@ async function scanKeys(reset) {
       })
     );
     redisKeys.value = data.list || [];
-    redisCursor.value = Number(data.nextCursor || 0);
+    redisCursor.value = data.nextCursor || 0;
   } catch (e) {
     ElMessage.error(e.message);
   }

@@ -5,21 +5,23 @@ package main
 
 import (
 	"context"
-	"flag"
-	"fmt"
+	"dodevops-api/api/cmdb/controller"
+	databaseService "dodevops-api/api/database/service"
+	"dodevops-api/api/task/service"
 	"dodevops-api/common"
 	"dodevops-api/common/config"
 	_ "dodevops-api/docs"
-	"dodevops-api/api/cmdb/controller"
-	"dodevops-api/api/task/service"
 	"dodevops-api/pkg/db"
 	"dodevops-api/pkg/log"
 	"dodevops-api/pkg/redis"
 	"dodevops-api/router"
 	"dodevops-api/scheduler"
+	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -34,6 +36,8 @@ import (
 func main() {
 	// 解析命令行参数
 	var configPath string
+	var mode string
+	flag.StringVar(&mode, "mode", "api", "api、database-worker 或 database-collector")
 	flag.StringVar(&configPath, "c", "", "配置文件路径 (默认: ./config.yaml)")
 	flag.Parse()
 
@@ -42,10 +46,31 @@ func main() {
 		panic("Failed to load config: " + err.Error())
 	}
 
+	if mode == "database-worker" || mode == "database-collector" {
+		if err := db.SetupDBLink(); err != nil {
+			panic(err)
+		}
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		host, _ := os.Hostname()
+		if mode == "database-collector" {
+			databaseService.New(common.GetDB()).RunCollector(ctx)
+			return
+		}
+		databaseService.New(common.GetDB()).RunWorker(ctx, fmt.Sprintf("%s-%d", host, os.Getpid()))
+		return
+	}
+	if mode != "api" {
+		panic("unsupported mode")
+	}
 	// 初始化其他服务
 	if err := initServices(); err != nil {
 		panic("Failed to initialize services: " + err.Error())
 	}
+
+	collectorCtx, stopCollector := context.WithCancel(context.Background())
+	defer stopCollector()
+	go databaseService.New(common.GetDB()).RunCollector(collectorCtx)
 
 	// 启动调度器管理器
 	if err := scheduler.GetManager().Start(); err != nil {
@@ -84,9 +109,10 @@ func main() {
 	}()
 	quit := make(chan os.Signal, 1)
 	//监听消息
-	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 	log.Info("Shutdown Server ...")
+	stopCollector()
 
 	// 停止调度器管理器
 	scheduler.GetManager().Stop()

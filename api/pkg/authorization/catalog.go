@@ -54,6 +54,9 @@ func Route(method, fullPath string) Requirement {
 	admin := false
 	module := ""
 	switch {
+	case strings.HasPrefix(p, "/database/"):
+		module = "database"
+		admin = strings.HasSuffix(p, "/grants") || (strings.HasPrefix(p, "/database/repositories") || strings.HasPrefix(p, "/database/storage-thresholds") || strings.HasPrefix(p, "/database/audit")) && method != "GET"
 	case strings.HasPrefix(p, "/system/"), strings.HasPrefix(p, "/admin/"), strings.HasPrefix(p, "/role/"), strings.HasPrefix(p, "/menu/"), strings.HasPrefix(p, "/dept/"), strings.HasPrefix(p, "/post/"):
 		module = "system"
 		admin = true
@@ -135,6 +138,15 @@ func Route(method, fullPath string) Requirement {
 	}
 	if strings.Contains(p, "/databases/:id/mysql/") && method != "GET" && method != "HEAD" {
 		action = "execute"
+	}
+	if strings.HasPrefix(p, "/database/") && method != "GET" && method != "HEAD" {
+		action = "execute"
+		if strings.HasSuffix(p, "/operation-plans") || strings.HasSuffix(p, "/discovery") {
+			action = "read"
+		}
+		if strings.HasSuffix(p, "/grants") || (strings.HasPrefix(p, "/database/repositories") || strings.HasPrefix(p, "/database/storage-thresholds") || strings.HasPrefix(p, "/database/audit")) {
+			action = "write"
+		}
 	}
 	// Saving a runnable definition can enable scheduled execution.
 	if method != "GET" && (p == "/task/add" || p == "/task/update" || p == "/task/ansible" || p == "/task/ansible/:id" && method == "PUT" || p == "/task/k8s") {

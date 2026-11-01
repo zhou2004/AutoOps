@@ -4,19 +4,26 @@
       <div>
         <p class="eyebrow">DATABASE SOURCES</p>
         <h1>{{ $tr("数据源管理") }}</h1>
-        <p>{{ $tr("按业务分组管理 MySQL、PostgreSQL 与 Redis，从数据源进入数据库工作台。") }}</p>
+        <p>
+          {{
+            $tr(
+              "按业务分组管理 MySQL、PostgreSQL 与 Redis，从数据源进入数据库工作台。"
+            )
+          }}
+        </p>
       </div>
-      <el-button
-        v-if="platformAccess.isAdmin"
-        v-authority="['cmdb:db:add']"
-        type="primary"
-        size="large"
-        @click="openCreate"
-        >{{ $tr("新增数据源") }}</el-button
-      >
+      <div class="source-header-actions">
+        <DatabaseEngineFilter v-model="query.type" numeric @change="search" />
+        <el-button
+          v-if="platformAccess.isAdmin"
+          v-authority="['cmdb:db:add']"
+          type="primary"
+          size="large"
+          @click="openCreate"
+          >{{ $tr("新增数据源") }}</el-button
+        >
+      </div>
     </section>
-
-
 
     <section class="summary-grid">
       <article v-for="item in summary" :key="item.label">
@@ -31,45 +38,51 @@
           <el-input
             v-model="query.name"
             clearable
-            :placeholder='$tr("按名称搜索")'
+            :placeholder="$tr('按名称搜索')"
             @keyup.enter="search"
           />
-          <el-select v-model="query.type" clearable :placeholder='$tr("全部类型")'
-            ><el-option
-              v-for="item in dbTypes"
-              :key="item.value"
-              :label="$tr(item.label)"
-              :value="item.value"
-          /></el-select>
-          <el-tree-select class="source-group-filter" v-model="query.groupId" :data="groups" :props="{ label: 'name', value: 'id', children: 'children' }" check-strictly filterable clearable :placeholder="$tr('业务分组（含子分组）')" />
+          <el-tree-select
+            class="source-group-filter"
+            v-model="query.groupId"
+            :data="groups"
+            :props="{ label: 'name', value: 'id', children: 'children' }"
+            check-strictly
+            filterable
+            clearable
+            :placeholder="$tr('业务分组（含子分组）')"
+          />
           <el-button type="primary" @click="search">{{ $tr("查询") }}</el-button
           ><el-button @click="resetSearch">{{ $tr("重置") }}</el-button>
         </div>
       </div>
 
       <el-table :data="rows" v-loading="loading" stripe>
-        <el-table-column :label='$tr("数据源")' min-width="220"
+        <el-table-column :label="$tr('数据源')" min-width="220"
           ><template #default="{ row }"
             ><div class="database-name">
-              <span class="type-mark" :class="`type-${row.type}`">{{
-                typeShort(row.type)
-              }}</span>
+              <DatabaseEngineIcon :engine="row.type" />
               <div>
-                <strong>{{ row.name }}</strong
-                ><small>{{ row.description || "暂无描述" }}</small>
+                <strong :title="row.name">{{ row.name }}</strong
+                ><small :title="row.description">{{
+                  row.description || "暂无描述"
+                }}</small>
               </div>
             </div></template
           ></el-table-column
         >
-        <el-table-column :label='$tr("类型")' width="140"
+        <el-table-column :label="$tr('类型')" width="140"
           ><template #default="{ row }"
             ><el-tag :type="tagType(row.type)">{{
               typeName(row.type)
             }}</el-tag></template
           ></el-table-column
         >
-        <el-table-column prop="groupName" :label="$tr('业务分组')" min-width="150" />
-        <el-table-column :label='$tr("连接账号")' min-width="180"
+        <el-table-column
+          prop="groupName"
+          :label="$tr('业务分组')"
+          min-width="150"
+        />
+        <el-table-column :label="$tr('连接账号')" min-width="180"
           ><template #default="{ row }"
             ><span>{{ row.username || accountName(row.accountId) }}</span
             ><small class="cell-subtitle">{{
@@ -77,7 +90,7 @@
             }}</small></template
           ></el-table-column
         >
-        <el-table-column :label='$tr("默认库 / DB")' min-width="150"
+        <el-table-column :label="$tr('默认库 / DB')" min-width="150"
           ><template #default="{ row }">{{
             row.defaultDb || (row.type === 3 ? "0" : "未指定")
           }}</template></el-table-column
@@ -91,22 +104,29 @@
             ></template
           ></el-table-column
         >
-        <el-table-column :label='$tr("标签")' min-width="150" show-overflow-tooltip
+        <el-table-column
+          :label="$tr('标签')"
+          min-width="150"
+          show-overflow-tooltip
           ><template #default="{ row }">{{
             row.tags || "-"
           }}</template></el-table-column
         >
-        <el-table-column :label='$tr("连通性")' width="120"
+        <el-table-column :label="$tr('连通性')" width="120"
           ><template #default="{ row }"
             ><el-tag :type="health[row.id]?.type || 'info'">{{
               health[row.id]?.text || "未检测"
             }}</el-tag></template
           ></el-table-column
         >
-        <el-table-column :label='$tr("操作")' width="270" fixed="right"
+        <el-table-column :label="$tr('操作')" width="270" fixed="right"
           ><template #default="{ row }"
-            ><el-button link type="primary" @click="openWorkbench(row)"
-              >{{ $tr("工作台") }}</el-button
+            ><el-button
+              link
+              type="primary"
+              :disabled="row.retired"
+              @click="openWorkbench(row)"
+              >{{ row.retired ? $tr("已退役") : $tr("工作台") }}</el-button
             ><el-button
               link
               type="success"
@@ -153,7 +173,9 @@
       destroy-on-close
     >
       <el-alert
-        :title='$tr("连接账号由管理员配置；操作人员通过资产授权获得查询或执行权限。")'
+        :title="
+          $tr('连接账号由管理员配置；操作人员通过资产授权获得查询或执行权限。')
+        "
         type="info"
         :closable="false"
         show-icon
@@ -167,13 +189,14 @@
       >
         <el-row :gutter="18">
           <el-col :span="12"
-            ><el-form-item :label='$tr("数据源名称")' prop="name"
+            ><el-form-item :label="$tr('数据源名称')" prop="name"
               ><el-input v-model="form.name" maxlength="100" /></el-form-item
           ></el-col>
           <el-col :span="12"
-            ><el-form-item :label='$tr("类型")' prop="type"
+            ><el-form-item :label="$tr('类型')" prop="type"
               ><el-select
-                v-model="form.type" :disabled="!platformAccess.isAdmin"
+                v-model="form.type"
+                :disabled="!platformAccess.isAdmin"
                 style="width: 100%"
                 @change="handleTypeChange"
                 ><el-option
@@ -183,12 +206,13 @@
                   :value="item.value" /></el-select></el-form-item
           ></el-col>
           <el-col :span="12"
-            ><el-form-item :label='$tr("连接账号")' prop="accountId"
+            ><el-form-item :label="$tr('连接账号')" prop="accountId"
               ><el-select
-                v-model="form.accountId" :disabled="!platformAccess.isAdmin"
+                v-model="form.accountId"
+                :disabled="!platformAccess.isAdmin"
                 filterable
                 style="width: 100%"
-                :placeholder='$tr("选择同类型账号")'
+                :placeholder="$tr('选择同类型账号')"
                 ><el-option
                   v-for="item in filteredAccounts"
                   :key="item.id"
@@ -196,7 +220,7 @@
                   :value="item.id" /></el-select></el-form-item
           ></el-col>
           <el-col :span="12"
-            ><el-form-item :label='$tr("业务分组")' prop="groupId"
+            ><el-form-item :label="$tr('业务分组')" prop="groupId"
               ><el-cascader
                 v-model="form.groupId"
                 :options="groups"
@@ -214,7 +238,7 @@
                 " /></el-form-item
           ></el-col>
           <el-col :span="12"
-            ><el-form-item :label='$tr("TLS 模式")' prop="tlsMode"
+            ><el-form-item :label="$tr('TLS 模式')" prop="tlsMode"
               ><el-select v-model="form.tlsMode" style="width: 100%"
                 ><el-option
                   v-for="item in tlsOptions"
@@ -223,13 +247,13 @@
                   :value="item" /></el-select></el-form-item
           ></el-col>
           <el-col :span="24"
-            ><el-form-item :label='$tr("标签")'
+            ><el-form-item :label="$tr('标签')"
               ><el-input
                 v-model="form.tags"
-                :placeholder='$tr("例如 production,core")' /></el-form-item
+                :placeholder="$tr('例如 production,core')" /></el-form-item
           ></el-col>
           <el-col :span="24"
-            ><el-form-item :label='$tr("描述")'
+            ><el-form-item :label="$tr('描述')"
               ><el-input
                 v-model="form.description"
                 type="textarea"
@@ -241,15 +265,17 @@
       </el-form>
       <template #footer
         ><el-button @click="dialogVisible = false">{{ $tr("取消") }}</el-button
-        ><el-button type="primary" :loading="saving" @click="save"
-          >{{ $tr("保存") }}</el-button
-        ></template
+        ><el-button type="primary" :loading="saving" @click="save">{{
+          $tr("保存")
+        }}</el-button></template
       >
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import DatabaseEngineFilter from "@/views/database/components/DatabaseEngineFilter.vue";
+import DatabaseEngineIcon from "@/views/database/components/DatabaseEngineIcon.vue";
 import { tr } from "@/locales";
 import { platformAccess } from "@/utils/platformAccess";
 
@@ -275,7 +301,13 @@ const rows = ref([]),
   accounts = ref([]),
   groups = ref([]),
   health = reactive({});
-const query = reactive({ name: "", type: undefined, groupId: undefined, page: 1, pageSize: 10 });
+const query = reactive({
+  name: "",
+  type: undefined,
+  groupId: undefined,
+  page: 1,
+  pageSize: 10
+});
 const emptyForm = () => ({
   id: undefined,
   name: "",
@@ -289,11 +321,51 @@ const emptyForm = () => ({
 });
 const form = reactive(emptyForm());
 const rules = {
-  name: [{ required: true, get message() { return tr("请输入数据源名称"); }, trigger: "blur" }],
-  type: [{ required: true, get message() { return tr("请选择类型"); }, trigger: "change" }],
-  accountId: [{ required: true, get message() { return tr("请选择连接账号"); }, trigger: "change" }],
-  groupId: [{ required: true, get message() { return tr("请选择业务分组"); }, trigger: "change" }],
-  tlsMode: [{ required: true, get message() { return tr("请选择 TLS 模式"); }, trigger: "change" }]
+  name: [
+    {
+      required: true,
+      get message() {
+        return tr("请输入数据源名称");
+      },
+      trigger: "blur"
+    }
+  ],
+  type: [
+    {
+      required: true,
+      get message() {
+        return tr("请选择类型");
+      },
+      trigger: "change"
+    }
+  ],
+  accountId: [
+    {
+      required: true,
+      get message() {
+        return tr("请选择连接账号");
+      },
+      trigger: "change"
+    }
+  ],
+  groupId: [
+    {
+      required: true,
+      get message() {
+        return tr("请选择业务分组");
+      },
+      trigger: "change"
+    }
+  ],
+  tlsMode: [
+    {
+      required: true,
+      get message() {
+        return tr("请选择 TLS 模式");
+      },
+      trigger: "change"
+    }
+  ]
 };
 const groupProps = {
   checkStrictly: true,
@@ -326,9 +398,6 @@ function unpack(response) {
 function typeName(type) {
   return dbTypes.find(item => item.value === Number(type))?.label || "未知";
 }
-function typeShort(type) {
-  return { 1: "MY", 2: "PG", 3: "RE" }[type] || "DB";
-}
 function tagType(type) {
   return { 1: "success", 2: "primary", 3: "danger" }[type] || "info";
 }
@@ -355,7 +424,9 @@ function accountAddress(id) {
 
 async function loadDependencies() {
   const [accountResponse, groupResponse] = await Promise.all([
-    platformAccess.isAdmin ? configAPI.listAccountAuth({ page: 1, pageSize: 100 }) : Promise.resolve({ data: {code: 200, data: {list: []}} }),
+    platformAccess.isAdmin
+      ? configAPI.listAccountAuth({ page: 1, pageSize: 100 })
+      : Promise.resolve({ data: { code: 200, data: { list: [] } } }),
     cmdbAPI.getDatabaseGroups()
   ]);
   accounts.value = unpack(accountResponse)?.list || [];
@@ -364,7 +435,9 @@ async function loadDependencies() {
 async function loadList() {
   loading.value = true;
   try {
-    const data = unpack(await cmdbAPI.listDatabases({ ...query, name: query.name.trim() }));
+    const data = unpack(
+      await cmdbAPI.listDatabases({ ...query, name: query.name.trim() })
+    );
     rows.value = data.list || [];
     total.value = Number(data.total || 0);
   } catch (error) {
@@ -441,9 +514,13 @@ async function save() {
 }
 async function remove(row) {
   try {
-    await ElMessageBox.confirm(`确定删除数据源“${row.name}”？`, tr("删除确认"), {
-      type: "warning"
-    });
+    await ElMessageBox.confirm(
+      `确定删除数据源“${row.name}”？`,
+      tr("删除确认"),
+      {
+        type: "warning"
+      }
+    );
     unpack(await cmdbAPI.deleteDatabase(row.id));
     ElMessage.success(tr("数据源已删除"));
     await loadList();
@@ -479,9 +556,47 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.filters .source-group-filter { width: 230px; }
+.database-page :deep(.el-table__row > td) {
+  height: 64px;
+  padding: 7px 0;
+  box-sizing: border-box;
+}
+.database-page :deep(.el-table__row > td .cell) {
+  max-height: 48px;
+  overflow: hidden;
+  line-height: 20px;
+}
+:deep(.database-engine-icon) {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+}
+.database-name {
+  height: 44px;
+  min-width: 0;
+}
+.database-name > div {
+  min-width: 0;
+}
+.database-name strong,
+.database-name small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filters .source-group-filter {
+  width: 230px;
+}
 .database-page {
   padding: 22px;
+}
+.source-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .page-hero {
   display: flex;
@@ -564,25 +679,6 @@ onMounted(async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.type-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 11px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-}
-.type-1 {
-  background: #1876d2;
-}
-.type-2 {
-  background: #355b91;
-}
-.type-3 {
-  background: #d8343a;
-}
 .pagination {
   display: flex;
   justify-content: flex-end;
@@ -594,6 +690,13 @@ onMounted(async () => {
 @media (max-width: 900px) {
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .source-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
   }
   .page-hero {
     align-items: flex-start;

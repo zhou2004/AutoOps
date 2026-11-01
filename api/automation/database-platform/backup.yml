@@ -1,0 +1,46 @@
+---
+- name: Back up each primary into an owned local staging directory
+  hosts: all
+  serial: 1
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Install matching MySQL physical backup tools
+      ansible.builtin.include_tasks: xtrabackup-tasks.yml
+      vars:
+        backup_server_version: '{{ member.version }}'
+      when: db_cluster.engine == 'mysql' and backup_method != 'logical'
+    - name: Create private operation staging directory
+      ansible.builtin.file:
+        path: '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}'
+        state: directory
+        mode: '0700'
+    - name: Install backup executor
+      ansible.builtin.copy:
+        src: files/backup.py
+        dest: '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/backup.py'
+        mode: '0700'
+    - name: Write private backup specification
+      ansible.builtin.copy:
+        dest: '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/input.json'
+        content: "{{ {'engine': db_cluster.engine, 'member': member, 'method': backup_method, 'username': db_username, 'password': db_password, 'parentLabel': parent_backup_label | default(''), 'parentArtifact': parent_backup_artifact | default({})} | to_json }}"
+        mode: '0600'
+      no_log: true
+    - name: Create and checksum consistent backup
+      block:
+        - name: Execute version-aware backup
+          ansible.builtin.command:
+            argv: [python3, '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/backup.py', '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/input.json']
+          no_log: true
+        - name: Fetch nonsecret backup manifest
+          ansible.builtin.fetch:
+            src: '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/manifest.json'
+            dest: '{{ result_dir }}/{{ inventory_hostname }}.json'
+            flat: true
+      always:
+        - name: Remove transient credential specification
+          ansible.builtin.file:
+            path: '/var/lib/autoops-database-backups/{{ db_cluster.id }}/{{ operation_id }}/{{ member.id }}/input.json'
+            state: absent
+          no_log: true

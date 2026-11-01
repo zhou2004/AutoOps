@@ -487,7 +487,7 @@ func (s *monitorAlertRuleService) evaluateRulesOnce() {
 					continue
 				}
 				// Skip internal-style rules, processed by evaluateInternalRules
-				if r.Style == "domain_cert" || r.Style == "api_endpoint" {
+				if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" {
 					continue
 				}
 
@@ -557,11 +557,13 @@ func (s *monitorAlertRuleService) evaluateInternalRules(ctx context.Context, rdb
 		if r.Expr == "" || r.Alert == "" || r.Enabled == nil || *r.Enabled == 0 {
 			continue
 		}
-		if r.Style != "domain_cert" && r.Style != "api_endpoint" {
+		if r.Style != "domain_cert" && r.Style != "api_endpoint" && r.Style != "database" {
 			continue
 		}
 
-		if r.Style == "domain_cert" {
+		if r.Style == "database" {
+			s.evalDatabaseRule(ctx, rdb, r)
+		} else if r.Style == "domain_cert" {
 			s.evalDomainCertRule(ctx, rdb, r, domainCerts)
 		} else if r.Style == "api_endpoint" {
 			s.evalAPIEndpointRule(ctx, rdb, r, apiEndpoints)
@@ -895,6 +897,10 @@ func (s *monitorAlertRuleService) processInternalEval(ctx context.Context, rdb *
 }
 
 func internalMetricFingerprint(metric map[string]string) string {
+	if metric["db_cluster_id"] != "" {
+		return metricFingerprint(map[string]string{"db_cluster_id": metric["db_cluster_id"], "instance_id": metric["instance_id"], "metric_kind": metric["metric_kind"], "filesystem_id": metric["filesystem_id"]})
+	}
+
 	if id := metric["monitor_source_id"]; id != "" {
 		return metricFingerprint(map[string]string{"monitor_source_id": id})
 	}
@@ -1021,7 +1027,7 @@ func sendWebhook(r *model.MonitorAlertRule, metric map[string]string, status str
 
 	labels["monitor_rule_id"] = strconv.FormatUint(uint64(r.ID), 10)
 	labels["monitor_source"] = "prometheus"
-	if r.Style == "domain_cert" || r.Style == "api_endpoint" {
+	if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" {
 		labels["monitor_source"] = r.Style
 		labels["monitor_source_id"] = metric["monitor_source_id"]
 	}

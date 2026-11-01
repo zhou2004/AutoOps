@@ -15,15 +15,17 @@ interface RequestOptions {
   params?: any;
   headers?: Record<string, string>;
   timeout?: number;
+  signal?: AbortSignal;
 }
 
 export function request(options: RequestOptions) {
-  const { url, method, data, params, headers, timeout } = options;
+  const { url, method, data, params, headers, timeout, signal } = options;
   const config: any = {};
   if (data !== undefined) config.data = data;
   if (params !== undefined) config.params = params;
   if (headers) config.headers = headers;
   if (timeout !== undefined) config.timeout = timeout;
+  if (signal) config.signal = signal;
 
   // 包装响应为 { data: GoJSONBody } 以兼容旧组件
   // 旧组件模式：const { data: res } = await this.$api.xxx() → res = Go JSON body → res.code / res.data

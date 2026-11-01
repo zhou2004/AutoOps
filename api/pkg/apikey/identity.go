@@ -16,6 +16,10 @@ func WithKey(ctx context.Context, id uint) context.Context {
 	return context.WithValue(ctx, keyContext{}, id)
 }
 
+// ID persists the originating credential for queued operations; workers must
+// revalidate this key instead of silently inheriting the owner's full session.
+func ID(ctx context.Context) uint { id, _ := ctx.Value(keyContext{}).(uint); return id }
+
 // Restrict preserves the owner's resource identity but removes the module admin bypass.
 func Restrict(owner authorization.Identity, key model.APIKey) (authorization.Identity, error) {
 	if key.UserID != owner.UserID {

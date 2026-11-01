@@ -1,0 +1,18 @@
+[Unit]
+Description=AutoOps database {{ db_cluster.name }} / {{ member.name }}
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=autoopsdb
+Group=autoopsdb
+ExecStart={{ executable }}
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=120
+LimitNOFILE=65536
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target

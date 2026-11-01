@@ -1,0 +1,11 @@
+name: {{ member.name | to_json }}
+enable-grpc-gateway: true
+data-dir: {{ (member.dataDir + '/data') | to_json }}
+listen-client-urls: http://{{ member.address }}:{{ member.port }}
+advertise-client-urls: http://{{ member.address }}:{{ member.port }}
+listen-peer-urls: http://{{ member.address }}:{{ member.port + 1 }}
+initial-advertise-peer-urls: http://{{ member.address }}:{{ member.port + 1 }}
+initial-cluster: {% for node in db_cluster.members | selectattr('kind', 'equalto', 'etcd') %}{{ node.name }}=http://{{ node.address }}:{{ node.port + 1 }}{{ ',' if not loop.last else '' }}{% endfor %}
+
+initial-cluster-token: {{ db_cluster.name | to_json }}
+initial-cluster-state: new

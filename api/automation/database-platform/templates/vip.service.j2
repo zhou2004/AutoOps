@@ -1,0 +1,11 @@
+[Unit]
+Description=AutoOps database cluster {{ db_cluster.id }} independent VIP
+After=network-online.target {{ member.service }}.service
+Wants=network-online.target
+[Service]
+Type=simple
+ExecStart=/usr/sbin/keepalived --dont-fork --log-console --use-file=/etc/autoops-database-vip/{{ db_cluster.id }}/keepalived.conf --pid=/run/autoops-db-vip-{{ db_cluster.id }}.pid --vrrp_pid=/run/autoops-db-vip-{{ db_cluster.id }}-vrrp.pid
+Restart=on-failure
+RestartSec=3
+[Install]
+WantedBy=multi-user.target

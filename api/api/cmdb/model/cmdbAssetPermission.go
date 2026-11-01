@@ -21,6 +21,7 @@ type CmdbAssetPermission struct {
 	PhysicalIDs  string `gorm:"type:text;comment:'授权物理机ID列表(JSON数组)'" json:"physicalIds"`
 	NetworkIDs   string `gorm:"type:text;comment:'授权网络设备ID列表(JSON数组)'" json:"networkIds"`
 	DatabaseIDs  string `gorm:"type:text;comment:'授权数据库ID列表(JSON数组)'" json:"databaseIds"`
+	DatabaseClusterIDs string `gorm:"type:text" json:"databaseClusterIds"`
 	IDCIDs       string `gorm:"column:idc_ids;type:text;comment:'授权机房ID列表(JSON数组,含其下所有资产)'" json:"idcIds"`
 
 	// 权限级别 (RBAC风格)

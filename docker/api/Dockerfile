@@ -57,7 +57,13 @@ RUN mkdir -p /app/log /app/upload /app/docs /go/pkg/mod /go-cache /app/ansible &
 
 COPY api/ /app/
 RUN /opt/ansible-venv/bin/ansible-galaxy collection install -r /app/automation/database/requirements.yml
+# Database roles use the tested controller release independently of ordinary jobs.
+RUN python3 -m venv /opt/database-ansible-venv && \
+    /opt/database-ansible-venv/bin/pip install --no-cache-dir ansible-core==2.17.14 paramiko && \
+    /opt/database-ansible-venv/bin/ansible-galaxy collection install -r /app/automation/database/requirements.yml
+ENV DATABASE_ANSIBLE_PLAYBOOK=/opt/database-ansible-venv/bin/ansible-playbook
 ENV AUTOOPS_DATABASE_AUTOMATION_DIR=/app/automation/database
+ENV DATABASE_PLATFORM_ROOT=/app/automation/database-platform
 RUN CGO_ENABLED=0 GOOS=linux go build -o devops . && chmod +x /app/devops
 
 EXPOSE 8000

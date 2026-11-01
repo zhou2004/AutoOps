@@ -5,6 +5,8 @@ description: "AutoOps CMDB 模块实现了主机管理、分组管理、数据�
 
 # CMDB 模块 (cmdb)
 
+数据库管理现已独立为主菜单；涉及数据源、工作台、集群、备份恢复或数据库行操作时，优先阅读 [database-management](../database-management/SKILL.md)。下文数据库路径与菜单描述中的旧结构仅供兼容代码定位，当前产品约定以该 skill 和方案文档为准。
+
 ## 概述
 
 CMDB 模块是 AutoOps 的配置管理数据库核心，涵盖主机生命周期管理、物理基础设施管理、数据库管理和资产授权控制。

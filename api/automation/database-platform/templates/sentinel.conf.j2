@@ -1,0 +1,15 @@
+{% set primary = db_cluster.members | selectattr('kind', 'equalto', 'data') | selectattr('role', 'equalto', 'primary') | first %}
+bind {{ member.address }} 127.0.0.1
+port {{ member.port }}
+daemonize no
+protected-mode yes
+dir {{ member.dataDir }}
+requirepass {{ db_secrets.sentinel }}
+sentinel monitor {{ db_cluster.policy.masterName | default(db_cluster.name) }} {{ primary.address }} {{ primary.port }} 2
+sentinel auth-user {{ db_cluster.policy.masterName | default(db_cluster.name) }} sentinel
+sentinel auth-pass {{ db_cluster.policy.masterName | default(db_cluster.name) }} {{ db_secrets.control }}
+sentinel down-after-milliseconds {{ db_cluster.policy.masterName | default(db_cluster.name) }} 5000
+sentinel failover-timeout {{ db_cluster.policy.masterName | default(db_cluster.name) }} 30000
+sentinel parallel-syncs {{ db_cluster.policy.masterName | default(db_cluster.name) }} 1
+sentinel announce-ip {{ member.address }}
+sentinel announce-port {{ member.port }}

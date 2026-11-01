@@ -1,0 +1,58 @@
+---
+- name: Configure native pgBackRest archives on owned PostgreSQL instances
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Require owned PostgreSQL data directories
+      ansible.builtin.assert:
+        that:
+          - db_cluster.topology == 'postgresql-patroni'
+          - member.managed | bool
+          - member.kind == 'data'
+          - member.dataDir.startswith('/var/lib/autoops-database/')
+          - member.dataDir.endswith('/data')
+    - name: Verify directory ownership marker
+      ansible.builtin.slurp:
+        src: '{{ member.dataDir | dirname }}/.autoops-owner'
+      register: archive_owner
+    - name: Confirm exact instance identity
+      ansible.builtin.assert:
+        that: (archive_owner.content | b64decode) == (db_cluster.id | string) + ':' + (member.id | string)
+    - name: Define isolated archive path
+      ansible.builtin.set_fact:
+        archive_base: '{{ member.dataDir | dirname }}/pgbackrest'
+    - name: Install pgBackRest
+      ansible.builtin.apt:
+        name: pgbackrest
+        state: present
+        lock_timeout: 300
+    - name: Create private archive storage and runtime paths
+      ansible.builtin.file:
+        path: '{{ archive_base }}/{{ item }}'
+        state: directory
+        owner: autoopsdb
+        group: autoopsdb
+        mode: '0700'
+      loop: [repo, log, lock, spool]
+    - name: Configure native repository and instance identity
+      ansible.builtin.template:
+        src: pgbackrest.conf.j2
+        dest: '{{ member.dataDir | dirname }}/pgbackrest.conf'
+        owner: autoopsdb
+        group: autoopsdb
+        mode: '0600'
+    - name: Initialize repository identity from PostgreSQL control data
+      become_user: autoopsdb
+      ansible.builtin.command:
+        argv: [pgbackrest, '--config={{ member.dataDir | dirname }}/pgbackrest.conf', --stanza=autoops, --no-online, stanza-create]
+    - name: Set archive parameters through the existing Patroni configuration
+      ansible.builtin.command:
+        argv:
+          - python3
+          - -c
+          - "import yaml,sys,shlex,os; p=sys.argv[1]; c=yaml.safe_load(open(p)); a=c['postgresql'].setdefault('parameters',{}); a['archive_mode']='on'; a['archive_timeout']='60s'; a['archive_command']='pgbackrest --config='+shlex.quote(sys.argv[2])+' --stanza=autoops archive-push \"%p\"'; tmp=p+'.archive-new'; f=open(tmp,'w'); yaml.safe_dump(c,f); f.flush(); os.fsync(f.fileno()); f.close(); st=os.stat(p); os.chmod(tmp,st.st_mode); os.chown(tmp,st.st_uid,st.st_gid); os.replace(tmp,p)"
+          - '{{ member.dataDir | dirname }}/patroni.yml'
+          - '{{ member.dataDir | dirname }}/pgbackrest.conf'
+      no_log: true

@@ -1,0 +1,32 @@
+bind {{ member.address }} 127.0.0.1
+port {{ member.port }}
+protected-mode yes
+daemonize no
+supervised no
+dir {{ member.dataDir }}
+dbfilename dump.rdb
+appendonly yes
+appendfsync everysec
+maxmemory {{ db_cluster.policy.memoryMB | default(64) }}mb
+maxmemory-policy noeviction
+user default on >{{ db_secrets.password }} ~* &* +@all
+user replicator on >{{ db_secrets.replication }} +psync +replconf +ping
+user sentinel on >{{ db_secrets.control }} ~* &* +@all
+masteruser replicator
+masterauth {{ db_secrets.replication }}
+{% if db_cluster.topology != 'standalone' %}
+min-replicas-to-write 1
+min-replicas-max-lag {{ db_cluster.policy.replicaLagSeconds | default(10) }}
+{% endif %}
+{% if db_cluster.topology == 'redis-cluster' %}
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+cluster-require-full-coverage yes
+cluster-announce-ip {{ member.address }}
+cluster-announce-port {{ member.port }}
+cluster-announce-bus-port {{ member.port + 10000 }}
+{% elif db_cluster.topology == 'redis-sentinel' and member.role == 'replica' %}
+{% set primary = db_cluster.members | selectattr('kind', 'equalto', 'data') | selectattr('role', 'equalto', 'primary') | first %}
+replicaof {{ primary.address }} {{ primary.port }}
+{% endif %}

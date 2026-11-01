@@ -1,0 +1,65 @@
+{% set rest = db_cluster.members | selectattr('dataMemberId', 'equalto', member.id) | selectattr('kind', 'equalto', 'patroni') | first %}
+scope: {{ db_cluster.name | to_json }}
+namespace: /autoops/
+name: {{ member.name | to_json }}
+restapi:
+  listen: {{ member.address }}:{{ rest.port }}
+  connect_address: {{ member.address }}:{{ rest.port }}
+  authentication:
+    username: autoops
+    password: {{ db_secrets.control | to_json }}
+etcd3:
+  hosts: [{% for node in db_cluster.members | selectattr('kind', 'equalto', 'etcd') %}{{ (node.address + ':' + node.port|string) | to_json }}{{ ',' if not loop.last else '' }}{% endfor %}]
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 5
+    retry_timeout: 5
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: true
+    synchronous_mode_strict: true
+    synchronous_node_count: 1
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        wal_log_hints: 'on'
+        max_wal_senders: 10
+        max_replication_slots: 10
+        shared_buffers: 64MB
+        max_connections: 100
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  pg_hba:
+    - local all all trust
+{% for node in db_cluster.members | selectattr('kind', 'equalto', 'data') %}
+    - host replication replicator {{ node.address }}/32 scram-sha-256
+{% endfor %}
+    - host all all 0.0.0.0/0 scram-sha-256
+postgresql:
+  listen: 0.0.0.0:{{ member.port }}
+  connect_address: {{ member.address }}:{{ member.port }}
+  data_dir: {{ (member.dataDir + '/data') | to_json }}
+  pgpass: {{ (member.dataDir + '/.pgpass') | to_json }}
+  bin_dir: /usr/lib/postgresql/15/bin
+  authentication:
+    superuser:
+      username: postgres
+      password: {{ db_secrets.password | to_json }}
+    replication:
+      username: replicator
+      password: {{ db_secrets.replication | to_json }}
+    rewind:
+      username: postgres
+      password: {{ db_secrets.password | to_json }}
+  parameters:
+    unix_socket_directories: {{ member.dataDir | to_json }}
+watchdog:
+  mode: off
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

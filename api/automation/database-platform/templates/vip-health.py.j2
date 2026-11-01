@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+import socket,subprocess,sys
+if subprocess.run(['systemctl','is-active','--quiet','{{ member.service }}'],timeout=1).returncode:
+    sys.exit(1)
+try:
+    socket.create_connection(('{{ member.address }}',{{ member.port }}),timeout=.5).close()
+except OSError:
+    sys.exit(1)

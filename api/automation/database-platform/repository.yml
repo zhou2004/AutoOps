@@ -1,0 +1,73 @@
+---
+- name: Copy backups to an independent repository and verify actual objects
+  hosts: all:!restore_target
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Refuse same-node local backup as an independent copy
+      ansible.builtin.assert:
+        that: repository.kind != 'local' or repository.hostId != member.hostId
+    - name: Verify owned artifact path
+      ansible.builtin.assert:
+        that: backup_manifest.artifacts[inventory_hostname].file is match('^/var/lib/autoops-database-backups/[0-9]+/[0-9]+/[0-9]+/backup.tar$')
+    - name: Copy to local repository through the controller
+      when: repository.kind == 'local'
+      block:
+        - name: Fetch artifact
+          ansible.builtin.fetch:
+            src: '{{ backup_manifest.artifacts[inventory_hostname].file }}'
+            dest: '{{ result_dir }}/{{ inventory_hostname }}.tar'
+            flat: true
+        - name: Create independent backup directory
+          ansible.builtin.file:
+            path: '{{ repository.path }}/{{ db_cluster.id }}/{{ operation_id }}'
+            state: directory
+            mode: '0700'
+          delegate_to: restore_target
+        - name: Transfer complete artifact
+          ansible.builtin.copy:
+            src: '{{ result_dir }}/{{ inventory_hostname }}.tar'
+            dest: '{{ repository.path }}/{{ db_cluster.id }}/{{ operation_id }}/{{ inventory_hostname }}.tar'
+            mode: '0600'
+          delegate_to: restore_target
+        - name: Verify independent checksum
+          ansible.builtin.stat:
+            path: '{{ repository.path }}/{{ db_cluster.id }}/{{ operation_id }}/{{ inventory_hostname }}.tar'
+            checksum_algorithm: sha256
+          register: repository_artifact
+          delegate_to: restore_target
+        - name: Require complete verified copy
+          ansible.builtin.assert:
+            that: repository_artifact.stat.checksum == backup_manifest.artifacts[inventory_hostname].sha256
+        - name: Record successful independent copy
+          ansible.builtin.copy:
+            dest: '{{ result_dir }}/{{ inventory_hostname }}.json'
+            content: "{{ {'verified':true,'hostId':repository.hostId,'path':repository.path + '/' + db_cluster.id|string + '/' + operation_id|string + '/' + inventory_hostname + '.tar','sha256':repository_artifact.stat.checksum} | to_json }}"
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+    - name: Upload to S3-compatible storage
+      when: repository.kind == 's3'
+      block:
+        - name: Install S3 client runtime
+          ansible.builtin.apt:
+            lock_timeout: 300
+            name: python3-boto3
+            state: present
+            policy_rc_d: 101
+        - name: Copy S3 upload executor
+          ansible.builtin.copy:
+            src: files/repository.py
+            dest: '{{ backup_manifest.artifacts[inventory_hostname].file | dirname }}/repository.py'
+            mode: '0700'
+        - name: Upload with credentials passed on stdin
+          ansible.builtin.command:
+            argv: [python3, '{{ backup_manifest.artifacts[inventory_hostname].file | dirname }}/repository.py']
+            stdin: "{{ {'repository':repository,'credentials':repository_credentials,'artifact':backup_manifest.artifacts[inventory_hostname],'key':db_cluster.id|string + '/' + operation_id|string + '/' + inventory_hostname + '.tar'} | to_json }}"
+          no_log: true
+        - name: Fetch verified upload report
+          ansible.builtin.fetch:
+            src: '{{ backup_manifest.artifacts[inventory_hostname].file | dirname }}/repository-report.json'
+            dest: '{{ result_dir }}/{{ inventory_hostname }}.json'
+            flat: true

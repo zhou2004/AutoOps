@@ -101,6 +101,25 @@ services:
     #   retries: 10
     #   start_period: 30s
 
+  # API contains the read-only collector; this service executes queued operations.
+  # Keep API/worker TZ identical (metadata DSN uses loc=Local).
+  database-worker:
+    image: devops-api:latest
+    restart: unless-stopped
+    command: ["/app/devops", "-mode", "database-worker", "-c", "/app/config.yaml"]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      DATABASE_PLATFORM_ROOT: /app/automation/database-platform
+    volumes:
+      - ./api/config.yaml:/app/config.yaml:ro
+      - ./api/ssh_keys:/root/.ssh:ro
+      - ./api/database-worker-logs:/app/log
+    networks: [devops-network]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    stop_grace_period: 30s
+
   # DevOps Web frontend service
   devops-web:
     image: devops-web:latest

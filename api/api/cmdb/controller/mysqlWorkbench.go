@@ -1,11 +1,16 @@
 package controller
 
 import (
+	cmdbmodel "dodevops-api/api/cmdb/model"
+	databasemodel "dodevops-api/api/database/model"
+	databaseservice "dodevops-api/api/database/service"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"dodevops-api/api/cmdb/dao"
 	"dodevops-api/api/cmdb/service"
@@ -152,6 +157,53 @@ func (ctrl *DatabaseOperationController) MySQLSetVariable(c *gin.Context) {
 		return
 	}
 	ctrl.audited(c, id, "set_variable", r.Name, func() (any, error) {
+		var source cmdbmodel.CmdbSQL
+		if err := ctrl.db.First(&source, id).Error; err != nil {
+			return nil, err
+		}
+		if r.ConfirmName != source.Name {
+			return nil, errors.New("请输入完整数据源名称确认配置变更")
+		}
+		if source.ClusterID > 0 {
+			user, err := jwt.GetAdminId(c)
+			if err != nil {
+				return nil, err
+			}
+			domain := databaseservice.New(ctrl.db)
+			if err = domain.Authorize(user, source.ClusterID, "db_cluster_config"); err != nil {
+				return nil, err
+			}
+			conn, err := ctrl.service.OpenSQL(c.Request.Context(), id, "")
+			if err != nil {
+				return nil, err
+			}
+			var identity string
+			err = conn.QueryRowContext(c.Request.Context(), "SELECT @@server_uuid").Scan(&identity)
+			conn.Close()
+			if err != nil {
+				return nil, errors.New("无法确认连接的真实实例")
+			}
+			var member databasemodel.Member
+			if ctrl.db.Where("cluster_id = ? AND native_id = ? AND kind = ?", source.ClusterID, identity, "data").First(&member).Error != nil {
+				return nil, errors.New("实际实例未登记到当前集群，请先刷新拓扑")
+			}
+			cluster, err := domain.Refresh(c.Request.Context(), source.ClusterID)
+			if err != nil {
+				return nil, err
+			}
+			plan, err := domain.Plan(c.Request.Context(), cluster.ID, user, "configure", databaseservice.Parameters{MemberID: member.ID, RuntimeOnly: true, Changes: map[string]string{r.Name: r.Value}})
+			if err != nil {
+				return nil, err
+			}
+			if !plan.Executable {
+				return nil, errors.New("集群配置预检未通过，请查看管理级别、权限及实例健康")
+			}
+			op, err := domain.Submit(c.Request.Context(), cluster.ID, user, plan.ID, fmt.Sprintf("workbench-config-%d-%d", id, time.Now().UnixNano()), cluster.Name)
+			if err != nil {
+				return nil, err
+			}
+			return gin.H{"operationId": op.ID}, nil
+		}
 		return true, ctrl.service.MySQLSetVariable(c.Request.Context(), id, r.Name, r.Value, r.ConfirmName)
 	})
 }

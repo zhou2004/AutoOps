@@ -1,0 +1,46 @@
+---
+- name: Inspect Orchestrator binary
+  ansible.builtin.stat:
+    path: /opt/autoops/orchestrator/usr/local/orchestrator/orchestrator
+  register: orchestrator_binary
+- name: Install pinned Orchestrator 3.2.6
+  when: not orchestrator_binary.stat.exists
+  block:
+    - name: Download pinned release
+      ansible.builtin.get_url:
+        url: https://github.com/openark/orchestrator/releases/download/v3.2.6/orchestrator-3.2.6-linux-amd64.tar.gz
+        checksum: sha256:688fd3432a014628692a284d9bee06fbab5c7b5704bd3425d580a37b3eb3a9da
+        dest: /tmp/autoops-orchestrator-3.2.6.tar.gz
+        mode: '0644'
+    - name: Create versioned binary directory
+      ansible.builtin.file:
+        path: /opt/autoops/orchestrator
+        state: directory
+        mode: '0755'
+    - name: Extract pinned distribution
+      ansible.builtin.unarchive:
+        src: /tmp/autoops-orchestrator-3.2.6.tar.gz
+        dest: /opt/autoops/orchestrator
+        remote_src: true
+- name: Install fail-closed independent fencing hook
+  ansible.builtin.copy:
+    src: files/fence.py
+    dest: '{{ member.dataDir }}/fence.py'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0700'
+- name: Configure Orchestrator Raft and recovery hook
+  ansible.builtin.template:
+    src: orchestrator.json.j2
+    dest: '{{ member.dataDir }}/orchestrator.json'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+  no_log: true
+- name: Install isolated Orchestrator service
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ member.service }}.service'
+    mode: '0644'
+  vars:
+    executable: '/opt/autoops/orchestrator/usr/local/orchestrator/orchestrator --config={{ member.dataDir }}/orchestrator.json http'

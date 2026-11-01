@@ -1,0 +1,29 @@
+global
+    maxconn 1000
+    server-state-file {{ member.dataDir }}/initial-state
+    stats socket {{ member.dataDir }}/haproxy.sock mode 0600 level operator
+defaults
+    mode tcp
+    load-server-state-from-file global
+    timeout connect 3s
+    timeout client 60s
+    timeout server 60s
+    timeout check 3s
+{% for mode in ['primary','replica'] %}
+listen {{ mode }}
+    id {{ loop.index }}
+    bind {{ '0.0.0.0' if db_cluster.vip is defined and db_cluster.vip else member.address }}:{{ member.port + loop.index0 }}
+    option httpchk
+    http-check send meth GET uri /{{ mode }}{% if mode == 'replica' and db_cluster.engine == 'postgresql' %}?lag=1048576{% endif %} ver HTTP/1.1 hdr Host localhost{% if db_cluster.engine == 'postgresql' %} hdr Authorization "Basic {{ ('autoops:' + db_secrets.control) | b64encode }}"{% endif %}
+
+    http-check expect status 200
+    default-server inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+{% for node in db_cluster.members | selectattr('kind','equalto','data') %}
+{% if db_cluster.engine == 'postgresql' %}
+{% set rest = db_cluster.members | selectattr('kind','equalto','patroni') | selectattr('dataMemberId','equalto',node.id) | first %}
+    server node_{{ node.id }} {{ node.address }}:{{ node.port }} id {{ node.id }} check port {{ rest.port }}
+{% else %}
+    server node_{{ node.id }} {{ node.address }}:{{ node.port }} id {{ node.id }} check port {{ node.port + 20000 }}
+{% endif %}
+{% endfor %}
+{% endfor %}

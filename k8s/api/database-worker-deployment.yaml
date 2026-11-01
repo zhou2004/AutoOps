@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+# The API also runs read-only collection. Keep its TZ equal to this worker.
+# VIPs are deployed on CMDB hosts, never as Kubernetes service addresses.
+metadata:
+  name: database-worker
+  labels:
+    app: database-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: database-worker
+  template:
+    metadata:
+      labels:
+        app: database-worker
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: worker
+          # Build the API image from this revision before applying this manifest.
+          image: devops-api:latest
+          command: [/app/devops, -mode, database-worker, -c, /app/config.yaml]
+          env:
+            - name: DATABASE_PLATFORM_ROOT
+              value: /app/automation/database-platform
+            - name: TZ
+              value: Asia/Shanghai
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: temporary
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: devops-api-cm0
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: temporary
+          emptyDir:
+            sizeLimit: 10Gi

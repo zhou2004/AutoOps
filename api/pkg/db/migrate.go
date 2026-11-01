@@ -6,6 +6,7 @@ import (
 	appmodel "dodevops-api/api/app/model"
 	cmdbmodel "dodevops-api/api/cmdb/model"
 	ccmodel "dodevops-api/api/configcenter/model"
+	databasemodel "dodevops-api/api/database/model"
 	k8smodel "dodevops-api/api/k8s/model"
 	monitormodel "dodevops-api/api/monitor/model"
 	systemmodel "dodevops-api/api/system/model"
@@ -88,6 +89,15 @@ var models = []interface{}{
 // 自动迁移所有模型
 func AutoMigrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(models...); err != nil {
+		return err
+	}
+	if err := db.AutoMigrate(databasemodel.Models()...); err != nil {
+		return err
+	}
+	if err := migrateDatabaseClusters(db); err != nil {
+		return err
+	}
+	if err := db.Where("name = ?", "database").FirstOrCreate(&monitormodel.MonitorAlertRuleStyle{Name: "database", Description: "数据库健康、复制、容量与持久化；表达式示例 disk_used_percent >= 80"}).Error; err != nil {
 		return err
 	}
 	if err := migrateLegacyMonitorIncidents(db); err != nil {

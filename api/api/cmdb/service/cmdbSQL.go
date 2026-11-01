@@ -18,6 +18,8 @@ func NewCmdbSQLService(dao *dao.CmdbSQLDao) *CmdbSQLService {
 
 // CreateDatabase 创建数据库记录
 func (s *CmdbSQLService) CreateDatabase(db *model.CmdbSQL) error {
+	db.Retired = false
+	db.ClusterID, db.EndpointID, db.ConnectionMode = 0, 0, "direct"
 	db.DeploymentID, db.HostID = 0, 0 // Managed bindings are created only by the deployment service.
 	if err := s.validate(db); err != nil {
 		return err
@@ -31,8 +33,10 @@ func (s *CmdbSQLService) UpdateDatabase(db *model.CmdbSQL) error {
 	if err != nil {
 		return errors.New("数据源不存在")
 	}
+	db.Retired = existing.Retired
+	db.ClusterID, db.EndpointID, db.ConnectionMode = existing.ClusterID, existing.EndpointID, existing.ConnectionMode
 	db.DeploymentID, db.HostID = existing.DeploymentID, existing.HostID
-	if existing.DeploymentID != 0 && (db.AccountID != existing.AccountID || db.Type != existing.Type) {
+	if (existing.DeploymentID != 0 || existing.ClusterID != 0) && (db.AccountID != existing.AccountID || db.Type != existing.Type) {
 		return errors.New("自动部署数据源不能更换连接账号或类型")
 	}
 	if err := s.validate(db); err != nil {
@@ -82,6 +86,15 @@ func (s *CmdbSQLService) validate(database *model.CmdbSQL) error {
 	normalizedTLS, err := normalizeTLS(database.Type, database.TLSMode)
 	if err != nil {
 		return err
+	}
+	if database.ConnectionMode == "cluster" && database.Type == 3 && database.DefaultDB != "" && database.DefaultDB != "0" {
+		mode, err := s.dao.EndpointMode(database.EndpointID, database.ClusterID)
+		if err != nil {
+			return err
+		}
+		if mode == "cluster" {
+			return errors.New("Redis Cluster 数据源仅允许 DB 0")
+		}
 	}
 	database.TLSMode = normalizedTLS
 	return nil

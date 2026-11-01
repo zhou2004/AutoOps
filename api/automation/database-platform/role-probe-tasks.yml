@@ -1,0 +1,45 @@
+---
+- name: Define independent role probe identity
+  ansible.builtin.set_fact:
+    probe_dir: '/var/lib/autoops-database-probes/{{ db_cluster.id }}/{{ member.id }}'
+    probe_unit: 'autoops-db-probe-{{ db_cluster.id }}-{{ member.id }}'
+- name: Install role probe dependency
+  ansible.builtin.apt:
+    name: python3-pymysql
+    state: present
+    lock_timeout: 300
+- name: Create private role probe directory
+  ansible.builtin.file:
+    path: '{{ probe_dir }}'
+    state: directory
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0700'
+- name: Install local database role probe
+  ansible.builtin.copy:
+    src: files/mysql_probe.py
+    dest: '{{ probe_dir }}/probe.py'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0700'
+- name: Configure protected probe account
+  ansible.builtin.copy:
+    dest: '{{ probe_dir }}/probe.json'
+    content: "{{ {'host':member.address,'port':member.port,'user':db_username,'password':db_password,'listen':member.port + 20000,'lag':db_cluster.policy.replicaLagSeconds | default(10)} | to_json }}"
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+  no_log: true
+- name: Install independently named probe unit
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ probe_unit }}.service'
+    mode: '0644'
+  vars:
+    executable: '/usr/bin/python3 {{ probe_dir }}/probe.py {{ probe_dir }}/probe.json'
+- name: Start role-sensitive probe
+  ansible.builtin.systemd:
+    name: '{{ probe_unit }}'
+    state: restarted
+    enabled: true
+    daemon_reload: true

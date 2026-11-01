@@ -510,6 +510,7 @@ type CmdbAssetPermissionReq struct {
 	PhysicalIDs       []uint   `json:"physicalIds"`
 	NetworkIDs        []uint   `json:"networkIds"`
 	DatabaseIDs       []uint   `json:"databaseIds"`
+	DatabaseClusterIDs []uint `json:"databaseClusterIds"`
 	IDCIDs            []uint   `json:"idcIds"`
 	PermissionActions []string `json:"permissionActions"`
 	IsActive          int      `json:"isActive"`
@@ -558,7 +559,7 @@ func validateAssetPermission(req *CmdbAssetPermissionReq) error {
 			return fmt.Errorf("未知权限操作: %s", action)
 		}
 	}
-	validTypes := map[string]bool{"host": true, "physical": true, "network": true, "database": true, "idc": true, "cabinet": true, "group": true, "*": true}
+	validTypes := map[string]bool{"host": true, "physical": true, "network": true, "database": true, "database_cluster": true, "idc": true, "cabinet": true, "group": true, "*": true}
 	for _, kind := range req.AssetTypes {
 		if !validTypes[kind] {
 			return fmt.Errorf("未知资产类型: %s", kind)
@@ -601,6 +602,7 @@ func (s *CmdbAssetPermissionServiceImpl) Create(c *gin.Context, req *CmdbAssetPe
 		PhysicalIDs:       toJSONStr(req.PhysicalIDs),
 		NetworkIDs:        toJSONStr(req.NetworkIDs),
 		DatabaseIDs:       toJSONStr(req.DatabaseIDs),
+		DatabaseClusterIDs: toJSONStr(req.DatabaseClusterIDs),
 		IDCIDs:            toJSONStr(req.IDCIDs),
 		PermissionActions: toJSONStr(req.PermissionActions),
 		IsActive:          req.IsActive,
@@ -634,6 +636,7 @@ func (s *CmdbAssetPermissionServiceImpl) Update(c *gin.Context, id uint, req *Cm
 	data.PhysicalIDs = toJSONStr(req.PhysicalIDs)
 	data.NetworkIDs = toJSONStr(req.NetworkIDs)
 	data.DatabaseIDs = toJSONStr(req.DatabaseIDs)
+	data.DatabaseClusterIDs = toJSONStr(req.DatabaseClusterIDs)
 	data.IDCIDs = toJSONStr(req.IDCIDs)
 	data.PermissionActions = toJSONStr(req.PermissionActions)
 	data.IsActive = req.IsActive

@@ -1,0 +1,149 @@
+---
+- name: Rebuild only an explicitly owned MySQL replica from a consistent clone
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Require a managed replica and a distinct donor
+      ansible.builtin.assert:
+        that:
+          - member.managed | bool
+          - member.kind == 'data'
+          - member.id != donor.id
+          - member.role == 'replica'
+          - donor.role == 'primary'
+    - name: Read donor and recipient versions
+      community.mysql.mysql_query:
+        login_host: '{{ item.address }}'
+        login_port: '{{ item.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query: SELECT @@version AS version
+      loop: ['{{ donor }}', '{{ member }}']
+      register: clone_versions
+      no_log: true
+    - name: Require exact version match for CLONE
+      ansible.builtin.assert:
+        that: clone_versions.results[0].query_result[0][0].version == clone_versions.results[1].query_result[0][0].version
+    - name: Protect replica and pause replication before clone
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query: ['SET PERSIST read_only=ON', 'SET GLOBAL super_read_only=OFF', STOP SLAVE, 'SELECT NOW(6) AS started']
+      register: clone_started
+      no_log: true
+    - name: Install CLONE with guaranteed recipient write protection
+      block:
+        - name: Inspect native CLONE plugin on both instances
+          community.mysql.mysql_query:
+            login_host: '{{ item.address }}'
+            login_port: '{{ item.port }}'
+            login_user: root
+            login_password: '{{ db_secrets.password }}'
+            query: SELECT COUNT(*) AS installed FROM information_schema.plugins WHERE PLUGIN_NAME='clone' AND PLUGIN_STATUS='ACTIVE'
+          loop: ['{{ donor }}', '{{ member }}']
+          register: clone_plugins
+          no_log: true
+        - name: Install native CLONE only when absent
+          community.mysql.mysql_query:
+            login_host: '{{ item.item.address }}'
+            login_port: '{{ item.item.port }}'
+            login_user: root
+            login_password: '{{ db_secrets.password }}'
+            query: INSTALL PLUGIN clone SONAME 'mysql_clone.so'
+          loop: '{{ clone_plugins.results }}'
+          when: item.query_result[0][0].installed | int == 0
+          no_log: true
+      always:
+        - name: Restore strict replica protection even on plugin failure
+          community.mysql.mysql_query:
+            login_host: '{{ member.address }}'
+            login_port: '{{ member.port }}'
+            login_user: root
+            login_password: '{{ db_secrets.password }}'
+            query: SET PERSIST super_read_only=ON
+          no_log: true
+    - name: Restrict donor and protect replica
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query:
+          - SET GLOBAL clone_valid_donor_list = %(donor)s
+          - SET PERSIST super_read_only = ON
+        named_args:
+          donor: '{{ donor.address }}:{{ donor.port }}'
+      no_log: true
+    - name: Record recipient process identity before native shutdown
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ member.service }}', '-p', MainPID, --value]
+      register: clone_old_pid
+      changed_when: false
+    - name: Run native clone once; server disconnect may indicate restart
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query: CLONE INSTANCE FROM 'root'@%(host)s:{{ donor.port }} IDENTIFIED BY %(password)s
+        named_args:
+          host: '{{ donor.address }}'
+          password: '{{ db_secrets.password }}'
+      register: clone_result
+      failed_when: false
+      no_log: true
+    - name: Wait for the original recipient process to exit
+      ansible.builtin.command:
+        argv: [systemctl, show, '{{ member.service }}', '-p', MainPID, --value]
+      register: clone_current_pid
+      until: clone_current_pid.stdout != clone_old_pid.stdout
+      retries: 60
+      delay: 1
+      changed_when: false
+    - name: Start recipient after clone shutdown
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: started
+    - name: Wait for cloned database
+      ansible.builtin.wait_for:
+        host: '{{ member.address }}'
+        port: '{{ member.port }}'
+        timeout: 180
+    - name: Verify actual clone result before configuring replication
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query: SELECT STATE AS state,ERROR_NO AS error_no FROM performance_schema.clone_status WHERE BEGIN_TIME >= %(started)s ORDER BY ID DESC LIMIT 1
+        named_args:
+          started: '{{ clone_started.query_result[3][0].started }}' 
+      register: clone_status
+      no_log: true
+    - name: Require completed clone
+      ansible.builtin.assert:
+        that:
+          - clone_status.query_result[0] | length == 1
+          - clone_status.query_result[0][0].state == 'Completed'
+          - clone_status.query_result[0][0].error_no == 0
+    - name: Configure replication from verified donor GTID
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: root
+        login_password: '{{ db_secrets.password }}'
+        query:
+          - STOP SLAVE
+          - RESET SLAVE ALL
+          - CHANGE MASTER TO MASTER_HOST=%(host)s, MASTER_PORT={{ donor.port }}, MASTER_USER='{{ 'autoops_repl' if db_cluster.deploymentId else 'autoops_replication' }}', MASTER_PASSWORD=%(password)s, MASTER_AUTO_POSITION=1
+          - START SLAVE
+          - SET PERSIST read_only=ON
+          - SET PERSIST super_read_only=ON
+        named_args:
+          host: '{{ donor.address }}'
+          password: '{{ db_secrets.replication }}'
+      no_log: true

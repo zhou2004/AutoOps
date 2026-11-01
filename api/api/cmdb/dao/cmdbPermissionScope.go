@@ -11,7 +11,7 @@ import (
 )
 
 // PermissionActions is the common vocabulary shared by asset management and sessions.
-var PermissionActions = []string{"get", "list", "connect", "connect_ssh", "connect_vnc", "connect_rdp", "file_list", "file_upload", "file_download", "file_delete", "command", "config_view", "config_backup", "config_restore", "db_query", "db_execute", "docker_view", "docker_logs", "docker_operate", "docker_remove", "audit", "create", "update", "delete", "admin"}
+var PermissionActions = []string{"get", "list", "connect", "connect_ssh", "connect_vnc", "connect_rdp", "file_list", "file_upload", "file_download", "file_delete", "command", "config_view", "config_backup", "config_restore", "db_query", "db_execute", "db_cluster_view", "db_cluster_manage", "db_cluster_switch", "db_cluster_backup", "db_cluster_restore", "db_cluster_config", "db_cluster_audit", "docker_view", "docker_logs", "docker_operate", "docker_remove", "audit", "create", "update", "delete", "admin"}
 
 func ValidPermissionAction(action string) bool {
 	for _, a := range PermissionActions {
@@ -194,6 +194,8 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 			direct = p.NetworkIDs
 		case "database":
 			direct = p.DatabaseIDs
+		case "database_cluster":
+			direct = p.DatabaseClusterIDs
 		case "idc":
 			direct = p.IDCIDs
 		case "group":
@@ -207,7 +209,7 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 				result[id] = true
 			}
 		}
-		if assetType == "host" || assetType == "group" {
+		if assetType == "host" || assetType == "group" || assetType == "database_cluster" {
 			groupIDs := permissionIDs(p.HostGroupIDs)
 			if len(groupIDs) > 0 {
 				expanded, err := d.descendantGroups(groupIDs)
@@ -218,6 +220,10 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 					for _, id := range expanded {
 						result[id] = true
 					}
+				} else if assetType == "database_cluster" {
+					var ids []uint
+					if err := d.db.Table("database_cluster").Where("group_id IN ?", expanded).Pluck("id", &ids).Error; err != nil { return nil,err }
+					for _,id:=range ids { result[id]=true }
 				} else {
 					var ids []uint
 					if err := d.db.Model(&model.CmdbHost{}).Where("group_id IN ?", expanded).Pluck("id", &ids).Error; err != nil {

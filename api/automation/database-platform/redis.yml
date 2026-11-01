@@ -1,0 +1,31 @@
+---
+- name: Install Redis binaries without starting a distribution instance
+  ansible.builtin.apt:
+    lock_timeout: 300
+    name: [redis-server, redis-tools]
+    state: present
+    policy_rc_d: 101
+    update_cache: true
+    cache_valid_time: 3600
+- name: Verify supported Redis version
+  ansible.builtin.command: redis-server --version
+  changed_when: false
+  register: redis_version
+- name: Require Redis 6.2 or newer for ACL and coordinated failover
+  ansible.builtin.assert:
+    that: redis_version.stdout.split('v=')[1].split(' ')[0] is version('6.2', '>=')
+- name: Write protected Redis instance configuration
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: '{{ member.dataDir }}/redis.conf'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+  no_log: true
+- name: Install isolated Redis unit
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ member.service }}.service'
+    mode: '0644'
+  vars:
+    executable: '/usr/bin/redis-server {{ member.dataDir }}/redis.conf'

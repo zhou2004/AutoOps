@@ -29,12 +29,14 @@ func TestNavigationMigrationPreservesAssignmentsAndIsIdempotent(t *testing.T) {
 		{ID: 8, ParentId: 3, MenuName: "角色权限", Url: "system/role-permission", MenuType: 2, MenuStatus: 2},
 		{ID: 9, ParentId: 3, MenuName: "API Token管理", Url: "/system/api-keys", MenuType: 2, MenuStatus: 2},
 		{ID: 10, ParentId: 1, MenuName: "数据管理", Url: "cmdb/db", Value: "database:read", MenuType: 2, MenuStatus: 2},
+		{ID: 11, ParentId: 1, MenuName: "监控诊断", Url: "/database/diagnostics", MenuType: 2, MenuStatus: 2},
+		{ID: 12, ParentId: 1, MenuName: "参数配置", Url: "/database/configurations", MenuType: 2, MenuStatus: 2},
 		{ID: 7, ParentId: 1, MenuName: "凭据授权", Url: "cmdb/credential-permission", MenuType: 2, MenuStatus: 2},
 	}
 	if err := db.Create(&menus).Error; err != nil {
 		t.Fatal(err)
 	}
-	for _, link := range []model.SysRoleMenu{{RoleId: 12, MenuId: 10}, {RoleId: 10, MenuId: 4}, {RoleId: 11, MenuId: 6}} {
+	for _, link := range []model.SysRoleMenu{{RoleId: 12, MenuId: 10}, {RoleId: 10, MenuId: 4}, {RoleId: 11, MenuId: 6}, {RoleId: 11, MenuId: 12}} {
 		if err := db.Create(&link).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -71,11 +73,11 @@ func TestNavigationMigrationPreservesAssignmentsAndIsIdempotent(t *testing.T) {
 		t.Fatal("new parent role assignment missing")
 	}
 	var activeDuplicates int64
-	db.Model(&model.SysMenu{}).Where("id IN ? AND menu_status = 2", []uint{6, 7, 8}).Count(&activeDuplicates)
+	db.Model(&model.SysMenu{}).Where("id IN ? AND menu_status = 2", []uint{6, 7, 8, 11, 12}).Count(&activeDuplicates)
 	if activeDuplicates != 0 {
 		t.Fatal("obsolete menus remain active")
 	}
-	for _, link := range []model.SysRoleMenu{{RoleId: 10, MenuId: 4}, {RoleId: 10, MenuId: 2}, {RoleId: 11, MenuId: 5}, {RoleId: 11, MenuId: 3}, {RoleId: 11, MenuId: 6}} {
+	for _, link := range []model.SysRoleMenu{{RoleId: 10, MenuId: 4}, {RoleId: 10, MenuId: 2}, {RoleId: 11, MenuId: 5}, {RoleId: 11, MenuId: 3}, {RoleId: 11, MenuId: 6}, {RoleId: 11, MenuId: 12}} {
 		var count int64
 		db.Model(&model.SysRoleMenu{}).Where("role_id = ? AND menu_id = ?", link.RoleId, link.MenuId).Count(&count)
 		if count != 1 {
@@ -106,7 +108,7 @@ func TestNavigationMigrationCreatesMissingEntries(t *testing.T) {
 	}
 	var count int64
 	db.Model(&model.SysMenu{}).Count(&count)
-	if count != 7 {
+	if count != 11 {
 		t.Fatalf("duplicate or missing menu: %d", count)
 	}
 }

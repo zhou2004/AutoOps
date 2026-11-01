@@ -46,17 +46,26 @@ func migrateManagementNavigation(database *gorm.DB) error {
 			}
 			databaseID = root.ID
 		}
+		// Retain historical role links when retiring pages now embedded in cluster details.
+		if err := tx.Model(&model.SysMenu{}).Where("url IN ? AND menu_type = ?", []string{"database/diagnostics", "/database/diagnostics", "database/configurations", "/database/configurations"}, 2).Update("menu_status", 1).Error; err != nil {
+			return err
+		}
 		changes := []struct {
 			parent          uint
 			name, url, icon string
 			old             []string
 		}{
 			{databaseID, "数据源管理", "database/sources", "Coin", []string{"cmdb/db"}},
+			{databaseID, "集群管理", "database/clusters", "Connection", nil},
+			{databaseID, "存储管理", "database/storage", "Files", nil},
+			{databaseID, "备份恢复", "database/backups", "RefreshLeft", nil},
+			{databaseID, "操作审计", "database/audit", "Document", nil},
+
 			{containerID, "Docker管理", "k8s/docker", "Box", []string{"cmdb/docker"}},
 			{systemID, "API Key", "system/api-keys", "Key", []string{"system/role-permission"}},
 			{systemID, "授权管理", "system/authorization", "Lock", []string{"cmdb/asset-permission", "system/asset-permission", "system/k8s-permission", "k8s/permission", "cmdb/user-group", "cmdb/credential-permission"}},
 		}
-		for _, change := range changes {
+		for changeIndex, change := range changes {
 			if change.parent == 0 {
 				continue
 			}
@@ -77,7 +86,7 @@ func migrateManagementNavigation(database *gorm.DB) error {
 				}
 			}
 			if target.ID == 0 {
-				target = model.SysMenu{ParentId: change.parent, MenuName: change.name, Url: change.url, Icon: change.icon, MenuType: 2, MenuStatus: 2, Sort: 1, CreateTime: util.HTime{Time: time.Now()}}
+				target = model.SysMenu{ParentId: change.parent, MenuName: change.name, Url: change.url, Icon: change.icon, MenuType: 2, MenuStatus: 2, Sort: uint(changeIndex + 1), CreateTime: util.HTime{Time: time.Now()}}
 				if change.url == "k8s/docker" {
 					target.Value = "docker:read"
 				}

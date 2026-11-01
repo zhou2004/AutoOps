@@ -91,3 +91,9 @@ func (d *CmdbSQLDao) GetByType(dbType int, scopes ...map[uint]bool) ([]model.Cmd
 	err := ApplyAssetIDScope(d.db, scopes...).Where("type = ?", dbType).Find(&dbs).Error
 	return dbs, err
 }
+
+func (d *CmdbSQLDao) EndpointMode(id, cluster uint) (string, error) {
+	var row struct{ Mode string }
+	e := d.db.Table("database_endpoint").Where("id = ? AND cluster_id = ?", id, cluster).First(&row).Error
+	return row.Mode, e
+}

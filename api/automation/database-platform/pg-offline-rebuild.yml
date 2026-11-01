@@ -1,0 +1,28 @@
+---
+- name: Preserve an explicitly stopped PostgreSQL directory before native replica cloning
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Require an owned offline PostgreSQL member
+      ansible.builtin.assert:
+        that:
+          - member.managed | bool
+          - db_cluster.topology == 'postgresql-patroni'
+          - member.dataDir.startswith('/var/lib/autoops-database/')
+          - member.dataDir.endswith('/data')
+          - operation_id | int > 0
+    - name: Verify identity and stopped process, preserve original files
+      ansible.builtin.command:
+        argv:
+          - python3
+          - -c
+          - "import pathlib,subprocess,sys; data=pathlib.Path(sys.argv[1]); identity=sys.argv[2]; unit=sys.argv[3]; target=data.with_name('data.quarantine-'+sys.argv[4]); assert (data.parent/'.autoops-owner').read_text()==identity; state=subprocess.run(['systemctl','show',unit,'-p','MainPID','-p','ActiveState'],check=True,capture_output=True,text=True).stdout; assert 'MainPID=0' in state and 'ActiveState=inactive' in state; assert data.is_dir() and not data.is_symlink() and not target.exists(); data.rename(target)"
+          - '{{ member.dataDir }}'
+          - '{{ db_cluster.id }}:{{ member.id }}'
+          - '{{ member.service }}'
+          - '{{ operation_id }}'
+    - name: Start managed Patroni to clone the current native leader
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: started

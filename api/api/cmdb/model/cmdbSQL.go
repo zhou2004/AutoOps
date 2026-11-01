@@ -6,19 +6,23 @@ import (
 
 // CmdbSQL 定义CMDB中的数据库模型
 type CmdbSQL struct {
-	DeploymentID uint       `gorm:"index" json:"deploymentId"`
-	HostID       uint       `json:"hostId"`
-	ID           uint       `gorm:"primaryKey" json:"id"`              // 主键ID
-	Name         string     `gorm:"size:100;not null" json:"name"`     // 数据库名称
-	Type         int        `gorm:"type:integer;not null" json:"type"` // 数据库类型(1=MySQL 2=PostgreSQL 3=Redis)
-	AccountID    uint       `gorm:"not null" json:"accountId"`         // 所属账号ID
-	GroupID      uint       `gorm:"not null" json:"groupId"`           // 所属业务组ID
-	Tags         string     `gorm:"size:255" json:"tags"`              // 标签(多个标签用逗号分隔)
-	Description  string     `gorm:"size:500" json:"description"`       // 描述/备注
-	DefaultDB    string     `gorm:"column:default_db;size:128" json:"defaultDb"`
-	TLSMode      string     `gorm:"column:tls_mode;size:20;default:disable" json:"tlsMode"`
-	CreatedAt    util.HTime `json:"createdAt"` // 创建时间
-	UpdatedAt    util.HTime `json:"updatedAt"` // 更新时间
+	Retired        bool       `gorm:"default:false" json:"retired"`
+	ClusterID      uint       `gorm:"index" json:"clusterId"`
+	EndpointID     uint       `gorm:"index" json:"endpointId"`
+	ConnectionMode string     `gorm:"size:20;default:direct" json:"connectionMode"`
+	DeploymentID   uint       `gorm:"index" json:"deploymentId"`
+	HostID         uint       `json:"hostId"`
+	ID             uint       `gorm:"primaryKey" json:"id"`              // 主键ID
+	Name           string     `gorm:"size:100;not null" json:"name"`     // 数据库名称
+	Type           int        `gorm:"type:integer;not null" json:"type"` // 数据库类型(1=MySQL 2=PostgreSQL 3=Redis)
+	AccountID      uint       `gorm:"not null" json:"accountId"`         // 所属账号ID
+	GroupID        uint       `gorm:"not null" json:"groupId"`           // 所属业务组ID
+	Tags           string     `gorm:"size:255" json:"tags"`              // 标签(多个标签用逗号分隔)
+	Description    string     `gorm:"size:500" json:"description"`       // 描述/备注
+	DefaultDB      string     `gorm:"column:default_db;size:128" json:"defaultDb"`
+	TLSMode        string     `gorm:"column:tls_mode;size:20;default:disable" json:"tlsMode"`
+	CreatedAt      util.HTime `json:"createdAt"` // 创建时间
+	UpdatedAt      util.HTime `json:"updatedAt"` // 更新时间
 }
 
 func (CmdbSQL) TableName() string {

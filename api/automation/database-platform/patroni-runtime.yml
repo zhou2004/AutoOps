@@ -1,0 +1,73 @@
+---
+- name: Inspect existing Python runtime dependencies without changing shared Python
+  ansible.builtin.command:
+    argv: [python3, -c, 'import psycopg2,etcd,click,prettytable,dateutil,psutil,yaml,requests']
+  register: patroni_dependencies
+  changed_when: false
+  failed_when: false
+- name: Install only missing database controller libraries
+  when: patroni_dependencies.rc != 0
+  ansible.builtin.apt:
+    name: [python3-psycopg2, python3-etcd, python3-click, python3-prettytable, python3-dateutil, python3-psutil, python3-yaml, python3-requests]
+    state: present
+    policy_rc_d: 101
+    lock_timeout: 300
+- name: Create versioned controller directory
+  ansible.builtin.file:
+    path: /opt/autoops/patroni-4.1.5
+    state: directory
+    mode: '0755'
+- name: Download pinned Patroni wheel with upstream checksum
+  delegate_to: localhost
+  become: false
+  run_once: true
+  vars:
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+  ansible.builtin.get_url:
+    url: https://files.pythonhosted.org/packages/63/cb/0ba365e95d648a0592de0fb1a0168cff26a3cf57930d74d88b188b5f9462/patroni-4.1.5-py3-none-any.whl
+    dest: '{{ result_dir }}/patroni-4.1.5-py3-none-any.whl'
+    checksum: sha256:7aad8c1539e6c51c269a8005169dd54ddc7668437b7900fa6099d7894e224c84
+    mode: '0644'
+- name: Copy pinned control package
+  ansible.builtin.copy:
+    src: '{{ result_dir }}/patroni-4.1.5-py3-none-any.whl'
+    dest: /opt/autoops/patroni-4.1.5/patroni-4.1.5-py3-none-any.whl
+    mode: '0644'
+- name: Download pinned dependencies absent from distribution
+  delegate_to: localhost
+  become: false
+  run_once: true
+  vars:
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+  ansible.builtin.get_url:
+    url: '{{ item.url }}'
+    dest: '{{ result_dir }}/{{ item.file }}'
+    checksum: 'sha256:{{ item.sha }}'
+    mode: '0644'
+  loop:
+    - file: ydiff-1.3.tar.gz
+      url: https://files.pythonhosted.org/packages/22/e1/df78c47d98070228bc1589df6aa2b2c7ae1d4b35f9312dbb2d7a122a0f19/ydiff-1.3.tar.gz
+      sha: 8a2e84588ef31d3e525700fa964b1f9aab61f0c9c46281e05341a56e01dcd7b8
+    - file: py-consul-1.1.1.tar.gz
+      url: https://files.pythonhosted.org/packages/49/be/54532512b66356722792ac7a41fe0f7d86792e2dee0bf21083deb7f94a55/py-consul-1.1.1.tar.gz
+      sha: 4debbbd4f5cab02385e8b1e7e66d998fbd0f48682839921c5ab25ff23ddb5fce
+- name: Copy fixed runtime dependencies
+  ansible.builtin.copy:
+    src: '{{ result_dir }}/{{ item }}'
+    dest: '/opt/autoops/patroni-4.1.5/{{ item }}'
+    mode: '0644'
+  loop: [ydiff-1.3.tar.gz, py-consul-1.1.1.tar.gz]
+- name: Copy private runtime installer
+  ansible.builtin.copy:
+    src: files/install_patroni.py
+    dest: /opt/autoops/patroni-4.1.5/install.py
+    mode: '0700'
+- name: Install the verified pure Python packages into the private controller directory
+  ansible.builtin.command:
+    argv: [python3, /opt/autoops/patroni-4.1.5/install.py]
+- name: Verify isolated controller imports and version
+  ansible.builtin.command:
+    argv: [/opt/autoops/patroni-4.1.5/bin/patroni, --version]
+  register: installed_patroni
+  failed_when: installed_patroni.rc != 0 or installed_patroni.stdout != 'patroni 4.1.5'
+  changed_when: false

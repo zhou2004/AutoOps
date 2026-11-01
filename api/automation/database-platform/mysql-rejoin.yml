@@ -1,0 +1,49 @@
+---
+- name: Start an owned former primary under persistent read-only protection
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Require the exact managed MySQL instance
+      ansible.builtin.assert:
+        that:
+          - db_cluster.engine == 'mysql'
+          - member.managed | bool
+          - member.kind == 'data'
+          - member.service is match('^autoops-[a-zA-Z0-9_.@-]+$')
+    - name: Resolve owned configuration path
+      ansible.builtin.set_fact:
+        rejoin_config: "{{ '/etc/autoops-mysql.cnf' if member.service == 'autoops-mysql' else (member.dataDir | dirname) + '/mysql.cnf' }}"
+    - name: Stop former primary before setting startup protection
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: stopped
+      when: not (rejoin_complete | default(false))
+    - name: Override old persisted flags while inspecting GTID
+      ansible.builtin.blockinfile:
+        path: '{{ rejoin_config }}'
+        marker: '# {mark} AUTOOPS REJOIN PROTECTION'
+        block: |
+          [mysqld]
+          persisted-globals-load=OFF
+          read-only=ON
+          super-read-only=ON
+          skip-slave-start
+        state: "{{ 'absent' if (rejoin_complete | default(false)) else 'present' }}"
+    - name: Release only this instance's boot guard after read-only startup is configured
+      ansible.builtin.file:
+        path: '/var/lib/autoops-fenced/{{ db_cluster.id }}/{{ member.service }}'
+        state: absent
+      when: not (rejoin_complete | default(false))
+    - name: Start protected former primary
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: started
+      when: not (rejoin_complete | default(false))
+    - name: Wait for protected SQL access
+      ansible.builtin.wait_for:
+        host: '{{ member.address }}'
+        port: '{{ member.port }}'
+        timeout: 60
+      when: not (rejoin_complete | default(false))

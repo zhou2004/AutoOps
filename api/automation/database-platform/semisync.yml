@@ -1,0 +1,87 @@
+---
+- name: Configure version-matched native semi synchronous replication
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Require known owned MySQL version
+      ansible.builtin.assert:
+        that:
+          - member.managed | bool
+          - member.kind == 'data'
+          - member.version is match('^8\.0\.')
+    - name: Read installed semi sync plugins
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: '{{ db_username }}'
+        login_password: '{{ db_password }}'
+        query: SELECT PLUGIN_NAME AS name FROM information_schema.plugins WHERE PLUGIN_NAME LIKE 'rpl_semi_sync_%' AND PLUGIN_STATUS='ACTIVE'
+      register: plugins
+      no_log: true
+    - name: Refuse conflicting source replica plugin naming
+      ansible.builtin.assert:
+        that: "'rpl_semi_sync_source' not in (plugins.query_result[0] | map(attribute='name') | list) and 'rpl_semi_sync_replica' not in (plugins.query_result[0] | map(attribute='name') | list)"
+        fail_msg: Existing source/replica plugin configuration requires observation and a matching adapter
+    - name: Read strict read-only state
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: '{{ db_username }}'
+        login_password: '{{ db_password }}'
+        query: SELECT @@global.super_read_only AS protection
+      register: protection
+      no_log: true
+    - name: Install plugins while preserving replica write protection
+      block:
+        - name: Allow only privileged plugin metadata changes
+          community.mysql.mysql_query:
+            login_host: '{{ member.address }}'
+            login_port: '{{ member.port }}'
+            login_user: '{{ db_username }}'
+            login_password: '{{ db_password }}'
+            query: SET GLOBAL super_read_only=OFF
+          when: protection.query_result[0][0].protection | int == 1
+          no_log: true
+        - name: Install fixed MySQL 8.0 master and slave plugins if missing
+          community.mysql.mysql_query:
+            login_host: '{{ member.address }}'
+            login_port: '{{ member.port }}'
+            login_user: '{{ db_username }}'
+            login_password: '{{ db_password }}'
+            query: "INSTALL PLUGIN rpl_semi_sync_{{ item }} SONAME 'semisync_{{ item }}.so'"
+          loop: [master, slave]
+          when: "('rpl_semi_sync_' + item) not in (plugins.query_result[0] | map(attribute='name') | list)"
+          no_log: true
+      always:
+        - name: Restore strict write protection even on installation failure
+          community.mysql.mysql_query:
+            login_host: '{{ member.address }}'
+            login_port: '{{ member.port }}'
+            login_user: '{{ db_username }}'
+            login_password: '{{ db_password }}'
+            query: SET GLOBAL super_read_only=ON
+          when: protection.query_result[0][0].protection | int == 1
+          no_log: true
+    - name: Persist both future-role settings and bounded fallback timeout
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: '{{ db_username }}'
+        login_password: '{{ db_password }}'
+        query:
+          - 'SET PERSIST rpl_semi_sync_master_timeout={{ semisync_timeout_ms | int }}'
+          - SET PERSIST rpl_semi_sync_master_wait_for_slave_count=1
+          - "SET PERSIST rpl_semi_sync_slave_enabled={{ 'ON' if semisync_enabled else 'OFF' }}"
+          - "SET PERSIST rpl_semi_sync_master_enabled={{ 'ON' if semisync_enabled else 'OFF' }}"
+      no_log: true
+    - name: Renegotiate replica acknowledgement capability
+      community.mysql.mysql_query:
+        login_host: '{{ member.address }}'
+        login_port: '{{ member.port }}'
+        login_user: '{{ db_username }}'
+        login_password: '{{ db_password }}'
+        query: [STOP SLAVE IO_THREAD, START SLAVE IO_THREAD]
+      when: member.role == 'replica'
+      no_log: true

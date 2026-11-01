@@ -1,0 +1,57 @@
+---
+- name: Deploy independently owned database VIP services
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  serial: 1
+  tasks:
+    - name: Install Keepalived without starting the distribution service
+      ansible.builtin.apt:
+        lock_timeout: 300
+        name: keepalived
+        state: present
+        policy_rc_d: 101
+    - name: Enable VIP connections on the owned proxy ports
+      ansible.builtin.template:
+        src: haproxy.cfg.j2
+        dest: '{{ member.dataDir }}/haproxy.cfg'
+        owner: autoopsdb
+        group: autoopsdb
+        mode: '0600'
+        validate: /usr/sbin/haproxy -c -f %s
+      no_log: true
+    - name: Restart this proxy before proceeding to the other host
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: restarted
+    - name: Create owned VIP directory
+      ansible.builtin.file:
+        path: '/etc/autoops-database-vip/{{ db_cluster.id }}'
+        state: directory
+        owner: root
+        mode: '0755'
+    - name: Install proxy health check
+      ansible.builtin.template:
+        src: vip-health.py.j2
+        dest: '/etc/autoops-database-vip/{{ db_cluster.id }}/health.py'
+        owner: root
+        mode: '0755'
+    - name: Validate isolated Keepalived configuration
+      ansible.builtin.template:
+        src: keepalived.conf.j2
+        dest: '/etc/autoops-database-vip/{{ db_cluster.id }}/keepalived.conf'
+        owner: root
+        mode: '0600'
+        validate: /usr/sbin/keepalived --config-test --use-file=%s
+    - name: Install independent root VIP service
+      ansible.builtin.template:
+        src: vip.service.j2
+        dest: '/etc/systemd/system/autoops-db-vip-{{ db_cluster.id }}.service'
+        mode: '0644'
+    - name: Start owned VIP service
+      ansible.builtin.systemd:
+        name: 'autoops-db-vip-{{ db_cluster.id }}'
+        enabled: true
+        state: restarted
+        daemon_reload: true

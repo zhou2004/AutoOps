@@ -1,0 +1,45 @@
+---
+- name: Require a supported server and fixed backup tool pairing
+  ansible.builtin.assert:
+    that:
+      - backup_server_version is match('^8\.0\.(24|25|26)(-|$)')
+    fail_msg: 'The pinned XtraBackup 8.0.26-18 profile supports this rollout’s MySQL 8.0.24–26 only. Other versions require an independently validated tool profile.'
+- name: Install runtime library without replacing the database server
+  ansible.builtin.apt:
+    lock_timeout: 300
+    name: libaio1
+    state: present
+    policy_rc_d: 101
+- name: Create private backup tools directory
+  ansible.builtin.file:
+    path: /opt/autoops/xtrabackup
+    state: directory
+    mode: '0755'
+- name: Inspect the independently versioned backup binary
+  ansible.builtin.stat:
+    path: /opt/autoops/xtrabackup/percona-xtrabackup-8.0.26-18-Linux-x86_64.glibc2.17-minimal/bin/xtrabackup
+  register: backup_tool
+- name: Download the fixed matching backup tool
+  when: not backup_tool.stat.exists
+  delegate_to: localhost
+  become: false
+  run_once: true
+  vars:
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+  ansible.builtin.get_url:
+    url: https://downloads.percona.com/downloads/Percona-XtraBackup-8.0/Percona-XtraBackup-8.0.26-18/binary/tarball/percona-xtrabackup-8.0.26-18-Linux-x86_64.glibc2.17-minimal.tar.gz
+    dest: '{{ result_dir }}/xtrabackup-8.0.26-18.tar.gz'
+    checksum: sha256:0a77616091c13d4fa54e13151dc1a576935486113cedab3c180f9c2cf9b6e29b
+    mode: '0644'
+    timeout: 120
+  register: backup_download
+  until: backup_download is succeeded
+  retries: 3
+  delay: 3
+- name: Extract the independently versioned backup tool
+  when: not backup_tool.stat.exists
+  ansible.builtin.unarchive:
+    src: '{{ result_dir }}/xtrabackup-8.0.26-18.tar.gz'
+    dest: /opt/autoops/xtrabackup
+    remote_src: false
+    creates: /opt/autoops/xtrabackup/percona-xtrabackup-8.0.26-18-Linux-x86_64.glibc2.17-minimal/bin/xtrabackup

@@ -1,0 +1,30 @@
+---
+- name: Maintain an explicitly owned database service
+  hosts: all
+  serial: 1
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Require managed instance and valid service name
+      ansible.builtin.assert:
+        that:
+          - member.managed | bool
+          - member.service is match('^[a-zA-Z0-9][a-zA-Z0-9_.@-]{0,99}$')
+          - service_action in ['started', 'stopped', 'restarted']
+    - name: Apply service state
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: '{{ service_action }}'
+        enabled: '{{ false if retire_service | default(false) else omit }}'
+    - name: Inspect owned MySQL role probe for retirement
+      ansible.builtin.stat:
+        path: '/etc/systemd/system/autoops-db-probe-{{ db_cluster.id }}-{{ member.id }}.service'
+      register: retired_probe
+      when: retire_service | default(false) and db_cluster.engine == 'mysql' and member.kind == 'data'
+    - name: Retire the instance role probe with its data service
+      ansible.builtin.systemd:
+        name: 'autoops-db-probe-{{ db_cluster.id }}-{{ member.id }}'
+        state: stopped
+        enabled: false
+      when: retire_service | default(false) and db_cluster.engine == 'mysql' and member.kind == 'data' and retired_probe.stat.exists

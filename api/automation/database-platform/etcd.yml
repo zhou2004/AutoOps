@@ -1,0 +1,23 @@
+---
+- name: Install etcd without changing the existing service
+  ansible.builtin.apt:
+    lock_timeout: 300
+    name: [etcd-server, etcd-client]
+    state: present
+    policy_rc_d: 101
+    update_cache: true
+    cache_valid_time: 3600
+- name: Configure isolated etcd quorum
+  ansible.builtin.template:
+    src: etcd.yml.j2
+    dest: '{{ member.dataDir }}/etcd.yml'
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0600'
+- name: Install isolated etcd unit
+  ansible.builtin.template:
+    src: generic.service.j2
+    dest: '/etc/systemd/system/{{ member.service }}.service'
+    mode: '0644'
+  vars:
+    executable: '/usr/bin/etcd --config-file {{ member.dataDir }}/etcd.yml'

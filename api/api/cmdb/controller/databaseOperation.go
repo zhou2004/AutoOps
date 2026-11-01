@@ -147,11 +147,11 @@ func (ctrl *DatabaseOperationController) RedisKeys(c *gin.Context) {
 	if !ok {
 		return
 	}
-	cursor, _ := strconv.ParseUint(c.DefaultQuery("cursor", "0"), 10, 64)
+	cursor := c.DefaultQuery("cursor", "0")
 	count, _ := strconv.ParseInt(c.DefaultQuery("count", "100"), 10, 64)
 	match := c.DefaultQuery("match", "*")
 	ctrl.audited(c, id, "redis_scan", match, func() (any, error) {
-		items, next, err := ctrl.service.RedisKeys(c.Request.Context(), id, cursor, match, count)
+		items, next, err := ctrl.service.RedisKeysCursor(c.Request.Context(), id, cursor, match, count)
 		return gin.H{"list": items, "nextCursor": next}, err
 	})
 }

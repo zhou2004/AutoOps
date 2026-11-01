@@ -1,0 +1,59 @@
+---
+- name: Set local administration password
+  community.mysql.mysql_user:
+    login_user: root
+    login_unix_socket: '{{ member.dataDir }}/mysql.sock'
+    check_implicit_admin: true
+    sql_log_bin: false
+    name: root
+    host: localhost
+    password: '{{ db_secrets.password }}'
+  no_log: true
+- name: Create independently authenticated management and replication users
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: '{{ db_secrets.password }}'
+    login_unix_socket: '{{ member.dataDir }}/mysql.sock'
+    name: '{{ item.name }}'
+    host: '%'
+    password: '{{ item.password }}'
+    priv: '{{ item.priv }}'
+    sql_log_bin: false
+  loop:
+    - {name: root, password: '{{ db_secrets.password }}', priv: '*.*:ALL,GRANT'}
+    - {name: autoops_replication, password: '{{ db_secrets.replication }}', priv: '*.*:REPLICATION SLAVE'}
+    - {name: autoops_orc, password: '{{ db_secrets.topology | default(db_secrets.control, true) }}', priv: '*.*:SUPER,PROCESS,REPLICATION SLAVE,REPLICATION CLIENT,RELOAD'}
+  no_log: true
+- name: Configure GTID replication on fresh replicas
+  community.mysql.mysql_replication:
+    login_user: root
+    login_password: '{{ db_secrets.password }}'
+    login_unix_socket: '{{ member.dataDir }}/mysql.sock'
+    mode: changemaster
+    master_host: '{{ primary.address }}'
+    master_port: '{{ primary.port }}'
+    master_user: autoops_replication
+    master_password: '{{ db_secrets.replication }}'
+    master_auto_position: true
+  vars:
+    primary: "{{ db_cluster.members | selectattr('kind','equalto','data') | selectattr('role','equalto','primary') | first }}"
+  when: member.role == 'replica' and not (skip_replication | default(false))
+  no_log: true
+- name: Persist replica read-only protection before registering the instance
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: '{{ db_secrets.password }}'
+    login_unix_socket: '{{ member.dataDir }}/mysql.sock'
+    query: ['SET PERSIST read_only=ON', 'SET PERSIST super_read_only=ON']
+  when: member.role == 'replica'
+  no_log: true
+- name: Start configured replica
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: '{{ db_secrets.password }}'
+    login_unix_socket: '{{ member.dataDir }}/mysql.sock'
+    query: [START SLAVE]
+  when: member.role == 'replica' and not (skip_replication | default(false))
+  no_log: true
+- name: Configure independent role probe
+  ansible.builtin.include_tasks: role-probe-tasks.yml

@@ -421,6 +421,11 @@
         </el-tabs>
       </main>
     </div>
+    <TaskDetail
+      v-model="configTaskOpen"
+      :operation-id="configTaskId"
+      @finished="loadTab"
+    />
     <el-dialog
       v-model="rowVisible"
       :title="$tr(originalRow ? '编辑记录' : '新增记录')"
@@ -606,6 +611,7 @@
   </div>
 </template>
 <script setup>
+import TaskDetail from "./components/TaskDetail.vue";
 import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -616,6 +622,8 @@ import { tr } from "@/locales";
 import MySQLConsole from "./components/MySQLConsole.vue";
 const props = defineProps({ source: { type: Object, required: true } }),
   router = useRouter();
+const configTaskOpen = ref(false),
+  configTaskId = ref(0);
 const consoleReady = ref(false);
 const loading = ref(false),
   error = ref(""),
@@ -1104,11 +1112,16 @@ async function editVariable(item) {
       }
     );
     const confirmName = await confirm(tr("修改实例运行参数"));
-    await mysql.setVariable(props.source.id, {
+    const result = await mysql.setVariable(props.source.id, {
       name: item.name,
       value,
       confirmName
     });
+    if (result?.operationId) {
+      configTaskId.value = result.operationId;
+      configTaskOpen.value = true;
+      return;
+    }
     ElMessage.success(tr("运行参数已更新"));
     await loadTab();
   } catch (e) {

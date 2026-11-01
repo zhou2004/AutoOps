@@ -297,12 +297,17 @@
             <el-checkbox label="host">{{ $tr("主机") }}</el-checkbox>
             <el-checkbox label="physical">{{ $tr("物理机") }}</el-checkbox>
             <el-checkbox label="network">{{ $tr("网络设备") }}</el-checkbox>
-            <el-checkbox label="database">{{ $tr("数据库") }}</el-checkbox>
+            <el-checkbox label="database">{{ $tr("数据源") }}</el-checkbox>
+ <el-checkbox label="database_cluster">数据库集群</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
 
         <el-form-item :label='$tr("资产范围")'>
           <el-tabs type="border-card" size="small" style="width: 100%">
+ <el-tab-pane v-if="form.assetTypes.includes('database_cluster')" label="数据库集群授权">
+  <el-form-item label="集群"><el-select v-model="form.databaseClusterIds" multiple filterable style="width:100%"><el-option v-for="c in databaseClusters" :key="c.id" :value="c.id" :label="c.name + ' · ' + c.engine"/></el-select></el-form-item>
+  <el-form-item label="业务分组（含子分组）"><el-tree-select v-model="form.hostGroupIds" :data="groupList" :props="{label:'name',value:'id',children:'children'}" multiple check-strictly style="width:100%"/></el-form-item>
+ </el-tab-pane>
             <el-tab-pane
               :label='$tr("主机授权")'
               v-if="form.assetTypes.includes('host')"
@@ -705,6 +710,7 @@ import { tr } from "@/locales";
 
 import cmdbAPI from "@/api/cmdb";
 import systemApi from "@/api/system";
+import {dbPlatform} from "@/api/databasePlatform";
 
 const DEVICE_TYPE_MAP = {
   1: "路由器",
@@ -717,7 +723,8 @@ const ASSET_TYPE_MAP = {
   host: "主机",
   physical: "物理机",
   network: "网络设备",
-  database: "数据库"
+  database: "数据源",
+  database_cluster: "数据库集群"
 };
 const ACTION_MAP = {
   get: "查看详情",
@@ -737,6 +744,14 @@ const ACTION_MAP = {
   config_restore: "恢复配置",
   db_query: "数据库查询",
   db_execute: "数据库写操作",
+  db_cluster_view: "查看集群",
+  db_cluster_manage: "维护集群",
+  db_cluster_switch: "高可用切换",
+  db_cluster_backup: "集群备份",
+  db_cluster_restore: "隔离恢复",
+  db_cluster_config: "修改集群参数",
+  db_cluster_audit: "查看运维审计",
+
   docker_view: "查看 Docker",
   docker_logs: "查看容器日志",
   docker_operate: "操作容器",
@@ -747,6 +762,7 @@ const ACTION_MAP = {
   admin: "全部管理权限"
 };
 const ACTION_GROUPS = [
+ {title:"数据库集群",description:"数据源查询权限不包含集群维护；按集群与动作分别授权。",actions:["db_cluster_view","db_cluster_manage","db_cluster_switch","db_cluster_backup","db_cluster_restore","db_cluster_config","db_cluster_audit"]},
   {
     title: "资产信息",
     description: "决定可以查看和维护哪些资产信息。",
@@ -806,6 +822,7 @@ export default {
       userList: [],
       userGroupList: [],
       groupList: [],
+ databaseClusters: [],
       idcList: [],
       cabinetList: [],
       flatGroupList: [],
@@ -845,6 +862,7 @@ export default {
         physicalIds: [],
         networkIds: [],
         databaseIds: [],
+ databaseClusterIds: [],
         idcIds: [],
         permissionActions: ["get", "list"],
         isActive: 1,
@@ -905,6 +923,7 @@ export default {
       return DEVICE_TYPE_MAP[t] || "未知";
     },
     async loadOptions() {
+ try { const clusters = await dbPlatform.clusters({size:100}); this.databaseClusters = clusters.list || []; } catch (_) {this.databaseClusters=[];}
       try {
         const [res1, res2, res3, res4, res5] = await Promise.all([
           systemApi.queryAdminList({ page: 1, size: 1000 }),
@@ -1030,6 +1049,7 @@ export default {
         physicalIds: [],
         networkIds: [],
         databaseIds: [],
+ databaseClusterIds: [],
         idcIds: [],
         permissionActions: ["get", "list"],
         isActive: 1,
@@ -1053,6 +1073,7 @@ export default {
         physicalIds: this.safeJSON(row.physicalIds, []),
         networkIds: this.safeJSON(row.networkIds, []),
         databaseIds: this.safeJSON(row.databaseIds, []),
+ databaseClusterIds: this.safeJSON(row.databaseClusterIds, []),
         idcIds: this.safeJSON(row.idcIds, []),
         permissionActions: this.safeJSON(row.permissionActions, [
           "get",

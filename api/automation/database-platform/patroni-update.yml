@@ -1,0 +1,39 @@
+---
+- name: Update only an owned Patroni controller, preserve database and configuration
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Require owned exact instance
+      ansible.builtin.assert:
+        that:
+          - db_cluster.topology == 'postgresql-patroni'
+          - member.managed | bool
+          - member.kind == 'data'
+          - member.dataDir.endswith('/data')
+          - member.dataDir.startswith('/var/lib/autoops-database/')
+    - name: Read instance marker
+      ansible.builtin.slurp:
+        src: '{{ member.dataDir | dirname }}/.autoops-owner'
+      register: identity
+    - name: Validate exact owned identity
+      ansible.builtin.assert:
+        that: (identity.content | b64decode) == (db_cluster.id | string) + ':' + (member.id | string)
+    - name: Install fixed controller runtime
+      ansible.builtin.include_tasks: patroni-runtime.yml
+    - name: Create owned unit override directory
+      ansible.builtin.file:
+        path: '/etc/systemd/system/{{ member.service }}.service.d'
+        state: directory
+        mode: '0755'
+    - name: Select fixed runtime while retaining original configuration
+      ansible.builtin.copy:
+        dest: '/etc/systemd/system/{{ member.service }}.service.d/patroni-runtime.conf'
+        content: |
+          [Service]
+          ExecStart=
+          ExecStart=/opt/autoops/patroni-4.1.5/bin/patroni {{ member.dataDir | dirname }}/patroni.yml
+        mode: '0644'
+    - name: Load runtime override without changing process state
+      ansible.builtin.systemd:
+        daemon_reload: true

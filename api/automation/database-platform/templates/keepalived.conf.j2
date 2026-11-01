@@ -1,0 +1,35 @@
+# AutoOps cluster {{ db_cluster.id }}
+global_defs {
+    router_id AUTOOPS_DB_{{ db_cluster.id }}_{{ member.id }}
+    enable_script_security
+    script_user root
+}
+vrrp_script proxy_health {
+    script "/etc/autoops-database-vip/{{ db_cluster.id }}/health.py"
+    interval 2
+    timeout 2
+    fall 2
+    rise 2
+}
+vrrp_instance AUTOOPS_DB_{{ db_cluster.id }} {
+    state BACKUP
+    interface {{ vip.interface }}
+    virtual_router_id {{ vip.routerId }}
+    priority {{ 150 if member.id == vip.memberIds[0] else 140 }}
+    advert_int 1
+    nopreempt
+    unicast_src_ip {{ member.address }}
+    unicast_peer {
+{% for peer in vip_proxies if peer.id != member.id %}
+        {{ peer.address }}
+{% endfor %}
+    }
+    virtual_ipaddress {
+        {{ vip.cidr }} dev {{ vip.interface }}
+    }
+    track_script {
+        proxy_health
+    }
+    garp_master_delay 1
+    garp_master_repeat 3
+}

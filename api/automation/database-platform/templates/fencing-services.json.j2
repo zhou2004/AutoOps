@@ -1,0 +1,5 @@
+{
+{% for node in db_cluster.members | selectattr('kind','equalto','data') | selectattr('hostId','equalto',member.hostId) %}
+{{ node.service | to_json }}: {"host":{{ node.address | to_json }},"port":{{ node.port }},"user":{{ db_username | to_json }},"password":{{ db_password | to_json }}}{{ ',' if not loop.last else '' }}
+{% endfor %}
+}

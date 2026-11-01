@@ -1,0 +1,63 @@
+---
+- name: Set isolated restore directory
+  ansible.builtin.set_fact:
+    restore_dir: '/var/lib/autoops-database-restores/{{ db_cluster.id }}/{{ operation_id }}/{{ source_member.id }}'
+    source_alias: 'member_{{ source_member.id }}'
+- name: Require unused restore port
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: '{{ restore_port + shard_index }}'
+    state: stopped
+    timeout: 1
+- name: Inspect restore directory
+  ansible.builtin.stat:
+    path: '{{ restore_dir }}'
+  register: restore_existing
+- name: Refuse to overwrite any previous restore
+  ansible.builtin.assert:
+    that: not restore_existing.stat.exists
+- name: Create private recovery directory
+  ansible.builtin.file:
+    path: '{{ restore_dir }}'
+    state: directory
+    owner: autoopsdb
+    group: autoopsdb
+    mode: '0700'
+- name: Copy the verified backup
+  ansible.builtin.copy:
+    src: '{{ result_dir }}/{{ source_alias }}.tar'
+    dest: '{{ restore_dir }}/backup.tar'
+    mode: '0600'
+- name: Copy isolated restore executor
+  ansible.builtin.copy:
+    src: files/restore.py
+    dest: '{{ restore_dir }}/restore.py'
+    mode: '0700'
+- name: Install matching MySQL recovery tool
+  ansible.builtin.include_tasks: xtrabackup-tasks.yml
+  vars:
+    backup_server_version: '{{ backup_manifest.artifacts[source_alias].version }}'
+  when: db_cluster.engine == 'mysql' and backup_manifest.artifacts[source_alias].method != 'logical'
+- name: Write private restore specification
+  ansible.builtin.copy:
+    dest: '{{ restore_dir }}/restore.json'
+    content: "{{ {'artifact': backup_manifest.artifacts[source_alias], 'port': restore_port + shard_index, 'targetTime': target_time, 'operationId': operation_id, 'hostId': restore_host_id, 'username': (restore_credentials[source_alias] | default({})).username | default('root'), 'password': (restore_credentials[source_alias] | default({})).password | default('')} | to_json }}"
+    mode: '0600'
+  no_log: true
+- name: Run recovery with ephemeral credentials
+  block:
+    - name: Restore and validate data in an isolated local process
+      ansible.builtin.command:
+        argv: [python3, '{{ restore_dir }}/restore.py', '{{ restore_dir }}/restore.json']
+      no_log: true
+  always:
+    - name: Remove ephemeral restore credentials
+      ansible.builtin.file:
+        path: '{{ restore_dir }}/restore.json'
+        state: absent
+      no_log: true
+- name: Fetch restore verification report
+  ansible.builtin.fetch:
+    src: '{{ restore_dir }}/report.json'
+    dest: '{{ result_dir }}/{{ source_alias }}.json'
+    flat: true

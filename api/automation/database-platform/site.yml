@@ -1,0 +1,95 @@
+---
+- name: Install isolated database components
+  hosts: all
+  serial: 1
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  tasks:
+    - name: Require supported distribution
+      ansible.builtin.assert:
+        that: ansible_os_family == 'Debian'
+        fail_msg: New installations currently require Debian or Ubuntu; other systems can be observed
+    - name: Inspect instance directory
+      ansible.builtin.stat:
+        path: '{{ member.dataDir }}'
+      register: owned_directory
+    - name: Refuse to overwrite an existing instance
+      ansible.builtin.assert:
+        that: not owned_directory.stat.exists
+    - name: Require an unused port
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: '{{ member.port }}'
+        state: stopped
+        timeout: 1
+    - name: Create isolated service user
+      ansible.builtin.user:
+        name: autoopsdb
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+    - name: Create owned instance directory
+      ansible.builtin.file:
+        path: '{{ member.dataDir }}'
+        state: directory
+        owner: autoopsdb
+        group: autoopsdb
+        mode: '0700'
+    - name: Record instance ownership
+      ansible.builtin.copy:
+        dest: '{{ member.dataDir }}/.autoops-owner'
+        content: '{{ db_cluster.id }}:{{ member.id }}'
+        mode: '0600'
+    - name: Install data engine
+      ansible.builtin.include_tasks: '{{ db_cluster.engine }}.yml'
+      when: member.kind == 'data'
+    - name: Install Sentinel
+      ansible.builtin.include_tasks: sentinel.yml
+      when: member.kind == 'sentinel'
+    - name: Install etcd
+      ansible.builtin.include_tasks: etcd.yml
+      when: member.kind == 'etcd'
+    - name: Install Orchestrator
+      ansible.builtin.include_tasks: orchestrator.yml
+      when: member.kind == 'orchestrator'
+
+- name: Start control quorum before PostgreSQL data services
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Start isolated etcd
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: started
+        enabled: true
+        daemon_reload: true
+      when: member.kind == 'etcd'
+
+- name: Start isolated database services
+  hosts: all
+  become: true
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Start owned service
+      ansible.builtin.systemd:
+        name: '{{ member.service }}'
+        state: started
+        enabled: true
+        daemon_reload: true
+      when: member.kind in ['data', 'sentinel', 'orchestrator']
+    - name: Wait for data listener
+      ansible.builtin.wait_for:
+        host: '{{ member.address }}'
+        port: '{{ member.port }}'
+        timeout: 120
+      when: member.kind in ['data', 'sentinel', 'orchestrator']
+    - name: Bootstrap MySQL credentials and GTID replication
+      ansible.builtin.include_tasks: mysql-bootstrap.yml
+      when: member.kind == 'data' and db_cluster.engine == 'mysql'
+
+- name: Configure SQL access proxies
+  ansible.builtin.import_playbook: endpoint.yml
