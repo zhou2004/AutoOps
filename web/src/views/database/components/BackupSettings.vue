@@ -1,21 +1,31 @@
 <template>
   <el-dialog
     :model-value="modelValue"
-    :title="kind === 'repository' ? '登记备份仓库' : '创建备份策略'"
+    :title="
+      kind === 'repository'
+        ? $tr('登记备份仓库')
+        : policy
+          ? $tr('编辑备份策略')
+          : $tr('创建备份策略')
+    "
     width="min(720px, 94vw)"
     append-to-body
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <el-alert v-if="error" :title="$tr(error)" type="error" :closable="false" />
     <p v-if="kind === 'policy'">
-      策略保存后按计划运行，不会立即备份。首次使用可先通过“立即备份”验证方式和仓库。
+      {{
+        $tr(
+          "策略保存后按计划运行，不会立即备份。首次使用可先通过“立即备份”验证方式和仓库。"
+        )
+      }}
     </p>
     <el-form label-width="130px">
-      <el-form-item label="名称"
+      <el-form-item :label="$tr('名称')"
         ><el-input v-model="form.name" maxlength="64"
       /></el-form-item>
       <template v-if="kind === 'repository'">
-        <el-form-item label="业务分组"
+        <el-form-item :label="$tr('业务分组')"
           ><el-tree-select
             v-model="form.groupId"
             :data="groups"
@@ -23,14 +33,14 @@
             check-strictly
             filterable
         /></el-form-item>
-        <el-form-item label="存储类型"
+        <el-form-item :label="$tr('存储类型')"
           ><el-select v-model="form.kind"
-            ><el-option value="local" label="受管目录" /><el-option
+            ><el-option value="local" :label="$tr('受管目录')" /><el-option
               value="s3"
-              label="S3 兼容存储" /></el-select
+              :label="$tr('S3 兼容存储')" /></el-select
         ></el-form-item>
         <el-form-item
-          :label="form.kind === 'local' ? '仓库主机' : '传输执行主机'"
+          :label="form.kind === 'local' ? $tr('仓库主机') : $tr('传输执行主机')"
           ><el-select v-model="form.hostId" filterable
             ><el-option
               v-for="h in hosts"
@@ -40,10 +50,10 @@
                 h.hostname || h.hostName || h.name || String(h.id)
               " /></el-select
         ></el-form-item>
-        <el-form-item v-if="form.kind === 'local'" label="受管目录"
+        <el-form-item v-if="form.kind === 'local'" :label="$tr('受管目录')"
           ><el-input
             v-model="form.path"
-            placeholder="/var/lib/autoops-backup-repository/业务名称"
+            :placeholder="$tr('/var/lib/autoops-backup-repository/业务名称')"
         /></el-form-item>
         <template v-else>
           <el-form-item label="S3 Endpoint"
@@ -57,25 +67,30 @@
           <el-form-item label="Region"
             ><el-input v-model="form.region"
           /></el-form-item>
-          <el-form-item label="配置中心凭据"
+          <el-form-item :label="$tr('配置中心凭据')"
             ><el-select v-model="form.keyId" filterable
               ><el-option
                 v-for="k in keys"
                 :key="k.id"
                 :value="k.id"
                 :label="
-                  k.name || k.alias || k.keyName || String(k.id)
+                  k.remark || k.name || k.alias || k.keyName || String(k.id)
                 " /></el-select
           ></el-form-item>
         </template>
         <p>
-          登记后执行连接检查。生产备份应保存到数据库节点以外；暂存成功与独立副本成功分别记录。
+          {{
+            $tr(
+              "登记后执行连接检查。生产备份应保存到数据库节点以外；暂存成功与独立副本成功分别记录。"
+            )
+          }}
         </p>
       </template>
       <template v-else>
-        <el-form-item label="集群"
+        <el-form-item :label="$tr('集群')"
           ><el-select
             v-model="form.clusterId"
+            :disabled="!!policy"
             filterable
             @change="selectCluster"
             ><el-option
@@ -84,7 +99,7 @@
               :value="c.id"
               :label="`${c.name} · ${c.engine}`" /></el-select
         ></el-form-item>
-        <el-form-item label="备份方式"
+        <el-form-item :label="$tr('备份方式')"
           ><el-select v-model="form.method"
             ><el-option
               v-for="m in methods"
@@ -93,11 +108,11 @@
               :label="m.label" /></el-select
         ></el-form-item>
         <p>{{ backupMethods[form.method]?.description }}</p>
-        <el-form-item label="备份仓库"
+        <el-form-item :label="$tr('备份仓库')"
           ><el-select
             v-model="form.repositoryId"
             clearable
-            placeholder="本地暂存"
+            :placeholder="$tr('本地暂存')"
             ><el-option
               v-for="r in repositories.filter(
                 r => r.status === 'healthy' && r.groupId === selected?.groupId
@@ -106,41 +121,48 @@
               :value="r.id"
               :label="r.name" /></el-select
         ></el-form-item>
-        <el-form-item label="执行周期"
+        <el-form-item :label="$tr('执行周期')"
           ><el-select v-model="schedule" @change="selectSchedule"
-            ><el-option value="daily" label="每天 02:00" /><el-option
+            ><el-option value="daily" :label="$tr('每天 02:00')" /><el-option
               value="weekly"
-              label="每周日 02:00" /><el-option
+              :label="$tr('每周日 02:00')" /><el-option
               value="custom"
-              label="自定义 Cron" /></el-select
+              :label="$tr('自定义 Cron')" /></el-select
         ></el-form-item>
-        <el-form-item label="调度（Cron）"
+        <el-form-item :label="$tr('调度（Cron）')"
           ><el-input
             v-model="form.cron"
             :disabled="schedule !== 'custom'"
-            placeholder="分 时 日 月 周，例如 0 2 * * *"
+            :placeholder="$tr('分 时 日 月 周，例如 0 2 * * *')"
         /></el-form-item>
-        <el-form-item label="保留天数"
+        <el-form-item :label="$tr('保留天数')"
           ><el-input-number v-model="form.retentionDays" :min="1" :max="3650"
         /></el-form-item>
-        <el-form-item label="启用"
+        <el-form-item :label="$tr('启用')"
           ><el-switch v-model="form.enabled"
         /></el-form-item>
         <p>
-          Cron 使用 Worker
-          的本地时区。备份与其他集群变更互斥。保留策略始终保护恢复依赖链，备份完成后仍需执行隔离恢复验证。
+          {{
+            $tr(
+              "Cron 使用 Worker 的本地时区。备份与其他集群变更互斥。保留天数记录计划保存周期，手动清理不受该时间限制；备份完成后请到恢复演练进行验证。"
+            )
+          }}
         </p>
       </template>
     </el-form>
     <template #footer
-      ><el-button @click="$emit('update:modelValue', false)">取消</el-button
-      ><el-button type="primary" :loading="busy" @click="save"
-        >保存</el-button
-      ></template
+      ><el-button @click="$emit('update:modelValue', false)">{{
+        $tr("取消")
+      }}</el-button
+      ><el-button type="primary" :loading="busy" @click="save">{{
+        $tr("保存")
+      }}</el-button></template
     >
   </el-dialog>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import { computed, reactive, ref, watch } from "vue";
 import { dbRequest, type Cluster } from "@/api/databasePlatform";
 import cmdb from "@/api/cmdb";
@@ -152,6 +174,7 @@ const props = defineProps<{
   groups: any[];
   engine?: string;
   clusterId?: number;
+  policy?: any;
 }>();
 const emit = defineEmits(["update:modelValue", "saved"]);
 const schedule = ref("daily");
@@ -171,17 +194,56 @@ const selected = computed(() =>
 );
 const methods = computed(() =>
   selected.value?.engine === "redis"
-    ? [{ value: "rdb", label: "RDB / 按分片备份" }]
+    ? [
+        {
+          value: "rdb",
+          get label() {
+            return tr("RDB / 按分片备份");
+          }
+        }
+      ]
     : [
-        { value: "logical", label: "逻辑备份" },
-        { value: "physical", label: "物理全量（需配置匹配工具）" },
-        { value: "incremental", label: "增量备份（要求已有基线）" },
+        {
+          value: "logical",
+          get label() {
+            return tr("逻辑备份");
+          }
+        },
+        {
+          value: "physical",
+          get label() {
+            return tr("物理全量（需配置匹配工具）");
+          }
+        },
+        {
+          value: "incremental",
+          get label() {
+            return tr("增量备份（要求已有基线）");
+          }
+        },
         ...(selected.value?.engine === "postgresql"
           ? [
-              { value: "differential", label: "差异备份" },
-              { value: "wal-archive", label: "导出基线与 WAL 归档" }
+              {
+                value: "differential",
+                get label() {
+                  return tr("差异备份");
+                }
+              },
+              {
+                value: "wal-archive",
+                get label() {
+                  return tr("导出基线与 WAL 归档");
+                }
+              }
             ]
-          : [{ value: "binlog-archive", label: "导出基线与已关闭 binlog" }])
+          : [
+              {
+                value: "binlog-archive",
+                get label() {
+                  return tr("导出基线与已关闭 binlog");
+                }
+              }
+            ])
       ]
 );
 function selectCluster() {
@@ -193,9 +255,13 @@ async function save() {
   error.value = "";
   try {
     await dbRequest(
-      props.kind === "repository" ? "repositories" : "backup-policies",
-      "post",
-      form
+      props.kind === "repository"
+        ? "repositories"
+        : props.policy
+          ? `backup-policies/${props.policy.id}`
+          : "backup-policies",
+      props.kind === "policy" && props.policy ? "patch" : "post",
+      { ...form, repositoryId: form.repositoryId || 0 }
     );
     emit("saved");
     emit("update:modelValue", false);
@@ -248,6 +314,15 @@ watch(
         ) {
           form.clusterId = props.clusterId;
           selectCluster();
+        }
+        if (props.policy) {
+          Object.assign(form, props.policy);
+          schedule.value =
+            form.cron === "0 2 * * *"
+              ? "daily"
+              : form.cron === "0 2 * * 0"
+                ? "weekly"
+                : "custom";
         }
       }
     } catch (e) {

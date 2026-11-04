@@ -28,12 +28,19 @@ export function setLocale(value: AppLocale) {
 // Source-language keys preserve business values and support legacy Vue components.
 // Message functions keep literal JSON, Go templates, @mentions and pipes intact.
 // All translated strings live in one auditable catalog. Unknown/server text stays intact.
-export function tr(source: unknown): string {
+export function tr(source: unknown, params?: Record<string, unknown>): string {
   const text = String(source ?? "");
   const key = ids.get(text);
   // Reading locale also makes fallback values reactive in computed/template callers.
   void locale.value;
-  return key ? i18n.global.t(key) : text;
+  const translated = key ? i18n.global.t(key) : text;
+  return params
+    ? translated.replace(/\{([A-Za-z][\w]*)\}/g, (placeholder, name) =>
+        Object.prototype.hasOwnProperty.call(params, name)
+          ? String(params[name] ?? "")
+          : placeholder
+      )
+    : translated;
 }
 export function localizeError(message: string): string {
   const parts = message.split(" / ");

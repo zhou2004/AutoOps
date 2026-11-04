@@ -77,7 +77,7 @@ func TestUnknownOperationAllowsCollectionWithoutUnlocking(t *testing.T) {
 	if err := s.DB.First(&op, op.ID).Error; err != nil || op.Status != "unknown" {
 		t.Fatalf("collector changed the unresolved operation: %v", err)
 	}
-	for _, status := range []string{"queued", "preflight", "running", "verifying", "succeeded", "failed"} {
+	for _, status := range []string{"preflight", "running", "verifying", "succeeded", "failed"} {
 		if err := s.DB.Model(&op).Update("status", status).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -90,5 +90,50 @@ func TestUnknownOperationAllowsCollectionWithoutUnlocking(t *testing.T) {
 	}
 	if s.collectionAllowed(1) {
 		t.Fatal("collector bypassed an orphaned operation lock")
+	}
+}
+
+func TestQueuedAndIsolatedRecoveryKeepHealthVisible(t *testing.T) {
+	s := testService(t)
+	op := model.Operation{ClusterID: 1, Action: "restore", Status: "queued", IdempotencyKey: "recovery-health"}
+	if e := s.DB.Create(&op).Error; e != nil {
+		t.Fatal(e)
+	}
+	if e := s.DB.Create(&model.OperationLock{ClusterID: 1, OperationID: op.ID}).Error; e != nil {
+		t.Fatal(e)
+	}
+	if !s.collectionAllowed(1) {
+		t.Fatal("queued recovery blocks health")
+	}
+	claimed, e := s.claim("test-worker")
+	if e != nil || claimed == nil || claimed.ID != op.ID {
+		t.Fatal("failed to claim", e)
+	}
+	if s.collectionAllowed(1) {
+		t.Fatal("preflight must drain and exclude collectors")
+	}
+	for _, action := range []string{"restore", "verify-backup"} {
+		for _, status := range []string{"running", "verifying"} {
+			s.DB.Model(&op).Updates(map[string]any{"action": action, "status": status})
+			if !s.collectionAllowed(1) {
+				t.Fatalf("isolated %s/%s hides source health", action, status)
+			}
+		}
+	}
+	s.DB.Model(&op).Updates(map[string]any{"action": "switchover", "status": "running"})
+	if s.collectionAllowed(1) {
+		t.Fatal("topology mutation must retain exclusion")
+	}
+	s.DB.Model(&op).Update("action", nil)
+	if s.collectionAllowed(1) {
+		t.Fatal("missing action must fail closed")
+	}
+	var count int64
+	s.DB.Model(&model.OperationLock{}).Where("cluster_id = ?", 1).Count(&count)
+	if count != 1 {
+		t.Fatal("health read released operation lock")
+	}
+	if claimed, e = s.claim("another-worker"); e != nil || claimed != nil {
+		t.Fatal("job was replayed", e)
 	}
 }

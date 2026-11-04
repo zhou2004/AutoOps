@@ -164,19 +164,21 @@ type StorageSnapshot struct {
 func (StorageSnapshot) TableName() string { return "database_storage_snapshot" }
 
 type Repository struct {
-	ID        uint       `gorm:"primaryKey" json:"id"`
-	Name      string     `gorm:"size:100;uniqueIndex" json:"name"`
-	GroupID   uint       `gorm:"index" json:"groupId"`
-	Kind      string     `gorm:"size:16" json:"kind"`
-	HostID    uint       `json:"hostId"`
-	Path      string     `gorm:"size:255" json:"path"`
-	Endpoint  string     `gorm:"size:255" json:"endpoint"`
-	Bucket    string     `gorm:"size:100" json:"bucket"`
-	Region    string     `gorm:"size:64" json:"region"`
-	KeyID     uint       `json:"keyId"`
-	Status    string     `gorm:"size:24" json:"status"`
-	CheckedAt *time.Time `json:"checkedAt"`
-	CreatedAt time.Time  `json:"createdAt"`
+	ID           uint            `gorm:"primaryKey" json:"id"`
+	Name         string          `gorm:"size:100;uniqueIndex" json:"name"`
+	GroupID      uint            `gorm:"index" json:"groupId"`
+	Kind         string          `gorm:"size:16" json:"kind"`
+	HostID       uint            `json:"hostId"`
+	Path         string          `gorm:"size:255" json:"path"`
+	Endpoint     string          `gorm:"size:255" json:"endpoint"`
+	Bucket       string          `gorm:"size:100" json:"bucket"`
+	Region       string          `gorm:"size:64" json:"region"`
+	KeyID        uint            `json:"keyId"`
+	Status       string          `gorm:"size:24" json:"status"`
+	CheckedAt    *time.Time      `json:"checkedAt"`
+	CheckReport  json.RawMessage `gorm:"type:text" json:"checkReport"`
+	CheckMessage string          `gorm:"size:255" json:"checkMessage"`
+	CreatedAt    time.Time       `json:"createdAt"`
 }
 
 func (Repository) TableName() string { return "database_repository" }
@@ -200,6 +202,7 @@ func (BackupPolicy) TableName() string { return "database_backup_policy" }
 
 type Backup struct {
 	ID           uint            `gorm:"primaryKey" json:"id"`
+	Name         string          `gorm:"size:100" json:"name"`
 	ClusterID    uint            `gorm:"index" json:"clusterId"`
 	OperationID  uint            `json:"operationId"`
 	RepositoryID uint            `json:"repositoryId"`

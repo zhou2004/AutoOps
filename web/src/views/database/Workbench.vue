@@ -1,6 +1,6 @@
 <template>
   <div v-loading="loading">
-    <el-result v-if="error" icon="error" :title="error"
+    <el-result v-if="error" icon="error" :title="$tr(error)"
       ><template #extra
         ><el-button @click="load">{{ $tr("重新加载") }}</el-button></template
       ></el-result

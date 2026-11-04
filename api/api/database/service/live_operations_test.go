@@ -90,22 +90,19 @@ func exerciseRetention(t *testing.T, ctx context.Context, s *Service, c *model.C
 	if s.DB.Where("operation_id = ?", op.ID).First(&old).Error != nil {
 		t.Fatal("backup absent")
 	}
-	// Only this newly-created, explicitly isolated test backup receives an aged
-	// fixture timestamp. Existing backup records and retention policies are untouched.
-	s.DB.Model(&old).Update("created_at", time.Now().AddDate(0, 0, -s.retentionDays(c.ID)-1))
 	newOp := runLiveOperation(t, ctx, s, c, user, "backup", Parameters{Method: "rdb", RepositoryID: repo.ID})
 	var newest model.Backup
 	s.DB.Where("operation_id = ?", newOp.ID).First(&newest)
 	runLiveOperation(t, ctx, s, c, user, "verify-backup", Parameters{BackupID: newest.ID, HostID: 531, Port: 19390})
-	if _, e := s.expirableBackup(c.ID, newest.ID); e == nil {
-		t.Fatal("retention window did not protect new backup")
+	if _, e := s.expirableBackup(c.ID, newest.ID); e != nil {
+		t.Fatal("manual cleanup rejected fresh backup")
 	}
 	runLiveOperation(t, ctx, s, c, user, "expire-backup", Parameters{BackupID: old.ID})
 	s.DB.First(&old, old.ID)
 	if old.Status != "expired" {
 		t.Fatal("retention did not expire the isolated fixture")
 	}
-	t.Logf("owned aged test backup #%d expired with independent repository; newer restored backup #%d retained", old.ID, newest.ID)
+	t.Logf("owned fresh test backup #%d expired with independent repository; newer restored backup #%d retained", old.ID, newest.ID)
 }
 
 func exerciseDiscovery(t *testing.T, ctx context.Context, s *Service, c *model.Cluster, user uint) {

@@ -6,6 +6,7 @@ import { ReText } from "@/components/ReText";
 import { useNav } from "@/layout/hooks/useNav";
 import SidebarLinkItem from "./SidebarLinkItem.vue";
 import SidebarExtraIcon from "./SidebarExtraIcon.vue";
+import { menuIcon } from "@/utils/menuIcons";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import {
   type PropType,
@@ -38,6 +39,16 @@ const props = defineProps({
   }
 });
 
+const itemIcon = computed(() =>
+  menuIcon(props.item?.path || "", toRaw(props.item?.meta?.icon))
+);
+const leafIcon = computed(() =>
+  menuIcon(
+    onlyOneChild.value?.path || props.item?.path || "",
+    toRaw(onlyOneChild.value?.meta?.icon || props.item?.meta?.icon)
+  )
+);
+
 const getNoDropdownStyle = computed((): CSSProperties => {
   return {
     width: "100%",
@@ -53,10 +64,10 @@ const getSubMenuIconStyle = computed((): CSSProperties => {
     alignItems: "center",
     margin:
       layout.value === "horizontal"
-        ? "0 5px 0 0"
+        ? "0 10px 0 0"
         : isCollapse.value
           ? "0 auto"
-          : "0 5px 0 0"
+          : "0 10px 0 0"
   };
 });
 
@@ -66,7 +77,7 @@ const textClass = computed(() => {
   if (
     layout.value !== "horizontal" &&
     isCollapse.value &&
-    !toRaw(item.meta.icon) &&
+    !itemIcon.value &&
     ((layout.value === "vertical" && item.parentId === null) ||
       (layout.value === "mix" && item.pathList.length === 2))
   ) {
@@ -85,7 +96,7 @@ const expandCloseIcon = computed(() => {
   };
 });
 
-const onlyOneChild: menuType = ref(null);
+const onlyOneChild = ref<menuType | null>(null);
 
 function hasOneShowingChild(children: menuType[] = [], parent: menuType) {
   const showingChildren = children.filter((item: any) => {
@@ -122,37 +133,28 @@ function resolvePath(routePath) {
   <SidebarLinkItem
     v-if="
       hasOneShowingChild(item.children, item) &&
+      onlyOneChild &&
       (!onlyOneChild.children || onlyOneChild.noShowingChildren)
     "
     :to="item"
   >
     <el-menu-item
       :index="resolvePath(onlyOneChild.path)"
+      :aria-label="$tr(onlyOneChild.meta.title)"
       :class="{ 'submenu-title-noDropdown': !isNest }"
       :style="getNoDropdownStyle"
       v-bind="attrs"
     >
-      <div
-        v-if="toRaw(item.meta.icon)"
-        class="sub-menu-icon"
-        :style="getSubMenuIconStyle"
-      >
-        <component
-          :is="
-            useRenderIcon(
-              toRaw(onlyOneChild.meta.icon) ||
-                (item.meta && toRaw(item.meta.icon))
-            )
-          "
-        />
+      <div v-if="itemIcon" class="sub-menu-icon" :style="getSubMenuIconStyle">
+        <component :is="useRenderIcon(leafIcon)" />
       </div>
       <el-text
         v-if="
-          (!item?.meta.icon &&
+          (!itemIcon &&
             isCollapse &&
             layout === 'vertical' &&
             item?.pathList?.length === 1) ||
-          (!onlyOneChild.meta.icon &&
+          (!leafIcon &&
             isCollapse &&
             layout === 'mix' &&
             item?.pathList?.length === 2)
@@ -187,21 +189,17 @@ function resolvePath(routePath) {
     v-bind="expandCloseIcon"
   >
     <template #title>
-      <div
-        v-if="toRaw(item.meta.icon)"
-        :style="getSubMenuIconStyle"
-        class="sub-menu-icon"
-      >
-        <component :is="useRenderIcon(item.meta && toRaw(item.meta.icon))" />
+      <div v-if="itemIcon" :style="getSubMenuIconStyle" class="sub-menu-icon">
+        <component :is="useRenderIcon(itemIcon)" />
       </div>
       <ReText
         v-if="
-          layout === 'mix' && toRaw(item.meta.icon)
+          layout === 'mix' && itemIcon
             ? !isCollapse || item?.pathList?.length !== 2
             : !(
                 layout === 'vertical' &&
                 isCollapse &&
-                toRaw(item.meta.icon) &&
+                itemIcon &&
                 item.parentId === null
               )
         "

@@ -1,4 +1,4 @@
-import type { FunctionalComponent } from "vue";
+import type { Component } from "vue";
 const { VITE_HIDE_HOME } = import.meta.env;
 
 export const routerArrays: Array<RouteConfigs> =
@@ -17,7 +17,7 @@ export const routerArrays: Array<RouteConfigs> =
 
 export type routeMetaType = {
   title?: string;
-  icon?: string | FunctionalComponent;
+  icon?: string | Component;
   showLink?: boolean;
   savedPosition?: boolean;
   auths?: Array<string>;
@@ -37,7 +37,7 @@ export type multiTagsType = {
 };
 
 export type tagsViewsType = {
-  icon: string | FunctionalComponent;
+  icon: string | Component;
   text: string;
   divided: boolean;
   disabled: boolean;
@@ -69,7 +69,7 @@ export type menuType = {
   children?: menuType[];
   value: unknown;
   meta?: {
-    icon?: string;
+    icon?: string | Component;
     title?: string;
     rank?: number;
     showParent?: boolean;

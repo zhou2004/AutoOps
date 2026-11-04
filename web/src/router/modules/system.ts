@@ -1,3 +1,4 @@
+import { menuIcon } from "@/utils/menuIcons";
 const Layout = () => import("@/layout/index.vue");
 
 export default {
@@ -6,7 +7,7 @@ export default {
   component: Layout,
   redirect: "/system/admin",
   meta: {
-    icon: "ep/setting",
+    icon: menuIcon("/system"),
     title: "基础管理",
     rank: 99
   },
@@ -15,7 +16,7 @@ export default {
       path: "/system/authorization",
       name: "SystemAuthorization",
       component: () => import("@/views/system/AuthorizationManagement.vue"),
-      meta: { title: "授权管理", icon: "ep/lock" }
+      meta: { title: "授权管理", icon: menuIcon("/system/authorization") }
     },
     {
       path: "/system/role-permission",
@@ -27,43 +28,43 @@ export default {
       path: "/system/api-keys",
       name: "SystemAPIKeys",
       component: () => import("@/views/system/APIKeys.vue"),
-      meta: { title: "API Key", icon: "ep/key" }
+      meta: { title: "API Key", icon: menuIcon("/system/api-keys") }
     },
     {
       path: "/system/admin",
       name: "SystemAdmin",
       component: () => import("@/views/system/Admin.vue"),
-      meta: { title: "用户信息" }
+      meta: { icon: menuIcon("/system/admin"), title: "用户信息" }
     },
     {
       path: "/system/role",
       name: "SystemRole",
       component: () => import("@/views/system/Role.vue"),
-      meta: { title: "角色信息" }
+      meta: { icon: menuIcon("/system/role"), title: "角色信息" }
     },
     {
       path: "/system/menu",
       name: "SystemMenu",
       component: () => import("@/views/system/Menu.vue"),
-      meta: { title: "菜单信息" }
+      meta: { icon: menuIcon("/system/menu"), title: "菜单信息" }
     },
     {
       path: "/system/dept",
       name: "SystemDept",
       component: () => import("@/views/system/Dept.vue"),
-      meta: { title: "部门信息" }
+      meta: { icon: menuIcon("/system/dept"), title: "部门信息" }
     },
     {
       path: "/system/post",
       name: "SystemPost",
       component: () => import("@/views/system/Post.vue"),
-      meta: { title: "岗位信息" }
+      meta: { icon: menuIcon("/system/post"), title: "岗位信息" }
     },
     {
       path: "/system/machine",
       name: "SystemMachine",
       component: () => import("@/views/system/Machine.vue"),
-      meta: { title: "机房信息" }
+      meta: { icon: menuIcon("/system/machine"), title: "机房信息" }
     },
     {
       path: "/system/personal",
@@ -87,19 +88,19 @@ export default {
       path: "/monitor/loginlog",
       name: "MonitorLoginLog",
       component: () => import("@/views/monitor/LoginLog.vue"),
-      meta: { title: "登录日志" }
+      meta: { icon: menuIcon("/monitor/loginlog"), title: "登录日志" }
     },
     {
       path: "/monitor/operator",
       name: "MonitorOperator",
       component: () => import("@/views/monitor/Operator.vue"),
-      meta: { title: "操作日志" }
+      meta: { icon: menuIcon("/monitor/operator"), title: "操作日志" }
     },
     {
       path: "/monitor/dblog",
       name: "MonitorDbLog",
       component: () => import("@/views/monitor/DBLog.vue"),
-      meta: { title: "数据日志" }
+      meta: { icon: menuIcon("/monitor/dblog"), title: "数据日志" }
     }
   ]
 };

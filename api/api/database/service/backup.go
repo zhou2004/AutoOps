@@ -5,12 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"dodevops-api/api/database/model"
 	"dodevops-api/common/util"
 	"dodevops-api/pkg/apikey"
 	"github.com/robfig/cron/v3"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // BackupRecord resolves an individual backup independently of list pagination.
@@ -28,7 +33,21 @@ func (s *Service) BackupRecord(ctx context.Context, user, id uint) (*model.Backu
 	return &backup, nil
 }
 
+func backupName(c *model.Cluster, p Parameters, at time.Time) (string, error) {
+	if !utf8.ValidString(p.BackupName) || utf8.RuneCountInString(p.BackupName) > 100 || strings.IndexFunc(p.BackupName, unicode.IsControl) >= 0 {
+		return "", errors.New("备份名称最多 100 个字符，不能包含换行或控制字符")
+	}
+	if value := strings.TrimSpace(p.BackupName); value != "" {
+		return value, nil
+	}
+	return fmt.Sprintf("%.60s-%s-%s", c.Name, p.Method, at.Format("20060102-150405")), nil
+}
+
 func (s *Service) backup(ctx context.Context, c *model.Cluster, op model.Operation, p Parameters) error {
+	name, e := backupName(c, p, time.Now())
+	if e != nil {
+		return e
+	}
 	nodes := []model.Member{}
 	for _, m := range c.Members {
 		if m.Kind == "data" && m.Role == "primary" {
@@ -73,7 +92,7 @@ func (s *Service) backup(ctx context.Context, c *model.Cluster, op model.Operati
 		}
 		p.ParentBackupID = parent.ID
 	}
-	b := model.Backup{ClusterID: c.ID, OperationID: op.ID, RepositoryID: p.RepositoryID, ParentID: p.ParentBackupID, Method: p.Method, Status: "running", Manifest: JSON(map[string]any{})}
+	b := model.Backup{Name: name, ClusterID: c.ID, OperationID: op.ID, RepositoryID: p.RepositoryID, ParentID: p.ParentBackupID, Method: p.Method, Status: "running", Manifest: JSON(map[string]any{})}
 	credentials := map[string]any{}
 	for _, m := range nodes {
 		user, password, e := s.memberAccount(c, m)
@@ -272,7 +291,15 @@ func (s *Service) SaveBackupPolicy(ctx context.Context, user uint, p model.Backu
 	p.CreatedBy = user
 	next := schedule.Next(time.Now())
 	p.NextRunAt = &next
-	e = s.DB.Save(&p).Error
+	e = s.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if p.RepositoryID > 0 {
+			var repo model.Repository
+			if tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&repo, p.RepositoryID).Error != nil || repo.GroupID != cluster.GroupID || (p.Enabled && repo.Status != "healthy") {
+				return errors.New("仓库不存在、分组不匹配或状态不可用")
+			}
+		}
+		return tx.Save(&p).Error
+	})
 	if e == nil {
 		s.event(p.ClusterID, user, 0, "backup-policy", "info", fmt.Sprintf("备份策略 #%d 已保存，启用=%t", p.ID, p.Enabled))
 	}

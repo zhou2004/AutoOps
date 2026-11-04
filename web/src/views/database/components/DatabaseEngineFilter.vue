@@ -2,11 +2,11 @@
   <el-select
     :model-value="value"
     class="database-engine-filter"
-    aria-label="数据库类型"
-    placeholder="全部类型"
+    :aria-label="$tr('数据库类型')"
+    :placeholder="$tr('全部类型')"
     @change="change"
   >
-    <el-option label="全部类型" value="" />
+    <el-option :label="$tr('全部类型')" value="" />
     <el-option
       v-for="item in engines"
       :key="item.value"

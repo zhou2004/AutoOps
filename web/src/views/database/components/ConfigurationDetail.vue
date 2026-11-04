@@ -1,8 +1,8 @@
 <template>
   <section class="configuration-detail">
     <div class="configuration-toolbar">
-      <p>比较期望配置与各实例实际值，查看变更版本及待重启项。</p>
-      <el-button @click="load">刷新参数</el-button>
+      <p>{{ $tr("比较期望配置与各实例实际值，查看变更版本及待重启项。") }}</p>
+      <el-button @click="load">{{ $tr("刷新参数") }}</el-button>
       <ClusterActions
         :cluster-id="clusterId"
         context="configurations"
@@ -10,54 +10,65 @@
         @changed="load"
       />
     </div>
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <el-alert v-if="error" :title="$tr(error)" type="error" :closable="false" />
     <el-skeleton v-if="loading" :rows="6" animated />
     <template v-else>
       <el-table :data="configurationRows"
-        ><el-table-column prop="name" label="参数" /><el-table-column
-          label="期望值"
+        ><el-table-column prop="name" :label="$tr('参数')" /><el-table-column
+          :label="$tr('期望值')"
           ><template #default="{ row }">{{
-            configuration.desired?.[row.name] ?? "未设置"
+            configuration.desired?.[row.name] ?? $tr("未设置")
+          }}</template></el-table-column
+        ><el-table-column :label="$tr('说明')" min-width="240"
+          ><template #default="{ row }">{{
+            $tr(row.description)
           }}</template></el-table-column
         ><el-table-column
-          prop="description"
-          label="说明"
-          min-width="240"
-        /><el-table-column prop="mode" label="生效方式" /><el-table-column
+          prop="mode"
+          :label="$tr('生效方式')"
+        /><el-table-column
           v-for="instance in configuration.instances || []"
           :key="instance.memberId"
           :label="instance.name"
           ><template #default="{ row }"
-            ><span>{{ instance.values?.[row.name] ?? "未知" }}</span
+            ><span>{{ instance.values?.[row.name] ?? $tr("未知") }}</span
             ><el-tag
               v-if="instance.differences?.[row.name]"
               type="warning"
               size="small"
               >{{
-                instance.pendingRestart?.[row.name] ? "待重启" : "配置差异"
+                instance.pendingRestart?.[row.name]
+                  ? $tr("待重启")
+                  : $tr("配置差异")
               }}</el-tag
             ></template
           ></el-table-column
         ></el-table
       >
-      <h3>配置版本</h3>
+      <h3>{{ $tr("配置版本") }}</h3>
       <el-table :data="configuration.revisions || []"
-        ><el-table-column prop="id" label="版本" /><el-table-column label="范围"
+        ><el-table-column prop="id" :label="$tr('版本')" /><el-table-column
+          :label="$tr('范围')"
           ><template #default="{ row }"
-            >{{ row.memberId ? `实例 #${row.memberId}` : "集群" }} ·
-            {{ row.runtimeOnly ? "仅运行时" : "持久配置" }}</template
+            >{{
+              row.memberId
+                ? $tr("实例 #{value0}", { value0: row.memberId })
+                : $tr("集群")
+            }}
+            ·
+            {{ row.runtimeOnly ? $tr("仅运行时") : $tr("持久配置") }}</template
           ></el-table-column
-        ><el-table-column label="状态"
+        ><el-table-column :label="$tr('状态')"
           ><template #default="{ row }">{{
             label(row.status)
           }}</template></el-table-column
-        ><el-table-column label="变更"
+        ><el-table-column :label="$tr('变更')"
           ><template #default="{ row }"
             ><span v-for="(value, key) in row.desired" :key="key"
               >{{ key }} = {{ value }}　</span
             ></template
           ></el-table-column
-        ><el-table-column label="时间"
+        ><el-table-column :label="$tr('时间')"
           ><template #default="{ row }">{{
             date(row.createdAt)
           }}</template></el-table-column
@@ -67,6 +78,8 @@
   </section>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import { computed, ref, watch } from "vue";
 import ClusterActions from "./ClusterActions.vue";
 import { dbRequest, label } from "@/api/databasePlatform";
@@ -76,7 +89,8 @@ const configuration = ref<any>({}),
   error = ref(""),
   loading = ref(false);
 const configurationRows = computed(() => configuration.value.definitions || []);
-const date = (v?: string) => (v ? new Date(v).toLocaleString() : "尚未采集");
+const date = (v?: string) =>
+  v ? new Date(v).toLocaleString() : tr("尚未采集");
 async function load() {
   if (!props.modelValue) return;
   const id = props.clusterId;

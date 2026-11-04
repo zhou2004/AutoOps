@@ -22,7 +22,7 @@
   tasks:
     - name: Install restore runtime dependencies
       ansible.builtin.apt:
-        lock_timeout: 300
+        lock_timeout: "{{ 300 if ansible_version.full is version('2.12', '>=') else omit }}"
         name: [python3-pymysql, python3-psycopg2, python3-redis]
         state: present
         policy_rc_d: 101

@@ -5,6 +5,7 @@ import { useNav } from "@/layout/hooks/useNav";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
 import { ref, toRaw, watch, onMounted, nextTick } from "vue";
+import { menuIcon } from "@/utils/menuIcons";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { getParentPaths, findRouteByPath } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
@@ -75,11 +76,11 @@ watch(
       >
         <template #title>
           <div
-            v-if="toRaw(route.meta.icon)"
-            :class="['sub-menu-icon', route.meta.icon]"
+            v-if="menuIcon(route.path, route.meta.icon)"
+            class="sub-menu-icon"
           >
             <component
-              :is="useRenderIcon(route.meta && toRaw(route.meta.icon))"
+              :is="useRenderIcon(menuIcon(route.path, toRaw(route.meta.icon)))"
             />
           </div>
           <div :style="getDivStyle">
@@ -119,7 +120,7 @@ watch(
       </el-dropdown>
       <span
         class="set-icon navbar-bg-hover"
-        :title='$tr("打开系统配置")'
+        :title="$tr('打开系统配置')"
         @click="onPanel"
       >
         <IconifyIconOffline :icon="Setting" />

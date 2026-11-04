@@ -1,3 +1,4 @@
+import { menuIcon } from "@/utils/menuIcons";
 const Layout = () => import("@/layout/index.vue");
 
 export default {
@@ -6,7 +7,7 @@ export default {
   component: Layout,
   redirect: "/dashboard",
   meta: {
-    icon: "ep/home-filled",
+    icon: menuIcon("/"),
     title: "首页",
     rank: 0
   },
@@ -17,9 +18,8 @@ export default {
       component: () => import("@/views/dashboard/index.vue"),
       meta: {
         title: "仪表盘",
-        icon: "ep/data-board"
+        icon: menuIcon("/dashboard")
       }
     }
   ]
 } satisfies RouteConfigsTable;
-

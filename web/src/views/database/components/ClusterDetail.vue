@@ -1,13 +1,13 @@
 <template>
   <el-drawer
     :model-value="modelValue"
-    :title="cluster?.name || '集群详情'"
+    :title="cluster?.name || $tr('集群详情')"
     size="min(1200px, 94vw)"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <el-alert
       v-if="error"
-      :title="error"
+      :title="$tr(error)"
       type="error"
       :closable="false"
     /><el-skeleton v-if="loading && !cluster" :rows="6" animated />
@@ -21,30 +21,35 @@
           label(cluster.status)
         }}</el-tag
         ><span
-          >{{ label(cluster.management) }} · 版本 {{ cluster.revision }}</span
-        ><el-button @click="load">刷新页面</el-button>
+          >{{ label(cluster.management) }} {{ $tr("· 版本") }}
+          {{ cluster.revision }}</span
+        ><el-button @click="load">{{ $tr("刷新页面") }}</el-button>
       </div>
       <el-alert
         v-if="cluster.compatibilityReason"
         type="warning"
         :closable="false"
-        :title="cluster.compatibilityReason"
+        :title="$tr(cluster.compatibilityReason)"
       />
       <el-alert
         v-if="cluster.status === 'stale'"
         type="warning"
         :closable="false"
-        :title="`采集已过期，当前健康未知。最后采集：${date(cluster.collectedAt)}`"
+        :title="
+          $tr('采集已过期，当前健康未知。最后采集：{value0}', {
+            value0: date(cluster.collectedAt)
+          })
+        "
       />
       <el-alert
         v-for="warning in cluster.placementWarnings || []"
         :key="warning"
-        :title="warning"
+        :title="$tr(warning)"
         type="warning"
         :closable="false"
       />
       <el-tabs v-model="tab"
-        ><el-tab-pane label="概览" name="overview"
+        ><el-tab-pane :label="$tr('概览')" name="overview"
           ><div class="health-grid">
             <article v-for="d in dimensions" :key="d.key">
               <span>{{ d.label }}</span
@@ -54,49 +59,62 @@
             </article>
           </div>
           <el-descriptions :column="2" border
-            ><el-descriptions-item label="管理级别">{{
+            ><el-descriptions-item :label="$tr('管理级别')">{{
               label(cluster.management)
             }}</el-descriptions-item
-            ><el-descriptions-item label="环境">{{
-              cluster.environment || "未指定"
+            ><el-descriptions-item :label="$tr('环境')">{{
+              cluster.environment || $tr("未指定")
             }}</el-descriptions-item
-            ><el-descriptions-item label="已接入">{{
-              cluster.collectedAt ? "已采集" : "等待连接验证"
+            ><el-descriptions-item :label="$tr('已接入')">{{
+              cluster.collectedAt ? $tr("已采集") : $tr("等待连接验证")
             }}</el-descriptions-item
-            ><el-descriptions-item label="可运维">{{
-              cluster.management === "observe" ? "观察模式" : "已托管"
+            ><el-descriptions-item :label="$tr('可运维')">{{
+              cluster.management === "observe" ? $tr("观察模式") : $tr("已托管")
             }}</el-descriptions-item
-            ><el-descriptions-item label="高可用已验收">{{
-              cluster.haValidatedAt ? date(cluster.haValidatedAt) : "未验收"
+            ><el-descriptions-item :label="$tr('高可用已验收')">{{
+              cluster.haValidatedAt
+                ? date(cluster.haValidatedAt)
+                : $tr("未验收")
             }}</el-descriptions-item
-            ><el-descriptions-item label="恢复已验证">{{
+            ><el-descriptions-item :label="$tr('恢复已验证')">{{
               cluster.restoreVerifiedAt
                 ? date(cluster.restoreVerifiedAt)
-                : "未验证"
+                : $tr("未验证")
             }}</el-descriptions-item></el-descriptions
           >
-          <h3>访问入口</h3>
+          <h3>{{ $tr("访问入口") }}</h3>
           <el-table :data="cluster.endpoints || []"
-            ><el-table-column prop="mode" label="用途" /><el-table-column
-              label="地址"
-              min-width="300"
+            ><el-table-column
+              prop="mode"
+              :label="$tr('用途')"
+            /><el-table-column :label="$tr('地址')" min-width="300"
               ><template #default="{ row }">{{
                 row.addresses?.join(", ")
               }}</template></el-table-column
             ><el-table-column
               prop="masterName"
               label="Sentinel masterName"
-            /><el-table-column label="状态"
+            /><el-table-column :label="$tr('状态')"
               ><template #default="{ row }">{{
                 label(row.status)
               }}</template></el-table-column
             ></el-table
           ></el-tab-pane
         >
-        <el-tab-pane label="拓扑" name="topology"
+        <el-tab-pane :label="$tr('拓扑')" name="topology"
           ><DatabaseTopology :cluster="cluster" /><el-alert
             v-if="cluster.topology === 'redis-cluster'"
-            :title="`槽位覆盖 ${slots?.covered || 0} / 16384，缺失 ${slots?.missing ?? 16384}，冲突 ${slots?.conflicts || 0}，迁移标记 ${slots?.migrating?.length || 0}`"
+            :title="
+              $tr(
+                '槽位覆盖 {value0} / 16384，缺失 {value1}，冲突 {value2}，迁移标记 {value3}',
+                {
+                  value0: slots?.covered || 0,
+                  value1: slots?.missing ?? 16384,
+                  value2: slots?.conflicts || 0,
+                  value3: slots?.migrating?.length || 0
+                }
+              )
+            "
             :type="
               slots?.covered === 16384 && !slots?.conflicts
                 ? 'success'
@@ -104,61 +122,67 @@
             "
             :closable="false"
         /></el-tab-pane>
-        <el-tab-pane label="节点" name="nodes"
+        <el-tab-pane :label="$tr('节点')" name="nodes"
           ><el-table :data="cluster.members"
             ><el-table-column
               prop="name"
-              label="实例"
+              :label="$tr('实例')"
               min-width="140"
             /><el-table-column
               prop="kind"
-              label="组件"
+              :label="$tr('组件')"
               width="120"
-            /><el-table-column label="地址" min-width="180"
+            /><el-table-column :label="$tr('地址')" min-width="180"
               ><template #default="{ row }"
                 >{{ row.address }}:{{ row.port }}</template
               ></el-table-column
-            ><el-table-column label="角色" width="100"
+            ><el-table-column :label="$tr('角色')" width="100"
               ><template #default="{ row }">{{
                 label(row.role)
               }}</template></el-table-column
             ><el-table-column
               prop="version"
-              label="版本"
+              :label="$tr('版本')"
               width="120"
             /><el-table-column
               prop="dataDir"
-              label="数据目录"
+              :label="$tr('数据目录')"
               min-width="200"
               show-overflow-tooltip
             /><el-table-column
               prop="service"
-              label="服务"
+              :label="$tr('服务')"
               min-width="200"
-            /><el-table-column label="工作台" width="100"
+            /><el-table-column :label="$tr('工作台')" width="100"
               ><template #default="{ row }"
                 ><el-button
                   v-if="row.sourceId"
                   link
                   type="primary"
                   @click="workbench(row)"
-                  >打开</el-button
+                  >{{ $tr("打开") }}</el-button
                 ></template
               ></el-table-column
             ></el-table
           ></el-tab-pane
         >
-        <el-tab-pane label="复制状态" name="ha"
+        <el-tab-pane :label="$tr('复制状态')" name="ha"
           ><p class="explanation">
-            数据保护优先。管理器选主成功与业务入口恢复分别核验；异步复制不承诺零数据丢失。
+            {{
+              $tr(
+                "数据保护优先。管理器选主成功与业务入口恢复分别核验；异步复制不承诺零数据丢失。"
+              )
+            }}
           </p>
           <el-table :data="dataNodes"
-            ><el-table-column prop="name" label="节点" /><el-table-column
-              label="角色"
+            ><el-table-column
+              prop="name"
+              :label="$tr('节点')"
+            /><el-table-column :label="$tr('角色')"
               ><template #default="{ row }">{{
                 label(row.role)
               }}</template></el-table-column
-            ><el-table-column label="复制状态"
+            ><el-table-column :label="$tr('复制状态')"
               ><template #default="{ row }"
                 >{{
                   row.metrics?.replicationIO ||
@@ -168,16 +192,18 @@
                 }}
                 {{ row.metrics?.replicationSQL || "" }}</template
               ></el-table-column
-            ><el-table-column v-if="cluster.engine === 'mysql'" label="半同步"
+            ><el-table-column
+              v-if="cluster.engine === 'mysql'"
+              :label="$tr('半同步')"
               ><template #default="{ row }">{{
                 semiSyncState(row)
               }}</template></el-table-column
-            ><el-table-column label="延迟 / 偏移"
+            ><el-table-column :label="$tr('延迟 / 偏移')"
               ><template #default="{ row }">{{
                 lag(row)
               }}</template></el-table-column
             ><el-table-column
-              label="复制坐标"
+              :label="$tr('复制坐标')"
               min-width="300"
               show-overflow-tooltip
               ><template #default="{ row }">{{
@@ -190,7 +216,7 @@
             ></el-table
           ></el-tab-pane
         >
-        <el-tab-pane label="参数配置" name="parameters" lazy>
+        <el-tab-pane :label="$tr('参数配置')" name="parameters" lazy>
           <ConfigurationDetail
             v-if="tab === 'parameters'"
             :cluster-id="clusterId"
@@ -203,6 +229,8 @@
   </el-drawer>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import ConfigurationDetail from "./ConfigurationDetail.vue";
 import DatabaseTopology from "./DatabaseTopology.vue";
 import DatabaseEngineIcon from "./DatabaseEngineIcon.vue";
@@ -228,11 +256,36 @@ const cluster = ref<Cluster>(),
   error = ref(""),
   tab = ref("overview");
 const dimensions = [
-  { key: "database", label: "数据库服务" },
-  { key: "replication", label: "复制" },
-  { key: "control", label: "控制节点" },
-  { key: "endpoint", label: "访问入口" },
-  { key: "backup", label: "备份" }
+  {
+    key: "database",
+    get label() {
+      return tr("数据库服务");
+    }
+  },
+  {
+    key: "replication",
+    get label() {
+      return tr("复制状态");
+    }
+  },
+  {
+    key: "control",
+    get label() {
+      return tr("控制节点");
+    }
+  },
+  {
+    key: "endpoint",
+    get label() {
+      return tr("访问入口");
+    }
+  },
+  {
+    key: "backup",
+    get label() {
+      return tr("备份");
+    }
+  }
 ];
 const dataNodes = computed(
     () => cluster.value?.members.filter(m => m.kind === "data") || []
@@ -262,8 +315,8 @@ const semiSyncState = (m: any) => {
   const metrics = m.metrics || {};
   if (m.role !== "primary")
     return metrics.Rpl_semi_sync_slave_status === "ON"
-      ? "已应答"
-      : "未启用 / 未应答";
+      ? tr("已应答")
+      : tr("未启用 / 未应答");
   const enabled =
     metrics.rpl_semi_sync_master_enabled ||
     metrics.rpl_semi_sync_source_enabled;
@@ -271,18 +324,21 @@ const semiSyncState = (m: any) => {
     metrics.Rpl_semi_sync_master_status || metrics.Rpl_semi_sync_source_status;
   return enabled === "ON"
     ? active === "ON"
-      ? "半同步生效"
-      : "已退化为异步"
-    : "异步复制";
+      ? tr("半同步生效")
+      : tr("已退化为异步")
+    : tr("异步复制");
 };
-const date = (v?: string) => (v ? new Date(v).toLocaleString() : "尚未采集");
+const date = (v?: string) =>
+  v ? new Date(v).toLocaleString() : tr("尚未采集");
 const lag = (m: Member) =>
   m.metrics?.lagSeconds != null
-    ? `${m.metrics.lagSeconds} 秒`
+    ? tr("{value0} 秒", { value0: m.metrics.lagSeconds })
     : m.metrics?.slave_repl_offset != null
       ? `offset ${m.metrics.slave_repl_offset}`
       : m.metrics?.replay_age_seconds != null
-        ? `最后回放 ${Math.round(m.metrics.replay_age_seconds)} 秒前`
+        ? tr("最后回放 {value0} 秒前", {
+            value0: Math.round(m.metrics.replay_age_seconds)
+          })
         : "—";
 function workbench(m: Member) {
   router.push({

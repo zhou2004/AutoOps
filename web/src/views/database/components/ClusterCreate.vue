@@ -1,38 +1,38 @@
 <template>
   <el-dialog
     :model-value="modelValue"
-    title="新建 / 接管数据库集群"
+    :title="$tr('新建 / 接管数据库集群')"
     width="900px"
     destroy-on-close
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <el-steps :active="step" finish-status="success" align-center
-      ><el-step title="基本信息" /><el-step title="节点与连接" /><el-step
-        title="确认登记"
+      ><el-step :title="$tr('基本信息')" /><el-step
+        :title="$tr('节点与连接')" /><el-step :title="$tr('确认登记')"
     /></el-steps>
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+    <el-alert v-if="error" :title="$tr(error)" type="error" :closable="false" />
     <el-form label-position="top" class="cluster-form">
       <template v-if="step === 0"
         ><el-radio-group v-model="form.provision"
-          ><el-radio-button :value="true">新建集群</el-radio-button
-          ><el-radio-button :value="false"
-            >发现并接管</el-radio-button
-          ></el-radio-group
+          ><el-radio-button :value="true">{{ $tr("新建集群") }}</el-radio-button
+          ><el-radio-button :value="false">{{
+            $tr("发现并接管")
+          }}</el-radio-button></el-radio-group
         >
         <div class="form-grid">
-          <el-form-item label="集群名称"
+          <el-form-item :label="$tr('集群名称')"
             ><el-input
               v-model="form.name"
-              placeholder="例如 saas-mysql，字母、数字及连字符"
+              :placeholder="$tr('例如 saas-mysql，字母、数字及连字符')"
               maxlength="64" /></el-form-item
-          ><el-form-item label="业务分组"
+          ><el-form-item :label="$tr('业务分组')"
             ><el-tree-select
               v-model="form.groupId"
               :data="groups"
               :props="{ label: 'name', value: 'id', children: 'children' }"
               check-strictly
               filterable /></el-form-item
-          ><el-form-item label="数据库类型"
+          ><el-form-item :label="$tr('数据库类型')"
             ><el-select
               v-model="form.engine"
               @change="form.topology = 'standalone'"
@@ -41,14 +41,14 @@
                 :key="value"
                 :value="value"
                 :label="value" /></el-select></el-form-item
-          ><el-form-item label="拓扑"
+          ><el-form-item :label="$tr('拓扑')"
             ><el-select v-model="form.topology"
               ><el-option
                 v-for="value in topologies"
                 :key="value"
                 :value="value"
                 :label="topologyNames[value]" /></el-select></el-form-item
-          ><el-form-item label="环境"
+          ><el-form-item :label="$tr('环境')"
             ><el-select v-model="form.environment" allow-create filterable
               ><el-option
                 v-for="value in ['test', 'staging', 'production']"
@@ -60,12 +60,16 @@
         ><el-alert
           type="info"
           :closable="false"
-          title="安装会先检查端口、目录、资源和时间同步；登记后需预检并提交安装任务。"
+          :title="
+            $tr(
+              '安装会先检查端口、目录、资源和时间同步；登记后需预检并提交安装任务。'
+            )
+          "
         /><el-form-item
           :label="
             form.topology === 'standalone'
-              ? 'CMDB 主机'
-              : '三个不同故障域的 CMDB 主机'
+              ? $tr('CMDB 主机')
+              : $tr('三个不同故障域的 CMDB 主机')
           "
           ><el-select v-model="hostIds" multiple filterable style="width: 100%"
             ><el-option
@@ -75,46 +79,57 @@
               :label="`${h.hostname || h.hostName || h.name || h.id} · ${h.ipAddr || h.ip || h.privateIp || ''}`" /></el-select
         ></el-form-item>
         <div class="form-grid">
-          <el-form-item label="数据服务起始端口"
+          <el-form-item :label="$tr('数据服务起始端口')"
             ><el-input-number
               v-model="port"
               :min="1024"
               :max="55530" /></el-form-item
-          ><el-form-item label="Redis 每实例内存配额 / 主机预检基线（MB）"
+          ><el-form-item
+            :label="$tr('Redis 每实例内存配额 / 主机预检基线（MB）')"
             ><el-input-number
               v-model="form.policy.memoryMB"
               :min="32"
               :max="1048576" /></el-form-item
-          ><el-form-item label="管理密码"
+          ><el-form-item :label="$tr('管理密码')"
             ><el-input
               v-model="form.password"
               type="password"
               show-password
               autocomplete="new-password"
-              placeholder="留空则自动生成并加密保管" /></el-form-item
+              :placeholder="$tr('留空则自动生成并加密保管')" /></el-form-item
           ><el-form-item
             v-if="form.topology === 'redis-sentinel'"
             label="Sentinel masterName"
             ><el-input
               v-model="form.policy.masterName"
-              placeholder="默认使用集群名称"
+              :placeholder="$tr('默认使用集群名称')"
           /></el-form-item>
         </div>
         <p v-if="form.topology === 'redis-cluster'">
-          将创建 9 个数据实例，每个分片的主节点与两个副本分布在三台主机。默认
-          noeviction，并要求至少一个有效副本。
+          {{
+            $tr(
+              "将创建 9 个数据实例，每个分片的主节点与两个副本分布在三台主机。默认 noeviction，并要求至少一个有效副本。"
+            )
+          }}
         </p>
         <p v-if="form.topology === 'postgresql-patroni'">
-          默认严格同步。未验证 watchdog
-          与业务入口前，保持“可运维”，不标记高可用已验收。
+          {{
+            $tr(
+              "默认严格同步。未验证 watchdog 与业务入口前，保持“可运维”，不标记高可用已验收。"
+            )
+          }}
         </p></template
       >
       <template v-if="step === 1 && !form.provision"
         ><el-alert
           type="info"
           :closable="false"
-          title="发现仅查询拓扑和现有配置；接管后默认为观察模式，不修改账号、复制关系或选主机制。"
-        /><el-form-item label="已有数据源（作为种子节点）"
+          :title="
+            $tr(
+              '发现仅查询拓扑和现有配置；接管后默认为观察模式，不修改账号、复制关系或选主机制。'
+            )
+          "
+        /><el-form-item :label="$tr('已有数据源（作为种子节点）')"
           ><el-select
             v-model="sourceIds"
             multiple
@@ -125,17 +140,19 @@
               :key="s.id"
               :value="s.id"
               :label="s.name" /></el-select></el-form-item
-        ><el-button :loading="busy" @click="discover">只读发现</el-button
+        ><el-button :loading="busy" @click="discover">{{
+          $tr("只读发现")
+        }}</el-button
         ><el-table v-if="discovered" :data="discovered.members"
-          ><el-table-column prop="name" label="成员" /><el-table-column
+          ><el-table-column prop="name" :label="$tr('成员')" /><el-table-column
             prop="address"
-            label="地址"
-          /><el-table-column prop="port" label="端口" /><el-table-column
-            label="角色"
+            :label="$tr('地址')"
+          /><el-table-column prop="port" :label="$tr('端口')" /><el-table-column
+            :label="$tr('角色')"
             ><template #default="{ row }">{{
               label(row.role)
             }}</template></el-table-column
-          ><el-table-column label="状态"
+          ><el-table-column :label="$tr('状态')"
             ><template #default="{ row }"
               ><el-tag :type="tagType(row.state)">{{
                 label(row.state)
@@ -146,44 +163,57 @@
       >
       <template v-if="step === 2"
         ><el-descriptions :column="2" border
-          ><el-descriptions-item label="集群">{{
+          ><el-descriptions-item :label="$tr('集群')">{{
             form.name
           }}</el-descriptions-item
-          ><el-descriptions-item label="模式">{{
-            form.provision ? "新建" : "只读接管"
+          ><el-descriptions-item :label="$tr('模式')">{{
+            form.provision ? $tr("新建") : $tr("只读接管")
           }}</el-descriptions-item
-          ><el-descriptions-item label="拓扑">{{
+          ><el-descriptions-item :label="$tr('拓扑')">{{
             topologyNames[form.topology]
           }}</el-descriptions-item
-          ><el-descriptions-item label="数据实例">{{
+          ><el-descriptions-item :label="$tr('数据实例')">{{
             members.length
           }}</el-descriptions-item></el-descriptions
         ><el-table :data="members"
-          ><el-table-column label="主机 / 数据源"
+          ><el-table-column :label="$tr('主机 / 数据源')"
             ><template #default="{ row }">{{
-              row.hostId ? `CMDB #${row.hostId}` : `数据源 #${row.sourceId}`
+              row.hostId
+                ? `CMDB #${row.hostId}`
+                : $tr("数据源 #{value0}", { value0: row.sourceId })
             }}</template></el-table-column
-          ><el-table-column prop="port" label="端口" /><el-table-column
+          ><el-table-column prop="port" :label="$tr('端口')" /><el-table-column
             prop="role"
-            label="初始角色" /><el-table-column prop="shard" label="分片"
+            :label="$tr('初始角色')" /><el-table-column
+            prop="shard"
+            :label="$tr('分片')"
         /></el-table>
         <p>
-          访问入口使用独立代理服务。VIP /
-          已有负载均衡和独立备份仓库可在具备资源后配置；安装成功不会自动标记高可用验收。
+          {{
+            $tr(
+              "访问入口使用独立代理服务。VIP / 已有负载均衡和独立备份仓库可在具备资源后配置；安装成功不会自动标记高可用验收。"
+            )
+          }}
         </p></template
       >
     </el-form>
     <template #footer
-      ><el-button @click="$emit('update:modelValue', false)">取消</el-button
-      ><el-button v-if="step > 0" @click="step--">上一步</el-button
-      ><el-button v-if="step < 2" type="primary" @click="next">下一步</el-button
-      ><el-button v-else type="primary" :loading="busy" @click="create"
-        >登记集群</el-button
-      ></template
+      ><el-button @click="$emit('update:modelValue', false)">{{
+        $tr("取消")
+      }}</el-button
+      ><el-button v-if="step > 0" @click="step--">{{ $tr("上一步") }}</el-button
+      ><el-button v-if="step < 2" type="primary" @click="next">{{
+        $tr("下一步")
+      }}</el-button
+      ><el-button v-else type="primary" :loading="busy" @click="create">{{
+        $tr("登记集群")
+      }}</el-button></template
     >
   </el-dialog>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import { ref, reactive, computed, watch } from "vue";
 import cmdb from "@/api/cmdb";
 import {
@@ -214,11 +244,15 @@ const form = reactive({
   policy: { memoryMB: 64, masterName: "" }
 });
 const topologyNames: Record<string, string> = {
-  standalone: "单机",
+  get standalone() {
+    return tr("单机");
+  },
   "mysql-gtid": "MySQL GTID + Orchestrator",
   "postgresql-patroni": "PostgreSQL + Patroni",
   "redis-sentinel": "Redis Sentinel",
-  "redis-cluster": "Redis Cluster（三主六从）"
+  get "redis-cluster"() {
+    return tr("Redis Cluster（三主六从）");
+  }
 };
 const topologies = computed(() => [
   "standalone",
@@ -276,7 +310,7 @@ function payload() {
 function next() {
   error.value = "";
   if (step.value === 0 && (!form.name || !form.groupId)) {
-    error.value = "请填写集群名称和业务分组";
+    error.value = tr("请填写集群名称和业务分组");
     return;
   }
   if (step.value === 1) {
@@ -284,11 +318,11 @@ function next() {
       form.provision &&
       hostIds.value.length !== (form.topology === "standalone" ? 1 : 3)
     ) {
-      error.value = "请选择对应数量的不同主机";
+      error.value = tr("请选择对应数量的不同主机");
       return;
     }
     if (!form.provision && !sourceIds.value.length) {
-      error.value = "请选择种子数据源";
+      error.value = tr("请选择种子数据源");
       return;
     }
   }

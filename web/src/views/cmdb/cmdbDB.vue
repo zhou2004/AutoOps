@@ -63,8 +63,8 @@
               <DatabaseEngineIcon :engine="row.type" />
               <div>
                 <strong :title="row.name">{{ row.name }}</strong
-                ><small :title="row.description">{{
-                  row.description || "暂无描述"
+                ><small :title="$tr(row.description)">{{
+                  $tr(row.description) || $tr("暂无描述")
                 }}</small>
               </div>
             </div></template
@@ -92,7 +92,7 @@
         >
         <el-table-column :label="$tr('默认库 / DB')" min-width="150"
           ><template #default="{ row }">{{
-            row.defaultDb || (row.type === 3 ? "0" : "未指定")
+            row.defaultDb || (row.type === 3 ? "0" : $tr("未指定"))
           }}</template></el-table-column
         >
         <el-table-column label="TLS" width="130"
@@ -115,7 +115,7 @@
         <el-table-column :label="$tr('连通性')" width="120"
           ><template #default="{ row }"
             ><el-tag :type="health[row.id]?.type || 'info'">{{
-              health[row.id]?.text || "未检测"
+              health[row.id]?.text || $tr("未检测")
             }}</el-tag></template
           ></el-table-column
         >
@@ -168,7 +168,7 @@
 
     <el-dialog
       v-model="dialogVisible"
-      :title="form.id ? '编辑数据源' : $tr('新增数据源')"
+      :title="form.id ? $tr('编辑数据源') : $tr('新增数据源')"
       width="min(720px, 94vw)"
       destroy-on-close
     >
@@ -230,11 +230,12 @@
                 style="width: 100%" /></el-form-item
           ></el-col>
           <el-col :span="12"
-            ><el-form-item :label="form.type === 3 ? 'Redis DB' : '默认数据库'"
+            ><el-form-item
+              :label="form.type === 3 ? 'Redis DB' : $tr('默认数据库')"
               ><el-input
                 v-model="form.defaultDb"
                 :placeholder="
-                  form.type === 3 ? '0 - 1024' : '可留空'
+                  form.type === 3 ? '0 - 1024' : $tr('可留空')
                 " /></el-form-item
           ></el-col>
           <el-col :span="12"
@@ -383,9 +384,14 @@ const tlsOptions = computed(() =>
     : ["disable", "verify-full"]
 );
 const summary = computed(() => [
-  { label: "匹配数据源", value: total.value },
+  {
+    get label() {
+      return tr("匹配数据源");
+    },
+    value: total.value
+  },
   ...dbTypes.map(type => ({
-    label: type.label + "（本页）",
+    label: type.label + tr("（本页）"),
     value: rows.value.filter(row => row.type === type.value).length
   }))
 ]);
@@ -396,7 +402,7 @@ function unpack(response) {
   return response.data.data;
 }
 function typeName(type) {
-  return dbTypes.find(item => item.value === Number(type))?.label || "未知";
+  return dbTypes.find(item => item.value === Number(type))?.label || tr("未知");
 }
 function tagType(type) {
   return { 1: "success", 2: "primary", 3: "danger" }[type] || "info";
@@ -404,10 +410,18 @@ function tagType(type) {
 function tlsLabel(value) {
   return (
     {
-      disable: "关闭",
-      require: "加密（不校验证书）",
-      "verify-ca": "校验 CA",
-      "verify-full": "完整校验"
+      get disable() {
+        return tr("关闭");
+      },
+      get require() {
+        return tr("加密（不校验证书）");
+      },
+      get "verify-ca"() {
+        return tr("校验 CA");
+      },
+      get "verify-full"() {
+        return tr("完整校验");
+      }
     }[value] || value
   );
 }
@@ -415,11 +429,11 @@ function account(id) {
   return accounts.value.find(item => Number(item.id) === Number(id));
 }
 function accountName(id) {
-  return account(id)?.alias || `账号 #${id}`;
+  return account(id)?.alias || tr("账号 #{value0}", { value0: id });
 }
 function accountAddress(id) {
   const item = account(id);
-  return item ? `${item.host}:${item.port}` : "账号不存在";
+  return item ? `${item.host}:${item.port}` : tr("账号不存在");
 }
 
 async function loadDependencies() {
@@ -503,7 +517,7 @@ async function save() {
         ? cmdbAPI.updateDatabase(payload)
         : cmdbAPI.createDatabase(payload))
     );
-    ElMessage.success(payload.id ? "数据源已更新" : "数据源已创建");
+    ElMessage.success(payload.id ? tr("数据源已更新") : tr("数据源已创建"));
     dialogVisible.value = false;
     await loadList();
   } catch (error) {
@@ -515,7 +529,7 @@ async function save() {
 async function remove(row) {
   try {
     await ElMessageBox.confirm(
-      `确定删除数据源“${row.name}”？`,
+      tr("确定删除数据源“{value0}”？", { value0: row.name }),
       tr("删除确认"),
       {
         type: "warning"
@@ -534,9 +548,14 @@ async function testConnection(row) {
   try {
     const info = unpack(await cmdbAPI.getDatabaseOverview(row.id));
     health[row.id] = { type: "success", text: `${info.latencyMs} ms` };
-    ElMessage.success(`${row.name} 连接正常`);
+    ElMessage.success(tr("{value0} 连接正常", { value0: row.name }));
   } catch (error) {
-    health[row.id] = { type: "danger", text: "失败" };
+    health[row.id] = {
+      type: "danger",
+      get text() {
+        return tr("失败");
+      }
+    };
     ElMessage.error(error.message);
   } finally {
     testingId.value = 0;

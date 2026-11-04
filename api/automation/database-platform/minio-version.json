@@ -1,0 +1,8 @@
+{
+  "release": "RELEASE.2025-04-22T22-12-26Z",
+  "commit": "0d7408fc9969caf07de6a8c3a84f9fbb10a6739e",
+  "source": "https://codeload.github.com/minio/minio/tar.gz/refs/tags/RELEASE.2025-04-22T22-12-26Z",
+  "toolchain": "go1.25.8 linux/amd64",
+  "sourceSha256": "1a63209927b9d1fb239b2a776b7b01d1902eff19379a108f4bc7005edcc0968c",
+  "binarySha256": "9109198b093687e480ac9339b142468378d4a13e2130965282281a78b4c83825"
+}

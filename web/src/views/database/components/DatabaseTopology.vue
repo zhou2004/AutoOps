@@ -12,23 +12,26 @@
         <el-tag :type="tagType(cluster.vip.status)">{{
           label(cluster.vip.status)
         }}</el-tag
-        ><small>当前绑定：{{ vipOwner }}</small>
+        ><small>{{ $tr("当前绑定：") }}{{ vipOwner }}</small>
       </div>
       <div>
         <small>{{
           cluster.vip.verifiedAt
-            ? `最近漂移验证：${date(cluster.vip.verifiedAt)}`
-            : "尚未进行漂移验证"
+            ? $tr("最近漂移验证：{value0}", {
+                value0: date(cluster.vip.verifiedAt)
+              })
+            : $tr("尚未进行漂移验证")
         }}</small
         ><small v-if="cluster.vip.lastDrill?.elapsedMs"
-          >最近连接核验耗时
-          {{ (cluster.vip.lastDrill.elapsedMs / 1000).toFixed(1) }} 秒</small
+          >{{ $tr("最近连接核验耗时") }}
+          {{ (cluster.vip.lastDrill.elapsedMs / 1000).toFixed(1) }}
+          {{ $tr("秒") }}</small
         >
       </div>
     </div>
     <div v-else-if="cluster.engine !== 'redis'" class="vip-empty">
-      <el-icon><Connection /></el-icon> 尚未绑定 VIP，可从集群行「操作 →
-      配置虚拟 IP」部署。
+      <el-icon><Connection /></el-icon>
+      {{ $tr("尚未绑定 VIP，可从集群行「操作 → 配置虚拟 IP」部署。") }}
     </div>
     <div class="control-plane">
       <article
@@ -51,16 +54,16 @@
               cluster.vip?.ownerMemberId === m.id &&
               cluster.vip.status !== 'unknown'
             "
-            >绑定 VIP {{ cluster.vip.cidr.split("/")[0] }}</small
+            >{{ $tr("绑定 VIP") }} {{ cluster.vip.cidr.split("/")[0] }}</small
           >
         </div>
       </article>
     </div>
     <div class="topology-legend">
-      <span class="healthy">● 已追平采样位点</span
-      ><span class="degraded">● 追赶中</span
-      ><span class="unavailable">● 复制异常</span
-      ><span class="unknown">● 未核验 / 采集过期</span>
+      <span class="healthy">{{ $tr("● 已追平采样位点") }}</span
+      ><span class="degraded">{{ $tr("● 追赶中") }}</span
+      ><span class="unavailable">{{ $tr("● 复制异常") }}</span
+      ><span class="unknown">{{ $tr("● 未核验 / 采集过期") }}</span>
     </div>
     <div class="replication-groups">
       <section v-for="p in primaries" :key="p.id" class="replication-group">
@@ -70,7 +73,7 @@
           }}</strong
           ><span>{{ p.address }}:{{ p.port }}</span
           ><el-tag :type="tagType(p.state)"
-            >主节点 · {{ label(p.state) }}</el-tag
+            >{{ $tr("主节点 ·") }} {{ label(p.state) }}</el-tag
           ><small v-if="p.shard">{{ p.shard }}</small>
         </article>
         <div class="replica-branches">
@@ -83,7 +86,7 @@
               class="flow-link"
               viewBox="0 0 100 64"
               role="img"
-              :aria-label="link.message"
+              :aria-label="$tr(link.message)"
             >
               <path class="track" d="M50 0 V64" />
               <path class="flow" d="M50 0 V64" />
@@ -98,24 +101,29 @@
                   node(link.targetId)?.port
                 }}</span
               >
-              <el-tag :type="tagType(link.state)">{{ link.message }}</el-tag>
+              <el-tag :type="tagType(link.state)">{{
+                $tr(link.message)
+              }}</el-tag>
               <small v-if="cluster.engine === 'mysql'"
-                >IO {{ link.evidence.replicationIO || "未知" }} / SQL
-                {{ link.evidence.replicationSQL || "未知" }} · 延迟
-                {{ link.evidence.lagSeconds ?? "未知" }} 秒</small
+                >IO {{ link.evidence.replicationIO || $tr("未知") }} / SQL
+                {{ link.evidence.replicationSQL || $tr("未知") }}
+                {{ $tr("· 延迟") }}
+                {{ link.evidence.lagSeconds ?? $tr("未知") }}
+                {{ $tr("秒") }}</small
               >
               <small v-else-if="link.evidence.sampleLagBytes != null"
-                >采样位点差 {{ link.evidence.sampleLagBytes }} 字节</small
+                >{{ $tr("采样位点差") }} {{ link.evidence.sampleLagBytes }}
+                {{ $tr("字节") }}</small
               >
               <el-tooltip
                 v-if="link.evidence.sampleWatermark"
                 :content="String(link.evidence.sampleWatermark)"
                 placement="top"
                 ><small class="watermark"
-                  >位点 {{ link.evidence.sampleWatermark }}</small
+                  >{{ $tr("位点") }} {{ link.evidence.sampleWatermark }}</small
                 ></el-tooltip
               >
-              <small>采集 {{ date(link.collectedAt) }}</small>
+              <small>{{ $tr("采集") }} {{ date(link.collectedAt) }}</small>
             </article>
           </div>
         </div>
@@ -129,16 +137,22 @@
           m.name
         }}</strong
         ><span>{{ m.address }}:{{ m.port }}</span
-        ><el-tag type="warning">未确认主从关系</el-tag>
+        ><el-tag type="warning">{{ $tr("未确认主从关系") }}</el-tag>
       </article>
     </div>
-    <el-empty v-if="!dataNodes.length" description="尚未发现数据节点" />
+    <el-empty v-if="!dataNodes.length" :description="$tr('尚未发现数据节点')" />
     <p class="topology-note">
-      流动表示近期采集确认复制运行且副本已追平主库采样位点。位点核验不等于全表校验，也不保证后续故障零数据丢失；采集过期时停止动画。
+      {{
+        $tr(
+          "流动表示近期采集确认复制运行且副本已追平主库采样位点。位点核验不等于全表校验，也不保证后续故障零数据丢失；采集过期时停止动画。"
+        )
+      }}
     </p>
   </div>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import { computed } from "vue";
 import { Connection, Switch, SetUp } from "@element-plus/icons-vue";
 import DatabaseEngineIcon from "./DatabaseEngineIcon.vue";
@@ -175,11 +189,12 @@ const disconnected = computed(() =>
 );
 const vipOwner = computed(() =>
   props.cluster.vip?.status === "unknown"
-    ? "状态未知"
-    : node(props.cluster.vip?.ownerMemberId || 0)?.address || "未绑定 / 冲突"
+    ? tr("状态未知")
+    : node(props.cluster.vip?.ownerMemberId || 0)?.address ||
+      tr("未绑定 / 冲突")
 );
 const date = (v?: string) =>
-  v ? new Date(v).toLocaleTimeString() : "尚未采集";
+  v ? new Date(v).toLocaleTimeString() : tr("尚未采集");
 const componentName = (kind: string) =>
   ({
     proxy: "HAProxy",

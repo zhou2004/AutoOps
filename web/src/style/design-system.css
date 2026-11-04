@@ -471,3 +471,33 @@ body.autoops-ui
   .el-button.action-icon:is(.is-link, .is-text):not(.is-disabled):hover {
   color: var(--el-button-text-color) !important;
 }
+
+/* Navigation uses a stable icon column, including collapsed and flyout menus. */
+body.autoops-ui .sub-menu-icon {
+  display: inline-flex;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  line-height: 1;
+}
+body.autoops-ui .sub-menu-icon > svg {
+  display: block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+body.autoops-ui .sidebar-container .el-menu-item,
+body.autoops-ui .sidebar-container .el-sub-menu__title,
+body.autoops-ui .el-menu--popup .el-menu-item,
+body.autoops-ui .el-menu--popup .el-sub-menu__title {
+  height: 44px !important;
+  min-height: 44px;
+  line-height: 44px !important;
+}
+body.autoops-ui .sidebar-container .el-menu-item > div:last-child,
+body.autoops-ui .sidebar-container .el-sub-menu__title > .el-text {
+  min-width: 0;
+}

@@ -16,6 +16,14 @@ description: "AutoOps 企业级运维管理平台 UI 主题设计系统 — 双�
 - 窄屏表格内横向滚动，固定操作列取消固定，避免遮挡；弹窗宽度不超过视口减 32px。
 - 新模块直接复用公共规范，历史覆盖集中在此文件维护，不继续扩散到页面的 scoped CSS。
 
+## 2026-11-04 菜单图标与对齐规范
+
+- 可见路由通过 `web/src/utils/menuIcons.ts` 的 `menuIcon(path)` 配置本地 Element Plus 图标，内网显示不依赖 Iconify 在线服务；已有 SVG 组件与自定义 Iconfont 保持兼容。
+- 所有模块和子菜单均保留图标占位，尺寸 18px、文字间距 10px；侧栏和弹出菜单行高统一 44px，同级文字起点一致。层级缩进继续由 Element Plus 管理，折叠后图标居中，横向导航保持顶栏高度。
+- SidebarItem/NavMix 对动态菜单使用同一解析器；未知菜单使用 Menu 图标，不能因缺图标让文字左移。
+- 图标类型使用 Vue Component，兼容函数式 SVG 与 Element Plus 组件。公共样式位于 design-system.css，不在各页面重复覆盖。
+- API 元数据的默认名称在 `api/pkg/db/menu_icons.go`，与前端路径映射保持一致；迁移只补图标，保留自选图标、URL、排序、状态、权限值和角色关联。对照测试由 `go -C api test ./pkg/db` 执行。
+
 ## 概述
 
 AutoOps 前端采用 **CSS 变量 + data-theme 属性** 驱动的双主题系统，所有组件通过 CSS 变量自动适配深浅色模式，无需修改组件代码。

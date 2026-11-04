@@ -31,12 +31,14 @@ func TestNavigationMigrationPreservesAssignmentsAndIsIdempotent(t *testing.T) {
 		{ID: 10, ParentId: 1, MenuName: "数据管理", Url: "cmdb/db", Value: "database:read", MenuType: 2, MenuStatus: 2},
 		{ID: 11, ParentId: 1, MenuName: "监控诊断", Url: "/database/diagnostics", MenuType: 2, MenuStatus: 2},
 		{ID: 12, ParentId: 1, MenuName: "参数配置", Url: "/database/configurations", MenuType: 2, MenuStatus: 2},
+		{ID: 13, ParentId: 1, MenuName: "操作审计", Url: "database/audit", MenuType: 2, MenuStatus: 2},
+		{ID: 14, ParentId: 3, MenuName: "数据日志", Url: "monitor/dblog", MenuType: 2, MenuStatus: 2},
 		{ID: 7, ParentId: 1, MenuName: "凭据授权", Url: "cmdb/credential-permission", MenuType: 2, MenuStatus: 2},
 	}
 	if err := db.Create(&menus).Error; err != nil {
 		t.Fatal(err)
 	}
-	for _, link := range []model.SysRoleMenu{{RoleId: 12, MenuId: 10}, {RoleId: 10, MenuId: 4}, {RoleId: 11, MenuId: 6}, {RoleId: 11, MenuId: 12}} {
+	for _, link := range []model.SysRoleMenu{{RoleId: 22, MenuId: 13}, {RoleId: 12, MenuId: 10}, {RoleId: 10, MenuId: 4}, {RoleId: 11, MenuId: 6}, {RoleId: 11, MenuId: 12}} {
 		if err := db.Create(&link).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -67,6 +69,30 @@ func TestNavigationMigrationPreservesAssignmentsAndIsIdempotent(t *testing.T) {
 	if source.Url != "database/sources" || source.MenuName != "数据源管理" || source.Value != "database:read" || parent.MenuName != "数据库管理" {
 		t.Fatal("database navigation or permission lost")
 	}
+	var oldAudit, dataLog model.SysMenu
+	db.First(&oldAudit, 13)
+	db.First(&dataLog, 14)
+	if oldAudit.MenuStatus != 1 || dataLog.ParentId != 3 || dataLog.MenuName != "数据日志" {
+		t.Fatal("audit not merged into basic data logs")
+	}
+	for _, id := range []uint{3, 14} {
+		var n int64
+		db.Model(&model.SysRoleMenu{}).Where("role_id = ? AND menu_id = ?", 22, id).Count(&n)
+		if n != 1 {
+			t.Fatal("audit role assignment lost", id)
+		}
+	}
+	var databaseChildren []model.SysMenu
+	db.Where("parent_id = ? AND menu_status = 2", parent.ID).Order("sort").Find(&databaseChildren)
+	if len(databaseChildren) != 4 {
+		t.Fatal("unexpected database submenu count", len(databaseChildren))
+	}
+	for i, item := range databaseChildren {
+		if item.Sort != uint(i+1) || item.Icon == "" {
+			t.Fatal("database menu order/icon not normalized", item)
+		}
+	}
+
 	var links int64
 	db.Model(&model.SysRoleMenu{}).Where("role_id = ? AND menu_id = ?", 12, parent.ID).Count(&links)
 	if links != 1 {

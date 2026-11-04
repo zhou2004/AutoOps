@@ -74,6 +74,9 @@ func TestDatabaseWorkerProcessRestart(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	// This test kills an executing worker, not a collector reading the queued
+	// cluster. A fresh sample defers the initial collector until after claim.
+	s.DB.Model(&model.Cluster{}).Where("id = ?", 1).Update("collected_at", time.Now())
 	start := func() *exec.Cmd {
 		cmd := exec.Command(os.Args[0], "-test.run=^TestDatabaseWorkerProcessRestart$")
 		cmd.Env = append(os.Environ(), "AUTOOPS_TEST_WORKER_PROCESS_DB="+paths[0].File)
@@ -114,6 +117,9 @@ func TestDatabaseWorkerProcessRestart(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	// The fresh timestamp above only isolates the first execution. Make this
+	// fixture due for collection when the replacement process starts.
+	s.DB.Model(&model.Cluster{}).Where("id = ?", 1).Update("collected_at", time.Now().Add(-time.Minute))
 	_ = start()
 	if e = waitUntil(ctx, 8*time.Second, func() bool { s.DB.First(second, second.ID); return second.Status == "succeeded" }); e != nil {
 		t.Fatal("new worker did not execute persisted queue", e)

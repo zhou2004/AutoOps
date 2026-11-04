@@ -19,6 +19,7 @@ import (
 )
 
 type Parameters struct {
+	BackupName        string            `json:"backupName,omitempty"`
 	VIP               VIPInput          `json:"vip"`
 	RuntimeOnly       bool              `json:"runtimeOnly"`
 	SemiSyncEnabled   bool              `json:"semiSyncEnabled"`
@@ -42,12 +43,13 @@ type Parameters struct {
 type Capability struct {
 	Action     string `json:"action"`
 	Label      string `json:"label"`
+	LabelEn    string `json:"labelEn"`
 	Enabled    bool   `json:"enabled"`
 	Reason     string `json:"reason"`
 	Permission string `json:"permission"`
 }
 
-var operationLabels = map[string]string{"configure-vip": "配置虚拟 IP", "verify-vip": "验证 VIP 漂移", "update-patroni": "更新固定 Patroni 控制组件", "balance-primaries": "重新分布 Redis 主节点", "configure-semisync": "配置 MySQL 半同步", "refresh": "刷新状态", "collect-storage": "采集容量", "adopt": "调整管理级别", "provision": "安装集群", "switchover": "计划切换", "recover": "故障恢复", "restart": "滚动重启", "add-node": "新增成员", "rebuild-replica": "重建副本", "remove-node": "移出成员", "reshard": "迁移槽位", "assign-replica": "调整分片副本归属", "expire-backup": "清理过期备份", "backup": "立即备份", "verify-backup": "恢复验证", "restore": "隔离恢复", "configure": "应用参数", "redis-bgsave": "生成 RDB", "redis-aof-rewrite": "重写 AOF", "purge-binlogs": "清理归档 binlog", "configure-endpoint": "部署访问入口", "configure-fencing": "配置独立隔离", "reconcile": "核验中断任务", "configure-archive": "配置 WAL 归档", "resume-writes": "恢复主库写入", "rejoin": "旧主安全重加入", "repair-replication": "GTID 拓扑修复", "enter-maintenance": "进入维护（MySQL 一小时）", "exit-maintenance": "退出原生维护", "acknowledge-recovery": "确认原生恢复事件"}
+var operationLabels = map[string]string{"configure-vip": "配置虚拟 IP", "verify-vip": "验证 VIP 漂移", "update-patroni": "更新固定 Patroni 控制组件", "balance-primaries": "重新分布 Redis 主节点", "configure-semisync": "配置 MySQL 半同步", "refresh": "刷新状态", "collect-storage": "采集容量", "adopt": "调整管理级别", "provision": "安装集群", "switchover": "计划切换", "recover": "故障恢复", "restart": "滚动重启", "add-node": "新增成员", "rebuild-replica": "重建副本", "remove-node": "移出成员", "reshard": "迁移槽位", "assign-replica": "调整分片副本归属", "expire-backup": "清理备份", "backup": "立即备份", "verify-backup": "恢复验证", "restore": "隔离恢复", "configure": "应用参数", "redis-bgsave": "生成 RDB", "redis-aof-rewrite": "重写 AOF", "purge-binlogs": "清理归档 binlog", "configure-endpoint": "部署访问入口", "configure-fencing": "配置独立隔离", "reconcile": "核验中断任务", "configure-archive": "配置 WAL 归档", "resume-writes": "恢复主库写入", "rejoin": "旧主安全重加入", "repair-replication": "GTID 拓扑修复", "enter-maintenance": "进入维护（MySQL 一小时）", "exit-maintenance": "退出原生维护", "acknowledge-recovery": "确认原生恢复事件"}
 
 func actionPermission(action string) string {
 	switch action {
@@ -163,7 +165,7 @@ func (s *Service) Capabilities(user uint, c *model.Cluster) []Capability {
 			enabled = false
 			reason = "没有此集群的操作授权"
 		}
-		out = append(out, Capability{Action: action, Label: operationLabels[action], Enabled: enabled, Reason: reason, Permission: permission})
+		out = append(out, Capability{Action: action, Label: operationLabels[action], LabelEn: operationLabelsEnglish[action], Enabled: enabled, Reason: reason, Permission: permission})
 	}
 	return out
 }
@@ -356,12 +358,14 @@ func (s *Service) checks(ctx context.Context, c *model.Cluster, action string, p
 		}
 	case "expire-backup":
 		_, e := s.expirableBackup(c.ID, p.BackupID)
-		message := "恢复链与保留窗口已核验"
+		message := "仅清理指定备份的本地文件和仓库副本，不受保留天数限制"
 		if e != nil {
 			message = e.Error()
 		}
-		add("过期依赖链保护", e == nil, message)
+		add("受管备份归属", e == nil, message)
 	case "backup":
+		_, nameError := backupName(c, p, time.Now())
+		add("备份名称", nameError == nil, "备份名称最多 100 个字符，不能包含换行或控制字符；留空自动生成")
 		if c.Topology != "redis-cluster" {
 			root, e := primary(c)
 			add("唯一复制根节点", e == nil && root.State == "healthy", "需要唯一且可连接的主节点，拒绝在冲突拓扑上创建备份")
@@ -577,6 +581,18 @@ func (s *Service) SubmitConfirmed(ctx context.Context, id, user, planID uint, ke
 		if !p.Executable || p.Revision != locked.Revision || p.ExpiresAt.Before(time.Now()) {
 			return ErrConflict
 		}
+		if p.Action == "backup" {
+			var params Parameters
+			if json.Unmarshal(p.Parameters, &params) != nil {
+				return ErrConflict
+			}
+			if params.RepositoryID > 0 {
+				var repo model.Repository
+				if tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&repo, params.RepositoryID).Error != nil || repo.GroupID != locked.GroupID || repo.Status != "healthy" {
+					return errors.New("备份仓库已删除或状态发生变化，请重新预检")
+				}
+			}
+		}
 		op = model.Operation{APIKeyID: apikey.ID(ctx), ClusterID: id, PlanID: planID, Action: p.Action, Parameters: p.Parameters, IdempotencyKey: key, RequestHash: requestHash, Status: "queued", UserID: user}
 		if e := tx.Create(&op).Error; e != nil {
 			return e
@@ -648,11 +664,12 @@ func (s *Service) RunWorker(ctx context.Context, worker string) {
 }
 func (s *Service) claim(worker string) (*model.Operation, error) {
 	var op model.Operation
-	if e := s.DB.Where("status = ?", "queued").Order("id").First(&op).Error; e != nil {
-		if e == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, e
+	result := s.DB.Where("status = ?", "queued").Order("id").Limit(1).Find(&op)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, nil
 	}
 	t := time.Now().UTC()
 	r := s.DB.Model(&model.Operation{}).Where("id = ? AND status = ?", op.ID, "queued").Updates(map[string]any{"status": "preflight", "worker_id": worker, "started_at": t, "heartbeat_at": t})
@@ -701,8 +718,8 @@ func (s *Service) run(ctx context.Context, op model.Operation) {
 			s.complete(op, status, "执行器异常，需核对远端实际状态")
 		}
 	}()
-	// The operation lock prevents new collectors; let the previous read-only
-	// snapshot finish before deriving a mutation plan from fresh remote state.
+	// Claiming the job moves it to preflight, which blocks new collectors. Drain
+	// any snapshot started while it was queued before checking the fresh state.
 	for {
 		var lease model.CollectionLease
 		if s.DB.First(&lease, "cluster_id = ? AND `until` > ?", op.ClusterID, time.Now()).Error != nil {

@@ -16,31 +16,27 @@ import (
 	"time"
 )
 
-func TestRetentionProtectsWindowDependencyAndLastValidatedCopy(t *testing.T) {
+func TestManualCleanupAllowsRecentLastAndParentBackups(t *testing.T) {
 	s := testService(t)
 	now := time.Now()
-	old := now.AddDate(0, 0, -30)
-	base := model.Backup{ClusterID: 1, Method: "physical", Status: "complete", CreatedAt: old}
+	base := model.Backup{ClusterID: 1, Method: "physical", Status: "complete", CreatedAt: now, VerifiedAt: &now}
 	s.DB.Create(&base)
-	if _, e := s.expirableBackup(1, base.ID); e == nil {
-		t.Fatal("last backup allowed to expire")
-	}
-	newer := model.Backup{ClusterID: 1, Method: "physical", Status: "complete", CreatedAt: now, VerifiedAt: &now}
-	s.DB.Create(&newer)
-	if _, e := s.expirableBackup(1, newer.ID); e == nil {
-		t.Fatal("retention window ignored")
-	}
-	child := model.Backup{ClusterID: 1, ParentID: base.ID, Method: "incremental", Status: "complete", CreatedAt: old}
-	s.DB.Create(&child)
-	if _, e := s.expirableBackup(1, base.ID); e == nil {
-		t.Fatal("incremental parent allowed to expire")
-	}
-	s.DB.Model(&child).Update("status", "expired")
 	if _, e := s.expirableBackup(1, base.ID); e != nil {
-		t.Fatal("independent obsolete backup rejected", e)
+		t.Fatal("recent last verified backup rejected", e)
+	}
+	child := model.Backup{ClusterID: 1, ParentID: base.ID, Method: "incremental", Status: "complete"}
+	s.DB.Create(&child)
+	if _, e := s.expirableBackup(1, base.ID); e != nil {
+		t.Fatal("self-contained child incorrectly blocks cleanup", e)
 	}
 	if _, e := s.expirableBackup(2, base.ID); e == nil {
-		t.Fatal("cross-cluster backup authorized")
+		t.Fatal("cross-cluster cleanup allowed")
+	}
+	for _, status := range []string{"running", "failed", "expired"} {
+		s.DB.Model(&base).Update("status", status)
+		if _, e := s.expirableBackup(1, base.ID); e == nil {
+			t.Fatal("invalid state accepted", status)
+		}
 	}
 }
 func TestStorageThresholdNearestAncestorAndCycle(t *testing.T) {

@@ -10,27 +10,29 @@
         link
         type="primary"
         :loading="loading"
-        :aria-label="`操作 ${clusterName || '集群'}`"
+        :aria-label="
+          $tr('操作 {value0}', { value0: clusterName || $tr('集群') })
+        "
       >
-        {{ buttonLabel || "操作"
+        {{ $tr(buttonLabel || "操作")
         }}<el-icon class="dropdown-arrow"><ArrowDown /></el-icon>
       </el-button>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item v-if="loading" disabled
-            >正在读取可用操作</el-dropdown-item
-          >
+          <el-dropdown-item v-if="loading" disabled>{{
+            $tr("正在读取可用操作")
+          }}</el-dropdown-item>
           <el-dropdown-item v-else-if="error" disabled>{{
-            error
+            $tr(error)
           }}</el-dropdown-item>
           <template v-else>
             <template v-if="context === 'clusters' && cluster">
-              <el-dropdown-item command="detail:overview"
-                >集群详情</el-dropdown-item
-              >
-              <el-dropdown-item command="detail:parameters"
-                >参数配置详情</el-dropdown-item
-              >
+              <el-dropdown-item command="detail:overview">{{
+                $tr("集群详情")
+              }}</el-dropdown-item>
+              <el-dropdown-item command="detail:parameters">{{
+                $tr("参数配置详情")
+              }}</el-dropdown-item>
             </template>
             <el-dropdown-item
               v-for="(item, index) in available"
@@ -48,8 +50,10 @@
             >
               {{ item.label }}
             </el-dropdown-item>
-            <el-dropdown-item v-if="!available.length && !links.length" disabled
-              >暂无可用操作</el-dropdown-item
+            <el-dropdown-item
+              v-if="!available.length && !links.length"
+              disabled
+              >{{ $tr("暂无可用操作") }}</el-dropdown-item
             >
           </template>
         </el-dropdown-menu>
@@ -67,10 +71,13 @@
   </span>
 </template>
 <script setup lang="ts">
+import { tr } from "@/locales";
+
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ArrowDown } from "@element-plus/icons-vue";
 import {
+  capabilityLabel,
   dbPlatform,
   type Capability,
   type Cluster
@@ -152,16 +159,33 @@ const available = computed(() =>
       const capability = capabilities.value.find(
         c => c.action === action && c.enabled
       );
-      return capability ? [{ ...capability, group }] : [];
+      return capability
+        ? [{ ...capability, label: capabilityLabel(capability), group }]
+        : [];
     })
   )
 );
 const links = computed(() =>
   props.context === "clusters" && cluster.value
     ? [
-        { section: "storage", label: "存储管理" },
-        { section: "backups", label: "备份恢复" },
-        { section: "audit", label: "操作审计" }
+        {
+          section: "storage",
+          get label() {
+            return tr("存储管理");
+          }
+        },
+        {
+          section: "backups",
+          get label() {
+            return tr("备份恢复");
+          }
+        },
+        {
+          section: "audit",
+          get label() {
+            return tr("操作审计");
+          }
+        }
       ]
     : []
 );
@@ -197,8 +221,12 @@ function select(command: string) {
   }
   if (command.startsWith("page:")) {
     router.push({
-      path: `/database/${command.slice(5)}`,
+      path:
+        command === "page:audit"
+          ? "/monitor/dblog"
+          : `/database/${command.slice(5)}`,
       query: {
+        ...(command === "page:audit" ? { tab: "database-audit" } : {}),
         clusterId: String(props.clusterId),
         engine: cluster.value?.engine
       }
@@ -208,7 +236,9 @@ function select(command: string) {
   const capability = available.value.find(c => c.action === command);
   if (!capability) return;
   selectedAction.value = command;
-  selectedLabel.value = capability.label;
+  selectedLabel.value =
+    capabilities.value.find(c => c.action === command)?.label ||
+    capability.label;
   operationOpen.value = true;
 }
 function submitted(id: number) {

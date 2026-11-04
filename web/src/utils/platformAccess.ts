@@ -46,7 +46,7 @@ export function canVisitPlatform(path: string): boolean {
   if (platformAccess.isAdmin) return true;
   if (["/system/api-keys", "/system/personal"].includes(path)) return true;
   if (path === "/host-terminal") return canPlatform("cmdb:execute");
-  if (path === "/monitor/dblog") return false;
+  if (path === "/monitor/dblog") return canPlatform("database:read");
   if (path === "/system/machine") return canPlatform("cmdb:read");
   if (
     /^\/system(\/|$)/.test(path) ||
@@ -71,7 +71,8 @@ export function canVisitPlatform(path: string): boolean {
     return canPlatform(
       path.includes("/terminal/") ? "docker:execute" : "docker:read"
     );
-  if (path.startsWith("/cmdb/db") || /^\/database(\/|$)/.test(path)) return canPlatform("database:read");
+  if (path.startsWith("/cmdb/db") || /^\/database(\/|$)/.test(path))
+    return canPlatform("database:read");
   if (
     path.startsWith("/k8s/terminal") ||
     path === "/cmdb/remote" ||

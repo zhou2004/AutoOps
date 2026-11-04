@@ -52,7 +52,7 @@
       block:
         - name: Install S3 client runtime
           ansible.builtin.apt:
-            lock_timeout: 300
+            lock_timeout: "{{ 300 if ansible_version.full is version('2.12', '>=') else omit }}"
             name: python3-boto3
             state: present
             policy_rc_d: 101

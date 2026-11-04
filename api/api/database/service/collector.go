@@ -33,13 +33,15 @@ func (s *Service) acquireCollection(id uint, owner string) bool {
 	return r.Error == nil && r.RowsAffected == 1
 }
 
-// An unknown result still blocks mutations, but must not hide live health. Never
-// release its operation lock or replay its command from the read-only collector.
+// Queued jobs have not touched remote state. Isolated recovery never changes the
+// source topology. Neither should hide live health behind their mutation lock.
+// Preflight still blocks new collectors while the worker drains the prior lease.
+// Unknown outcomes retain their lock without disabling read-only health checks.
 func (s *Service) collectionAllowed(id uint) bool {
 	var blocked int64
 	err := s.DB.Model(&model.OperationLock{}).
 		Joins("LEFT JOIN database_operation op ON op.id = database_operation_lock.operation_id AND op.cluster_id = database_operation_lock.cluster_id").
-		Where("database_operation_lock.cluster_id = ? AND (op.status IS NULL OR op.status <> ?)", id, "unknown").
+		Where("database_operation_lock.cluster_id = ? AND (op.status IS NULL OR NOT (op.status IN ? OR (op.status IN ? AND COALESCE(op.action, '') IN ?)))", id, []string{"queued", "unknown"}, []string{"running", "verifying"}, []string{"restore", "verify-backup"}).
 		Count(&blocked).Error
 	return err == nil && blocked == 0
 }

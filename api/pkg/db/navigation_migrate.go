@@ -59,7 +59,7 @@ func migrateManagementNavigation(database *gorm.DB) error {
 			{databaseID, "集群管理", "database/clusters", "Connection", nil},
 			{databaseID, "存储管理", "database/storage", "Files", nil},
 			{databaseID, "备份恢复", "database/backups", "RefreshLeft", nil},
-			{databaseID, "操作审计", "database/audit", "Document", nil},
+			{systemID, "数据日志", "monitor/dblog", "Document", []string{"database/audit"}},
 
 			{containerID, "Docker管理", "k8s/docker", "Box", []string{"cmdb/docker"}},
 			{systemID, "API Key", "system/api-keys", "Key", []string{"system/role-permission"}},
@@ -93,8 +93,17 @@ func migrateManagementNavigation(database *gorm.DB) error {
 				if err := tx.Create(&target).Error; err != nil {
 					return err
 				}
-			} else if err := tx.Model(&model.SysMenu{}).Where("id = ?", target.ID).Updates(map[string]interface{}{"parent_id": change.parent, "menu_name": change.name, "url": change.url, "icon": change.icon}).Error; err != nil {
-				return err
+			} else {
+				values := map[string]interface{}{"parent_id": change.parent, "menu_name": change.name, "url": change.url, "icon": change.icon}
+				if change.url == "monitor/dblog" {
+					values["menu_status"] = 2
+				}
+				if change.parent == databaseID {
+					values["sort"] = uint(changeIndex + 1)
+				}
+				if err := tx.Model(&model.SysMenu{}).Where("id = ?", target.ID).Updates(values).Error; err != nil {
+					return err
+				}
 			}
 			if len(oldIDs) > 0 {
 				if err := tx.Model(&model.SysMenu{}).Where("id IN ? AND id <> ?", oldIDs, target.ID).Update("menu_status", 1).Error; err != nil {
@@ -126,6 +135,6 @@ func migrateManagementNavigation(database *gorm.DB) error {
 				}
 			}
 		}
-		return nil
+		return fillNavigationIcons(tx)
 	})
 }

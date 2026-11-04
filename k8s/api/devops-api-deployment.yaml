@@ -32,6 +32,8 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            - name: DATABASE_WORKER_MODE
+              value: external
             - name: AUTOOPS_DATABASE_AUTOMATION_DIR
               value: /app/automation/database
             - name: AUTOOPS_JWT_SECRET

@@ -6,7 +6,7 @@
     fail_msg: 'The pinned XtraBackup 8.0.26-18 profile supports this rollout’s MySQL 8.0.24–26 only. Other versions require an independently validated tool profile.'
 - name: Install runtime library without replacing the database server
   ansible.builtin.apt:
-    lock_timeout: 300
+    lock_timeout: "{{ 300 if ansible_version.full is version('2.12', '>=') else omit }}"
     name: libaio1
     state: present
     policy_rc_d: 101

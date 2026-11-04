@@ -1,3 +1,4 @@
+import { locale, tr } from "@/locales";
 import request from "@/utils/request";
 
 export interface Member {
@@ -83,10 +84,43 @@ export interface Cluster {
 export interface Capability {
   action: string;
   label: string;
+  labelEn?: string;
   enabled: boolean;
   reason: string;
   permission: string;
 }
+export const capabilityLabel = (capability: Capability) =>
+  locale.value === "en-US" && capability.labelEn
+    ? capability.labelEn
+    : tr(capability.label);
+
+// Preflight checks append member names to these system labels. Translate only
+// the label, keeping the instance identity literal.
+export const preflightCheckLabel = (name: string) => {
+  const prefixes = [
+    "保护性只读 ",
+    "受管实例 ",
+    "受管插件 ",
+    "服务归属 ",
+    "目标 "
+  ];
+  const prefix = prefixes.find(value => name.startsWith(value));
+  return prefix
+    ? tr(`${prefix}{value0}`, { value0: name.slice(prefix.length) })
+    : tr(name);
+};
+
+export const operationMessage = (message?: string) => {
+  const resolved = message?.match(
+    /^实际结果由核验任务 #(\d+) 确认，未重放原切换或恢复命令$/
+  );
+  return resolved
+    ? tr("实际结果由核验任务 #{value0} 确认，未重放原切换或恢复命令", {
+        value0: resolved[1]
+      })
+    : tr(message);
+};
+
 export interface Plan {
   id: number;
   idempotencyKey?: string;
@@ -101,10 +135,10 @@ export interface Plan {
 // browsers accessing AutoOps over an HTTP LAN address.
 export function operationPlanKey(plan: Plan): string {
   if (!Number.isSafeInteger(plan.id) || plan.id <= 0)
-    throw new Error("执行计划无效，请重新预检");
+    throw new Error(tr("执行计划无效，请重新预检"));
   const key = plan.idempotencyKey ?? `db-plan-${plan.id}`;
   if (typeof key !== "string" || !/^[\x21-\x7e]{8,80}$/.test(key))
-    throw new Error("执行计划缺少有效的提交标识，请重新预检");
+    throw new Error(tr("执行计划缺少有效的提交标识，请重新预检"));
   return key;
 }
 export interface Operation {
@@ -144,7 +178,7 @@ export async function dbRequest<T = any>(
     timeout: 180000
   });
   if (response.data?.code !== 200)
-    throw new Error(response.data?.message || "数据库管理请求失败");
+    throw new Error(tr(response.data?.message || "数据库管理请求失败"));
   return response.data.data;
 }
 export const dbPlatform = {
@@ -173,42 +207,100 @@ export const dbPlatform = {
   operation: (id: number) => dbRequest<Operation>(`operations/${id}`)
 };
 export const statusLabels: Record<string, string> = {
-  healthy: "正常",
-  degraded: "降级",
-  unavailable: "不可用",
-  unreachable: "无法连接",
-  conflict: "角色冲突",
-  unknown: "未知",
-  stale: "状态过期",
-  planned: "待安装",
-  missing: "未配置",
-  "not-applicable": "不适用",
-  observe: "观察模式",
-  operate: "运维托管",
-  ha: "高可用托管",
-  queued: "排队",
-  preflight: "预检",
-  running: "执行中",
-  verifying: "核验中",
-  succeeded: "成功",
-  failed: "失败",
-  complete: "完整",
-  primary: "主节点",
-  replica: "副本",
+  get healthy() {
+    return tr("正常");
+  },
+  get degraded() {
+    return tr("降级");
+  },
+  get unavailable() {
+    return tr("不可用");
+  },
+  get unreachable() {
+    return tr("无法连接");
+  },
+  get conflict() {
+    return tr("角色冲突");
+  },
+  get unknown() {
+    return tr("未知");
+  },
+  get stale() {
+    return tr("状态过期");
+  },
+  get planned() {
+    return tr("待安装");
+  },
+  get missing() {
+    return tr("未配置");
+  },
+  get "not-applicable"() {
+    return tr("不适用");
+  },
+  get observe() {
+    return tr("观察模式");
+  },
+  get operate() {
+    return tr("运维托管");
+  },
+  get ha() {
+    return tr("高可用托管");
+  },
+  get queued() {
+    return tr("排队");
+  },
+  get preflight() {
+    return tr("预检");
+  },
+  get running() {
+    return tr("执行中");
+  },
+  get verifying() {
+    return tr("核验中");
+  },
+  get succeeded() {
+    return tr("成功");
+  },
+  get failed() {
+    return tr("失败");
+  },
+  get complete() {
+    return tr("完整");
+  },
+  get primary() {
+    return tr("主节点");
+  },
+  get replica() {
+    return tr("副本");
+  },
   leader: "Leader",
   follower: "Follower",
-  "pending-restart": "待重启",
-  initializing: "等待复制基线",
-  offline: "已隔离，等待重建",
-  drifted: "配置漂移",
-  superseded: "已被新版本替代",
-  expired: "已过期清理",
-  applied: "已应用"
+  get "pending-restart"() {
+    return tr("待重启");
+  },
+  get initializing() {
+    return tr("等待复制基线");
+  },
+  get offline() {
+    return tr("已隔离，等待重建");
+  },
+  get drifted() {
+    return tr("配置漂移");
+  },
+  get superseded() {
+    return tr("已被新版本替代");
+  },
+  get expired() {
+    return tr("已清理");
+  },
+  get applied() {
+    return tr("已应用");
+  }
 };
 export const label = (value?: string) =>
   value ? statusLabels[value] || value : "—";
 export const operationStatusLabel = (value?: string) =>
-  value === "unknown" ? "结果待核验" : label(value);
+  value === "unknown" ? tr("结果待核验") : label(value);
 export const tagType = (
   value?: string
 ): "success" | "warning" | "danger" | "info" =>

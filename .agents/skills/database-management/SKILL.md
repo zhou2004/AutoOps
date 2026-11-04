@@ -9,12 +9,12 @@ description: "维护 AutoOps 数据库管理模块：数据源与工作台、集
 
 ## 产品约定
 
-当前只有五个子菜单，顺序固定：数据源管理、集群管理、存储管理、备份恢复、操作审计。参数配置放在集群详情的标签页，通过集群行操作“参数配置详情”进入；不恢复独立参数菜单。没有独立“监控诊断”菜单或集群诊断标签；健康采集和监控中心的规则集成继续服务于集群状态。
+当前只有四个子菜单，顺序固定：数据源管理、集群管理、存储管理、备份恢复，四项均带同尺寸图标。操作审计位于“基础管理 → 数据日志 → 数据库操作审计”，原 `/database/audit` 兼容跳转到 `/monitor/dblog?tab=database-audit`，保留集群/引擎筛选。参数配置放在集群详情的标签页，通过集群行操作“参数配置详情”进入；不恢复独立参数菜单。没有独立“监控诊断”菜单或集群诊断标签；健康采集和监控中心的规则集成继续服务于集群状态。
 
 - 数据源页只管理连接、业务分组和工作台，不放部署或高可用面板。MySQL 控制台命令提示使用行内虚影，Tab 补全，不增加右侧提示面板。
 - 集群列表提供名称、分组（含子分组）、引擎、环境、状态筛选。每行有“详情”和“操作”；详情展示概览、拓扑、节点、复制状态及参数配置，变更从行操作菜单发起。列表上方不再显示匹配集群、当前页正常、高可用已验收、恢复已验证四张统计卡片。
 - 数据库类型筛选统一在页头右侧，数据源默认全部，其余列表默认 MySQL；用户可切换类型。跨模块跳转携带 `engine`，避免 PostgreSQL/Redis 集群被 MySQL 默认条件隐藏。
-- 存储、备份和审计使用各自子模块。集群行操作跳转时携带 `clusterId` 和 `engine`，目标页显示可清除的集群筛选。没有历史备份/容量快照时，也能在对应模块选择集群发起首次操作。
+- 存储、备份使用各自子模块，审计复用数据日志页。集群行操作跳转时携带 `clusterId` 和 `engine`，目标页显示可清除的集群筛选。没有历史备份/容量快照时，也能在对应模块选择集群发起首次操作。
 - 操作不填写原因，不要求手输集群名称。无参数操作自动预检；有参数操作只填写实际需要的节点、备份或配置。预检通过后点击“确认执行”，再弹出最终确认，展示集群、动作与目标节点；取消、关闭不发执行请求。保留预检、权限、幂等和锁，不能以简化交互为由绕过它们。
 - 行操作以服务端 `capabilities` 为准，不为不支持或未授权的能力提供可点击按钮。菜单打开时获取最新能力。
 - 三引擎图标复用运维工具资产：`mysql.svg`、`redis.svg`、`PostgreSQL.svg`（注意大小写）。统一通过 `DatabaseEngineIcon.vue` 使用，不另造文字徽标。
@@ -22,24 +22,24 @@ description: "维护 AutoOps 数据库管理模块：数据源与工作台、集
 
 ## 代码入口
 
-| 改动范围 | 主要文件 |
-| --- | --- |
-| 菜单与迁移 | `web/src/router/modules/database.ts`、`api/pkg/db/navigation_migrate.go` |
-| 五模块列表与筛选 | `web/src/views/database/Management.vue` |
-| 行操作及确认 | `components/ClusterActions.vue`、`components/OperationDialog.vue`（相对上一行目录） |
-| 备份使用流程 | `components/BackupGuide.vue`、`BackupLauncher.vue`、`BackupDetail.vue`、`BackupSettings.vue` |
-| 详情与参数 | `components/ClusterDetail.vue`、`components/ConfigurationDetail.vue` |
-| 工作台、数据源 | `web/src/views/database/Workbench.vue`、`MySQLWorkbench.vue`、`components/MySQLConsole.vue`；`web/src/views/cmdb/cmdbDB.vue` |
-| 前端请求与类型 | `web/src/api/databasePlatform.ts` |
-| 领域模型 | `api/api/database/model/models.go` |
-| API 与控制器 | `api/router/database/database.go`、`api/api/database/controller/database.go` |
-| 服务、权限、发现 | `api/api/database/service/service.go`、`discovery.go`、`compatibility.go` |
-| 任务与恢复核验 | `operations.go`、`execute.go`、`reconcile.go`、`remote_guard.go`（同上服务目录） |
-| 引擎运维 | 同上目录的 `mysql_*`、`fencing.go`、`sentinel.go`、`membership.go`、`redis_placement.go`、`patroni_runtime.go` |
-| 存储、备份、参数 | 同上目录的 `storage.go`、`backup.go`、`archive.go`、`repository*.go`、`retention.go`、`configuration.go` |
-| 自动化 | `api/automation/database-platform/` 的 playbook、templates 和 files |
-| 旧接口兼容 | `api/api/cmdb/service/databaseBridge.go`、`databaseClusterScan.go`、`databaseOperation.go`；`api/pkg/db/database_migrate.go` |
-| 监控中心集成 | `api/api/monitor/service/database_rules.go` |
+| 改动范围             | 主要文件                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 菜单与迁移           | `web/src/router/modules/database.ts`、`api/pkg/db/navigation_migrate.go`                                                     |
+| 数据库列表与审计视图 | `web/src/views/database/Management.vue`                                                                                      |
+| 行操作及确认         | `components/ClusterActions.vue`、`components/OperationDialog.vue`（相对上一行目录）                                          |
+| 备份使用流程         | `components/BackupGuide.vue`、`BackupLauncher.vue`、`BackupDetail.vue`、`BackupSettings.vue`                                 |
+| 详情与参数           | `components/ClusterDetail.vue`、`components/ConfigurationDetail.vue`                                                         |
+| 工作台、数据源       | `web/src/views/database/Workbench.vue`、`MySQLWorkbench.vue`、`components/MySQLConsole.vue`；`web/src/views/cmdb/cmdbDB.vue` |
+| 前端请求与类型       | `web/src/api/databasePlatform.ts`                                                                                            |
+| 领域模型             | `api/api/database/model/models.go`                                                                                           |
+| API 与控制器         | `api/router/database/database.go`、`api/api/database/controller/database.go`                                                 |
+| 服务、权限、发现     | `api/api/database/service/service.go`、`discovery.go`、`compatibility.go`                                                    |
+| 任务与恢复核验       | `operations.go`、`execute.go`、`reconcile.go`、`remote_guard.go`（同上服务目录）                                             |
+| 引擎运维             | 同上目录的 `mysql_*`、`fencing.go`、`sentinel.go`、`membership.go`、`redis_placement.go`、`patroni_runtime.go`               |
+| 存储、备份、参数     | 同上目录的 `storage.go`、`backup.go`、`archive.go`、`repository*.go`、`retention.go`、`configuration.go`                     |
+| 自动化               | `api/automation/database-platform/` 的 playbook、templates 和 files                                                          |
+| 旧接口兼容           | `api/api/cmdb/service/databaseBridge.go`、`databaseClusterScan.go`、`databaseOperation.go`；`api/pkg/db/database_migrate.go` |
+| 监控中心集成         | `api/api/monitor/service/database_rules.go`                                                                                  |
 
 新增模型要注册到领域 `Models()` 和平台迁移链。保留旧数据源、账号、业务分组和授权 ID；退役菜单禁用数据库菜单记录，不删除历史角色关联。
 
@@ -56,7 +56,7 @@ description: "维护 AutoOps 数据库管理模块：数据源与工作台、集
 - MySQL 切换通过 Orchestrator 原生恢复链路与独立隔离钩子。Raft 多数派不等于数据多数派；隔离失败必须阻止危险提升。半同步退化需如实展示。
 - PostgreSQL 采用 Patroni/etcd，参数通过原生管理器；严格同步、旧主隔离、回退/重建条件不能绕过。控制版本与安装包校验以当前自动化和兼容层为准。
 - Redis 使用 Sentinel/Cluster 原生选主。Cluster 仅 DB 0，支持 MOVED/ASK；迁槽续行先核对真实槽位状态，缩容先迁空；检查每个复制组的故障域分布。
-- 恢复使用新目录和隔离端口。远端仓库完成、备份链完整和实际恢复验证独立记录；清理不得破坏依赖链。PostgreSQL WAL 由数据库/备份工具管理，不直接删文件。
+- 恢复使用新目录和隔离端口。远端仓库完成、备份链完整和实际恢复验证独立记录；手动“清理备份”允许未过期和历史父子引用的自包含备份包；仅清理所选包的准确路径和对象，保留校验、确认和审计。PostgreSQL WAL 由数据库/备份工具管理，不直接删文件。
 - 账号经配置中心引用，日志与文档不保存密码、私钥或会话令牌。SSH 使用已核对的主机指纹，Ansible 使用受控模板。
 
 ## 按任务选择验证
@@ -71,7 +71,7 @@ description: "维护 AutoOps 数据库管理模块：数据源与工作台、集
 
 ## 状态采集、列表与 VIP（2026-11-01 补充）
 
-- 状态采集由 API 启动的只读 Collector 负责，Worker 也可承担采集；`database-collector` 模式可单独运行。每 15 秒扫描，集群间有界并发，数据库租约协调多进程。运行中任务的锁阻止新采集，任务执行前等待既有采集完成；仅 `unknown` 待核验任务允许只读采集继续，但保留锁与任务结果，禁止自动补写成功或重放命令。孤立锁继续阻止采集。Worker 停止不应导致全部健康过期；过期仍必须显示未知。
+- 状态采集由 API 启动的只读 Collector 负责，Worker 也可承担采集；`database-collector` 模式可单独运行。每 15 秒扫描，集群间有界并发，数据库租约协调多进程。排队任务保持采集；领取进入 `preflight` 后阻止新采集并等待既有采集完成。执行中的 `restore`/`verify-backup` 只操作隔离实例，允许继续采集源集群；其他运行中拓扑变更保持采集互斥；`unknown` 待核验任务也允许只读采集继续，但保留锁与任务结果，禁止自动补写成功或重放命令。孤立锁继续阻止采集。Worker 停止不应导致全部健康过期；过期仍必须显示未知。
 - 所有连接同一元数据库的进程必须使用相同 `TZ` 与 MySQL `loc=Local`。真实联调入口也要一致，避免时间戳与采集租约发生八小时时差。
 - 列表行统一 64px，行内引擎图标 26px；长名称/描述省略并可悬停查看。存储和备份行使用服务端返回的 `engine`、`clusterName`，不能依赖当前页集群列表补名称。分页在权限、筛选、存储去重之后执行；分类、筛选和每页数量改变时回到第一页。
 - `replication.go` 采集主库位点后核验副本回放。健康流线要求线程/链路正常、只读保护合格（MySQL）且已追平采样位点；未知、异常、过期不播放动画。位点追平不等于全表一致性校验或零 RPO。
@@ -84,9 +84,31 @@ VIP 操作与排查教程：[数据库 VIP 漂移](../../../docs/database-vip-gu
 ## 备份恢复的界面约定
 
 - 页面按“选择集群并备份 → 查看备份集 → 隔离恢复 → 查看报告”引导，提供明显的“立即备份”按钮；首次备份不要求先创建定时策略。数据库类型和业务分组同时过滤操作集群。
-- 备份集行展示方式中文名、完整性、副本位置和验证时间，提供“详情”和“恢复操作”。失败/过期备份不显示可执行恢复动作。定时策略显示名称、周期、下次运行和保留天数，保存策略不等于立即执行。
+- 备份集仅展示完整且实际恢复验证通过的记录，去掉 ID 列；未验证完整备份在“恢复演练”处理，失败任务在操作审计。行操作提供详情、恢复与清理，选择操作集群同步筛选列表。仓库支持位置搜索和管理员删除登记，有备份、策略或活动任务引用时不能删除登记。定时策略显示名称、周期、下次运行和保留天数，保存策略不等于立即执行。
 - `GET /api/v1/database/backups/:id` 按集群查看权鉴权，详情不能依赖列表前 100 条；凭据继续不序列化。详情展示备份文件/校验、依赖及恢复报告。
 - 时间点恢复只有所有分片归档证据完整、时间窗口有交集时开放；逻辑/RDB 不显示时间选择，MySQL binlog 归档必须指定目标时间。前端说明不能替代后端/自动化预检。
 - 当前隔离恢复及恢复验证均实际恢复、启动校验，然后停止实例，保留目录和报告。界面及文档必须明确这一行为，不能承诺自动覆盖业务库或完成业务切换。
 
 操作教程见 [备份恢复使用指南](../../../docs/database-backup-guide.md)。
+
+MinIO 内网备份仓库部署、固定源码构建与实际 S3 恢复验证见 [MinIO 备份仓库](../../../docs/database-minio-guide.md)。备份传输/恢复的 `apt.lock_timeout` 仅在 Ansible 2.12 及以上传入；兼容旧控制机时使用 `omit`。
+
+## 开发启动与排队排查
+
+`go run main.go -c config.yaml` 在 `server.model: debug` 下默认随 API 启动数据库 Worker，避免只启动 HTTP 服务导致永久排队。`DATABASE_WORKER_MODE` 或 `--database-worker` 可选 `auto` / `embedded` / `external`；非 debug 的 auto 不内置执行器。Docker Compose、Kubernetes API 显式使用 external，并运行独立数据库 Worker。开发内置模式不要再额外启动同机 Worker。
+
+任务 queued 且 startedAt/heartbeatAt 为空表示尚未执行远端动作。先核对 Worker 和任务锁，不重放恢复；修复执行器后由原任务被领取，继续执行前授权、拓扑版本、远端和端口预检。采集不能通过解除运维锁来修复，仍必须保留集群变更互斥。
+
+## 备份名称、仓库详情与审计位置（2026-11-04）
+
+- 手动备份的 `parameters.backupName` 可填中文/空格，最多 100 个 Unicode 字符，禁止控制字符；留空由 Worker 生成“集群-方式-时间”。名称只存元数据，不参与路径、对象键或 shell。备份模型字段为 `name`，旧记录为空时前端使用集群/方式/时间作为显示名；列表可按集群或备份名称搜索。
+- 仓库详情 `GET /api/v1/database/repositories/:id` 展示配置、主机/凭据引用备注、最近检查、清单统计和关联策略；不解密密钥，不在打开详情时遍历整个桶。统计按当前集群查看权过滤；占用不冒充整个桶实时容量。连接检查快照保存在仓库记录。
+- 数据日志保留管理员专用 SQL 日志，新增数据库操作审计标签；拥有 database:read 的用户可进入后者，后端仍按 db_cluster_audit 限定资产范围。不能因迁移页面而赋予 SQL 日志或审计删除权。菜单迁移合并旧审计角色链接到数据日志及基础管理父菜单，保留旧链接、不删除历史审计。
+
+## 国际化约定
+
+所有系统界面文案使用 `@/locales` 的 `tr` 或模板 `$tr`，英文集中在 `web/src/locales/en-US.json`。带实例名、时间或数量的句子使用 `tr(source, { value0: value })` 插值，不拼接中英文碎片。状态、备份方式、操作菜单等长期存在的字典使用 getter / computed，在切换语言时立即更新。
+
+服务端能力保留稳定 `action` 与中文 `label`，额外提供 `labelEn`；前端 `capabilityLabel` 兼容旧服务端。预检检查项、参数说明和复制状态属于系统文案，需要翻译；实例名、用户备份名、SQL、结果列名和原始执行日志保持原值。操作弹窗保存原始操作标签，渲染时翻译，避免已打开弹窗切换语言后停留在旧语言。
+
+修改后运行 `pnpm i18n:test`、`node scripts/database-operation-check.cjs` 及前端构建；检查英文下的数据源、集群详情/拓扑、存储、备份恢复、仓库详情和数据日志中的数据库审计。全项目 TypeScript 仍有既有错误，不能把构建成功描述为全项目类型检查通过。

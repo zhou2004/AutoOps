@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"dodevops-api/api/database/model"
 )
@@ -22,21 +21,11 @@ func (s *Service) retentionDays(cluster uint) int {
 func (s *Service) expirableBackup(cluster, id uint) (*model.Backup, error) {
 	var b model.Backup
 	if id == 0 || s.DB.Where("id = ? AND cluster_id = ? AND status = ?", id, cluster, "complete").First(&b).Error != nil {
-		return nil, errors.New("只能清理已完成且过期的受管备份")
+		return nil, errors.New("只能清理当前集群已完成的受管备份")
 	}
-	if b.CreatedAt.After(time.Now().AddDate(0, 0, -s.retentionDays(cluster))) {
-		return nil, errors.New("备份仍在恢复保留窗口内")
-	}
-	var children int64
-	s.DB.Model(&model.Backup{}).Where("parent_id = ? AND status <> ?", b.ID, "expired").Count(&children)
-	if children > 0 {
-		return nil, errors.New("仍有增量或日志归档引用此备份，必须保护整个恢复依赖链")
-	}
-	var newer int64
-	s.DB.Model(&model.Backup{}).Where("cluster_id = ? AND id > ? AND status = ? AND verified_at IS NOT NULL", cluster, b.ID, "complete").Count(&newer)
-	if newer == 0 {
-		return nil, errors.New("必须保留一个更新且实际恢复验证通过的备份")
-	}
+	// Managed archives are self-contained: MySQL includes the base and all
+	// increments; PostgreSQL exports the native repository. ParentID is lineage,
+	// not an external restore dependency. Explicit manual cleanup has no age gate.
 	return &b, nil
 }
 
@@ -66,7 +55,7 @@ func (s *Service) expireBackup(ctx context.Context, c *model.Cluster, op model.O
 	if json.Unmarshal(b.Manifest, &manifest) != nil || len(manifest.Members) == 0 {
 		return errors.New("缺少受管备份清单")
 	}
-	return s.step(op, "核对恢复依赖链并清理指定过期备份", func(log func(string)) error {
+	return s.step(op, "核对文件清单并清理指定备份", func(log func(string)) error {
 		// Keep archive/repository deletion explicit and scoped to exact recorded
 		// objects. Never run bucket lifecycle deletion or recursive prefix cleanup.
 		if b.RepositoryID > 0 {
@@ -103,7 +92,7 @@ func (s *Service) expireBackup(ctx context.Context, c *model.Cluster, op model.O
 				return e
 			}
 		}
-		log("保留窗口、后继恢复验证与所有子依赖均通过；历史备份记录保留")
+		log("指定备份的本地文件及仓库副本已清理；不受保留天数限制，历史记录保留，其他备份包未改动")
 		return s.DB.Model(b).Update("status", "expired").Error
 	})
 }

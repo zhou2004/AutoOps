@@ -1,3 +1,4 @@
+import { menuIcon } from "@/utils/menuIcons";
 const Layout = () => import("@/layout/index.vue");
 
 export default {
@@ -6,7 +7,7 @@ export default {
   component: Layout,
   redirect: "/cmdb/ecs",
   meta: {
-    icon: "ep/monitor",
+    icon: menuIcon("/cmdb"),
     title: "资产管理",
     rank: 10
   },
@@ -26,13 +27,13 @@ export default {
       path: "/cmdb/ecs",
       name: "CmdbHost",
       component: () => import("@/views/cmdb/cmdbHost.vue"),
-      meta: { title: "主机管理" }
+      meta: { icon: menuIcon("/cmdb/ecs"), title: "主机管理" }
     },
     {
       path: "/cmdb/group",
       name: "CmdbGroup",
       component: () => import("@/views/cmdb/cmdbGroup.vue"),
-      meta: { title: "业务分组" }
+      meta: { icon: menuIcon("/cmdb/group"), title: "业务分组" }
     },
     {
       path: "/cmdb/db",
@@ -72,13 +73,13 @@ export default {
       path: "/cmdb/physical",
       name: "CmdbPhysical",
       component: () => import("@/views/cmdb/physicalMachine.vue"),
-      meta: { title: "物理机管理" }
+      meta: { icon: menuIcon("/cmdb/physical"), title: "物理机管理" }
     },
     {
       path: "/cmdb/network",
       name: "CmdbNetwork",
       component: () => import("@/views/cmdb/networkDevice.vue"),
-      meta: { title: "网络设备管理" }
+      meta: { icon: menuIcon("/cmdb/network"), title: "网络设备管理" }
     },
     {
       path: "/cmdb/asset-permission",
@@ -102,7 +103,7 @@ export default {
       path: "/cmdb/my-assets",
       name: "CmdbMyAssets",
       component: () => import("@/views/cmdb/myAssetPermissions.vue"),
-      meta: { title: "我的授权资产" }
+      meta: { icon: menuIcon("/cmdb/my-assets"), title: "我的授权资产" }
     }
   ]
 };

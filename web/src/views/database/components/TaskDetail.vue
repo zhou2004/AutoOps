@@ -1,29 +1,50 @@
 <template>
   <el-drawer
     :model-value="modelValue"
-    :title="`运维任务 #${operationId}`"
+    :title="$tr('运维任务 #{value0}', { value0: operationId })"
     size="70%"
     @update:model-value="$emit('update:modelValue', $event)"
-    ><el-alert v-if="error" :title="error" type="error" /><template v-if="task"
+    ><el-alert v-if="error" :title="$tr(error)" type="error" /><template
+      v-if="task"
       ><div class="task-summary">
         <el-tag :type="tagType(task.status)">{{
           operationStatusLabel(task.status)
         }}</el-tag
         ><span>{{ task.action }}</span
-        ><span>{{ task.message }}</span
-        ><el-button @click="load">刷新</el-button>
+        ><span>{{ operationMessage(task.message) }}</span
+        ><el-button @click="load">{{ $tr("刷新") }}</el-button>
       </div>
       <el-alert
+        v-if="task.status === 'queued'"
+        :title="
+          $tr('已排队 {value0} 秒，尚未开始执行', { value0: queueSeconds })
+        "
+        :description="
+          queueSeconds >= 30
+            ? $tr(
+                '正在等待后台执行器接单。长时间未接单请检查数据库 Worker 是否在线；排队期间仍会刷新集群状态，请勿重复提交。'
+              )
+            : $tr('等待后台执行器接单，集群状态采集继续运行。')
+        "
+        :type="queueSeconds >= 30 ? 'warning' : 'info'"
+        :closable="false"
+        show-icon
+      />
+      <el-alert
         v-if="task.status === 'unknown'"
-        title="结果待核验：互斥锁已保留。请核对远端状态，勿重复提交切换、恢复或迁槽。"
+        :title="
+          $tr(
+            '结果待核验：互斥锁已保留。请核对远端状态，勿重复提交切换、恢复或迁槽。'
+          )
+        "
         type="warning"
         :closable="false"
       /><el-empty
         v-if="!task.steps?.length"
         :description="
           task.status === 'queued'
-            ? '任务已持久化，等待数据库 Worker 领取'
-            : '尚无执行步骤'
+            ? $tr('任务已持久化，等待数据库 Worker 领取')
+            : $tr('尚无执行步骤')
         "
       /><el-timeline
         ><el-timeline-item
@@ -37,7 +58,7 @@
                 ? 'danger'
                 : 'primary'
           "
-          ><strong>{{ step.name }}</strong
+          ><strong>{{ $tr(step.name) }}</strong
           ><el-tag size="small" :type="tagType(step.status)">{{
             label(step.status)
           }}</el-tag>
@@ -48,11 +69,12 @@
   >
 </template>
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from "vue";
+import { computed, ref, watch, onUnmounted } from "vue";
 import {
   dbPlatform,
   label,
   operationStatusLabel,
+  operationMessage,
   tagType,
   type Operation
 } from "@/api/databasePlatform";
@@ -60,6 +82,12 @@ const props = defineProps<{ modelValue: boolean; operationId: number }>();
 const emit = defineEmits(["update:modelValue", "finished"]);
 const task = ref<Operation>(),
   error = ref("");
+const queueSeconds = computed(() => {
+  const created = new Date(task.value?.createdAt || "").getTime();
+  return Number.isFinite(created)
+    ? Math.max(0, Math.floor((Date.now() - created) / 1000))
+    : 0;
+});
 let timer: ReturnType<typeof setTimeout> | undefined;
 let generation = 0;
 async function load() {

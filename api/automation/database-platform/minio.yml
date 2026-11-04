@@ -1,0 +1,141 @@
+---
+# Standalone, pinned-source MinIO backup repository. Supply secrets only through
+# a private inventory/vault; this playbook never selects or formats a disk.
+- name: Deploy the dedicated AutoOps MinIO repository
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    minio_api_port: 9000
+    minio_console_port: 9001
+    minio_release: RELEASE.2025-04-22T22-12-26Z
+  tasks:
+    - name: Validate explicit host and pinned artifact
+      ansible.builtin.assert:
+        that:
+          - ansible_architecture == 'x86_64'
+          - minio_bind_ip in ansible_all_ipv4_addresses
+          - minio_release == 'RELEASE.2025-04-22T22-12-26Z'
+          - minio_binary_sha256 is match('^[a-f0-9]{64}$')
+          - minio_api_port | int != minio_console_port | int
+          - ansible_memtotal_mb >= 2048
+    - name: Inspect existing service ownership
+      ansible.builtin.stat:
+        path: /etc/autoops-minio/managed-by-autoops
+      register: minio_owned
+    - name: Ensure fresh ports are unused
+      ansible.builtin.wait_for:
+        host: '{{ minio_bind_ip }}'
+        port: '{{ item }}'
+        state: stopped
+        timeout: 3
+      loop: ['{{ minio_api_port }}', '{{ minio_console_port }}']
+      when: not minio_owned.stat.exists
+    - name: Create service user
+      ansible.builtin.user:
+        name: autoopsminio
+        system: true
+        create_home: false
+        shell: /usr/sbin/nologin
+    - name: Install S3 transfer and connection-check client
+      ansible.builtin.package:
+        name: python3-boto3
+        state: present
+    - name: Create private configuration directory
+      ansible.builtin.file:
+        path: /etc/autoops-minio
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+    - name: Create dedicated data directory
+      ansible.builtin.file:
+        path: /var/lib/autoops-minio/data
+        state: directory
+        owner: autoopsminio
+        group: autoopsminio
+        mode: '0750'
+    - name: Install verified source-built program
+      ansible.builtin.copy:
+        src: '{{ minio_binary }}'
+        dest: /usr/local/bin/autoops-minio
+        owner: root
+        group: root
+        mode: '0755'
+      notify: Restart AutoOps MinIO
+    - name: Verify deployed program digest
+      ansible.builtin.stat:
+        path: /usr/local/bin/autoops-minio
+        checksum_algorithm: sha256
+      register: minio_installed
+    - name: Reject altered program
+      ansible.builtin.assert:
+        that: minio_installed.stat.checksum == minio_binary_sha256
+    - name: Write private root credentials
+      ansible.builtin.copy:
+        content: |
+          MINIO_ROOT_USER={{ minio_root_user }}
+          MINIO_ROOT_PASSWORD={{ minio_root_password }}
+          MINIO_BROWSER_REDIRECT_URL=http://{{ minio_bind_ip }}:{{ minio_console_port }}
+        dest: /etc/autoops-minio/environment
+        owner: root
+        group: root
+        mode: '0600'
+      no_log: true
+      notify: Restart AutoOps MinIO
+    - name: Install dedicated systemd service
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=AutoOps MinIO backup repository ({{ minio_release }})
+          Wants=network-online.target
+          After=network-online.target
+          [Service]
+          Type=simple
+          User=autoopsminio
+          Group=autoopsminio
+          EnvironmentFile=/etc/autoops-minio/environment
+          ExecStart=/usr/local/bin/autoops-minio server --address {{ minio_bind_ip }}:{{ minio_api_port }} --console-address {{ minio_bind_ip }}:{{ minio_console_port }} /var/lib/autoops-minio/data
+          Restart=on-failure
+          RestartSec=5
+          LimitNOFILE=65536
+          MemoryMax=1G
+          CPUQuota=150%
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+          PrivateTmp=true
+          ReadWritePaths=/var/lib/autoops-minio
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/autoops-minio.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart AutoOps MinIO
+    - name: Record deployment ownership and artifact
+      ansible.builtin.copy:
+        content: '{{ minio_release }} sha256:{{ minio_binary_sha256 }}'
+        dest: /etc/autoops-minio/managed-by-autoops
+        mode: '0600'
+    - name: Apply changed configuration
+      ansible.builtin.meta: flush_handlers
+    - name: Enable repository on startup
+      ansible.builtin.systemd:
+        name: autoops-minio
+        enabled: true
+        state: started
+        daemon_reload: true
+    - name: Check live repository
+      ansible.builtin.uri:
+        url: 'http://{{ minio_bind_ip }}:{{ minio_api_port }}/minio/health/live'
+      register: minio_health
+      retries: 12
+      delay: 2
+      until: minio_health.status == 200
+  handlers:
+    - name: Restart AutoOps MinIO
+      ansible.builtin.systemd:
+        name: autoops-minio
+        state: restarted
+        daemon_reload: true

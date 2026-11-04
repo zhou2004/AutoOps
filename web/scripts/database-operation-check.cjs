@@ -5,7 +5,7 @@ const path = require("node:path");
 const Module = require("node:module");
 const ts = require("typescript");
 const { parse, compileScript } = require("vue/compiler-sfc");
-const { reactive, effectScope, nextTick } = require("vue");
+const { reactive, effectScope, nextTick, ref } = require("vue");
 
 function load(source, code, mocks) {
   const compiled = ts.transpileModule(code, {
@@ -19,7 +19,16 @@ function load(source, code, mocks) {
   loaded.filename = source;
   loaded.paths = Module._nodeModulePaths(path.dirname(source));
   loaded.require = name =>
-    mocks[name] ?? Module.prototype.require.call(loaded, name);
+    mocks[name] ??
+    (name === "@/locales"
+      ? {
+          tr: (text, params = {}) =>
+            String(text ?? "").replace(/\{(\w+)\}/g, (placeholder, key) =>
+              Object.hasOwn(params, key) ? String(params[key]) : placeholder
+            ),
+          locale: ref("zh-CN")
+        }
+      : Module.prototype.require.call(loaded, name));
   loaded._compile(compiled.outputText, source);
   return loaded.exports;
 }

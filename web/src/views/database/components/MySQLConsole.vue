@@ -15,7 +15,11 @@
       </div>
     </header>
     <div class="console-layout">
-      <div ref="element" class="console-screen" aria-label="MySQL SQL 终端" />
+      <div
+        ref="element"
+        class="console-screen"
+        :aria-label="$tr('MySQL SQL 终端')"
+      />
     </div>
   </section>
 </template>

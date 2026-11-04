@@ -4,7 +4,7 @@
       <div class="source-heading">
         <el-button
           circle
-          aria-label="返回数据源管理"
+          :aria-label="$tr('返回数据源管理')"
           @click="router.push('/database/sources')"
           >←</el-button
         ><span class="mysql-mark">MY</span>
@@ -29,7 +29,7 @@
     </header>
     <el-alert
       v-if="error"
-      :title="error"
+      :title="$tr(error)"
       type="error"
       show-icon
       :closable="false"
@@ -496,7 +496,7 @@
         ref="fileInput"
         type="file"
         :accept="importFormat === 'csv' ? '.csv' : '.json'"
-        aria-label="选择导入数据文件"
+        :aria-label="$tr('选择导入数据文件')"
         @change="importFile = $event.target.files[0]"
       />
       <pre v-if="importFormat === 'json'" class="example-code">
@@ -739,10 +739,18 @@ const columnTypes = [
 const definitionTitle = computed(
   () =>
     ({
-      "create-database": "新建数据库",
-      "create-table": "新建数据表",
-      "alter-database": "数据库字符集",
-      "drop-table": "删除数据表"
+      get "create-database"() {
+        return tr("新建数据库");
+      },
+      get "create-table"() {
+        return tr("新建数据表");
+      },
+      get "alter-database"() {
+        return tr("数据库字符集");
+      },
+      get "drop-table"() {
+        return tr("删除数据表");
+      }
     })[definition.action]
 );
 function filterNode(value, node) {

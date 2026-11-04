@@ -1,0 +1,143 @@
+name: Build and publish Docker images
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Optional version suffix, e.g. v1.0.0 (api-/web- are added automatically)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  IMAGE_REPOSITORY: feelzhou/autoops
+
+jobs:
+  verify:
+    name: Verify application
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: Test database services, configuration and migrations
+        working-directory: api
+        run: go test ./api/database/... ./common/config ./pkg/db
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          package_json_file: web/package.json
+          run_install: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Test frontend localization and operation confirmations
+        working-directory: web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm i18n:test
+          node scripts/database-operation-check.cjs
+      - name: Test image tag generation
+        run: bash docker/ci/test-image-tags.sh
+
+  build:
+    name: Build and push ${{ matrix.component }}
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [api, web]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Check Docker Hub credential
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [[ -z "$DOCKERHUB_TOKEN" ]]; then
+            echo '::error::Configure the repository Actions secret DOCKERHUB_TOKEN with a read/write token for feelzhou.'
+            exit 1
+          fi
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          username: feelzhou
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Generate component tags
+        id: tags
+        env:
+          COMPONENT: ${{ matrix.component }}
+          CUSTOM_TAG: ${{ inputs.tag }}
+        run: bash docker/ci/image-tags.sh
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          file: docker/${{ matrix.component }}/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=AutoOps ${{ matrix.component }}
+          cache-from: type=gha,scope=autoops-${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=autoops-${{ matrix.component }}
+      - name: Record published image
+        env:
+          TAGS: ${{ steps.tags.outputs.tags }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          printf '### Published image\n\n```text\n%s\n%s\n```\n' "$TAGS" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
+
+  latest:
+    name: Update latest tags after both images succeed
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Every commit gets its own build. Only moving the two latest tags is serialized.
+    concurrency:
+      group: dockerhub-latest-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        with:
+          username: feelzhou
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Promote the current main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/git/ref/heads/main" | jq -er '.object.sha')
+          if [[ "$current" != "$GITHUB_SHA" ]]; then
+            echo 'A newer commit is on main; keeping this run under its commit tags.'
+            exit 0
+          fi
+          for component in api web; do
+            docker buildx imagetools create \
+              --tag "$IMAGE_REPOSITORY:$component-latest" \
+              "$IMAGE_REPOSITORY:$component-sha-${GITHUB_SHA:0:12}"
+          done

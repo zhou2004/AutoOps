@@ -1,3 +1,4 @@
+import { menuIcon } from "@/utils/menuIcons";
 const Layout = () => import("@/layout/index.vue");
 
 export default {
@@ -6,7 +7,7 @@ export default {
   component: Layout,
   redirect: "/k8s/list",
   meta: {
-    icon: "ep/cpu",
+    icon: menuIcon("/k8s"),
     title: "容器管理",
     rank: 20
   },
@@ -15,7 +16,7 @@ export default {
       path: "/k8s/docker",
       name: "K8sDocker",
       component: () => import("@/views/cmdb/DockerManagement.vue"),
-      meta: { title: "Docker管理" }
+      meta: { icon: menuIcon("/k8s/docker"), title: "Docker管理" }
     },
     {
       path: "/k8s/docker/terminal/:assetType/:assetId/:container",
@@ -32,25 +33,25 @@ export default {
       path: "/k8s/list",
       name: "K8sClusters",
       component: () => import("@/views/K8s/k8s-clusters.vue"),
-      meta: { title: "集群管理" }
+      meta: { icon: menuIcon("/k8s/list"), title: "集群管理" }
     },
     {
       path: "/k8s/node",
       name: "K8sNodes",
       component: () => import("@/views/K8s/k8s-nodes.vue"),
-      meta: { title: "节点管理" }
+      meta: { icon: menuIcon("/k8s/node"), title: "节点管理" }
     },
     {
       path: "/k8s/namespace",
       name: "K8sNamespace",
       component: () => import("@/views/K8s/k8s-namespace.vue"),
-      meta: { title: "命名空间" }
+      meta: { icon: menuIcon("/k8s/namespace"), title: "命名空间" }
     },
     {
       path: "/k8s/workload",
       name: "K8sWorkload",
       component: () => import("@/views/K8s/k8s-workloads.vue"),
-      meta: { title: "工作负载" }
+      meta: { icon: menuIcon("/k8s/workload"), title: "工作负载" }
     },
     {
       path: "/k8s/autoscaling",
@@ -62,31 +63,31 @@ export default {
       path: "/k8s/network",
       name: "K8sNetwork",
       component: () => import("@/views/K8s/k8s-network.vue"),
-      meta: { title: "网络管理" }
+      meta: { icon: menuIcon("/k8s/network"), title: "网络管理" }
     },
     {
       path: "/k8s/config",
       name: "K8sConfig",
       component: () => import("@/views/K8s/k8s-config.vue"),
-      meta: { title: "配置管理" }
+      meta: { icon: menuIcon("/k8s/config"), title: "配置管理" }
     },
     {
       path: "/k8s/storage",
       name: "K8sStorage",
       component: () => import("@/views/K8s/k8s-storage.vue"),
-      meta: { title: "存储管理" }
+      meta: { icon: menuIcon("/k8s/storage"), title: "存储管理" }
     },
     {
       path: "/k8s/crd",
       name: "K8sCrd",
       component: () => import("@/views/K8s/k8s-crd.vue"),
-      meta: { title: "自定义资源" }
+      meta: { icon: menuIcon("/k8s/crd"), title: "自定义资源" }
     },
     {
       path: "/k8s/monitoring",
       name: "K8sMonitoring",
       component: () => import("@/views/K8s/nodes/k8s-monitoring.vue"),
-      meta: { title: "监控仪表板" }
+      meta: { icon: menuIcon("/k8s/monitoring"), title: "监控仪表板" }
     },
     // 以下为隐藏路由（不在菜单中显示）
     {

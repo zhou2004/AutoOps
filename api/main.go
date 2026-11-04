@@ -37,7 +37,9 @@ func main() {
 	// 解析命令行参数
 	var configPath string
 	var mode string
+	var databaseWorker string
 	flag.StringVar(&mode, "mode", "api", "api、database-worker 或 database-collector")
+	flag.StringVar(&databaseWorker, "database-worker", os.Getenv("DATABASE_WORKER_MODE"), "数据库任务执行器：auto（debug 模式内置）、embedded 或 external")
 	flag.StringVar(&configPath, "c", "", "配置文件路径 (默认: ./config.yaml)")
 	flag.Parse()
 
@@ -63,6 +65,10 @@ func main() {
 	if mode != "api" {
 		panic("unsupported mode")
 	}
+	embeddedWorker, err := config.EmbeddedDatabaseWorker(databaseWorker, config.Config.Server.Model)
+	if err != nil {
+		panic(err)
+	}
 	// 初始化其他服务
 	if err := initServices(); err != nil {
 		panic("Failed to initialize services: " + err.Error())
@@ -70,7 +76,13 @@ func main() {
 
 	collectorCtx, stopCollector := context.WithCancel(context.Background())
 	defer stopCollector()
-	go databaseService.New(common.GetDB()).RunCollector(collectorCtx)
+	if embeddedWorker {
+		host, _ := os.Hostname()
+		log.Log().Info("数据库任务执行器随开发 API 启动；排队任务将自动领取")
+		go databaseService.New(common.GetDB()).RunWorker(collectorCtx, fmt.Sprintf("dev-%s-%d", host, os.Getpid()))
+	} else {
+		go databaseService.New(common.GetDB()).RunCollector(collectorCtx)
+	}
 
 	// 启动调度器管理器
 	if err := scheduler.GetManager().Start(); err != nil {

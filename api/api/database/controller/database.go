@@ -90,6 +90,9 @@ func (ctrl *Controller) Repositories(c *gin.Context) {
 	if f.Name != "" {
 		q = q.Where("name LIKE ?", "%"+f.Name+"%")
 	}
+	if location := c.Query("location"); location != "" {
+		q = q.Where("(path LIKE ? OR endpoint LIKE ? OR bucket LIKE ?)", "%"+location+"%", "%"+location+"%", "%"+location+"%")
+	}
 	if f.Status != "" {
 		q = q.Where("status = ?", f.Status)
 	}
@@ -137,6 +140,22 @@ func (ctrl *Controller) SaveRepository(c *gin.Context) {
 	}
 	result.Success(c, saved)
 }
+func (ctrl *Controller) Repository(c *gin.Context) {
+	u, ok := user(c)
+	if !ok {
+		return
+	}
+	detail, e := ctrl.s.RepositoryDetail(c.Request.Context(), u, id(c))
+	if errors.Is(e, gorm.ErrRecordNotFound) {
+		result.Failed(c, 404, "备份仓库不存在")
+		return
+	}
+	if e != nil {
+		fail(c, e)
+		return
+	}
+	result.Success(c, detail)
+}
 func (ctrl *Controller) CheckRepository(c *gin.Context) {
 	u, ok := user(c)
 	if !ok {
@@ -148,6 +167,25 @@ func (ctrl *Controller) CheckRepository(c *gin.Context) {
 		return
 	}
 	result.Success(c, r)
+}
+
+func (ctrl *Controller) DeleteRepository(c *gin.Context) {
+	u, ok := user(c)
+	if !ok {
+		return
+	}
+	var request struct {
+		Confirmed bool `json:"confirmed"`
+	}
+	if c.ShouldBindJSON(&request) != nil {
+		result.Failed(c, 400, "请确认删除备份仓库登记")
+		return
+	}
+	if e := ctrl.s.DeleteRepository(c.Request.Context(), u, id(c), request.Confirmed); e != nil {
+		fail(c, e)
+		return
+	}
+	result.Success(c, gin.H{"deleted": true})
 }
 
 type Controller struct{ s *service.Service }
@@ -449,7 +487,7 @@ func (ctrl *Controller) Records(kind string) gin.HandlerFunc {
 		if v := queryID(c, "clusterId"); v > 0 {
 			clusterQuery = clusterQuery.Where("id = ?", v)
 		}
-		if f.Name != "" {
+		if f.Name != "" && kind != "backups" {
 			clusterQuery = clusterQuery.Where("name LIKE ?", "%"+f.Name+"%")
 		}
 		if f.Engine != "" {
@@ -483,6 +521,21 @@ func (ctrl *Controller) Records(kind string) gin.HandlerFunc {
 			return
 		}
 		q := ctrl.s.DB.Model(dest).Where("cluster_id IN (?)", clusterQuery)
+		if kind == "backups" {
+			if f.Name != "" {
+				q = q.Where("name LIKE ? OR cluster_id IN (?)", "%"+f.Name+"%", ctrl.s.DB.Model(&model.Cluster{}).Select("id").Where("name LIKE ?", "%"+f.Name+"%"))
+			}
+			switch c.Query("view") {
+			case "verified":
+				q = q.Where("status = ? AND verified_at IS NOT NULL", "complete")
+			case "verification":
+				q = q.Where("status = ? AND verified_at IS NULL", "complete")
+			case "", "all": // Legacy API and operation pickers retain their contract.
+			default:
+				result.Failed(c, 400, "不支持的备份视图")
+				return
+			}
+		}
 		if kind == "operations" || kind == "events" {
 			q = q.Where("audit_deleted_at IS NULL")
 		}

@@ -1,7 +1,7 @@
 services:
   # MySQL database service
   mysql:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/mysql:8.0.33
+    image: mysql:8.0.33
     container_name: devops-mysql
     restart: always
     ports:
@@ -25,14 +25,23 @@ services:
     networks:
       - devops-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pdevops@2025"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-pdevops@2025",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # Redis cache service
   redis:
-    image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/redis:7.0-alpine
+    image: redis:7.0-alpine
     container_name: devops-redis
     restart: always
     ports:
@@ -55,12 +64,16 @@ services:
 
   # DevOps API backend service
   devops-api:
-    image: devops-api:latest
+    image: feelzhou/autoops:api-${AUTOOPS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/api/Dockerfile
     container_name: devops-api
     restart: always
     ports:
       - "${API_PORT:-8000}:8000"
     environment:
+      DATABASE_WORKER_MODE: external
       AUTOOPS_JWT_SECRET: ${AUTOOPS_JWT_SECRET:-}
       TZ: ${TZ:-Asia/Shanghai}
       # 传递环境变量到容器(供应用读取)
@@ -104,9 +117,10 @@ services:
   # API contains the read-only collector; this service executes queued operations.
   # Keep API/worker TZ identical (metadata DSN uses loc=Local).
   database-worker:
-    image: devops-api:latest
+    image: feelzhou/autoops:api-${AUTOOPS_IMAGE_TAG:-latest}
     restart: unless-stopped
-    command: ["/app/devops", "-mode", "database-worker", "-c", "/app/config.yaml"]
+    command:
+      ["/app/devops", "-mode", "database-worker", "-c", "/app/config.yaml"]
     environment:
       TZ: ${TZ:-Asia/Shanghai}
       DATABASE_PLATFORM_ROOT: /app/automation/database-platform
@@ -122,7 +136,10 @@ services:
 
   # DevOps Web frontend service
   devops-web:
-    image: devops-web:latest
+    image: feelzhou/autoops:web-${AUTOOPS_IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/web/Dockerfile
     container_name: devops-web
     restart: always
     ports:
@@ -139,7 +156,15 @@ services:
     depends_on:
       - devops-api
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
