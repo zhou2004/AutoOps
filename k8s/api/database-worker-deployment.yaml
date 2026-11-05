@@ -22,7 +22,7 @@ spec:
       containers:
         - name: worker
           # Build the API image from this revision before applying this manifest.
-          image: devops-api:latest
+          image: feelzhou/autoops-api:latest
           command: [/app/devops, -mode, database-worker, -c, /app/config.yaml]
           env:
             - name: DATABASE_PLATFORM_ROOT

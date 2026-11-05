@@ -27,7 +27,7 @@ spec:
               mountPath: /app/upload
       containers:
         - name: devops-api
-          image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-api:v1.0
+          image: feelzhou/autoops-api:latest
           ports:
             - containerPort: 8000
               protocol: TCP

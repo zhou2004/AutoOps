@@ -64,7 +64,7 @@ services:
 
   # DevOps API backend service
   devops-api:
-    image: feelzhou/autoops:api-${AUTOOPS_IMAGE_TAG:-latest}
+    image: feelzhou/autoops-api:${AUTOOPS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: docker/api/Dockerfile
@@ -117,7 +117,7 @@ services:
   # API contains the read-only collector; this service executes queued operations.
   # Keep API/worker TZ identical (metadata DSN uses loc=Local).
   database-worker:
-    image: feelzhou/autoops:api-${AUTOOPS_IMAGE_TAG:-latest}
+    image: feelzhou/autoops-api:${AUTOOPS_IMAGE_TAG:-latest}
     restart: unless-stopped
     command:
       ["/app/devops", "-mode", "database-worker", "-c", "/app/config.yaml"]
@@ -136,7 +136,7 @@ services:
 
   # DevOps Web frontend service
   devops-web:
-    image: feelzhou/autoops:web-${AUTOOPS_IMAGE_TAG:-latest}
+    image: feelzhou/autoops-web:${AUTOOPS_IMAGE_TAG:-latest}
     build:
       context: ..
       dockerfile: docker/web/Dockerfile

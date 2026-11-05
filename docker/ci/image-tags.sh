@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Generate component-scoped tags without interpolating user input into shell code.
+# Generate tags inside each component's own image repository.
 set -euo pipefail
 : "${IMAGE_REPOSITORY:?}" "${COMPONENT:?}" "${GITHUB_SHA:?}" "${GITHUB_OUTPUT:?}"
 case "$COMPONENT" in api|web) ;; *) echo 'Unsupported image component' >&2; exit 1 ;; esac
@@ -12,7 +12,7 @@ if [[ -n "$version" && ! "$version" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$ ]]; th
 fi
 {
   echo 'tags<<AUTOOPS_IMAGE_TAGS'
-  printf '%s:%s-sha-%s\n' "$IMAGE_REPOSITORY" "$COMPONENT" "${GITHUB_SHA:0:12}"
-  if [[ -n "$version" ]]; then printf '%s:%s-%s\n' "$IMAGE_REPOSITORY" "$COMPONENT" "$version"; fi
+  printf '%s:sha-%s\n' "$IMAGE_REPOSITORY" "${GITHUB_SHA:0:12}"
+  if [[ -n "$version" ]]; then printf '%s:%s\n' "$IMAGE_REPOSITORY" "$version"; fi
   echo 'AUTOOPS_IMAGE_TAGS'
 } >> "$GITHUB_OUTPUT"

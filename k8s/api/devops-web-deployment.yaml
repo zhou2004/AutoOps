@@ -26,7 +26,7 @@ spec:
         - env:
             - name: TZ
               value: Asia/Shanghai
-          image: crpi-aj3vgoxp9kzh2jx4.cn-hangzhou.personal.cr.aliyuncs.com/zhangfan_k8s/deviops-web:v1.0
+          image: feelzhou/autoops-web:latest
           livenessProbe:
             exec:
               command:

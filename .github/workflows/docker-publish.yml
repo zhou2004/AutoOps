@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Optional version suffix, e.g. v1.0.0 (api-/web- are added automatically)
+        description: Optional image tag, e.g. v1.0.0 (published to both image repositories)
         required: false
         type: string
 
@@ -19,7 +19,7 @@ defaults:
     shell: bash
 
 env:
-  IMAGE_REPOSITORY: feelzhou/autoops
+  IMAGE_NAMESPACE: feelzhou
 
 jobs:
   verify:
@@ -84,6 +84,7 @@ jobs:
       - name: Generate component tags
         id: tags
         env:
+          IMAGE_REPOSITORY: ${{ env.IMAGE_NAMESPACE }}/autoops-${{ matrix.component }}
           COMPONENT: ${{ matrix.component }}
           CUSTOM_TAG: ${{ inputs.tag }}
         run: bash docker/ci/image-tags.sh
@@ -137,7 +138,8 @@ jobs:
             exit 0
           fi
           for component in api web; do
+            repository="$IMAGE_NAMESPACE/autoops-$component"
             docker buildx imagetools create \
-              --tag "$IMAGE_REPOSITORY:$component-latest" \
-              "$IMAGE_REPOSITORY:$component-sha-${GITHUB_SHA:0:12}"
+              --tag "$repository:latest" \
+              "$repository:sha-${GITHUB_SHA:0:12}"
           done
