@@ -27,8 +27,9 @@
 **/.eslintcache
 **/.DS_Store
 **/*_test.go
-**/test
-**/tests
+# Some production Vue views live under K8s/test; exclude backend tests only.
+api/test
+api/tests
 **/.ssh
 **/ssh_keys
 **/id_rsa*
