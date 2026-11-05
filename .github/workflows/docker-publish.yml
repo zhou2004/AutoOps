@@ -37,7 +37,7 @@ jobs:
       - name: Test database services, configuration and migrations
         working-directory: api
         run: go test ./api/database/... ./common/config ./pkg/db
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: pnpm/action-setup@f53f5227a9e83886ab598c617f3c170fab62f0d3 # v6 (Node.js 24 runtime)
         with:
           package_json_file: web/package.json
           run_install: false
