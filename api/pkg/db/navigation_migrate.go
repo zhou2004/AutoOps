@@ -20,12 +20,14 @@ func migrateManagementNavigation(database *gorm.DB) error {
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Order("id ASC").Find(&menus).Error; err != nil {
 			return err
 		}
-		var systemID, containerID, databaseID uint
+		var systemID, containerID, databaseID, cmdbID uint
 		for _, menu := range menus {
 			if menu.ParentId != 0 || menu.MenuType != 1 {
 				continue
 			}
 			switch menu.MenuName {
+			case "资产管理":
+				cmdbID = menu.ID
 			case "系统管理", "基础管理":
 				systemID = menu.ID
 			case "容器管理":
@@ -59,11 +61,13 @@ func migrateManagementNavigation(database *gorm.DB) error {
 			{databaseID, "集群管理", "database/clusters", "Connection", nil},
 			{databaseID, "存储管理", "database/storage", "Files", nil},
 			{databaseID, "备份恢复", "database/backups", "RefreshLeft", nil},
+			{databaseID, "日志管理", "database/logs", "Document", nil},
 			{systemID, "数据日志", "monitor/dblog", "Document", []string{"database/audit"}},
 
 			{containerID, "Docker管理", "k8s/docker", "Box", []string{"cmdb/docker"}},
 			{systemID, "API Key", "system/api-keys", "Key", []string{"system/role-permission"}},
 			{systemID, "授权管理", "system/authorization", "Lock", []string{"cmdb/asset-permission", "system/asset-permission", "system/k8s-permission", "k8s/permission", "cmdb/user-group", "cmdb/credential-permission"}},
+			{cmdbID, "机房管理", "cmdb/datacenter", "OfficeBuilding", []string{"system/machine", "cmdb/machine"}},
 		}
 		for changeIndex, change := range changes {
 			if change.parent == 0 {
@@ -106,6 +110,12 @@ func migrateManagementNavigation(database *gorm.DB) error {
 				}
 			}
 			if len(oldIDs) > 0 {
+				if change.url == "cmdb/datacenter" {
+					// Keep former inventory actions discoverable under the unified menu.
+					if err := tx.Model(&model.SysMenu{}).Where("parent_id IN ? AND parent_id <> ?", oldIDs, target.ID).Update("parent_id", target.ID).Error; err != nil {
+						return err
+					}
+				}
 				if err := tx.Model(&model.SysMenu{}).Where("id IN ? AND id <> ?", oldIDs, target.ID).Update("menu_status", 1).Error; err != nil {
 					return err
 				}

@@ -8,6 +8,10 @@ type CmdbIDC struct {
 	Name        string    `gorm:"size:100;not null;uniqueIndex;comment:'机房名称'" json:"name"`
 	ShortName   string    `gorm:"size:50;comment:'机房简称'" json:"shortName"`
 	Address     string    `gorm:"size:255;comment:'机房地址'" json:"address"`
+	Country     string    `gorm:"size:80" json:"country"`
+	City        string    `gorm:"size:80" json:"city"`
+	Longitude   *float64  `json:"longitude"`
+	Latitude    *float64  `json:"latitude"`
 	Contact     string    `gorm:"size:50;comment:'联系人'" json:"contact"`
 	Phone       string    `gorm:"size:30;comment:'联系电话'" json:"phone"`
 	Level       string    `gorm:"size:20;comment:'机房等级(T1-T4)'" json:"level"`

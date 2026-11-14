@@ -445,8 +445,9 @@
     <!-- 日志抽屉 -->
     <el-drawer
       v-model="logsVisible"
-      :title="`${currentContainer?.Names || ''} · 日志`"
-      size="60%"
+      :title="`${currentContainer?.Names || ''} · ${$tr('日志')}`"
+      size="min(1100px, 96vw)"
+      destroy-on-close
       ><div class="logs-toolbar">
         <el-input-number v-model="logTail" :min="1" :max="2000" /><el-button
           type="primary"
@@ -454,7 +455,7 @@
           >{{ $tr("刷新日志") }}</el-button
         >
       </div>
-      <pre class="docker-logs">{{ logs || "暂无日志" }}</pre>
+      <div class="docker-log-console"><LogConsole :text="logs" :title="currentContainer?.Names || $tr('容器日志')" /></div>
     </el-drawer>
 
     <!-- 创建容器 -->
@@ -869,6 +870,7 @@ import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import api from "@/api/cmdb";
 import DockerFileManager from "./DockerFileManager.vue";
+import LogConsole from "@/components/LogConsole/index.vue";
 
 const router = useRouter();
 
@@ -1827,6 +1829,7 @@ onMounted(() => loadAssets().catch(e => (error.value = e.message)));
   display: flex;
   flex-wrap: wrap;
 }
+.docker-log-console { height:calc(100dvh - 190px); min-height:280px; }
 .docker-logs {
   min-height: 520px;
   margin: 0;

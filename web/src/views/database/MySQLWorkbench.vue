@@ -1328,6 +1328,8 @@ onMounted(refresh);
   font-size: 11px;
 }
 .data-pagination {
+  flex-direction: column;
+  justify-content: center;
   margin-top: 16px;
   flex-wrap: wrap;
 }

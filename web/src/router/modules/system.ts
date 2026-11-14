@@ -63,8 +63,8 @@ export default {
     {
       path: "/system/machine",
       name: "SystemMachine",
-      component: () => import("@/views/system/Machine.vue"),
-      meta: { icon: menuIcon("/system/machine"), title: "机房信息" }
+      redirect: to => ({ path: "/cmdb/machine", query: to.query }),
+      meta: { title: "机房信息", showLink: false }
     },
     {
       path: "/system/personal",

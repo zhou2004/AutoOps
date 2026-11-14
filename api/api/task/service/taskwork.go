@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -22,7 +23,7 @@ import (
 
 type ITaskWorkService interface {
 	StartJob(taskID uint) error // 启动任务
-	RunNow(taskID uint, trigger int, operator string) (*model.TaskExecutionHistory, error)
+	RunNow(taskID uint, trigger int, operator string, overrides ...map[string]string) (*model.TaskExecutionHistory, error)
 	ScheduleTask(taskID uint) error
 	PauseExecution(taskID uint) error
 	ResumeExecution(taskID uint) error
@@ -43,13 +44,13 @@ func (s *TaskWorkServiceImpl) StartJob(taskID uint) error {
 	return err
 }
 
-func (s *TaskWorkServiceImpl) RunNow(taskID uint, trigger int, operator string) (*model.TaskExecutionHistory, error) {
+func (s *TaskWorkServiceImpl) RunNow(taskID uint, trigger int, operator string, overrides ...map[string]string) (*model.TaskExecutionHistory, error) {
 	taskQueue := GetTaskQueue()
 	if taskQueue == nil || !taskQueue.IsRunning() {
 		return nil, fmt.Errorf("任务队列服务未运行")
 	}
 	historyService := NewTaskHistoryService(common.GetDB())
-	history, jobs, err := historyService.BeginExecution(taskID, trigger, operator)
+	history, jobs, err := historyService.BeginExecution(taskID, trigger, operator, overrides...)
 	if err != nil {
 		return nil, err
 	}
@@ -356,33 +357,30 @@ func (s *TaskWorkServiceImpl) executeJob(job *model.TaskWork) error {
 		return s.finishFailedJob(historyService, job, startTime, fmt.Errorf("创建日志目录失败: %v", err))
 	}
 
-	var logContent string
-	var sshErr error
-	maxRetries := 3
-	for i := 0; i <= maxRetries; i++ {
-		logContent, sshErr = s.executeSSHTask(job, template, host)
-		if sshErr == nil {
-			break
-		}
-		if !isSSHConnectionError(sshErr) || i == maxRetries {
-			break
-		}
-		time.Sleep(5 * time.Second)
+	logPath := filepath.Join(logDir, fmt.Sprintf("work_%d.log", job.ID))
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
+	if err != nil {
+		return s.finishFailedJob(historyService, job, startTime, err)
 	}
+	defer logFile.Close()
+	if err := historyService.PublishLogPath(job, logPath); err != nil {
+		return s.finishFailedJob(historyService, job, startTime, err)
+	}
+	fmt.Fprintln(logFile, "正在连接执行主机…")
+	// Once submitted, an SSH interruption must never cause the command to run twice.
+	sshErr := s.executeSSHTask(job, template, host, logFile)
 	if sshErr != nil {
-		logContent = fmt.Sprintf("执行失败: %v\n%s", sshErr, logContent)
+		fmt.Fprintf(logFile, "\n执行失败: %v\n", sshErr)
 	}
 	stoppedByUser := s.wasExecutionStopped(job)
 	if stoppedByUser {
-		sshErr = errors.New("任务已被手动停止")
-		logContent = strings.TrimSpace(logContent) + "\n任务已被手动停止"
+		fmt.Fprintln(logFile, "任务已被手动停止")
 	}
-
-	logPath := filepath.Join(logDir, fmt.Sprintf("work_%d.log", job.ID))
-	if err := os.WriteFile(logPath, []byte(logContent), 0644); err != nil {
-		sshErr = errors.Join(sshErr, fmt.Errorf("写入日志文件失败: %v", err))
-		logPath = ""
+	content, readErr := os.ReadFile(logPath)
+	if readErr != nil {
+		sshErr = errors.Join(sshErr, readErr)
 	}
+	logContent := string(content)
 
 	endTime := time.Now()
 	status := model.TaskStatusSuccess
@@ -672,7 +670,7 @@ func (s *TaskWorkServiceImpl) getJobDetails(job *model.TaskWork) (*model.TaskTem
 		}
 		return &model.TaskTemplate{
 			ID: job.TemplateID, Name: executionLog.TemplateName,
-			Type: executionLog.CommandType, Content: executionLog.CommandSnapshot,
+			Type: executionLog.CommandType, Content: executionLog.CommandSnapshot, Parameters: executionLog.Parameters,
 		}, &host, nil
 	}
 
@@ -684,24 +682,17 @@ func (s *TaskWorkServiceImpl) getJobDetails(job *model.TaskWork) (*model.TaskTem
 	return &template, &host, nil
 }
 
-func isSSHConnectionError(err error) bool {
-	// 判断是否为SSH连接错误(包括超时)
-	return err != nil && (strings.Contains(err.Error(), "connection") ||
-		strings.Contains(err.Error(), "authentication") ||
-		strings.Contains(err.Error(), "timeout"))
-}
-
-func (s *TaskWorkServiceImpl) executeSSHTask(job *model.TaskWork, template *model.TaskTemplate, host *cmdbmodel.CmdbHost) (string, error) {
+func (s *TaskWorkServiceImpl) executeSSHTask(job *model.TaskWork, template *model.TaskTemplate, host *cmdbmodel.CmdbHost, output io.Writer) error {
 	sshUtil := util.NewSSHUtil()
 	sshConfig, err := taskSSHConfig(host)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	basePath := remoteExecutionBase(job)
 	extension, runner, err := commandRunner(template.Type, basePath, template.Content)
 	if err != nil {
-		return "", err
+		return err
 	}
 	scriptFile := basePath + extension
 	pidFile := basePath + ".pid"
@@ -710,7 +701,7 @@ func (s *TaskWorkServiceImpl) executeSSHTask(job *model.TaskWork, template *mode
 	payload := base64.StdEncoding.EncodeToString([]byte(template.Content))
 	wrappedRunner := fmt.Sprintf(
 		"echo \"[$(date '+%%F %%T')] 任务开始\"; %s; code=$?; echo \"[$(date '+%%F %%T')] 任务结束，退出码: $code\"; echo \"$code\" > %s; exit \"$code\"",
-		runner, shellQuote(exitFile),
+		taskParameterExports(template.Parameters)+runner, shellQuote(exitFile),
 	)
 	bootstrap := fmt.Sprintf(
 		"command -v setsid >/dev/null 2>&1 || { echo '目标服务器缺少 setsid，无法安全控制任务进程组'; exit 1; }; printf %%s %s | base64 -d > %s && chmod 700 %s || exit 1; rm -f %s %s %s; nohup setsid sh -c %s > %s 2>&1 & echo $! > %s",
@@ -719,7 +710,7 @@ func (s *TaskWorkServiceImpl) executeSSHTask(job *model.TaskWork, template *mode
 	)
 	_, err = sshUtil.ExecuteRemoteCommand(sshConfig, bootstrap)
 	if err != nil {
-		return "", fmt.Errorf("SSH执行失败: %v", err)
+		return fmt.Errorf("SSH执行失败: %v", err)
 	}
 
 	var pid string
@@ -733,35 +724,28 @@ func (s *TaskWorkServiceImpl) executeSSHTask(job *model.TaskWork, template *mode
 		time.Sleep(time.Second)
 	}
 	if pid == "" {
-		return "", fmt.Errorf("无法获取有效的进程PID")
+		return fmt.Errorf("无法获取有效的进程PID")
 	}
 
-	waitCmd := fmt.Sprintf("while kill -0 %s >/dev/null 2>&1; do sleep 1; done; for i in 1 2 3; do test -f %s && break; sleep 1; done", shellQuote(pid), shellQuote(exitFile))
-	if _, err := sshUtil.ExecuteRemoteCommand(sshConfig, waitCmd); err != nil {
-		return "", fmt.Errorf("等待任务完成失败: %v", err)
+	// Read bounded byte ranges over one SSH session. Test completion before the
+	// final drain so a short task's trailing output cannot be lost.
+	if err := sshUtil.ExecuteRemoteCommandStream(sshConfig, taskLogFollowCommand(remoteLog, exitFile, pid), output); err != nil {
+		return fmt.Errorf("日志通道中断（任务可能仍在远端执行）: %w", err)
 	}
-	marker := "__AUTOOPS_EXIT_CODE__="
-	finalLogCmd := fmt.Sprintf("cat %s 2>/dev/null; printf '\\n%s'; cat %s 2>/dev/null || printf 255", shellQuote(remoteLog), marker, shellQuote(exitFile))
-	finalOutput, err := sshUtil.ExecuteRemoteCommand(sshConfig, finalLogCmd)
+	exitOutput, err := sshUtil.ExecuteRemoteCommand(sshConfig, "cat "+shellQuote(exitFile)+" 2>/dev/null || printf 255")
 	if err != nil {
-		return "", fmt.Errorf("获取完整日志失败: %v", err)
+		return fmt.Errorf("获取退出状态失败: %w", err)
 	}
-	markerIndex := strings.LastIndex(finalOutput, marker)
-	exitCode := 255
-	logOutput := finalOutput
-	if markerIndex >= 0 {
-		logOutput = strings.TrimRight(finalOutput[:markerIndex], "\r\n")
-		exitCodeText := strings.TrimSpace(finalOutput[markerIndex+len(marker):])
-		if parsed, parseErr := strconv.Atoi(exitCodeText); parseErr == nil {
-			exitCode = parsed
-		}
+	exitCode, err := strconv.Atoi(strings.TrimSpace(exitOutput))
+	if err != nil {
+		return fmt.Errorf("无效的退出状态: %q", exitOutput)
 	}
 	cleanupCmd := fmt.Sprintf("rm -f %s %s %s %s", shellQuote(scriptFile), shellQuote(pidFile), shellQuote(exitFile), shellQuote(remoteLog))
 	_, _ = sshUtil.ExecuteRemoteCommand(sshConfig, cleanupCmd)
 	if exitCode != 0 {
-		return logOutput, fmt.Errorf("远程命令退出码: %d", exitCode)
+		return fmt.Errorf("远程命令退出码: %d", exitCode)
 	}
-	return logOutput, nil
+	return nil
 }
 
 func remoteExecutionBase(job *model.TaskWork) string {
@@ -775,7 +759,7 @@ func commandRunner(templateType int, basePath, content string) (string, string, 
 		return ".sh", "bash " + shellQuote(path), nil
 	case model.TemplateTypePython:
 		path := basePath + ".py"
-		return ".py", "python3 " + shellQuote(path), nil
+		return ".py", "python3 -u " + shellQuote(path), nil
 	case model.TemplateTypeAnsible:
 		path := basePath + ".yml"
 		return ".yml", "ansible-playbook " + shellQuote(path), nil

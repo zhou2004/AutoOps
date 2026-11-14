@@ -301,6 +301,23 @@ body.autoops-ui
   :is(.action-section, .header-actions, .asset-toolbar, .table-toolbar) {
   margin-bottom: 16px;
 }
+/* 紧凑任务操作列：图标始终单行，间距不叠加 Element Plus 默认外边距。 */
+body.autoops-ui .el-table .task-inline-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  white-space: nowrap;
+}
+body.autoops-ui .el-table .task-inline-actions > .el-button,
+body.autoops-ui .el-table .task-inline-actions > .el-dropdown {
+  flex-shrink: 0;
+  margin: 0;
+}
+body.autoops-ui .el-table .task-inline-actions > .el-button + .el-button {
+  margin-left: 0;
+}
 body.autoops-ui
   :is(.page-header, .asset-page-header, .page-hero, .task-page-header)
   :is(h1, h2),

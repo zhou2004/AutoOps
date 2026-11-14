@@ -37,9 +37,9 @@
 
 以下截图使用隔离演示数据。
 
-![业务分组层级列表](images/2026-10-24-business-groups.png)
+![业务分组层级列表](../assets/screenshots/2026-10-24-business-groups.png)
 
-![告警群组业务线选择](images/2026-10-24-alert-business-group-form.png)
+![告警群组业务线选择](../assets/screenshots/2026-10-24-alert-business-group-form.png)
 
 ## 工作负载“更多操作”点击修正
 

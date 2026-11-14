@@ -13,6 +13,25 @@ export default {
   },
   children: [
     {
+      path: "/cmdb/datacenter",
+      name: "CmdbDatacenter",
+      component: () => import("@/views/cmdb/DatacenterManagement.vue"),
+      meta: {
+        icon: menuIcon("/cmdb/datacenter"),
+        title: "机房管理",
+        uiLayout: "canvas"
+      }
+    },
+    {
+      path: "/cmdb/machine",
+      name: "CmdbMachine",
+      redirect: to => ({
+        path: "/cmdb/datacenter",
+        query: { ...to.query, tab: "inventory" }
+      }),
+      meta: { title: "机房管理", showLink: false }
+    },
+    {
       path: "/cmdb/remote",
       name: "CmdbRemote",
       component: () => import("@/views/cmdb/RemoteSession.vue"),

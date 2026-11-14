@@ -2,7 +2,9 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"strings"
@@ -28,14 +30,18 @@ type ICmdbIDCService interface {
 }
 
 type CmdbIDCReq struct {
-	Name        string `json:"name" binding:"required"`
-	ShortName   string `json:"shortName"`
-	Address     string `json:"address"`
-	Contact     string `json:"contact"`
-	Phone       string `json:"phone"`
-	Level       string `json:"level"`
-	Status      int    `json:"status"`
-	Description string `json:"description"`
+	Name        string   `json:"name" binding:"required"`
+	ShortName   string   `json:"shortName"`
+	Address     string   `json:"address"`
+	Country     string   `json:"country"`
+	City        string   `json:"city"`
+	Longitude   *float64 `json:"longitude"`
+	Latitude    *float64 `json:"latitude"`
+	Contact     string   `json:"contact"`
+	Phone       string   `json:"phone"`
+	Level       string   `json:"level"`
+	Status      int      `json:"status"`
+	Description string   `json:"description"`
 }
 
 type CmdbIDCServiceImpl struct {
@@ -47,8 +53,13 @@ func NewCmdbIDCService(db *gorm.DB) ICmdbIDCService {
 }
 
 func (s *CmdbIDCServiceImpl) Create(c *gin.Context, req *CmdbIDCReq) {
+	if err := validateIDCLocation(req); err != nil {
+		result.Failed(c, http.StatusBadRequest, err.Error())
+		return
+	}
 	data := &model.CmdbIDC{
 		Name: req.Name, ShortName: req.ShortName, Address: req.Address,
+		Country: req.Country, City: req.City, Longitude: req.Longitude, Latitude: req.Latitude,
 		Contact: req.Contact, Phone: req.Phone, Level: req.Level,
 		Status: req.Status, Description: req.Description,
 	}
@@ -63,6 +74,10 @@ func (s *CmdbIDCServiceImpl) Create(c *gin.Context, req *CmdbIDCReq) {
 }
 
 func (s *CmdbIDCServiceImpl) Update(c *gin.Context, id uint, req *CmdbIDCReq) {
+	if err := validateIDCLocation(req); err != nil {
+		result.Failed(c, http.StatusBadRequest, err.Error())
+		return
+	}
 	data, err := s.dao.GetByID(id)
 	if err != nil {
 		result.Failed(c, http.StatusNotFound, "机房不存在")
@@ -71,6 +86,7 @@ func (s *CmdbIDCServiceImpl) Update(c *gin.Context, id uint, req *CmdbIDCReq) {
 	data.Name = req.Name
 	data.ShortName = req.ShortName
 	data.Address = req.Address
+	data.Country, data.City, data.Longitude, data.Latitude = req.Country, req.City, req.Longitude, req.Latitude
 	data.Contact = req.Contact
 	data.Phone = req.Phone
 	data.Level = req.Level
@@ -133,14 +149,19 @@ type ICmdbCabinetService interface {
 }
 
 type CmdbCabinetReq struct {
-	Name     string  `json:"name" binding:"required"`
-	IDCID    uint    `json:"idcId" binding:"required"`
-	Position string  `json:"position"`
-	UnitNum  int     `json:"unitNum"`
-	UsedUnit int     `json:"usedUnit"`
-	PowerKW  float64 `json:"powerKw"`
-	Status   int     `json:"status"`
-	Remark   string  `json:"remark"`
+	Name     string   `json:"name" binding:"required"`
+	IDCID    uint     `json:"idcId" binding:"required"`
+	LayoutX  *float64 `json:"layoutX"`
+	LayoutZ  *float64 `json:"layoutZ"`
+	Rotation int      `json:"rotation"`
+	WidthMM  int      `json:"widthMm"`
+	DepthMM  int      `json:"depthMm"`
+	Position string   `json:"position"`
+	UnitNum  int      `json:"unitNum"`
+	UsedUnit int      `json:"usedUnit"`
+	PowerKW  float64  `json:"powerKw"`
+	Status   int      `json:"status"`
+	Remark   string   `json:"remark"`
 }
 
 type CmdbCabinetServiceImpl struct {
@@ -154,6 +175,7 @@ func NewCmdbCabinetService(db *gorm.DB) ICmdbCabinetService {
 func (s *CmdbCabinetServiceImpl) Create(c *gin.Context, req *CmdbCabinetReq) {
 	data := &model.CmdbCabinet{
 		Name: req.Name, IDCID: req.IDCID, Position: req.Position,
+		LayoutX: req.LayoutX, LayoutZ: req.LayoutZ, Rotation: req.Rotation, WidthMM: req.WidthMM, DepthMM: req.DepthMM,
 		UnitNum: req.UnitNum, UsedUnit: req.UsedUnit, PowerKW: req.PowerKW,
 		Status: req.Status, Remark: req.Remark,
 	}
@@ -161,7 +183,7 @@ func (s *CmdbCabinetServiceImpl) Create(c *gin.Context, req *CmdbCabinetReq) {
 		data.Status = 1
 	}
 	if err := s.dao.Create(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "创建机柜失败: "+err.Error())
+		assetPlacementFailure(c, "创建机柜", err)
 		return
 	}
 	result.Success(c, data)
@@ -176,6 +198,8 @@ func (s *CmdbCabinetServiceImpl) Update(c *gin.Context, id uint, req *CmdbCabine
 	data.Name = req.Name
 	data.IDCID = req.IDCID
 	data.Position = req.Position
+	data.LayoutX, data.LayoutZ, data.Rotation = req.LayoutX, req.LayoutZ, req.Rotation
+	data.WidthMM, data.DepthMM = req.WidthMM, req.DepthMM
 	data.UnitNum = req.UnitNum
 	data.UsedUnit = req.UsedUnit
 	data.PowerKW = req.PowerKW
@@ -185,7 +209,7 @@ func (s *CmdbCabinetServiceImpl) Update(c *gin.Context, id uint, req *CmdbCabine
 		data.Status = 1
 	}
 	if err := s.dao.Update(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "更新机柜失败: "+err.Error())
+		assetPlacementFailure(c, "更新机柜", err)
 		return
 	}
 	result.Success(c, data)
@@ -193,7 +217,7 @@ func (s *CmdbCabinetServiceImpl) Update(c *gin.Context, id uint, req *CmdbCabine
 
 func (s *CmdbCabinetServiceImpl) Delete(c *gin.Context, id uint) {
 	if err := s.dao.Delete(id); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "删除机柜失败: "+err.Error())
+		assetPlacementFailure(c, "删除机柜", err)
 		return
 	}
 	result.Success(c, nil)
@@ -252,6 +276,7 @@ type CmdbPhysicalMachineReq struct {
 	IDCID        uint   `json:"idcId"`
 	CabinetID    uint   `json:"cabinetId"`
 	UnitPosition int    `json:"unitPosition"`
+	UnitHeight   int    `json:"unitHeight"`
 	AssetStatus  int    `json:"assetStatus"`
 	PurchaseDate string `json:"purchaseDate"`
 	WarrantyDate string `json:"warrantyDate"`
@@ -277,7 +302,7 @@ func (s *CmdbPhysicalMachineServiceImpl) Create(c *gin.Context, req *CmdbPhysica
 		SN: req.SN, HostName: req.HostName, ManageIP: req.ManageIP,
 		BusinessIP: req.BusinessIP, Brand: req.Brand, Model: req.Model,
 		CPU: req.CPU, Memory: req.Memory, Disk: req.Disk, Raid: req.Raid,
-		IDCID: req.IDCID, CabinetID: req.CabinetID, UnitPosition: req.UnitPosition,
+		IDCID: req.IDCID, CabinetID: req.CabinetID, UnitPosition: req.UnitPosition, UnitHeight: req.UnitHeight,
 		AssetStatus: req.AssetStatus, PurchaseDate: req.PurchaseDate,
 		WarrantyDate: req.WarrantyDate, Vendor: req.Vendor,
 		Status: req.Status, Remark: req.Remark,
@@ -286,7 +311,7 @@ func (s *CmdbPhysicalMachineServiceImpl) Create(c *gin.Context, req *CmdbPhysica
 		data.Status = 1
 	}
 	if err := s.dao.Create(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "创建物理机失败: "+err.Error())
+		assetPlacementFailure(c, "创建物理机", err)
 		return
 	}
 	result.Success(c, data)
@@ -315,6 +340,7 @@ func (s *CmdbPhysicalMachineServiceImpl) Update(c *gin.Context, id uint, req *Cm
 	data.IDCID = req.IDCID
 	data.CabinetID = req.CabinetID
 	data.UnitPosition = req.UnitPosition
+	data.UnitHeight = req.UnitHeight
 	data.AssetStatus = req.AssetStatus
 	data.PurchaseDate = req.PurchaseDate
 	data.WarrantyDate = req.WarrantyDate
@@ -322,7 +348,7 @@ func (s *CmdbPhysicalMachineServiceImpl) Update(c *gin.Context, id uint, req *Cm
 	data.Status = req.Status
 	data.Remark = req.Remark
 	if err := s.dao.Update(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "更新物理机失败: "+err.Error())
+		assetPlacementFailure(c, "更新物理机", err)
 		return
 	}
 	result.Success(c, data)
@@ -330,7 +356,7 @@ func (s *CmdbPhysicalMachineServiceImpl) Update(c *gin.Context, id uint, req *Cm
 
 func (s *CmdbPhysicalMachineServiceImpl) Delete(c *gin.Context, id uint) {
 	if err := s.dao.Delete(id); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "删除物理机失败: "+err.Error())
+		assetPlacementFailure(c, "删除物理机", err)
 		return
 	}
 	result.Success(c, nil)
@@ -390,6 +416,8 @@ type CmdbNetworkDeviceReq struct {
 	PortNum      int    `json:"portNum"`
 	IDCID        uint   `json:"idcId"`
 	CabinetID    uint   `json:"cabinetId"`
+	UnitPosition int    `json:"unitPosition"`
+	UnitHeight   int    `json:"unitHeight"`
 	AssetStatus  int    `json:"assetStatus"`
 	PurchaseDate string `json:"purchaseDate"`
 	WarrantyDate string `json:"warrantyDate"`
@@ -410,7 +438,7 @@ func (s *CmdbNetworkDeviceServiceImpl) Create(c *gin.Context, req *CmdbNetworkDe
 		SN: req.SN, Name: req.Name, DeviceType: req.DeviceType,
 		Brand: req.Brand, Model: req.Model, ManageIP: req.ManageIP,
 		Version: req.Version, PortNum: req.PortNum,
-		IDCID: req.IDCID, CabinetID: req.CabinetID,
+		IDCID: req.IDCID, CabinetID: req.CabinetID, UnitPosition: req.UnitPosition, UnitHeight: req.UnitHeight,
 		AssetStatus: req.AssetStatus, PurchaseDate: req.PurchaseDate,
 		WarrantyDate: req.WarrantyDate, Status: req.Status, Remark: req.Remark,
 	}
@@ -418,7 +446,7 @@ func (s *CmdbNetworkDeviceServiceImpl) Create(c *gin.Context, req *CmdbNetworkDe
 		data.Status = 1
 	}
 	if err := s.dao.Create(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "创建网络设备失败: "+err.Error())
+		assetPlacementFailure(c, "创建网络设备", err)
 		return
 	}
 	result.Success(c, data)
@@ -440,13 +468,14 @@ func (s *CmdbNetworkDeviceServiceImpl) Update(c *gin.Context, id uint, req *Cmdb
 	data.PortNum = req.PortNum
 	data.IDCID = req.IDCID
 	data.CabinetID = req.CabinetID
+	data.UnitPosition, data.UnitHeight = req.UnitPosition, req.UnitHeight
 	data.AssetStatus = req.AssetStatus
 	data.PurchaseDate = req.PurchaseDate
 	data.WarrantyDate = req.WarrantyDate
 	data.Status = req.Status
 	data.Remark = req.Remark
 	if err := s.dao.Update(data); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "更新网络设备失败: "+err.Error())
+		assetPlacementFailure(c, "更新网络设备", err)
 		return
 	}
 	result.Success(c, data)
@@ -454,7 +483,7 @@ func (s *CmdbNetworkDeviceServiceImpl) Update(c *gin.Context, id uint, req *Cmdb
 
 func (s *CmdbNetworkDeviceServiceImpl) Delete(c *gin.Context, id uint) {
 	if err := s.dao.Delete(id); err != nil {
-		result.Failed(c, http.StatusInternalServerError, "删除网络设备失败: "+err.Error())
+		assetPlacementFailure(c, "删除网络设备", err)
 		return
 	}
 	result.Success(c, nil)
@@ -500,22 +529,25 @@ type ICmdbAssetPermissionService interface {
 }
 
 type CmdbAssetPermissionReq struct {
-	Name              string   `json:"name" binding:"required"`
-	Description       string   `json:"description"`
-	UserIDs           []uint   `json:"userIds"`
-	GroupIDs          []uint   `json:"groupIds"`
-	AssetTypes        []string `json:"assetTypes"`
-	HostGroupIDs      []uint   `json:"hostGroupIds"`
-	HostIDs           []uint   `json:"hostIds"`
-	PhysicalIDs       []uint   `json:"physicalIds"`
-	NetworkIDs        []uint   `json:"networkIds"`
-	DatabaseIDs       []uint   `json:"databaseIds"`
-	DatabaseClusterIDs []uint `json:"databaseClusterIds"`
-	IDCIDs            []uint   `json:"idcIds"`
-	PermissionActions []string `json:"permissionActions"`
-	IsActive          int      `json:"isActive"`
-	DateStart         string   `json:"dateStart"`
-	DateExpired       string   `json:"dateExpired"`
+	Name               string   `json:"name" binding:"required"`
+	Description        string   `json:"description"`
+	UserIDs            []uint   `json:"userIds"`
+	GroupIDs           []uint   `json:"groupIds"`
+	AssetTypes         []string `json:"assetTypes"`
+	HostGroupIDs       []uint   `json:"hostGroupIds"`
+	HostIDs            []uint   `json:"hostIds"`
+	PhysicalIDs        []uint   `json:"physicalIds"`
+	NetworkIDs         []uint   `json:"networkIds"`
+	DatabaseIDs        []uint   `json:"databaseIds"`
+	DatabaseClusterIDs []uint   `json:"databaseClusterIds"`
+	WebSourceIDs       []uint   `json:"webSourceIds"`
+	WebClusterIDs      []uint   `json:"webClusterIds"`
+	WebCertificateIDs  []uint   `json:"webCertificateIds"`
+	IDCIDs             []uint   `json:"idcIds"`
+	PermissionActions  []string `json:"permissionActions"`
+	IsActive           int      `json:"isActive"`
+	DateStart          string   `json:"dateStart"`
+	DateExpired        string   `json:"dateExpired"`
 }
 
 type CmdbAssetPermissionServiceImpl struct {
@@ -559,7 +591,7 @@ func validateAssetPermission(req *CmdbAssetPermissionReq) error {
 			return fmt.Errorf("未知权限操作: %s", action)
 		}
 	}
-	validTypes := map[string]bool{"host": true, "physical": true, "network": true, "database": true, "database_cluster": true, "idc": true, "cabinet": true, "group": true, "*": true}
+	validTypes := map[string]bool{"host": true, "physical": true, "network": true, "database": true, "database_cluster": true, "web_source": true, "web_cluster": true, "web_certificate": true, "idc": true, "cabinet": true, "group": true, "*": true}
 	for _, kind := range req.AssetTypes {
 		if !validTypes[kind] {
 			return fmt.Errorf("未知资产类型: %s", kind)
@@ -592,22 +624,25 @@ func (s *CmdbAssetPermissionServiceImpl) Create(c *gin.Context, req *CmdbAssetPe
 		return
 	}
 	data := &model.CmdbAssetPermission{
-		Name:              req.Name,
-		Description:       req.Description,
-		UserIDs:           toJSONStr(req.UserIDs),
-		GroupIDs:          toJSONStr(req.GroupIDs),
-		AssetTypes:        toJSONStr(req.AssetTypes),
-		HostGroupIDs:      toJSONStr(req.HostGroupIDs),
-		HostIDs:           toJSONStr(req.HostIDs),
-		PhysicalIDs:       toJSONStr(req.PhysicalIDs),
-		NetworkIDs:        toJSONStr(req.NetworkIDs),
-		DatabaseIDs:       toJSONStr(req.DatabaseIDs),
+		Name:               req.Name,
+		Description:        req.Description,
+		UserIDs:            toJSONStr(req.UserIDs),
+		GroupIDs:           toJSONStr(req.GroupIDs),
+		AssetTypes:         toJSONStr(req.AssetTypes),
+		HostGroupIDs:       toJSONStr(req.HostGroupIDs),
+		HostIDs:            toJSONStr(req.HostIDs),
+		PhysicalIDs:        toJSONStr(req.PhysicalIDs),
+		NetworkIDs:         toJSONStr(req.NetworkIDs),
+		DatabaseIDs:        toJSONStr(req.DatabaseIDs),
 		DatabaseClusterIDs: toJSONStr(req.DatabaseClusterIDs),
-		IDCIDs:            toJSONStr(req.IDCIDs),
-		PermissionActions: toJSONStr(req.PermissionActions),
-		IsActive:          req.IsActive,
-		DateStart:         req.DateStart,
-		DateExpired:       req.DateExpired,
+		WebSourceIDs:       toJSONStr(req.WebSourceIDs),
+		WebClusterIDs:      toJSONStr(req.WebClusterIDs),
+		WebCertificateIDs:  toJSONStr(req.WebCertificateIDs),
+		IDCIDs:             toJSONStr(req.IDCIDs),
+		PermissionActions:  toJSONStr(req.PermissionActions),
+		IsActive:           req.IsActive,
+		DateStart:          req.DateStart,
+		DateExpired:        req.DateExpired,
 	}
 	if err := s.dao.Create(data); err != nil {
 		result.Failed(c, http.StatusInternalServerError, "创建授权规则失败: "+err.Error())
@@ -637,6 +672,9 @@ func (s *CmdbAssetPermissionServiceImpl) Update(c *gin.Context, id uint, req *Cm
 	data.NetworkIDs = toJSONStr(req.NetworkIDs)
 	data.DatabaseIDs = toJSONStr(req.DatabaseIDs)
 	data.DatabaseClusterIDs = toJSONStr(req.DatabaseClusterIDs)
+	data.WebSourceIDs = toJSONStr(req.WebSourceIDs)
+	data.WebClusterIDs = toJSONStr(req.WebClusterIDs)
+	data.WebCertificateIDs = toJSONStr(req.WebCertificateIDs)
 	data.IDCIDs = toJSONStr(req.IDCIDs)
 	data.PermissionActions = toJSONStr(req.PermissionActions)
 	data.IsActive = req.IsActive
@@ -807,4 +845,25 @@ func (s *CmdbAssetPermissionServiceImpl) GetMyAllowedAssets(c *gin.Context) {
 		"physical": physicals,
 		"networks": networks,
 	})
+}
+
+func assetPlacementFailure(c *gin.Context, action string, err error) {
+	status := http.StatusInternalServerError
+	if errors.Is(err, dao.ErrRackPlacement) {
+		status = http.StatusBadRequest
+	}
+	result.Failed(c, status, action+"失败: "+err.Error())
+}
+
+func validateIDCLocation(req *CmdbIDCReq) error {
+	if (req.Longitude == nil) != (req.Latitude == nil) {
+		return errors.New("经度与纬度须同时填写或同时清空")
+	}
+	if req.Longitude != nil {
+		lon, lat := *req.Longitude, *req.Latitude
+		if math.IsNaN(lon) || math.IsInf(lon, 0) || math.IsNaN(lat) || math.IsInf(lat, 0) || lon < -180 || lon > 180 || lat < -90 || lat > 90 {
+			return errors.New("经度范围 -180–180，纬度范围 -90–90")
+		}
+	}
+	return nil
 }

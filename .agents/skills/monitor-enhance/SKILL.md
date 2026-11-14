@@ -254,3 +254,7 @@ API 函数统一在 `web/src/api/monitor.js` 中，路由注册在 `web/src/rout
 告警群组表单不再接收 YAML。`MonitorAlertGroupRule.CmdbGroupID` 关联 CMDB 业务分组，`GET /monitor/alert/business-groups` 返回按当前用户资产分组 get 权限过滤的 id/parentId/name 元数据，保存时再次验证权限与存在性。旧记录保留 cmdb_group_id=0 和原标签，用户编辑时选择真实分组。
 
 编辑群组不得通过删除并重新导入 YAML 来重建子规则；只更新元数据，从现有规则生成内部 YAML，保留规则 ID、启用状态、告警状态和其他标签。规则列表的 dataSourceId/cmdbGroupId 在 DAO 中先过滤再分页。前端入口为 `web/src/views/monitor/Alarm-rules.vue`，API 客户端为 `web/src/api/monitor.ts`。详见 `docs/2026-10-24-alert-business-groups.md`。
+
+## 域名证书自动巡检（2026-11-14）
+
+API 主进程通过 `collectorCtx` 启动 `RunDomainCertChecks`：启动立即巡检，完成后每 5 分钟重复，最多 4 个并发，关闭时取消 TLS 探测。同一进程不叠加轮次；检查只保存观测结果，告警仍由规则引擎处理。页面每 30 秒刷新列表，不负责触发巡检。修改目标立即重检；写结果须校验域名/端口与检查时间，避免旧请求覆盖新目标。验证入口：`domain_cert_collector_test.go`、`dao/domain_cert_test.go`。

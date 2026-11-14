@@ -114,5 +114,5 @@ func (d *DomainCertDao) BatchDelete(ids []uint) error {
 	return d.db.Delete(&model.DomainCert{}, ids).Error
 }
 func (d *DomainCertDao) UpdateCheck(cert *model.DomainCert) error {
-	return d.db.Model(cert).Select("issuer", "subject", "not_before", "not_after", "remaining_days", "status", "check_time", "error_msg").Updates(cert).Error
+	return d.db.Model(cert).Where("domain = ? AND port = ? AND (check_time IS NULL OR check_time <= ?)", cert.Domain, cert.Port, cert.CheckTime).Select("issuer", "subject", "not_before", "not_after", "remaining_days", "status", "check_time", "error_msg").Updates(cert).Error
 }

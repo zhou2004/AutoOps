@@ -32,6 +32,7 @@ export function UpdateTemplate(data) {
       name: data.name,
       type: data.type,
       content: data.content,
+      parameters: data.parameters || {},
       remark: data.remark
     }
   })
@@ -174,10 +175,11 @@ export function GetNextExecutionTime(params) {
 }
 
 // 手动立即触发任务（普通任务和定时任务均可）
-export function RunTaskNow(id) {
+export function RunTaskNow(id, data = {}) {
   return request({
     url: `task/${id}/run`,
-    method: 'post'
+    method: 'post',
+    data
   })
 }
 
@@ -788,4 +790,18 @@ export function GetAllAnsibleViews() {
     url: '/task/ansible/view/all',
     method: 'get'
   })
+}
+
+// 任务作业分组
+export function GetTaskJobGroups() {
+  return request({ url: 'task/groups', method: 'get', silentErrorStatuses: [404] })
+}
+export function CreateTaskJobGroup(data) {
+  return request({ url: 'task/groups', method: 'post', data })
+}
+export function UpdateTaskJobGroup(id, data) {
+  return request({ url: `task/groups/${id}`, method: 'put', data })
+}
+export function DeleteTaskJobGroup(id) {
+  return request({ url: `task/groups/${id}`, method: 'delete' })
 }

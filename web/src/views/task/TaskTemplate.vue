@@ -207,6 +207,9 @@
             :placeholder='$tr("请输入模板内容")'
           />
         </el-form-item>
+        <el-form-item label="默认参数">
+          <TaskParameters ref="parametersRef" v-model="currentTemplate.parameters" help="配置可复用的默认参数。依赖此模板的任务可单独覆盖，修改默认值会应用于后续执行。" />
+        </el-form-item>
         <el-form-item :label='$tr("备注信息")'>
           <el-input 
             v-model="currentTemplate.remark" 
@@ -240,6 +243,7 @@
 </template>
 
 <script setup>
+import TaskParameters from './Job/TaskParameters.vue'
 import { tr } from "@/locales";
 
 import { ref, reactive, onMounted } from 'vue'
@@ -271,7 +275,9 @@ const queryParams = reactive({
   type: null
 })
 
+const parametersRef = ref()
 const currentTemplate = ref({
+  parameters: {},
   name: '',
   type: 1,
   content: '',
@@ -333,13 +339,14 @@ const handleCreate = () => {
   currentTemplate.value = {
     name: '',
     type: 1,
-    content: ''
+    content: '',
+    parameters: {}
   }
   formVisible.value = true
 }
 
 const handleEdit = (template) => {
-  currentTemplate.value = { ...template }
+  currentTemplate.value = { ...template, parameters: { ...template.parameters } }
   formVisible.value = true
 }
 
@@ -375,12 +382,14 @@ const handleViewContent = async (id) => {
 
 const handleSubmit = async () => {
   await templateFormRef.value.validate()
+  try { currentTemplate.value.parameters = parametersRef.value.getValue() } catch (e) { ElMessage.error(e.message); return }
   if (currentTemplate.value.id) {
     const updateData = {
       id: currentTemplate.value.id,
       name: currentTemplate.value.name,
       type: currentTemplate.value.type,
       content: currentTemplate.value.content,
+      parameters: currentTemplate.value.parameters,
       remark: currentTemplate.value.remark || ''
     }
     await UpdateTemplate(updateData)

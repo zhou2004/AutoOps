@@ -487,7 +487,7 @@ func (s *monitorAlertRuleService) evaluateRulesOnce() {
 					continue
 				}
 				// Skip internal-style rules, processed by evaluateInternalRules
-				if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" {
+				if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" || r.Style == "web" {
 					continue
 				}
 
@@ -557,11 +557,13 @@ func (s *monitorAlertRuleService) evaluateInternalRules(ctx context.Context, rdb
 		if r.Expr == "" || r.Alert == "" || r.Enabled == nil || *r.Enabled == 0 {
 			continue
 		}
-		if r.Style != "domain_cert" && r.Style != "api_endpoint" && r.Style != "database" {
+		if r.Style != "domain_cert" && r.Style != "api_endpoint" && r.Style != "database" && r.Style != "web" {
 			continue
 		}
 
-		if r.Style == "database" {
+		if r.Style == "web" {
+			s.evalWebRule(ctx, rdb, r)
+		} else if r.Style == "database" {
 			s.evalDatabaseRule(ctx, rdb, r)
 		} else if r.Style == "domain_cert" {
 			s.evalDomainCertRule(ctx, rdb, r, domainCerts)
@@ -1027,7 +1029,7 @@ func sendWebhook(r *model.MonitorAlertRule, metric map[string]string, status str
 
 	labels["monitor_rule_id"] = strconv.FormatUint(uint64(r.ID), 10)
 	labels["monitor_source"] = "prometheus"
-	if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" {
+	if r.Style == "domain_cert" || r.Style == "api_endpoint" || r.Style == "database" || r.Style == "web" {
 		labels["monitor_source"] = r.Style
 		labels["monitor_source_id"] = metric["monitor_source_id"]
 	}

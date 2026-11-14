@@ -391,6 +391,7 @@ const sources = [
   { value: "domain_cert", label: "域名证书" },
   { value: "api_endpoint", label: "API 监控" },
   { value: "database", label: "数据库管理" },
+  { value: "web", label: "Web 管理" },
   { value: "prometheus", label: "Prometheus" },
   { value: "legacy", label: "历史故障" }
 ];

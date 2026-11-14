@@ -1,0 +1,126 @@
+/* Shared by the visualization and its teleported dialogs. */
+.facility-surface {
+  --facility-bg: #f2f6fb;
+  --facility-panel: #ffffff;
+  --facility-panel-alt: #f3f7fc;
+  --facility-line: #d9e4ee;
+  --facility-text: #253d53;
+  --facility-muted: #5e768b;
+  --facility-accent: #087da3;
+  --facility-selected: #e3f2fb;
+  --facility-scene-center: #f8fbff;
+  --facility-scene-edge: #dce8f2;
+  --facility-empty: #e7eef5;
+  --facility-physical: #dcecfb;
+  --facility-physical-text: #23547d;
+  --facility-network: #d6eee8;
+  --facility-network-text: #186352;
+  --facility-restricted: #e3e7ec;
+  --facility-warning: #95601b;
+  --bg-card: var(--facility-panel);
+  --bg-card-alt: var(--facility-panel-alt);
+  --text-primary: var(--facility-text);
+  --text-regular: var(--facility-text);
+  --border-light: var(--facility-line);
+  --el-bg-color: var(--facility-panel);
+  --el-fill-color-blank: var(--facility-panel);
+  --el-fill-color-light: var(--facility-panel-alt);
+  --el-fill-color-lighter: var(--facility-panel-alt);
+  --el-border-color: var(--facility-line);
+  --el-border-color-lighter: var(--facility-line);
+  --el-text-color-primary: var(--facility-text);
+  --el-text-color-regular: var(--facility-text);
+  --el-text-color-secondary: var(--facility-muted);
+  color: var(--facility-text);
+}
+.facility-surface[data-facility-theme="dark"] {
+  --facility-bg: #071726;
+  --facility-panel: #0c2132;
+  --facility-panel-alt: #102c40;
+  --facility-line: #29465c;
+  --facility-text: #c8dfed;
+  --facility-muted: #8caec4;
+  --facility-accent: #6bd9ed;
+  --facility-selected: #163e55;
+  --facility-scene-center: #1e3a50;
+  --facility-scene-edge: #050e19;
+  --facility-empty: #142a3d;
+  --facility-physical: #1b3d58;
+  --facility-physical-text: #b9dced;
+  --facility-network: #154547;
+  --facility-network-text: #91daca;
+  --facility-restricted: #303b48;
+  --facility-warning: #e6bd82;
+}
+.facility-surface .el-input__wrapper {
+  background: var(--facility-panel);
+  box-shadow: 0 0 0 1px var(--facility-line);
+}
+.facility-surface .el-input__inner {
+  color: var(--facility-text);
+}
+.facility-surface .el-loading-mask {
+  background: color-mix(in srgb, var(--facility-bg) 80%, transparent);
+}
+.facility-surface button:focus-visible {
+  outline: 2px solid var(--facility-accent);
+  outline-offset: 2px;
+}
+.facility-surface .el-descriptions__cell {
+  background: var(--facility-panel);
+  color: var(--facility-text);
+}
+.facility-surface .el-descriptions__label.el-descriptions__cell {
+  background: var(--facility-panel-alt);
+}
+.facility-surface .device-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: var(--facility-accent);
+}
+.facility-surface .device-heading h2 {
+  font-size: 18px;
+  color: var(--facility-text);
+}
+.facility-surface .demo-device-note {
+  margin-top: 20px;
+  color: var(--facility-muted);
+  font-size: 12px;
+}
+.facility-device-overlay {
+  pointer-events: none;
+}
+.facility-device-drawer {
+  pointer-events: auto;
+  border-left: 1px solid var(--facility-line);
+}
+.facility-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.facility-stat-grid article {
+  padding: 18px;
+  border: 1px solid var(--facility-line);
+  background: var(--facility-panel-alt);
+  border-radius: 8px;
+}
+.facility-stat-grid span,
+.facility-stat-grid small {
+  display: block;
+  color: var(--facility-muted);
+  font-size: 12px;
+}
+.facility-stat-grid strong {
+  display: block;
+  color: var(--facility-text);
+  font: 28px monospace;
+  margin: 10px 0;
+}
+.facility-stat-grid em {
+  font-size: 12px;
+  font-style: normal;
+  margin-left: 8px;
+}

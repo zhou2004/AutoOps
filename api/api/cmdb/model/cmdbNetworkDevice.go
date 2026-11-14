@@ -17,6 +17,8 @@ type CmdbNetworkDevice struct {
 	IDC          *CmdbIDC     `gorm:"foreignKey:IDCID" json:"idc"`
 	CabinetID    uint         `gorm:"comment:'所属机柜ID'" json:"cabinetId"`
 	Cabinet      *CmdbCabinet `gorm:"foreignKey:CabinetID" json:"cabinet"`
+	UnitPosition int          `gorm:"default:0;comment:起始U位" json:"unitPosition"`
+	UnitHeight   int          `gorm:"default:1;comment:设备高度U" json:"unitHeight"`
 	AssetStatus  int          `gorm:"default:1;comment:'资产状态:1-在库,2-已上架,3-维修中,4-已下架,5-报废'" json:"assetStatus"`
 	PurchaseDate string       `gorm:"size:20;comment:'采购日期'" json:"purchaseDate"`
 	WarrantyDate string       `gorm:"size:20;comment:'维保到期'" json:"warrantyDate"`

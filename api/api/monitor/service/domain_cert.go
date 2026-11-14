@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"math"
@@ -83,7 +84,10 @@ func (s *DomainCertServiceImpl) Add(c *gin.Context, req *model.DomainCertAddReq)
 		result.Failed(c, 500, "添加失败: "+err.Error())
 		return
 	}
-	s.checkCertInternal(cert)
+	s.checkCertContext(c.Request.Context(), cert)
+	if c.Request.Context().Err() != nil {
+		return
+	}
 	if err := s.dao.UpdateCheck(cert); err != nil {
 		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
 		return
@@ -124,6 +128,14 @@ func (s *DomainCertServiceImpl) Update(c *gin.Context, req *model.DomainCertUpda
 		result.Failed(c, 500, "更新失败: "+err.Error())
 		return
 	}
+	s.checkCertContext(c.Request.Context(), cert)
+	if c.Request.Context().Err() != nil {
+		return
+	}
+	if err := s.dao.UpdateCheck(cert); err != nil {
+		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
+		return
+	}
 	result.Success(c, cert)
 }
 
@@ -153,7 +165,10 @@ func (s *DomainCertServiceImpl) CheckCert(c *gin.Context, id uint) {
 		result.Failed(c, 404, "未找到该域名记录")
 		return
 	}
-	s.checkCertInternal(cert)
+	s.checkCertContext(c.Request.Context(), cert)
+	if c.Request.Context().Err() != nil {
+		return
+	}
 	if err := s.dao.UpdateCheck(cert); err != nil {
 		result.Failed(c, 500, "保存检查结果失败: "+err.Error())
 		return
@@ -169,7 +184,10 @@ func (s *DomainCertServiceImpl) CheckAllCerts(c *gin.Context) {
 	}
 	var results []model.DomainCertCheckResult
 	for i := range list {
-		s.checkCertInternal(&list[i])
+		s.checkCertContext(c.Request.Context(), &list[i])
+		if c.Request.Context().Err() != nil {
+			return
+		}
 		if err := s.dao.UpdateCheck(&list[i]); err != nil {
 			result.Failed(c, 500, "保存检查结果失败: "+err.Error())
 			return
@@ -184,16 +202,17 @@ func (s *DomainCertServiceImpl) GetAllForEval() ([]model.DomainCert, error) {
 	return s.dao.GetAll()
 }
 
-func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
+func (s *DomainCertServiceImpl) checkCertContext(ctx context.Context, cert *model.DomainCert) {
 	now := time.Now()
 	cert.CheckTime = now.Format("2006-01-02 15:04:05")
 	addr := net.JoinHostPort(cert.Domain, strconv.Itoa(cert.Port))
 
-	conn, err := tls.DialWithDialer(
-		&net.Dialer{Timeout: 10 * time.Second},
-		"tcp", addr,
-		&tls.Config{InsecureSkipVerify: true},
-	)
+	dialer := &tls.Dialer{
+		NetDialer: &net.Dialer{Timeout: 10 * time.Second},
+		// Monitoring must also retrieve expired certificates.
+		Config: &tls.Config{InsecureSkipVerify: true},
+	}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		cert.Status = 4
 		cert.ErrorMsg = fmt.Sprintf("连接失败: %v", err)
@@ -202,7 +221,7 @@ func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
 	}
 	defer conn.Close()
 
-	state := conn.ConnectionState()
+	state := conn.(*tls.Conn).ConnectionState()
 	if len(state.PeerCertificates) == 0 {
 		cert.Status = 4
 		cert.ErrorMsg = "未获取到服务器证书"
@@ -222,7 +241,7 @@ func (s *DomainCertServiceImpl) checkCertInternal(cert *model.DomainCert) {
 	remaining := peerCert.NotAfter.Sub(now)
 	remainingDays := int(math.Ceil(remaining.Hours() / 24))
 
-	if remainingDays < 0 {
+	if !peerCert.NotAfter.After(now) {
 		cert.RemainingDays = 0
 		cert.Status = 3
 		cert.ErrorMsg = fmt.Sprintf("证书已于 %s 过期", cert.NotAfter)

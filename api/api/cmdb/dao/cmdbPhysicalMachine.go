@@ -16,17 +16,17 @@ func NewCmdbPhysicalMachineDao(db *gorm.DB) *CmdbPhysicalMachineDao {
 }
 
 func (d *CmdbPhysicalMachineDao) Create(data *model.CmdbPhysicalMachine) error {
-	return d.db.Create(data).Error
+	return saveRackAsset(d.db, "cmdb_physical_machine", 0, data.IDCID, data.CabinetID, data.UnitPosition, &data.UnitHeight, data)
 }
 
 func (d *CmdbPhysicalMachineDao) Update(data *model.CmdbPhysicalMachine) error {
 	data.IDC = nil
 	data.Cabinet = nil
-	return d.db.Save(data).Error
+	return saveRackAsset(d.db, "cmdb_physical_machine", data.ID, data.IDCID, data.CabinetID, data.UnitPosition, &data.UnitHeight, data)
 }
 
 func (d *CmdbPhysicalMachineDao) Delete(id uint) error {
-	return d.db.Delete(&model.CmdbPhysicalMachine{}, id).Error
+	return deleteRackAsset(d.db, "cmdb_physical_machine", id)
 }
 
 func (d *CmdbPhysicalMachineDao) GetByID(id uint) (*model.CmdbPhysicalMachine, error) {

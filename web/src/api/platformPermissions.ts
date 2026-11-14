@@ -1,4 +1,5 @@
 import { getToken, removeToken } from "@/utils/auth";
+import { apiV1Base } from "./platformUrl";
 export interface PlatformIdentity {
   userId: number;
   username: string;
@@ -16,15 +17,18 @@ export interface PlatformRole {
   roleKey: string;
   status: number;
 }
-const base = `${(import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "")}/api/v1`;
+export const platformApiBase = apiV1Base(import.meta.env.VITE_API_BASE_URL);
 export async function platformRequest<T>(
   path: string,
   method = "GET",
-  body?: unknown
+  body?: unknown,
+  timeout = 20000,
+  signal?: AbortSignal
 ): Promise<T> {
-  const res = await fetch(`${base}${path}`, {
+  const deadline = AbortSignal.timeout(timeout);
+  const res = await fetch(`${platformApiBase}${path}`, {
     method,
-    signal: AbortSignal.timeout(20000),
+    signal: signal ? AbortSignal.any([deadline, signal]) : deadline,
     headers: {
       Authorization: `Bearer ${getToken()}`,
       "Content-Type": "application/json"
@@ -33,6 +37,7 @@ export async function platformRequest<T>(
   });
   if (res.status === 401) removeToken();
   const data = await res.json();
+  if (data.code === 401) removeToken();
   if (!res.ok || data.code !== 200)
     throw new Error(data.message || data.msg || "请求失败");
   return data.data;

@@ -1,10 +1,11 @@
 package dao
 
 import (
-	"time"
 	"dodevops-api/api/configcenter/model"
 	"dodevops-api/common"
 	"dodevops-api/common/util"
+	"errors"
+	"time"
 )
 
 type KeyManageDao struct{}
@@ -23,12 +24,27 @@ func (d *KeyManageDao) Create(keyManage *model.KeyManage) error {
 
 // Update 更新密钥
 func (d *KeyManageDao) Update(keyManage *model.KeyManage) error {
-	if err := keyManage.EncryptKeys(); err != nil {
-		return err
+	if keyManage.KeyType == 6 && keyManage.KeySecret == "" {
+		var old model.KeyManage
+		if e := common.GetDB().First(&old, keyManage.ID).Error; e != nil {
+			return e
+		}
+		if old.KeyType != 6 {
+			return errors.New("Cloudflare Token 不能为空")
+		}
+		keyManage.KeyID = "cloudflare"
+		keyManage.KeySecret = old.KeySecret
+	} else {
+		if keyManage.KeySecret == "" {
+			return errors.New("密钥 Secret 不能为空")
+		}
+		if err := keyManage.EncryptKeys(); err != nil {
+			return err
+		}
 	}
 	// 设置当前时间为更新时间
 	keyManage.UpdatedAt = util.HTime{Time: time.Now()}
-	
+
 	return common.GetDB().Model(keyManage).Updates(map[string]interface{}{
 		"key_type":   keyManage.KeyType,
 		"key_id":     keyManage.KeyID,
@@ -61,14 +77,14 @@ func (d *KeyManageDao) List() ([]model.KeyManage, error) {
 func (d *KeyManageDao) ListWithPage(page, pageSize int) ([]model.KeyManage, int64, error) {
 	var keyManages []model.KeyManage
 	var total int64
-	
+
 	offset := (page - 1) * pageSize
-	
+
 	db := common.GetDB()
 	if err := db.Model(&model.KeyManage{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	
+
 	err := db.Offset(offset).Limit(pageSize).Find(&keyManages).Error
 	return keyManages, total, err
 }

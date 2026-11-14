@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"fmt"
 	"dodevops-api/api/configcenter/model"
 	"dodevops-api/api/configcenter/service"
 	"dodevops-api/common/result"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -169,6 +169,15 @@ func (c *KeyManageController) DecryptKeys(ctx *gin.Context) {
 	}
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		result.Failed(ctx, 400, "参数错误: "+err.Error())
+		return
+	}
+	stored, err := c.service.GetByID(req.ID)
+	if err != nil {
+		result.Failed(ctx, 404, "凭据不存在")
+		return
+	}
+	if stored.KeyType == 6 {
+		result.Failed(ctx, 403, "Cloudflare Token 不支持读取或导出")
 		return
 	}
 	keyID, keySecret, err := c.service.DecryptKeys(req.ID)

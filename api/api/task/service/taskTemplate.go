@@ -40,6 +40,10 @@ func NewTaskServiceImpl(
 }
 
 func (s *TaskService) CreateTemplate(ctx *gin.Context, template *model.TaskTemplate) *result.Result {
+	if err := validateTaskParameters(template.Parameters); err != nil {
+		result.Failed(ctx, 400, err.Error())
+		return nil
+	}
 	if !model.IsSupportedTemplateType(template.Type) {
 		result.Failed(ctx, http.StatusBadRequest, "不支持的模板语言")
 		return nil
@@ -93,15 +97,16 @@ func (s *TaskService) GetAllTemplates(ctx *gin.Context) *result.Result {
 	var formattedTemplates []gin.H
 	for _, t := range templates {
 		formattedTemplates = append(formattedTemplates, gin.H{
-			"id":        t.ID,
-			"name":      t.Name,
-			"type":      t.Type,
-			"content":   t.Content,
-			"remark":    t.Remark,
-			"createdBy": t.CreatedBy,
-			"updatedBy": t.UpdatedBy,
-			"createdAt": t.CreatedAt.Format("2006-01-02 15:04:05"),
-			"updatedAt": t.UpdatedAt.Format("2006-01-02 15:04:05"),
+			"id":         t.ID,
+			"name":       t.Name,
+			"type":       t.Type,
+			"content":    t.Content,
+			"parameters": t.Parameters,
+			"remark":     t.Remark,
+			"createdBy":  t.CreatedBy,
+			"updatedBy":  t.UpdatedBy,
+			"createdAt":  t.CreatedAt.Format("2006-01-02 15:04:05"),
+			"updatedAt":  t.UpdatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
 	result.Success(ctx, formattedTemplates)
@@ -109,6 +114,10 @@ func (s *TaskService) GetAllTemplates(ctx *gin.Context) *result.Result {
 }
 
 func (s *TaskService) UpdateTemplate(ctx *gin.Context, template *model.TaskTemplate) *result.Result {
+	if err := validateTaskParameters(template.Parameters); err != nil {
+		result.Failed(ctx, 400, err.Error())
+		return nil
+	}
 	if !model.IsSupportedTemplateType(template.Type) {
 		result.Failed(ctx, http.StatusBadRequest, "不支持的模板语言")
 		return nil
@@ -168,15 +177,16 @@ func (s *TaskService) GetTemplateByID(ctx *gin.Context, id uint) *result.Result 
 
 	// 格式化时间
 	formattedTemplate := gin.H{
-		"id":        template.ID,
-		"name":      template.Name,
-		"type":      template.Type,
-		"content":   template.Content,
-		"remark":    template.Remark,
-		"createdBy": template.CreatedBy,
-		"updatedBy": template.UpdatedBy,
-		"createdAt": template.CreatedAt.Format("2006-01-02 15:04:05"),
-		"updatedAt": template.UpdatedAt.Format("2006-01-02 15:04:05"),
+		"id":         template.ID,
+		"name":       template.Name,
+		"type":       template.Type,
+		"content":    template.Content,
+		"parameters": template.Parameters,
+		"remark":     template.Remark,
+		"createdBy":  template.CreatedBy,
+		"updatedBy":  template.UpdatedBy,
+		"createdAt":  template.CreatedAt.Format("2006-01-02 15:04:05"),
+		"updatedAt":  template.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
 	result.Success(ctx, formattedTemplate)
 	return nil

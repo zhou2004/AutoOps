@@ -61,12 +61,12 @@
 
       <!-- Table -->
       <el-table :data="list" v-loading="loading" row-key="id" class="asset-table" style="width:100%">
-        <el-table-column :label='$tr("设备")' min-width="230" fixed="left"><template #default="{row}"><div class="asset-identity"><span class="asset-avatar">PHY</span><div class="asset-cell"><strong>{{ row.hostName || row.sn }}</strong><span class="asset-muted asset-mono">{{ row.sn || '未登记序列号' }}</span></div></div></template></el-table-column>
+        <el-table-column :label='$tr("设备")' min-width="230" fixed="left"><template #default="{row}"><div class="asset-identity"><span class="asset-avatar"><AssetIcon kind="physical" /></span><div class="asset-cell"><strong>{{ row.hostName || row.sn }}</strong><span class="asset-muted asset-mono">{{ row.sn || '未登记序列号' }}</span></div></div></template></el-table-column>
         <el-table-column :label='$tr("访问地址")' min-width="190"><template #default="{row}"><div class="asset-cell"><span class="asset-mono">{{ row.manageIp || '—' }} <small class="asset-muted">{{ $tr("管理") }}</small></span><span class="asset-mono asset-muted">{{ row.businessIp || '—' }} <small>{{ $tr("业务") }}</small></span></div></template></el-table-column>
         <el-table-column :label='$tr("硬件")' min-width="170"><template #default="{row}"><div class="asset-cell"><span>{{ row.brand || '—' }} · {{ row.model || '—' }}</span><span class="asset-muted">{{ row.memory || '—' }} {{ $tr("内存 ·") }} {{ row.disk || '—' }}</span></div></template></el-table-column>
         <el-table-column :label='$tr("位置")' min-width="160">
           <template #default="{row}">
-            <span v-if="row.idc">{{ row.idc.name }} / {{ row.cabinet ? row.cabinet.name : '-' }}</span>
+            <div v-if="row.idc" class="asset-cell"><el-button link type="primary" @click="$router.push({path:'/cmdb/datacenter',query:{idcId:row.idcId,cabinetId:row.cabinetId}})">{{ row.idc.name }} / {{ row.cabinet ? row.cabinet.name : '-' }}</el-button><small class="asset-muted">{{ row.unitPosition ? `${row.unitPosition}–${row.unitPosition + (row.unitHeight || 1) - 1} U · ${row.unitHeight || 1}U 高` : 'U 位未登记' }}</small></div>
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -153,7 +153,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item :label='$tr("机柜")'>
-              <el-select v-model="form.cabinetId" :placeholder='$tr("选择机柜")' clearable filterable style="width:100%">
+              <el-select v-model="form.cabinetId" @change="form.unitPosition = 0" :placeholder='$tr("选择机柜")' clearable filterable style="width:100%">
                 <el-option v-for="c in cabinetOptions" :key="c.id" :label="$tr(c.name)" :value="c.id" />
               </el-select>
             </el-form-item>
@@ -161,7 +161,8 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="8">
-            <el-form-item :label='$tr("U位")'><el-input-number v-model="form.unitPosition" :min="0" :max="100" /></el-form-item>
+            <el-form-item label="起始 U 位"><el-input-number v-model="form.unitPosition" :min="0" :max="100" /><small>0 表示未定位；U1 在机柜底部</small></el-form-item>
+<el-form-item label="设备高度 (U)"><el-input-number v-model="form.unitHeight" :min="1" :max="100" /></el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item :label='$tr("资产状态")'>
@@ -199,11 +200,12 @@
 <script>
 import { tr } from "@/locales";
 
+import AssetIcon from "@/components/AssetIcon.vue"
 import cmdbAPI from '@/api/cmdb'
 import AssetConnections from './components/AssetConnections.vue'
 
 export default {
-  components: { AssetConnections },
+  components: { AssetIcon, AssetConnections },
   name: 'PhysicalMachine',
   data() {
     return {
@@ -223,11 +225,11 @@ export default {
       formVisible: false, formTitle: '新增物理机', isEdit: false, editId: null,
       form: { sn: '', hostName: '', manageIp: '', businessIp: '', brand: '', model: '',
               cpu: '', memory: '', disk: '', raid: '', idcId: undefined, cabinetId: undefined,
-              unitPosition: 0, assetStatus: 2, purchaseDate: '', warrantyDate: '', vendor: '', remark: '' },
+              unitPosition: 0, unitHeight: 1, assetStatus: 2, purchaseDate: '', warrantyDate: '', vendor: '', remark: '' },
       rules: { sn: [{ required: true, get message() { return tr('请输入SN'); }, trigger: 'blur' }] }
     }
   },
-  created() { this.fetch(); this.fetchIdcList() },
+  created() { this.query.keyword = String(this.$route.query.keyword || ""); this.fetch(); this.fetchIdcList() },
   methods: {
     openConnections(row) { this.activeAsset = row; this.connectionsVisible = true },
     async fetch() {
@@ -256,6 +258,7 @@ export default {
     },
     async onIdcChange(idcId) {
       this.form.cabinetId = undefined
+      this.form.unitPosition = 0
       this.cabinetOptions = []
       if (!idcId) return
       try {
@@ -286,15 +289,16 @@ export default {
       this.isEdit = false; this.editId = null; this.formTitle = '新增物理机'
       this.form = { sn: '', hostName: '', manageIp: '', businessIp: '', brand: '', model: '',
                     cpu: '', memory: '', disk: '', raid: '', idcId: undefined, cabinetId: undefined,
-                    unitPosition: 0, assetStatus: 2, purchaseDate: '', warrantyDate: '', vendor: '', remark: '' }
+                    unitPosition: 0, unitHeight: 1, assetStatus: 2, purchaseDate: '', warrantyDate: '', vendor: '', remark: '' }
       this.cabinetOptions = []
       this.formVisible = true
     },
     async showEdit(row) {
       this.isEdit = true; this.editId = row.id; this.formTitle = '编辑物理机'
-      this.form = { ...row, idcId: row.idcId, cabinetId: row.cabinetId }
+      this.form = { ...row, unitPosition: row.unitPosition || 0, unitHeight: row.unitHeight || 1, idcId: row.idcId, cabinetId: row.cabinetId }
       if (row.idcId) await this.onIdcChange(row.idcId)
       this.form.cabinetId = row.cabinetId
+      this.form.unitPosition = row.unitPosition || 0
       this.formVisible = true
     },
     resetForm() { this.$refs.formRef?.resetFields() },

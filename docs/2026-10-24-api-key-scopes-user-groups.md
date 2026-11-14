@@ -38,4 +38,4 @@ Key 明文仅生成时显示一次，列表展示前缀与权限摘要，可展�
 - 前端生产构建、相关文件 ESLint、导航测试和国际化测试通过。全量 `vue-tsc` 仍报告仓库已有 `sseLogManager.ts`、`theme.ts` 等类型错误，本次新增 Key 和授权整合文件未出现在错误列表中。
 - 浏览器使用真实 Vue 组件及 API 客户端、隔离测试数据检查两类用户组、成员弹窗、权限必填、模块搜索、只读预设、清空、生成后一次展示、权限目录失败重试、按钮尺寸及窄屏深色布局。
 
-截图为测试数据：[用户组](images/authorization-user-groups-light.png)、[Key 权限范围](images/api-key-scopes-light.png)、[窄屏](images/api-key-scopes-mobile.png)。
+截图为测试数据：[用户组](../assets/screenshots/authorization-user-groups-light.png)、[Key 权限范围](../assets/screenshots/api-key-scopes-light.png)、[窄屏](../assets/screenshots/api-key-scopes-mobile.png)。

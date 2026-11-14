@@ -73,7 +73,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column :label='$tr("密钥Secret")' prop="keySecret" min-width="180">
+          <el-table-column  :label="$tr('密钥Secret')" prop="keySecret" min-width="180">
             <template #default="{ row }">
               <div class="key-info">
                 <el-icon class="secret-icon"><Lock /></el-icon>
@@ -227,14 +227,14 @@
       <el-dialog :title="$tr(dialogTitle)" v-model="dialogVisible" width="35%" :modal="false">
         <el-form :model="formData" :rules="formRules" ref="formRef" label-width="120px">
           <el-form-item :label='$tr("云厂商类型")' prop="keyType">
-            <el-select v-model="formData.keyType" :placeholder='$tr("请选择云厂商类型")' style="width: 100%">
+            <el-select @change="v => { if(v===6) formData.keyId='cloudflare' }" v-model="formData.keyType" :placeholder='$tr("请选择云厂商类型")' style="width: 100%">
               <el-option v-for="item in keyTypeOptions" :key="item.value" :label="$tr(item.label)" :value="item.value" />
             </el-select>
           </el-form-item>
-          <el-form-item :label='$tr("密钥ID")' prop="keyId">
+          <el-form-item v-if="formData.keyType!==6" :label='$tr("密钥ID")' prop="keyId">
             <el-input v-model="formData.keyId" :placeholder='$tr("请输入密钥ID")' show-password></el-input>
           </el-form-item>
-          <el-form-item :label='$tr("密钥Secret")' prop="keySecret">
+          <el-form-item :label="formData.keyType===6 ? 'API Token' : $tr('密钥Secret')" prop="keySecret">
             <el-input v-model="formData.keySecret" :placeholder='$tr("请输入密钥Secret")' show-password></el-input>
           </el-form-item>
           <el-form-item :label='$tr("备注信息")' prop="remark">
@@ -323,7 +323,7 @@
           <el-form-item :label='$tr("云厂商类型")' prop="keyTypes">
             <el-checkbox-group v-model="scheduleFormData.keyTypes">
               <el-checkbox
-                v-for="option in keyTypeOptions"
+                v-for="option in keyTypeOptions.filter(v=>v.value!==6)"
                 :key="option.value"
                 :label="$tr(option.value)"
                 :value="option.value"
@@ -396,7 +396,8 @@ export default {
         { value: 2, label: '腾讯云' },
         { value: 3, label: '百度云' },
         { value: 4, label: '华为云' },
-        { value: 5, label: 'AWS云' }
+        { value: 5, label: 'AWS云' },
+        { value: 6, label: 'Cloudflare DNS Token' }
       ],
       cronTemplates: [
         { label: '每天凌晨2点', value: '0 0 2 * * ?' },
@@ -415,7 +416,7 @@ export default {
       formRules: {
         keyType: [{ required: true, get message() { return tr('请选择云厂商类型'); }, trigger: 'change' }],
         keyId: [{ required: true, get message() { return tr('请输入密钥ID'); }, trigger: 'blur' }],
-        keySecret: [{ required: true, get message() { return tr('请输入密钥Secret'); }, trigger: 'blur' }]
+        keySecret: [{ validator: (rule,value,callback) => { if (!value && !(this.formData.id && this.formData.keyType===6)) callback(new Error(tr("请输入密钥Secret"))); else callback(); }, trigger: "blur" }]
       },
       scheduleFormData: {
         id: '',
@@ -511,8 +512,8 @@ export default {
         this.formData = {
           id: row.id,
           keyType: row.keyType,
-          keyId: row.keyId,
-          keySecret: row.keySecret,
+          keyId: row.keyType===6 ? 'cloudflare' : row.keyId,
+          keySecret: row.keyType===6 ? '' : row.keySecret,
           remark: row.remark || ''
         }
         this.dialogVisible = true

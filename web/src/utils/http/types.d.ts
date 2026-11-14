@@ -23,6 +23,8 @@ export interface PureHttpResponse extends AxiosResponse {
 }
 
 export interface PureHttpRequestConfig extends AxiosRequestConfig {
+  /** 由调用方处理这些 HTTP 状态的提示，仍然拒绝请求。 */
+  silentErrorStatuses?: number[];
   beforeRequestCallback?: (request: PureHttpRequestConfig) => void;
   beforeResponseCallback?: (response: PureHttpResponse) => void;
 }

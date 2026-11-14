@@ -37,7 +37,24 @@ func TestEveryProtectedRouteHasPermissionAndAuthentication(t *testing.T) {
 	r := gin.New()
 	register(r)
 	registerWebSocketRoutes(r)
+	// Task-job page initialization and group management must reach authentication,
+	// rather than returning a missing-route 404.
+	for _, endpoint := range []struct{ method, path string }{
+		{"GET", "/api/v1/task/list"},
+		{"GET", "/api/v1/template/list"},
+		{"GET", "/api/v1/task/groups"},
+		{"POST", "/api/v1/task/groups"},
+		{"PUT", "/api/v1/task/groups/1"},
+		{"DELETE", "/api/v1/task/groups/1"},
+	} {
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, httptest.NewRequest(endpoint.method, endpoint.path, nil))
+		if w.Code != 401 {
+			t.Errorf("task-job endpoint %s %s: expected 401, got %d", endpoint.method, endpoint.path, w.Code)
+		}
+	}
 	public := map[string]bool{
+		"GET /api/v1/auth/options": true, "POST /api/v1/auth/email-code": true, "POST /api/v1/auth/register": true, "POST /api/v1/auth/reset-password": true,
 		"GET /api/v1/captcha": true, "POST /api/v1/login": true, "POST /api/v1/monitor/agent/heartbeat": true,
 		"POST /api/v1/monitor/alert/webhook/gitlab": true, "POST /api/v1/monitor/alert/webhook/zabbix": true, "POST /api/v1/monitor/alert/webhook/prometheus": true,
 		"POST /api/v1/aiops/harness/tools": true, "GET /api/v1/cmdb/remote/connect": true,

@@ -32,8 +32,13 @@ func NewTaskHistoryService(db *gorm.DB) *TaskHistoryService {
 }
 
 // BeginExecution 固化本次执行配置，并为每个工作项创建独立日志记录。
-func (s *TaskHistoryService) BeginExecution(taskID uint, trigger int, operator string) (*model.TaskExecutionHistory, []model.TaskWork, error) {
+func (s *TaskHistoryService) BeginExecution(taskID uint, trigger int, operator string, overrides ...map[string]string) (*model.TaskExecutionHistory, []model.TaskWork, error) {
 	var history model.TaskExecutionHistory
+	for _, values := range overrides {
+		if err := validateTaskParameters(values); err != nil {
+			return nil, nil, err
+		}
+	}
 	var works []model.TaskWork
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		var task model.Task
@@ -71,6 +76,7 @@ func (s *TaskHistoryService) BeginExecution(taskID uint, trigger int, operator s
 		now := time.Now()
 		history = model.TaskExecutionHistory{
 			TaskID:            task.ID,
+			Parameters:        mergeTaskParameters(append([]map[string]string{task.Parameters}, overrides...)...),
 			TaskName:          task.Name,
 			Trigger:           trigger,
 			Operator:          operator,
@@ -99,6 +105,7 @@ func (s *TaskHistoryService) BeginExecution(taskID uint, trigger int, operator s
 			commandType := task.CommandType
 			command := task.Command
 			templateName := "直接命令"
+			parameters := history.Parameters
 			if task.ExecutionMode != 2 {
 				snapshot, ok := templateMap[work.TemplateID]
 				if !ok {
@@ -107,8 +114,13 @@ func (s *TaskHistoryService) BeginExecution(taskID uint, trigger int, operator s
 				commandType = snapshot.Type
 				command = snapshot.Content
 				templateName = snapshot.Name
+				parameters = mergeTaskParameters(snapshot.Parameters, history.Parameters)
+			}
+			if err := validateTaskParameters(parameters); err != nil {
+				return err
 			}
 			logs = append(logs, model.TaskExecutionLog{
+				Parameters:      parameters,
 				HistoryID:       history.ID,
 				TaskID:          task.ID,
 				TaskWorkID:      work.ID,
@@ -175,7 +187,7 @@ func loadTaskTemplateSnapshots(tx *gorm.DB, task *model.Task) ([]model.TaskTempl
 		}
 		snapshot := model.TaskTemplateSnapshot{
 			ID: template.ID, Name: template.Name, Type: template.Type,
-			Content: template.Content, Remark: template.Remark,
+			Content: template.Content, Remark: template.Remark, Parameters: template.Parameters,
 		}
 		result = append(result, snapshot)
 		byID[id] = snapshot
@@ -219,6 +231,16 @@ func (s *TaskHistoryService) GetExecutionLog(historyID, taskWorkID uint) (*model
 		return nil, err
 	}
 	return &executionLog, nil
+}
+
+// PublishLogPath makes the live file visible before remote execution starts.
+func (s *TaskHistoryService) PublishLogPath(job *model.TaskWork, path string) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&model.TaskExecutionLog{}).Where("history_id = ? AND task_work_id = ?", job.HistoryID, job.ID).Update("log_path", path).Error; err != nil {
+			return err
+		}
+		return tx.Model(&model.TaskWork{}).Where("id = ? AND history_id = ?", job.ID, job.HistoryID).Update("log_path", path).Error
+	})
 }
 
 func (s *TaskHistoryService) CompleteLog(job *model.TaskWork, status int, content, logPath string, startedAt, finishedAt time.Time) error {
@@ -348,6 +370,19 @@ func (s *TaskHistoryService) Detail(taskID, historyID uint) (*model.TaskExecutio
 		Where("id = ? AND task_id = ?", historyID, taskID).First(&history).Error; err != nil {
 		return nil, err
 	}
+	// Running logs live on disk; completed logs are also retained in the database.
+	for i := range history.Logs {
+		entry := &history.Logs[i]
+		if entry.LogPath == "" || (entry.Status != model.TaskStatusRunning && entry.Status != model.TaskStatusPaused && entry.Status != model.TaskStatusPending) {
+			continue
+		}
+		content, err := readLiveTaskLog(entry.LogPath)
+		if err == nil {
+			entry.Log = content
+		} else if !os.IsNotExist(err) {
+			entry.Log = "读取实时日志失败: " + err.Error()
+		}
+	}
 	return &history, nil
 }
 
@@ -385,7 +420,7 @@ func (s *TaskHistoryService) Rollback(taskID, historyID uint, operator string) e
 				var existing model.TaskTemplate
 				err := tx.First(&existing, snapshot.ID).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					existing = model.TaskTemplate{Name: snapshot.Name, Type: snapshot.Type, Content: snapshot.Content, Remark: snapshot.Remark, CreatedBy: operator, UpdatedBy: operator}
+					existing = model.TaskTemplate{Name: snapshot.Name, Type: snapshot.Type, Content: snapshot.Content, Remark: snapshot.Remark, Parameters: snapshot.Parameters, CreatedBy: operator, UpdatedBy: operator}
 					if err := tx.Create(&existing).Error; err != nil {
 						return err
 					}
@@ -394,6 +429,7 @@ func (s *TaskHistoryService) Rollback(taskID, historyID uint, operator string) e
 				} else if err := tx.Model(&existing).Updates(map[string]interface{}{
 					"name": snapshot.Name, "type": snapshot.Type, "content": snapshot.Content,
 					"remark": snapshot.Remark, "updated_by": operator,
+					"parameters": mustParametersJSON(snapshot.Parameters),
 				}).Error; err != nil {
 					return err
 				}
@@ -405,6 +441,7 @@ func (s *TaskHistoryService) Rollback(taskID, historyID uint, operator string) e
 		task.Name = history.TaskName
 		task.ExecutionMode = history.ExecutionMode
 		task.Command = history.Command
+		task.Parameters = history.Parameters
 		task.CommandType = history.CommandType
 		task.Shell = shell
 		task.HostIDs = history.HostIDs

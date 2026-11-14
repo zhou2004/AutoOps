@@ -109,4 +109,4 @@ SDK 集成测试使用真实已安装的官方 SDK/runtime，模型服务与工�
 - 浏览器验证多轮对话、资产范围、操作授权、工具结果、密钥创建/撤销、明暗主题及 390px 窄屏。Docker 复制/跨节点迁移入口与工作负载弹性伸缩回归通过；检查本次主要页面的按钮与菜单均带图标。
 - 全仓 `vue-tsc` 受原有 tsconfig `ignoreDeprecations: "6.0"` 与安装的 TypeScript 版本不匹配影响。临时命令行覆盖后仍存在原有 cmdb/k8s 等文件的类型错误，本次新增页面/API 文件未出现在错误列表中。
 
-界面预览（全部使用浏览器测试数据）：[明亮工作台](images/aiops-harness-light.png)、[深色会话](images/aiops-harness-dark.png)、[API Key 管理](images/platform-api-keys-dark.png)。
+界面预览（全部使用浏览器测试数据）：[明亮工作台](../assets/screenshots/aiops-harness-light.png)、[深色会话](../assets/screenshots/aiops-harness-dark.png)、[API Key 管理](../assets/screenshots/platform-api-keys-dark.png)。

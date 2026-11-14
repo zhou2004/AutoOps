@@ -199,6 +199,7 @@ func (c *TaskAnsibleController) CreateTask(ctx *gin.Context) {
 	// 构建请求参数
 	req := &service.CreateTaskRequest{
 		TaskType:           taskType,
+		Description:        ctx.PostForm("description"),
 		Name:               name,
 		HostGroups:         hostGroups,
 		GitRepo:            gitRepo,

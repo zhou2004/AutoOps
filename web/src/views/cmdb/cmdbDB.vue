@@ -700,7 +700,7 @@ onMounted(async () => {
 }
 .pagination {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   margin-top: 18px;
 }
 .source-form {

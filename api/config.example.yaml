@@ -1,0 +1,40 @@
+server:
+  address: 0.0.0.0:8000
+  model: debug
+  enableSwagger: true
+  publicUrl: http://127.0.0.1:8080/
+db:
+  dialects: mysql
+  host: 127.0.0.1
+  port: 3306
+  db: autoops
+  username: autoops
+  password: CHANGE_ME
+  charset: utf8
+  maxIdle: 50
+  maxOpen: 150
+redis:
+  address: 127.0.0.1:6379
+  password: CHANGE_ME
+imageSettings:
+  uploadDir: ./upload
+  imageHost: http://localhost:8080
+log:
+  path: ./log
+  name: sys
+  model: console
+monitor:
+  prometheus:
+    url: http://127.0.0.1:9090
+  pushgateway:
+    url: http://127.0.0.1:9091
+  agent:
+    heartbeat_server_url: http://127.0.0.1:8000
+    heartbeat_token: ''
+accountSMTP:
+  host: ''
+  port: '465'
+  user: ''
+  password: ''
+  from: ''
+  tls: tls

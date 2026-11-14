@@ -30,9 +30,9 @@
 
 全局参数修改只影响运行时，不写配置文件或 `SET PERSIST`。结构操作具有 MySQL 的隐式提交行为，界面在执行前独立确认。[MySQL 隐式提交说明](https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html)、[服务器变量说明](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html)。
 
-![MySQL 表数据工作台](images/database-workbench-data.png)
+![MySQL 表数据工作台](../assets/screenshots/database-workbench-data.png)
 
-![MySQL 控制台与命令提示](images/database-workbench-console.png)
+![MySQL 控制台与命令提示](../assets/screenshots/database-workbench-console.png)
 
 表数据截图使用隔离临时表，已在验证后清理。
 

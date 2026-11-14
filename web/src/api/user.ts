@@ -32,3 +32,8 @@ export const getMenuList = () => {
   return http.request<any>("get", "/menu/vo/list");
 };
 
+
+export const getAccountOptions = () => http.request<any>("get", "/auth/options");
+export const sendAccountCode = (data: object) => http.request<any>("post", "/auth/email-code", { data });
+export const registerAccount = (data: object) => http.request<any>("post", "/auth/register", { data });
+export const resetAccountPassword = (data: object) => http.request<any>("post", "/auth/reset-password", { data });

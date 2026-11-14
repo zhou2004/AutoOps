@@ -1,3 +1,4 @@
+import Document from "~icons/ep/document";
 import Coin from "~icons/ep/coin";
 import Connection from "~icons/ep/connection";
 import Files from "~icons/ep/files";
@@ -51,6 +52,12 @@ export default {
         showParent: true,
         databaseSection: "backups"
       }
+    },
+    {
+      path: "/database/logs",
+      name: "DatabaseLogs",
+      component: () => import("@/views/database/Logs.vue"),
+      meta: { icon: Document, title: "日志管理", rank: 5, showParent: true }
     },
     {
       path: "/database/configurations",

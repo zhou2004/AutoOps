@@ -36,7 +36,7 @@ func (d *TaskTemplateDao) GetAllTemplates() ([]model.TaskTemplate, error) {
 }
 
 func (d *TaskTemplateDao) UpdateTemplate(template *model.TaskTemplate) error {
-	return d.db.Model(template).Select("name", "type", "content", "remark", "updated_at", "updated_by").Updates(template).Error
+	return d.db.Model(template).Select("name", "type", "content", "parameters", "remark", "updated_at", "updated_by").Updates(template).Error
 }
 
 func (d *TaskTemplateDao) DeleteTemplate(id uint) error {

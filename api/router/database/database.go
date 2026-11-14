@@ -24,6 +24,8 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	g.GET("/clusters/:id", c.Detail)
 	g.GET("/clusters/:id/topology", c.Detail)
 	g.GET("/clusters/:id/members", c.Members)
+	g.GET("/clusters/:id/logs", c.DatabaseLogs)
+	g.GET("/clusters/:id/logs/stream", c.DatabaseLogStream)
 	g.GET("/clusters/:id/capabilities", c.Capabilities)
 	g.POST("/clusters/:id/operation-plans", c.Plan)
 	g.POST("/clusters/:id/operations", c.Submit)

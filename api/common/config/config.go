@@ -4,19 +4,31 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
 
 // 总配文件
+type AccountSMTPConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	From     string `yaml:"from"`
+	TLS      string `yaml:"tls"`
+}
+
 type config struct {
-	Server        server        `yaml:"server"`
-	Db            db            `yaml:"db"`
-	Redis         redis         `yaml:"redis"`
-	ImageSettings imageSettings `yaml:"imageSettings"`
-	Log           log           `yaml:"log"`
-	Monitor       monitor       `yaml:"monitor"`
+	AccountSMTP   AccountSMTPConfig `yaml:"accountSMTP"`
+	Server        server            `yaml:"server"`
+	Db            db                `yaml:"db"`
+	Redis         redis             `yaml:"redis"`
+	ImageSettings imageSettings     `yaml:"imageSettings"`
+	Log           log               `yaml:"log"`
+	Monitor       monitor           `yaml:"monitor"`
 }
 
 // 监控配置
@@ -100,11 +112,25 @@ func LoadConfig(configPath string) error {
 	}
 
 	// 绑定值
-	err = yaml.Unmarshal(yamlFile, &Config)
+	var loaded config
+	err = yaml.Unmarshal(yamlFile, &loaded)
 	if err != nil {
 		return err
 	}
 
+	for key, dest := range map[string]*string{"DB_HOST": &loaded.Db.Host, "DB_NAME": &loaded.Db.Db, "DB_USER": &loaded.Db.Username, "DB_PASSWORD": &loaded.Db.Password, "REDIS_ADDR": &loaded.Redis.Address, "REDIS_PASSWORD": &loaded.Redis.Password, "IMAGE_HOST": &loaded.ImageSettings.ImageHost} {
+		if v, ok := os.LookupEnv(key); ok {
+			*dest = v
+		}
+	}
+	if v := os.Getenv("DB_PORT"); v != "" {
+		port, err := strconv.Atoi(v)
+		if err != nil || port < 1 || port > 65535 {
+			return fmt.Errorf("invalid DB_PORT")
+		}
+		loaded.Db.Port = port
+	}
+	Config = &loaded
 	return nil
 }
 

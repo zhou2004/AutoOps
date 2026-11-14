@@ -2,8 +2,10 @@ package dao
 
 import (
 	"dodevops-api/api/cmdb/model"
+	"errors"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type CmdbIDCDao struct {
@@ -26,7 +28,22 @@ func (d *CmdbIDCDao) Update(data *model.CmdbIDC) error {
 
 // Delete 删除机房
 func (d *CmdbIDCDao) Delete(id uint) error {
-	return d.db.Delete(&model.CmdbIDC{}, id).Error
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		var room model.CmdbIDC
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&room, id).Error; err != nil {
+			return err
+		}
+		for _, table := range []string{"cmdb_cabinet", "cmdb_physical_machine", "cmdb_network_device"} {
+			var n int64
+			if err := tx.Table(table).Where("idc_id = ?", id).Count(&n).Error; err != nil {
+				return err
+			}
+			if n > 0 {
+				return errors.New("机房仍有机柜或资产，请先移出")
+			}
+		}
+		return tx.Delete(&model.CmdbIDC{}, id).Error
+	})
 }
 
 // GetByID 获取机房

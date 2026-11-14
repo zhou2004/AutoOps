@@ -299,11 +299,13 @@
             <el-checkbox label="network">{{ $tr("网络设备") }}</el-checkbox>
             <el-checkbox label="database">{{ $tr("数据源") }}</el-checkbox>
  <el-checkbox label="database_cluster">数据库集群</el-checkbox>
+ <el-checkbox label="web_source">{{ $tr("Web 数据源") }}</el-checkbox><el-checkbox label="web_cluster">{{ $tr("Web 集群") }}</el-checkbox><el-checkbox label="web_certificate">{{ $tr("Web 证书") }}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
 
         <el-form-item :label='$tr("资产范围")'>
           <el-tabs type="border-card" size="small" style="width: 100%">
+ <el-tab-pane v-for="kind in ['sources','clusters','certificates'].filter(k=>form.assetTypes.includes({sources:'web_source',clusters:'web_cluster',certificates:'web_certificate'}[k]))" :key="kind" :label="$tr(webLabels[kind])"><el-form-item :label="$tr('授权资产')"><el-select v-model="form[webFields[kind]]" multiple filterable style="width:100%"><el-option v-for="r in webAssets[kind]" :key="r.id" :value="r.id" :label="r.name"/></el-select></el-form-item><el-form-item :label="$tr('业务分组（含子分组）')"><el-tree-select v-model="form.hostGroupIds" :data="groupList" :props="{label:'name',value:'id',children:'children'}" multiple check-strictly style="width:100%"/></el-form-item></el-tab-pane>
  <el-tab-pane v-if="form.assetTypes.includes('database_cluster')" label="数据库集群授权">
   <el-form-item label="集群"><el-select v-model="form.databaseClusterIds" multiple filterable style="width:100%"><el-option v-for="c in databaseClusters" :key="c.id" :value="c.id" :label="c.name + ' · ' + c.engine"/></el-select></el-form-item>
   <el-form-item label="业务分组（含子分组）"><el-tree-select v-model="form.hostGroupIds" :data="groupList" :props="{label:'name',value:'id',children:'children'}" multiple check-strictly style="width:100%"/></el-form-item>
@@ -710,6 +712,7 @@ import { tr } from "@/locales";
 
 import cmdbAPI from "@/api/cmdb";
 import systemApi from "@/api/system";
+import {webOptions} from "@/api/webservice";
 import {dbPlatform} from "@/api/databasePlatform";
 
 const DEVICE_TYPE_MAP = {
@@ -724,6 +727,7 @@ const ASSET_TYPE_MAP = {
   physical: "物理机",
   network: "网络设备",
   database: "数据源",
+  web_source: "Web 数据源", web_cluster: "Web 集群", web_certificate: "Web 证书",
   database_cluster: "数据库集群"
 };
 const ACTION_MAP = {
@@ -744,7 +748,8 @@ const ACTION_MAP = {
   config_restore: "恢复配置",
   db_query: "数据库查询",
   db_execute: "数据库写操作",
-  db_cluster_view: "查看集群",
+  web_view: "查看 Web 资产", web_manage: "维护 Web 资产", web_config_view: "查看 Web 配置", web_config_edit: "编辑 Web 配置", web_publish: "发布 Web 配置", web_certificate_use: "使用 Web 证书", web_certificate_manage: "管理 Web 证书", web_logs: "查看 Web 日志", web_terminal: "Web 终端", web_audit: "Web 操作审计",
+ db_cluster_view: "查看集群",
   db_cluster_manage: "维护集群",
   db_cluster_switch: "高可用切换",
   db_cluster_backup: "集群备份",
@@ -762,6 +767,7 @@ const ACTION_MAP = {
   admin: "全部管理权限"
 };
 const ACTION_GROUPS = [
+ {title:"Web 管理",description:"按数据源、集群、证书和动作分别授权。",actions:["web_view","web_manage","web_config_view","web_config_edit","web_publish","web_certificate_use","web_certificate_manage","web_logs","web_audit"]},
  {title:"数据库集群",description:"数据源查询权限不包含集群维护；按集群与动作分别授权。",actions:["db_cluster_view","db_cluster_manage","db_cluster_switch","db_cluster_backup","db_cluster_restore","db_cluster_config","db_cluster_audit"]},
   {
     title: "资产信息",
@@ -822,6 +828,7 @@ export default {
       userList: [],
       userGroupList: [],
       groupList: [],
+ webAssets: {sources:[],clusters:[],certificates:[]}, webFields: {sources:"webSourceIds",clusters:"webClusterIds",certificates:"webCertificateIds"}, webLabels: {sources:"Web 数据源",clusters:"Web 集群",certificates:"Web 证书"},
  databaseClusters: [],
       idcList: [],
       cabinetList: [],
@@ -862,7 +869,7 @@ export default {
         physicalIds: [],
         networkIds: [],
         databaseIds: [],
- databaseClusterIds: [],
+ databaseClusterIds: [], webSourceIds: [], webClusterIds: [], webCertificateIds: [],
         idcIds: [],
         permissionActions: ["get", "list"],
         isActive: 1,
@@ -923,6 +930,7 @@ export default {
       return DEVICE_TYPE_MAP[t] || "未知";
     },
     async loadOptions() {
+ for (const kind of ["sources","clusters","certificates"]) { try { this.webAssets[kind]=await webOptions(kind); } catch { this.webAssets[kind]=[]; } }
  try { const clusters = await dbPlatform.clusters({size:100}); this.databaseClusters = clusters.list || []; } catch (_) {this.databaseClusters=[];}
       try {
         const [res1, res2, res3, res4, res5] = await Promise.all([
@@ -1049,7 +1057,7 @@ export default {
         physicalIds: [],
         networkIds: [],
         databaseIds: [],
- databaseClusterIds: [],
+ databaseClusterIds: [], webSourceIds: [], webClusterIds: [], webCertificateIds: [],
         idcIds: [],
         permissionActions: ["get", "list"],
         isActive: 1,
@@ -1073,7 +1081,7 @@ export default {
         physicalIds: this.safeJSON(row.physicalIds, []),
         networkIds: this.safeJSON(row.networkIds, []),
         databaseIds: this.safeJSON(row.databaseIds, []),
- databaseClusterIds: this.safeJSON(row.databaseClusterIds, []),
+ databaseClusterIds: this.safeJSON(row.databaseClusterIds, []), webSourceIds:this.safeJSON(row.webSourceIds,[]),webClusterIds:this.safeJSON(row.webClusterIds,[]),webCertificateIds:this.safeJSON(row.webCertificateIds,[]),
         idcIds: this.safeJSON(row.idcIds, []),
         permissionActions: this.safeJSON(row.permissionActions, [
           "get",

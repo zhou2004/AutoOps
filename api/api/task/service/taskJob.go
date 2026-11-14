@@ -21,8 +21,8 @@ type TaskJobService interface {
 	GetTask(id uint) (*model.Task, error)
 	UpdateTask(id uint, task *model.Task) error
 	DeleteTask(id uint) error
-	ListTasks(page, pageSize int, name string, status int) ([]model.Task, int64, error)
-	ListTasksWithDetails(page, pageSize int, name string, status int) ([]model.TaskWithDetails, int64, error)
+	ListTasks(page, pageSize int, name string, status int, groupID *uint) ([]model.Task, int64, error)
+	ListTasksWithDetails(page, pageSize int, name string, status int, groupID *uint) ([]model.TaskWithDetails, int64, error)
 	TaskNameExists(name string) (bool, error)
 	GetTasksByName(name string) ([]model.Task, error)
 	GetTasksByType(taskType int) ([]model.Task, error)
@@ -87,6 +87,8 @@ func (s *taskJobServiceImpl) UpdateTask(id uint, task *model.Task) error {
 	existingTask.Shell = task.Shell
 	existingTask.ExecutionMode = task.ExecutionMode
 	existingTask.Command = task.Command
+	existingTask.Parameters = task.Parameters
+	existingTask.GroupID = task.GroupID
 	existingTask.CommandType = task.CommandType
 	existingTask.HostIDs = task.HostIDs
 	existingTask.CronExpr = task.CronExpr
@@ -103,6 +105,22 @@ func (s *taskJobServiceImpl) UpdateTask(id uint, task *model.Task) error {
 }
 
 func (s *taskJobServiceImpl) normalizeAndValidateTask(task *model.Task) error {
+	if err := validateTaskParameters(task.Parameters); err != nil {
+		return err
+	}
+	if task.GroupID != nil {
+		if *task.GroupID == 0 {
+			task.GroupID = nil
+		} else {
+			var count int64
+			if err := s.db.Model(&model.TaskJobGroup{}).Where("id = ?", *task.GroupID).Count(&count).Error; err != nil {
+				return err
+			}
+			if count == 0 {
+				return errors.New("所选任务分组不存在")
+			}
+		}
+	}
 	task.Name = strings.TrimSpace(task.Name)
 	task.HostIDs = strings.TrimSpace(task.HostIDs)
 	task.CronExpr = strings.TrimSpace(task.CronExpr)
@@ -221,9 +239,9 @@ func (s *taskJobServiceImpl) hasActiveExecution(taskID uint) (bool, error) {
 	return count > 0, err
 }
 
-func (s *taskJobServiceImpl) ListTasks(page, pageSize int, name string, status int) ([]model.Task, int64, error) {
+func (s *taskJobServiceImpl) ListTasks(page, pageSize int, name string, status int, groupID *uint) ([]model.Task, int64, error) {
 	offset := (page - 1) * pageSize
-	return s.taskDao.List(offset, pageSize, name, status)
+	return s.taskDao.List(offset, pageSize, name, status, groupID)
 }
 
 func (s *taskJobServiceImpl) TaskNameExists(name string) (bool, error) {
@@ -288,11 +306,11 @@ func (s *taskJobServiceImpl) UpdateTaskAfterExecution(taskId uint, cronExpr stri
 	return nil
 }
 
-func (s *taskJobServiceImpl) ListTasksWithDetails(page, pageSize int, name string, status int) ([]model.TaskWithDetails, int64, error) {
+func (s *taskJobServiceImpl) ListTasksWithDetails(page, pageSize int, name string, status int, groupID *uint) ([]model.TaskWithDetails, int64, error) {
 	offset := (page - 1) * pageSize
 
 	// 获取基本任务列表
-	tasks, total, err := s.taskDao.List(offset, pageSize, name, status)
+	tasks, total, err := s.taskDao.List(offset, pageSize, name, status, groupID)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -301,6 +319,8 @@ func (s *taskJobServiceImpl) ListTasksWithDetails(page, pageSize int, name strin
 	var tasksWithDetails []model.TaskWithDetails
 	for _, task := range tasks {
 		taskDetail := model.TaskWithDetails{
+			GroupID:        task.GroupID,
+			Parameters:     task.Parameters,
 			ID:             task.ID,
 			Name:           task.Name,
 			Type:           task.Type,
@@ -323,6 +343,9 @@ func (s *taskJobServiceImpl) ListTasksWithDetails(page, pageSize int, name strin
 			CreatedAt:      task.CreatedAt,
 		}
 
+		if task.Group != nil {
+			taskDetail.GroupName = task.Group.Name
+		}
 		var activeWorks []model.TaskWork
 		if err := s.db.Where("task_id = ? AND history_id > 0 AND status IN ?", task.ID, []int{model.TaskStatusRunning, model.TaskStatusPaused}).
 			Order("history_id DESC, id ASC").Find(&activeWorks).Error; err != nil {
@@ -390,10 +413,11 @@ func (s *taskJobServiceImpl) getTemplatesByIds(shellIds string) ([]model.TaskTem
 	var templateInfos []model.TaskTemplateInfo
 	for _, template := range templates {
 		templateInfos = append(templateInfos, model.TaskTemplateInfo{
-			ID:      template.ID,
-			Name:    template.Name,
-			Type:    template.Type,
-			Content: template.Content,
+			Parameters: template.Parameters,
+			ID:         template.ID,
+			Name:       template.Name,
+			Type:       template.Type,
+			Content:    template.Content,
 		})
 	}
 

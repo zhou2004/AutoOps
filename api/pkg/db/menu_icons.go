@@ -17,6 +17,8 @@ var navigationIconNames = map[string]string{
 	"/aiops/workflows":      "Share",
 	"/aiops/history":        "DocumentChecked",
 	"/cmdb":                 "Monitor",
+	"/cmdb/datacenter":      "OfficeBuilding",
+	"/cmdb/machine":         "House",
 	"/cmdb/ecs":             "Monitor",
 	"/cmdb/group":           "FolderOpened",
 	"/cmdb/physical":        "Cpu",
@@ -27,6 +29,8 @@ var navigationIconNames = map[string]string{
 	"/database/clusters":    "Connection",
 	"/database/storage":     "Files",
 	"/database/backups":     "RefreshLeft",
+	"/database/logs":        "Document",
+	"/web/traffic":          "TrendCharts",
 	"/k8s":                  "Box",
 	"/k8s/docker":           "Box",
 	"/k8s/list":             "Connection",
@@ -51,7 +55,7 @@ var navigationIconNames = map[string]string{
 	"/config/keymanage":     "Lock",
 	"/task":                 "Operation",
 	"/task/template":        "Tickets",
-	"/task/job":             "List",
+	"/task/job":             "Operation",
 	"/task/ansible":         "Connection",
 	"/task/config":          "SetUp",
 	"/tools":                "Tools",
@@ -87,7 +91,7 @@ func fillNavigationIcons(tx *gorm.DB) error {
 	}
 	for _, menu := range menus {
 		icon := strings.TrimSpace(menu.Icon)
-		if icon != "" && !strings.HasPrefix(icon, "ep/") && !strings.HasPrefix(icon, "ep:") && !strings.HasPrefix(icon, "ri/") && !strings.HasPrefix(icon, "ri:") {
+		if !(strings.Trim(menu.Url, "/") == "task/job" && icon == "List") && icon != "" && !strings.HasPrefix(icon, "ep/") && !strings.HasPrefix(icon, "ep:") && !strings.HasPrefix(icon, "ri/") && !strings.HasPrefix(icon, "ri:") {
 			continue
 		}
 		path := "/" + strings.Trim(menu.Url, "/")

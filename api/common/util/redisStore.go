@@ -26,7 +26,13 @@ func (r RedisStore) Set(id string, value string) error {
 // Get 获取验证码
 func (r RedisStore) Get(id string, clear bool) string {
 	key := constant.LOGIN_CODE + id
-	val, err := redis.RedisDb.Get(ctx, key).Result()
+	var val string
+	var err error
+	if clear {
+		val, err = redis.RedisDb.GetDel(ctx, key).Result()
+	} else {
+		val, err = redis.RedisDb.Get(ctx, key).Result()
+	}
 	if err != nil {
 		return ""
 	}
@@ -36,7 +42,7 @@ func (r RedisStore) Get(id string, clear bool) string {
 // Verify 验证码校验
 func (r RedisStore) Verify(id, answer string, clear bool) bool {
 	v := r.Get(id, clear)
-	return v == answer
+	return v != "" && answer != "" && v == answer
 }
 
 // 获取redis中存放的k8s集群信息

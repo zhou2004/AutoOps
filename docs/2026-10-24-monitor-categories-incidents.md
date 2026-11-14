@@ -38,4 +38,4 @@ API 启动时通过 GORM 自动注册 `monitor_category`、`monitor_domain_cert`
 
 浏览器验证使用独立测试响应，未向业务数据库写入测试故障。覆盖分类增删改、分类筛选、批量归类、单项检查、API URL 搜索、故障详情与状态筛选，以及空态、失败、明暗主题和 390px 窄屏。
 
-预览截图使用测试数据：[故障管理（浅色）](images/monitor-incident-light.png)、[故障管理（深色）](images/monitor-incident-dark.png)、[移动端](images/monitor-incident-mobile.png)、[域名分类](images/monitor-domain-categories.png)、[API 监控](images/monitor-api-dark.png)。
+预览截图使用测试数据：[故障管理（浅色）](../assets/screenshots/monitor-incident-light.png)、[故障管理（深色）](../assets/screenshots/monitor-incident-dark.png)、[移动端](../assets/screenshots/monitor-incident-mobile.png)、[域名分类](../assets/screenshots/monitor-domain-categories.png)、[API 监控](../assets/screenshots/monitor-api-dark.png)。

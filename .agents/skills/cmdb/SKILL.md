@@ -483,3 +483,15 @@ if len(data.PermissionActions) <= 3 {
 `web/src/views/cmdb/cmdbGroup.vue` 使用层级树表、搜索和父级树选择器。创建、编辑、删除统一经过 `dao/cmdbGroupValidation.go` 校验，禁止默认分组修改、循环层级和删除仍被主机/数据库/告警群组引用的分组。更新使用显式字段 map，必须允许 `parent_id=0` 移回顶级。主机统计仅汇总根层级以免重复计数。
 
 告警群组通过 `monitor_alert_group_rule.cmdb_group_id` 引用业务分组。监控选择器只暴露有 `group/get` 权限的元数据，不能调用不受资源范围限制的目录查询。详见 `docs/2026-10-24-alert-business-groups.md`。
+
+## 机房 3D 与 U 位管理（2026-11-14）
+
+唯一菜单「机房管理」入口 `/cmdb/datacenter`，默认 Three.js 全球 IDC → 机房 → 机柜 → 设备动态巡检；台账嵌入内部标签，旧 `/cmdb/machine`、`/system/machine` 重定向到 `?tab=inventory`。`DatacenterManagement.vue` + `IDCGlobe.vue` + `Datacenter3D.vue` + `RackScene.vue` 使用本地 Three.js，`GET /cmdb/idc/:id/topology` 按机房、机柜及设备 get 权限读取；受限设备只显示匿名占位。
+
+物理机和网络设备使用 `unitPosition` + `unitHeight`，U1 从底部起算，0 表示未定位。所有 CRUD 必须经过 `dao/rackPlacement.go`，在事务中锁定机柜、校验两类设备冲突、越界及机房归属，并重算 usedUnit。不要把台账运行状态当成实时监控，也不要为未定位设备生成 U 位。机柜坐标为空时自动排列只作示意；保存实测坐标需检查底面重叠。详见 `docs/2026-11-14-datacenter-3d.md`，包含上游核对结果、字段、验证和截图。
+
+机房地理位置使用 `country/city/longitude/latitude`；经纬度成对可空、0 有效，未知位置不可猜测。`three/facilityModels.js` 按台账尺寸与 U 位构建柜体，面板和房间建筑仅是示意。示例场景必须显式开启，使用独立前端数据且禁止保存布局或操作资产。灯光闪烁、气流是视觉演示，不得冒充传感器数据。菜单迁移将旧台账与 3D 菜单角色合并、按钮归入统一入口，必须保证幂等。
+
+机房可视化使用窗口剩余高度，顶部统计通过按钮打开弹窗，窄屏目录/U 位使用覆盖侧栏，禁止再引入固定 720px 等最小画布高度。主题跟随全局并通过 `facilityTheme.css` 共享到 teleport 弹窗。详情见同日文档的追加优化章节。
+
+前端示例模式仍不能写 API；用户明确要求样例入库时，可使用 `api/cmd/seed-datacenter -apply`，不得放入自动迁移或启动流程。导入器以 `[测试]` / `AUTOOPS-IDC-SAMPLE-` 和备注 `autoops:idc-sample:v1` 标识，连接地址/凭据留空，沿用 DAO 冲突校验，事务失败须全批回滚。重复执行保留已存在样例的用户修改。

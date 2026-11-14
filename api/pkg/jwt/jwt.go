@@ -12,6 +12,8 @@ import (
 	"dodevops-api/api/system/model"
 	"dodevops-api/common"
 	"dodevops-api/common/constant"
+	dbpkg "dodevops-api/pkg/db"
+	"gorm.io/gorm"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -20,6 +22,7 @@ import (
 type userStdClaims struct {
 	model.JwtAdmin
 	jwt.StandardClaims
+	SessionVersion uint `json:"sv,omitempty"`
 }
 
 // token过期时间
@@ -59,9 +62,14 @@ func GenerateTokenByAdmin(admin model.SysAdmin) (string, error) {
 		Phone:    admin.Phone,
 		Note:     admin.Note,
 	}
+	version, err := sessionVersion(admin.ID)
+	if err != nil {
+		return "", err
+	}
 	c := userStdClaims{
-		jwtAdmin,
-		jwt.StandardClaims{
+		JwtAdmin:       jwtAdmin,
+		SessionVersion: version,
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(),
 			IssuedAt:  time.Now().Unix(),
 			Issuer:    "admin", //签发人
@@ -106,6 +114,10 @@ func ValidateToken(tokenString string) (*model.JwtAdmin, error) {
 		}
 	}
 
+	version, versionErr := sessionVersion(claims.ID)
+	if versionErr != nil || claims.SessionVersion != version {
+		return nil, errors.New(ErrInvalid)
+	}
 	return &claims.JwtAdmin, err
 }
 
@@ -146,4 +158,16 @@ func GetAdmin(c *gin.Context) (*model.JwtAdmin, error) {
 		return admin, nil
 	}
 	return nil, errors.New("无法转换为api结构")
+}
+
+func sessionVersion(user uint) (uint, error) {
+	if dbpkg.Db == nil {
+		return 0, nil
+	}
+	var row model.AccountSessionVersion
+	err := dbpkg.Db.First(&row, "user_id = ?", user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, nil
+	}
+	return row.Version, err
 }

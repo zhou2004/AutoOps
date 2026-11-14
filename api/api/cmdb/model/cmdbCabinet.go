@@ -8,6 +8,11 @@ type CmdbCabinet struct {
 	Name      string    `gorm:"size:100;not null;uniqueIndex;comment:'机柜名称/编号'" json:"name"`
 	IDCID     uint      `gorm:"column:idc_id;not null;comment:'所属机房ID'" json:"idcId"`
 	IDC       CmdbIDC   `gorm:"foreignKey:IDCID" json:"idc"`
+	LayoutX   *float64  `json:"layoutX"`
+	LayoutZ   *float64  `json:"layoutZ"`
+	Rotation  int       `gorm:"default:0" json:"rotation"`
+	WidthMM   int       `gorm:"default:600" json:"widthMm"`
+	DepthMM   int       `gorm:"default:1000" json:"depthMm"`
 	Position  string    `gorm:"size:100;comment:'位置描述(如A列3排)'" json:"position"`
 	UnitNum   int       `gorm:"default:42;comment:'机柜U数(如42U)'" json:"unitNum"`
 	UsedUnit  int       `gorm:"default:0;comment:'已用U位数'" json:"usedUnit"`
@@ -17,7 +22,6 @@ type CmdbCabinet struct {
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 }
-
 
 func (CmdbCabinet) TableName() string {
 	return "cmdb_cabinet"

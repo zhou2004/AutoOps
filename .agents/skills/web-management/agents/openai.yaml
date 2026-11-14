@@ -1,0 +1,4 @@
+interface:
+  display_name: "AutoOps Web 管理"
+  short_description: "维护 AutoOps Web 管理的前后端接入、发布恢复、证书和权限"
+  default_prompt: "使用 $web-management 维护 AutoOps Web 管理模块，检查相关接口、页面数据流和权限，并完成适当验证。"

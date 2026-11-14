@@ -16,6 +16,7 @@ import {
   type Inventory
 } from "@/api/dashboard";
 import BaseChart from "./components/BaseChart.vue";
+import WebTrafficModule from "./components/WebTrafficModule.vue";
 
 defineOptions({ name: "Dashboard" });
 const router = useRouter();
@@ -447,6 +448,7 @@ const levelType = (level: string): "danger" | "warning" | "info" =>
       :title="$tr('部分模块暂不可用')"
       :description="$tr(issues.join('；'))"
     />
+    <WebTrafficModule />
     <el-skeleton
       v-if="loading && !overview"
       :rows="12"

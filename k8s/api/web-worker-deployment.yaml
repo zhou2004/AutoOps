@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+# The API also runs read-only collection. Keep its TZ equal to this worker.
+# SSH host fingerprints and credential references are resolved from the CMDB.
+metadata:
+  name: web-worker
+  labels:
+    app: web-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: web-worker
+  template:
+    metadata:
+      labels:
+        app: web-worker
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: worker
+          # Build the API image from this revision before applying this manifest.
+          image: feelzhou/autoops-api:latest
+          command: [/app/devops, -mode, web-worker, -c, /app/config.yaml]
+          env:
+            - name: WEB_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: autoops-web
+                  key: encryption-key
+            - name: TZ
+              value: Asia/Shanghai
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: temporary
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: devops-api-cm0
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: temporary
+          emptyDir:
+            sizeLimit: 10Gi

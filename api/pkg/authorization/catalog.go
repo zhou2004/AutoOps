@@ -13,6 +13,7 @@ var Catalog = []Module{
 	{"cmdb", "资产管理", []string{"read", "write", "execute"}},
 	{"docker", "Docker 管理", []string{"read", "write", "execute"}},
 	{"database", "数据库管理", []string{"read", "write", "execute"}},
+	{"web", "Web 管理", []string{"read", "write", "execute"}},
 	{"k8s", "容器管理", []string{"read", "write", "execute"}},
 	{"monitor", "监控告警", []string{"read", "write", "execute"}},
 	{"task", "任务中心", []string{"read", "write", "execute"}},
@@ -54,6 +55,9 @@ func Route(method, fullPath string) Requirement {
 	admin := false
 	module := ""
 	switch {
+	case strings.HasPrefix(p, "/web/"):
+		module = "web"
+		admin = (strings.HasPrefix(p, "/web/sources") || strings.HasPrefix(p, "/web/dns-accounts") || strings.HasPrefix(p, "/web/acme-accounts")) && method != "GET"
 	case strings.HasPrefix(p, "/database/"):
 		module = "database"
 		admin = strings.HasSuffix(p, "/grants") || (strings.HasPrefix(p, "/database/repositories") || strings.HasPrefix(p, "/database/storage-thresholds") || strings.HasPrefix(p, "/database/audit")) && method != "GET"
@@ -146,6 +150,27 @@ func Route(method, fullPath string) Requirement {
 		}
 		if strings.HasSuffix(p, "/grants") || (strings.HasPrefix(p, "/database/repositories") || strings.HasPrefix(p, "/database/storage-thresholds") || strings.HasPrefix(p, "/database/audit")) {
 			action = "write"
+		}
+	}
+	if p == "/web/dns-credentials" || p == "/web/dns-accounts/:id/zones" {
+		admin = true
+	}
+	if module == "web" && method != "GET" {
+		if strings.Contains(p, "/traffic-policy/") {
+			// Candidate policies execute nginx validation with proposed settings;
+			// preview requires configuration write permission, just like draft.
+			action = "write"
+		}
+		if p == "/web/operation-plans" || strings.HasSuffix(p, "/discovery") || strings.HasSuffix(p, "/check") {
+			action = "read"
+			admin = false
+		}
+		if p == "/web/dns-accounts/:id/check" {
+			action = "write"
+			admin = true
+		}
+		if p == "/web/operations" || strings.Contains(p, "/terminal") || strings.HasSuffix(p, "/cancel") || strings.HasSuffix(p, "/members") || strings.HasPrefix(p, "/web/renewal-policies") {
+			action = "execute"
 		}
 	}
 	// Saving a runnable definition can enable scheduled execution.

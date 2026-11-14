@@ -15,16 +15,16 @@ func NewCmdbCabinetDao(db *gorm.DB) *CmdbCabinetDao {
 }
 
 func (d *CmdbCabinetDao) Create(data *model.CmdbCabinet) error {
-	return d.db.Create(data).Error
+	return saveRack(d.db, data)
 }
 
 func (d *CmdbCabinetDao) Update(data *model.CmdbCabinet) error {
 	data.IDC = model.CmdbIDC{}
-	return d.db.Save(data).Error
+	return saveRack(d.db, data)
 }
 
 func (d *CmdbCabinetDao) Delete(id uint) error {
-	return d.db.Delete(&model.CmdbCabinet{}, id).Error
+	return deleteRack(d.db, id)
 }
 
 func (d *CmdbCabinetDao) GetByID(id uint) (*model.CmdbCabinet, error) {

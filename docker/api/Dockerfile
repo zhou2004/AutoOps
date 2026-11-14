@@ -43,6 +43,7 @@ ENV PATH="/opt/ansible-venv/bin:$PATH" \
     DATABASE_ANSIBLE_PLAYBOOK=/opt/database-ansible-venv/bin/ansible-playbook \
     AUTOOPS_DATABASE_AUTOMATION_DIR=/app/automation/database \
     DATABASE_PLATFORM_ROOT=/app/automation/database-platform \
-    DATABASE_WORKER_MODE=external
+    DATABASE_WORKER_MODE=external \
+    WEB_WORKER_MODE=external
 EXPOSE 8000
 CMD ["/app/devops"]

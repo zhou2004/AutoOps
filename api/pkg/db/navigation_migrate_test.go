@@ -84,7 +84,7 @@ func TestNavigationMigrationPreservesAssignmentsAndIsIdempotent(t *testing.T) {
 	}
 	var databaseChildren []model.SysMenu
 	db.Where("parent_id = ? AND menu_status = 2", parent.ID).Order("sort").Find(&databaseChildren)
-	if len(databaseChildren) != 4 {
+	if len(databaseChildren) != 5 {
 		t.Fatal("unexpected database submenu count", len(databaseChildren))
 	}
 	for i, item := range databaseChildren {
@@ -134,7 +134,90 @@ func TestNavigationMigrationCreatesMissingEntries(t *testing.T) {
 	}
 	var count int64
 	db.Model(&model.SysMenu{}).Count(&count)
-	if count != 11 {
+	if count != 12 {
 		t.Fatalf("duplicate or missing menu: %d", count)
+	}
+}
+
+func TestDatacenterNavigationPreservesExistingRoomMenu(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "datacenter.db")), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := db.DB()
+	defer raw.Close()
+	if err = db.AutoMigrate(&model.SysMenu{}, &model.SysRoleMenu{}); err != nil {
+		t.Fatal(err)
+	}
+	db.Create(&model.SysMenu{ID: 1, MenuName: "资产管理", MenuType: 1})
+	db.Create(&model.SysMenu{ID: 2, MenuName: "机房信息", MenuType: 2, Url: "system/machine", Value: "cmdb:read", MenuStatus: 2})
+	db.Create(&model.SysRoleMenu{RoleId: 7, MenuId: 2})
+	for i := 0; i < 2; i++ {
+		if err = migrateManagementNavigation(db); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var room model.SysMenu
+	db.First(&room, 2)
+	if room.Url != "cmdb/datacenter" || room.MenuName != "机房管理" || room.ParentId != 1 || room.Value != "cmdb:read" {
+		t.Fatalf("lost room menu: %+v", room)
+	}
+	var n int64
+	db.Model(&model.SysMenu{}).Where("url = ?", "cmdb/datacenter").Count(&n)
+	if n != 1 {
+		t.Fatal("3D menu duplicated or missing")
+	}
+	db.Model(&model.SysRoleMenu{}).Where("role_id = ? AND menu_id = ?", 7, 2).Count(&n)
+	if n != 1 {
+		t.Fatal("role link lost")
+	}
+}
+
+func TestDatacenterNavigationMergesBothMenusAndRoles(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "merged-navigation.db")), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := db.DB()
+	t.Cleanup(func() { raw.Close() })
+	if err = db.AutoMigrate(&model.SysMenu{}, &model.SysRoleMenu{}); err != nil {
+		t.Fatal(err)
+	}
+	for _, menu := range []model.SysMenu{
+		{ID: 1, MenuName: "资产管理", MenuType: 1, MenuStatus: 2},
+		{ID: 2, MenuName: "机房与机柜", Url: "/cmdb/machine", MenuType: 2, MenuStatus: 2},
+		{ID: 3, MenuName: "机房3D", Url: "cmdb/datacenter", MenuType: 2, MenuStatus: 2, Value: "cmdb:read"},
+		{ID: 4, MenuName: "修改机柜", ParentId: 2, MenuType: 3, Value: "cmdb:write", MenuStatus: 2},
+	} {
+		if err = db.Create(&menu).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, link := range []model.SysRoleMenu{{RoleId: 7, MenuId: 2}, {RoleId: 8, MenuId: 3}, {RoleId: 7, MenuId: 4}} {
+		if err = db.Create(&link).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	for i := 0; i < 2; i++ {
+		if err = migrateManagementNavigation(db); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var menus []model.SysMenu
+	db.Where("menu_type = 2 AND menu_status = 2 AND url IN ?", []string{"/cmdb/machine", "cmdb/datacenter"}).Find(&menus)
+	if len(menus) != 1 || menus[0].ID != 3 || menus[0].MenuName != "机房管理" || menus[0].Value != "cmdb:read" {
+		t.Fatalf("unified menu incorrect: %+v", menus)
+	}
+	for _, link := range []model.SysRoleMenu{{RoleId: 7, MenuId: 3}, {RoleId: 8, MenuId: 3}, {RoleId: 7, MenuId: 1}, {RoleId: 8, MenuId: 1}, {RoleId: 7, MenuId: 4}} {
+		var n int64
+		db.Model(&model.SysRoleMenu{}).Where("role_id = ? AND menu_id = ?", link.RoleId, link.MenuId).Count(&n)
+		if n != 1 {
+			t.Fatalf("lost or duplicate role assignment: %+v (%d)", link, n)
+		}
+	}
+	var action model.SysMenu
+	db.First(&action, 4)
+	if action.ParentId != 3 || action.Value != "cmdb:write" {
+		t.Fatalf("inventory action not preserved under unified menu: %+v", action)
 	}
 }

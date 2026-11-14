@@ -36,7 +36,7 @@ jobs:
           cache-dependency-path: api/go.sum
       - name: Test database services, configuration and migrations
         working-directory: api
-        run: go test ./api/database/... ./common/config ./pkg/db
+        run: go test ./...
       - uses: pnpm/action-setup@f53f5227a9e83886ab598c617f3c170fab62f0d3 # v6 (Node.js 24 runtime)
         with:
           package_json_file: web/package.json
@@ -60,6 +60,9 @@ jobs:
     needs: verify
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -81,6 +84,21 @@ jobs:
         with:
           username: feelzhou
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Sign in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate GitHub Package tags
+        id: ghcr
+        env:
+          OWNER: ${{ github.repository_owner }}
+          COMPONENT: ${{ matrix.component }}
+          CUSTOM_TAG: ${{ inputs.tag }}
+        run: |
+          export IMAGE_REPOSITORY="ghcr.io/${OWNER,,}/autoops-$COMPONENT"
+          bash docker/ci/image-tags.sh
       - name: Generate component tags
         id: tags
         env:
@@ -96,7 +114,9 @@ jobs:
           file: docker/${{ matrix.component }}/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: |
+            ${{ steps.tags.outputs.tags }}
+            ${{ steps.ghcr.outputs.tags }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -143,3 +163,26 @@ jobs:
               --tag "$repository:latest" \
               "$repository:sha-${GITHUB_SHA:0:12}"
           done
+
+  release:
+    name: Publish version release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Package deployment files and publish notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$GITHUB_REF_NAME"
+          notes="docs/releases-$version.md"
+          test -s "$notes"
+          bundle="autoops-deploy-$version.tar.gz"
+          git archive --format=tar.gz --prefix="autoops-$version/" -o "$bundle" HEAD docker k8s/quickstart api/sql/bootstrap.sql api/config.example.yaml docs assets README.md web/LICENSE web/public/assets/brand
+          sha256sum "$bundle" > SHA256SUMS
+          gh release create "$version" "$bundle" SHA256SUMS --verify-tag --title "AutoOps $version · Connected Operations" --notes-file "$notes"

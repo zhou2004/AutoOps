@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: autoops
+resources:
+  - namespace.yaml
+  - resources.yaml
+secretGenerator:
+  - name: autoops-env
+    envs: [generated/app.env]
+configMapGenerator:
+  - name: autoops-config
+    files: [config.yaml=generated/config.yaml]
+  - name: autoops-bootstrap
+    files: [bootstrap.sql=generated/bootstrap.sql]
+images:
+  - name: feelzhou/autoops-api
+    newTag: v1.1.0
+  - name: feelzhou/autoops-web
+    newTag: v1.1.0

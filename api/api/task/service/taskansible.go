@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -70,6 +71,7 @@ type TaskAnsibleServiceImpl struct {
 
 // CreateTaskRequest 创建任务请求参数
 type CreateTaskRequest struct {
+	Description        string            `json:"description"`
 	TaskType           int               `json:"taskType"`
 	Name               string            `json:"name"`
 	HostGroups         map[string][]uint `json:"hostGroups"`
@@ -94,21 +96,38 @@ type CreateTaskRequest struct {
 // UpdateTaskRequest 修改任务请求参数
 type UpdateTaskRequest struct {
 	Name               string            `json:"name"`
+	Description        *string           `json:"description"`
 	HostGroups         map[string][]uint `json:"hostGroups"`
 	GitRepo            string            `json:"gitRepo"`
 	PlaybookPaths      []string          `json:"playbookPaths"`
 	Variables          map[string]string `json:"variables"`
-	ExtraVars          string            `json:"extraVars"`
-	CliArgs            string            `json:"cliArgs"`
-	UseConfig          int               `json:"useConfig"`
+	ExtraVars          *string           `json:"extraVars"`
+	CliArgs            *string           `json:"cliArgs"`
+	UseConfig          *int              `json:"useConfig"`
 	InventoryConfigID  *uint             `json:"inventoryConfigId"`
 	GlobalVarsConfigID *uint             `json:"globalVarsConfigId"`
 	ExtraVarsConfigID  *uint             `json:"extraVarsConfigId"`
 	CliArgsConfigID    *uint             `json:"cliArgsConfigId"`
-	MaxHistoryKeep     int               `gorm:"default:3;comment:'最大保留历史记录数'"`
-	CronExpr           string            `json:"cronExpr"`
+	MaxHistoryKeep     int               `json:"maxHistoryKeep"`
+	CronExpr           *string           `json:"cronExpr"`
 	IsRecurring        *int              `json:"isRecurring"`
 	ViewID             *uint             `json:"viewId"`
+	ViewIDSet          bool              `json:"-"`
+}
+
+func (r *UpdateTaskRequest) UnmarshalJSON(data []byte) error {
+	type request UpdateTaskRequest
+	var decoded request
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	*r = UpdateTaskRequest(decoded)
+	_, r.ViewIDSet = fields["viewId"]
+	return nil
 }
 
 // StartJobRequest 启动任务请求参数
@@ -815,10 +834,8 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 			workDir = strings.Split(workDir, "/task/")[0]
 		}
 
-		// 构建任务目录相对路径
-		taskRelDir := fmt.Sprintf("task/%d/%s", taskID, task.Name)
-		// 构建任务目录绝对路径
-		absTaskDir := filepath.Join(workDir, taskRelDir)
+		// 按已有工作项定位目录，任务重命名不会移动文件
+		absTaskDir := ansibleTaskDirectory(task)
 
 		// 检查任务目录是否存在
 		if _, err := os.Stat(absTaskDir); os.IsNotExist(err) {
@@ -827,6 +844,15 @@ func (s *TaskAnsibleServiceImpl) ExecuteTask(taskID uint, surveyVars map[string]
 			s.dao.DB.Model(&model.TaskAnsibleWork{}).Where("task_id = ?", taskID).
 				Updates(map[string]interface{}{"status": 4, "error_msg": errMsg})
 			return
+		}
+
+		// Materialize edited values for every run; creation-time files can be stale.
+		if task.Type != 3 {
+			if err := s.prepareAnsibleManualConfig(task, absTaskDir); err != nil {
+				s.updateTaskErrorStatus(taskID, err)
+				s.dao.DB.Model(&model.TaskAnsibleWork{}).Where("task_id = ?", taskID).Updates(map[string]interface{}{"status": 4, "error_msg": err.Error()})
+				return
+			}
 		}
 
 		// Inventory文件绝对路径
@@ -1376,6 +1402,7 @@ func (s *TaskAnsibleServiceImpl) CreateTask(c *gin.Context, req *CreateTaskReque
 	// 创建任务记录
 	task := &taskmodel.TaskAnsible{
 		Name:               name,
+		Description:        req.Description,
 		Type:               taskType, // 1=手动，2=Git导入
 		HostGroups:         toJSON(hostGroups),
 		AllHostIDs:         toJSON(allHostIDs),
@@ -1709,8 +1736,8 @@ func (s *TaskAnsibleServiceImpl) resolvePlaybookPaths(projectDir string, paths [
 		}
 
 		// 验证文件是否存在
-		if _, err := os.Stat(full); err != nil {
-			return nil, fmt.Errorf("playbook不存在: %s", p)
+		if info, err := os.Stat(full); err != nil || info.IsDir() {
+			return nil, fmt.Errorf("playbook文件不存在: %s", p)
 		}
 
 		// 注意：这里应该只返回相对路径，而不是包含项目目录的完整路径
@@ -2139,168 +2166,173 @@ func (s *TaskAnsibleServiceImpl) UpdateTask(c *gin.Context, taskID uint, req *Up
 	if len(req.HostGroups) > 0 && !AuthorizeTaskTargets(c, req.HostGroups) {
 		return
 	}
-	// 1. 获取任务
-	task, err := s.dao.GetTaskDetail(taskID)
-	if err != nil {
-		result.Failed(c, 500, fmt.Sprintf("获取任务失败: %v", err))
+	// Read a fresh copy: never mutate a cached task before validation succeeds.
+	var task model.TaskAnsible
+	if err := s.dao.DB.Preload("Works", func(db *gorm.DB) *gorm.DB { return db.Order("id ASC") }).First(&task, taskID).Error; err != nil {
+		result.Failed(c, 404, "任务不存在")
 		return
 	}
-
-	// 2. 检查任务状态，运行中不可修改
 	if task.Status == 2 {
 		result.Failed(c, 400, "任务正在运行中，无法修改")
 		return
 	}
-
-	// 3. 更新基本信息
+	projectDir := ansibleTaskDirectory(&task)
 	if req.Name != "" {
 		task.Name = req.Name
 	}
-
-	// 更新配置选项
-	task.UseConfig = req.UseConfig
-	if req.InventoryConfigID != nil {
-		task.InventoryConfigID = req.InventoryConfigID
+	if req.Description != nil {
+		task.Description = *req.Description
 	}
-	if req.GlobalVarsConfigID != nil {
-		task.GlobalVarsConfigID = req.GlobalVarsConfigID
+	if req.UseConfig != nil {
+		task.UseConfig = *req.UseConfig
 	}
-	if req.ExtraVarsConfigID != nil {
-		task.ExtraVarsConfigID = req.ExtraVarsConfigID
+	configFields := []struct {
+		source *uint
+		target **uint
+	}{
+		{req.InventoryConfigID, &task.InventoryConfigID}, {req.GlobalVarsConfigID, &task.GlobalVarsConfigID},
+		{req.ExtraVarsConfigID, &task.ExtraVarsConfigID}, {req.CliArgsConfigID, &task.CliArgsConfigID},
 	}
-	if req.CliArgsConfigID != nil {
-		task.CliArgsConfigID = req.CliArgsConfigID
+	for _, field := range configFields {
+		if field.source != nil {
+			if *field.source == 0 {
+				*field.target = nil
+			} else {
+				*field.target = field.source
+			}
+		}
 	}
-
-	// 更新变量信息
-	if req.ExtraVars != "" {
-		task.ExtraVars = req.ExtraVars
+	if req.ExtraVars != nil {
+		task.ExtraVars = *req.ExtraVars
 	}
-	if req.CliArgs != "" {
-		task.CliArgs = req.CliArgs
+	if req.CliArgs != nil {
+		task.CliArgs = *req.CliArgs
 	}
-
-	// 4. 更新Git信息 (仅Type=2)
 	if task.Type == 2 && req.GitRepo != "" {
 		task.GitRepo = req.GitRepo
 	}
-
-	// 5. 更新HostGroups
-	if len(req.HostGroups) > 0 {
+	if req.HostGroups != nil {
 		task.HostGroups = toJSON(req.HostGroups)
-		// 重新计算AllHostIDs
-		allHostIDs := make([]uint, 0)
-		idMap := make(map[uint]bool)
-		for _, ids := range req.HostGroups {
-			for _, id := range ids {
-				if id > 0 && !idMap[id] {
-					idMap[id] = true
-					allHostIDs = append(allHostIDs, id)
+		ids := []uint{}
+		seen := map[uint]bool{}
+		for _, group := range req.HostGroups {
+			for _, id := range group {
+				if id > 0 && !seen[id] {
+					seen[id] = true
+					ids = append(ids, id)
 				}
 			}
 		}
-		task.AllHostIDs = toJSON(allHostIDs)
+		task.AllHostIDs = toJSON(ids)
 	}
-
-	// 6. 更新GlobalVars
-	if len(req.Variables) > 0 {
+	if req.Variables != nil {
 		task.GlobalVars = toJSON(req.Variables)
 	}
-
-	// 6.5 处理 PlaybookPaths 更新 (仅 Git 任务 Type=2)
-	// 使用 req.PlaybookPaths != nil 区分"显式传空数组"和"未传该字段"
-	if task.Type == 2 && req.PlaybookPaths != nil {
-		workDir, _ := os.Getwd()
-		if strings.Contains(workDir, "/task/") {
-			workDir = strings.Split(workDir, "/task/")[0]
+	// Metadata edits must not revalidate or recreate unchanged playbooks.
+	pathsChanged := task.Type == 2 && req.PlaybookPaths != nil && !sameAnsiblePlaybooks(task.Works, req.PlaybookPaths)
+	var paths []string
+	if pathsChanged {
+		var err error
+		paths, err = s.resolvePlaybookPaths(projectDir, req.PlaybookPaths)
+		if err != nil {
+			result.Failed(c, 400, err.Error())
+			return
 		}
-		projectDir := filepath.Join(workDir, fmt.Sprintf("task/%d/%s", taskID, task.Name))
-
-		// 验证playbook路径
-		var validPaths []string
-		for _, p := range req.PlaybookPaths {
-			p = strings.TrimSpace(p)
-			if p == "" {
-				continue
-			}
-			clean := filepath.Clean(p)
-			if strings.HasPrefix(clean, "..") || filepath.IsAbs(clean) {
-				result.Failed(c, 400, fmt.Sprintf("非法playbook路径: %s", p))
-				return
-			}
-			fullPath := filepath.Join(projectDir, clean)
-			ext := strings.ToLower(filepath.Ext(fullPath))
-			if ext != ".yml" && ext != ".yaml" {
-				result.Failed(c, 400, fmt.Sprintf("playbook必须是yml/yaml文件: %s", p))
-				return
-			}
-			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-				result.Failed(c, 400, fmt.Sprintf("playbook文件不存在: %s", p))
-				return
-			}
-			validPaths = append(validPaths, clean)
+		if len(paths) == 0 {
+			result.Failed(c, 400, "请至少保留一个Playbook")
+			return
 		}
-
-		// 先删除旧的子任务
-		s.dao.DB.Where("task_id = ?", taskID).Delete(&model.TaskAnsibleWork{})
-		// 创建新的子任务
-		for _, fileName := range validPaths {
-			subTask := &taskmodel.TaskAnsibleWork{
-				TaskID:        taskID,
-				EntryFileName: fileName,
-				EntryFilePath: filepath.Join(projectDir, fileName),
-				Status:        1,
-			}
-			if err := s.dao.DB.Create(subTask).Error; err != nil {
-				result.Failed(c, 500, fmt.Sprintf("创建子任务失败: %v", err))
-				return
-			}
-		}
-		// 更新任务数量
-		task.TaskCount = len(validPaths)
-		s.dao.DB.Model(&model.TaskAnsible{}).Where("id = ?", taskID).Update("task_count", len(validPaths))
-		// 重要: 清空 Works 防止后续 Save 时 GORM 把内存中旧的 Works 重新写入 DB
-		task.Works = nil
+		task.TaskCount = len(paths)
 	}
-
-	// Update New fields (支持增量更新)
-	// 只有当 CronExpr 不为空字符串时才更新
-	if req.CronExpr != "" {
-		task.CronExpr = req.CronExpr
+	if req.CronExpr != nil {
+		task.CronExpr = *req.CronExpr
 	}
-
-	// 只有当 IsRecurring 传了值（不为nil）时才更新
 	if req.IsRecurring != nil {
 		task.IsRecurring = *req.IsRecurring
 	}
-
 	if req.MaxHistoryKeep > 0 {
 		task.MaxHistoryKeep = req.MaxHistoryKeep
 	}
-
-	// 更新 ViewID（允许置空）
-	task.ViewID = req.ViewID
-
+	if req.ViewIDSet || req.ViewID != nil {
+		task.ViewID = req.ViewID
+	}
 	task.UpdatedAt = time.Now()
-
-	// 7. 保存
-	if err := s.dao.Update(task); err != nil {
+	err := s.dao.DB.Transaction(func(tx *gorm.DB) error {
+		if pathsChanged {
+			if err := tx.Where("task_id = ?", taskID).Delete(&model.TaskAnsibleWork{}).Error; err != nil {
+				return err
+			}
+			for _, path := range paths {
+				work := model.TaskAnsibleWork{TaskID: taskID, EntryFileName: path, EntryFilePath: filepath.Join(projectDir, path), Status: 1}
+				if err := tx.Create(&work).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return tx.Omit("Works", "View", "InventoryConfig", "GlobalVarsConfig", "ExtraVarsConfig", "CliArgsConfig").Save(&task).Error
+	})
+	if err != nil {
 		result.Failed(c, 500, fmt.Sprintf("更新任务失败: %v", err))
 		return
 	}
-
-	// 8. 显式更新 view_id 字段（确保 GORM 正确处理 *uint 指针字段）
-	s.dao.DB.Model(&model.TaskAnsible{}).Where("id = ?", taskID).Update("view_id", req.ViewID)
-
-	// 触发任务配置变更钩子
+	s.dao.InvalidateCache()
 	if OnTaskConfigChange != nil {
-		// 重新获取完整任务信息以确保调度器获取最新配置
 		if fullTask, err := s.dao.GetTaskDetail(taskID); err == nil {
 			OnTaskConfigChange(fullTask)
 		}
 	}
-
 	result.Success(c, task)
+}
+
+// The on-disk directory survives display-name changes. Legacy tasks retain their
+// original location in EntryFilePath; fall back to the task-ID directory after a move.
+func ansibleTaskDirectory(task *model.TaskAnsible) string {
+	cwd, _ := os.Getwd()
+	if strings.Contains(cwd, "/task/") {
+		cwd = strings.Split(cwd, "/task/")[0]
+	}
+	for _, work := range task.Works {
+		if work.EntryFilePath == "" || work.EntryFileName == "" {
+			continue
+		}
+		path := filepath.Clean(work.EntryFilePath)
+		for range strings.Split(filepath.ToSlash(filepath.Clean(work.EntryFileName)), "/") {
+			path = filepath.Dir(path)
+		}
+		if task.Type == 3 && filepath.Base(path) == "scripts" {
+			path = filepath.Dir(path)
+		}
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(cwd, path)
+		}
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			return path
+		}
+	}
+	root := filepath.Join(cwd, "task", strconv.FormatUint(uint64(task.ID), 10))
+	entries, _ := os.ReadDir(root)
+	var dirs []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			dirs = append(dirs, filepath.Join(root, entry.Name()))
+		}
+	}
+	if len(dirs) == 1 {
+		return dirs[0]
+	}
+	return filepath.Join(root, task.Name)
+}
+
+func sameAnsiblePlaybooks(works []model.TaskAnsibleWork, paths []string) bool {
+	if len(works) != len(paths) {
+		return false
+	}
+	for i, path := range paths {
+		if filepath.Clean(strings.TrimSpace(path)) != filepath.Clean(works[i].EntryFileName) {
+			return false
+		}
+	}
+	return true
 }
 
 // GetTaskHistoryList 获取任务历史记录列表 Service

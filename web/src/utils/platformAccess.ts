@@ -46,7 +46,7 @@ export function canVisitPlatform(path: string): boolean {
   if (platformAccess.isAdmin) return true;
   if (["/system/api-keys", "/system/personal"].includes(path)) return true;
   if (path === "/host-terminal") return canPlatform("cmdb:execute");
-  if (path === "/monitor/dblog") return canPlatform("database:read");
+  if (path === "/monitor/dblog") return canPlatform("database:read") || canPlatform("web:read");
   if (path === "/system/machine") return canPlatform("cmdb:read");
   if (
     /^\/system(\/|$)/.test(path) ||
@@ -84,6 +84,7 @@ export function canVisitPlatform(path: string): boolean {
   const prefix = path.split("/")[1];
   const module = (
     {
+      web: "web",
       cmdb: "cmdb",
       k8s: "k8s",
       monitor: "monitor",

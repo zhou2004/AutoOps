@@ -30,7 +30,7 @@ func permissionDB(t *testing.T) *gorm.DB {
 	previous := database.Db
 	database.Db = db
 	t.Cleanup(func() { database.Db = previous; raw, _ := db.DB(); raw.Close() })
-	if err = db.AutoMigrate(&model.APIKey{}, &model.RolePermission{}, &model.SysMenu{}, &model.SysRoleMenu{}); err != nil {
+	if err = db.AutoMigrate(&model.AccountSessionVersion{}, &model.APIKey{}, &model.RolePermission{}, &model.SysMenu{}, &model.SysRoleMenu{}); err != nil {
 		t.Fatal(err)
 	}
 	for _, sql := range []string{

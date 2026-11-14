@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LayFrame from "../lay-frame/index.vue";
+import { useRoute } from "vue-router";
 import LayFooter from "../lay-footer/index.vue";
 import { useTags } from "@/layout/hooks/useTag";
 import { useGlobal, isNumber } from "@pureadmin/utils";
@@ -12,6 +13,7 @@ const props = defineProps({
 });
 
 const { showModel } = useTags();
+const currentRoute = useRoute();
 const { $storage, $config } = useGlobal<GlobalPropertiesApi>();
 
 const isKeepAlive = computed(() => {
@@ -158,7 +160,7 @@ const transitionMain = defineComponent({
                   />
                 </transitionMain>
               </div>
-              <LayFooter v-if="!hideFooter" />
+              <LayFooter v-if="!hideFooter && currentRoute.meta.uiLayout !== 'canvas'" />
             </el-scrollbar>
             <div v-else class="grow">
               <transitionMain :route="route">
@@ -188,7 +190,7 @@ const transitionMain = defineComponent({
     </router-view>
 
     <!-- 页脚 -->
-    <LayFooter v-if="!hideFooter && !fixedHeader" />
+    <LayFooter v-if="!hideFooter && !fixedHeader && currentRoute.meta.uiLayout !== 'canvas'" />
   </section>
 </template>
 

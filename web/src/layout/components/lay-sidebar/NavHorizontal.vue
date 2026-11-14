@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandLogo from "@/components/BrandLogo/index.vue";
 import LanguageSwitch from "@/components/LanguageSwitch/index.vue";
 import { emitter } from "@/utils/mitt";
 import { useNav } from "@/layout/hooks/useNav";
@@ -54,7 +55,7 @@ onMounted(() => {
     class="horizontal-header"
   >
     <div v-if="showLogo" class="horizontal-header-left" @click="backTopMenu">
-      <img :src="getLogo()" alt="logo" />
+      <BrandLogo :size="32" />
       <span>{{ $tr(title) }}</span>
     </div>
     <el-menu

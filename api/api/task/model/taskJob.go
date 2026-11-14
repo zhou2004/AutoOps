@@ -25,6 +25,10 @@ type TaskIDRequest struct {
 
 // Task 任务模型
 type Task struct {
+	GroupID    *uint             `json:"group_id" gorm:"index"`
+	Group      *TaskJobGroup     `json:"group,omitempty" gorm:"foreignKey:GroupID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Parameters map[string]string `json:"parameters" gorm:"serializer:json;type:text"`
+
 	ID             uint       `gorm:"primarykey" json:"id"`
 	Name           string     `json:"name" gorm:"size:255;comment:任务标题"`
 	Type           int        `json:"type" gorm:"comment:任务类型 1=普通任务,2=定时任务,3=ansible任务"`
@@ -115,26 +119,29 @@ func (t *Task) IsActiveScheduledTask() bool {
 
 // TaskWithDetails 任务详细信息DTO（包含关联信息）
 type TaskWithDetails struct {
-	ID             uint       `json:"id"`
-	Name           string     `json:"name"`
-	Type           int        `json:"type"`
-	Shell          string     `json:"shell"`
-	ExecutionMode  int        `json:"execution_mode"`
-	Command        string     `json:"command"`
-	CommandType    int        `json:"command_type"`
-	HostIDs        string     `json:"host_ids"`
-	CronExpr       string     `json:"cron_expr"`
-	Tasklog        string     `json:"tasklog"`
-	Status         int        `json:"status"`
-	Duration       int        `json:"duration"`
-	TaskCount      int        `json:"task_count"`
-	ExecuteCount   int        `json:"execute_count"`
-	MaxHistoryKeep int        `json:"max_history_keep"`
-	NextRunTime    *time.Time `json:"next_run_time"`
-	Remark         string     `json:"remark"`
-	StartTime      *time.Time `json:"start_time"`
-	EndTime        *time.Time `json:"end_time"`
-	CreatedAt      time.Time  `json:"created_at"`
+	GroupID        *uint             `json:"group_id"`
+	GroupName      string            `json:"group_name"`
+	Parameters     map[string]string `json:"parameters"`
+	ID             uint              `json:"id"`
+	Name           string            `json:"name"`
+	Type           int               `json:"type"`
+	Shell          string            `json:"shell"`
+	ExecutionMode  int               `json:"execution_mode"`
+	Command        string            `json:"command"`
+	CommandType    int               `json:"command_type"`
+	HostIDs        string            `json:"host_ids"`
+	CronExpr       string            `json:"cron_expr"`
+	Tasklog        string            `json:"tasklog"`
+	Status         int               `json:"status"`
+	Duration       int               `json:"duration"`
+	TaskCount      int               `json:"task_count"`
+	ExecuteCount   int               `json:"execute_count"`
+	MaxHistoryKeep int               `json:"max_history_keep"`
+	NextRunTime    *time.Time        `json:"next_run_time"`
+	Remark         string            `json:"remark"`
+	StartTime      *time.Time        `json:"start_time"`
+	EndTime        *time.Time        `json:"end_time"`
+	CreatedAt      time.Time         `json:"created_at"`
 	// ExecutionStatus 只表示当前一次命令执行状态，不与定时调度开关共用。
 	ExecutionStatus  int  `json:"execution_status"`
 	CurrentHistoryID uint `json:"current_history_id"`
@@ -145,10 +152,11 @@ type TaskWithDetails struct {
 
 // TaskTemplateInfo 任务模板信息
 type TaskTemplateInfo struct {
-	ID      uint   `json:"id"`
-	Name    string `json:"name"`
-	Type    int    `json:"type"`
-	Content string `json:"content"`
+	Parameters map[string]string `json:"parameters"`
+	ID         uint              `json:"id"`
+	Name       string            `json:"name"`
+	Type       int               `json:"type"`
+	Content    string            `json:"content"`
 }
 
 // HostInfo 主机信息

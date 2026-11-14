@@ -4,7 +4,11 @@
       <div>
         <span class="monitor-eyebrow">MONITORING</span>
         <h1>{{ $tr("域名证书监控") }}</h1>
-        <p>{{ $tr("按分类管理域名，跟踪证书有效期与检查结果。") }}</p>
+        <p>
+          {{
+            $tr("后台每 5 分钟自动检查证书，服务启动后立即检查；也可手动检查。")
+          }}
+        </p>
       </div>
       <div class="monitor-total">
         <strong>{{ total }}</strong
@@ -347,6 +351,7 @@ export default {
   components: { MonitorCategoryTools },
   data() {
     return {
+      refreshTimer: null,
       categories: [],
       listRequestId: 0,
       Loading: true,
@@ -385,7 +390,36 @@ export default {
   created() {
     this.getList();
   },
+  mounted() {
+    this.startRefresh();
+  },
+  activated() {
+    this.startRefresh();
+  },
+  deactivated() {
+    this.stopRefresh();
+  },
+  beforeUnmount() {
+    this.stopRefresh();
+    this.listRequestId++;
+  },
   methods: {
+    startRefresh() {
+      this.stopRefresh();
+      this.refreshTimer = setInterval(() => {
+        if (
+          !document.hidden &&
+          !this.Loading &&
+          !this.dialogVisible &&
+          !this.checkingAll
+        )
+          this.getList(true);
+      }, 30000);
+    },
+    stopRefresh() {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    },
     categoryName(id) {
       return id
         ? this.categories.find(c => c.id === id)?.name || `${tr("分类")} #${id}`
@@ -407,9 +441,9 @@ export default {
       )
         this.form.categoryId = 0;
     },
-    async getList() {
+    async getList(silent = false) {
       const requestId = ++this.listRequestId;
-      this.Loading = true;
+      if (!silent) this.Loading = true;
       try {
         const params = {
           ...this.queryParams,
@@ -437,7 +471,7 @@ export default {
           return this.getList();
         }
       } catch {
-        if (requestId === this.listRequestId)
+        if (!silent && requestId === this.listRequestId)
           this.$message.error(tr("获取列表失败"));
       } finally {
         if (requestId === this.listRequestId) this.Loading = false;

@@ -1,0 +1,48 @@
+/* Scoped to Web certificate overlays; the application scrolls inside app-main. */
+.web-certificate-overlay,
+.web-certificate-overlay .el-overlay-dialog {
+  overscroll-behavior: contain;
+}
+.el-dialog.web-certificate-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+}
+.web-certificate-dialog .el-dialog__header,
+.web-certificate-dialog .el-dialog__footer {
+  flex-shrink: 0;
+}
+.web-certificate-dialog .el-dialog__body {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.web-certificate-dialog .el-dialog__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.web-certificate-dialog .el-dialog__footer .el-button {
+  margin-left: 0;
+}
+.web-certificate-dialog .el-form-item,
+.web-certificate-dialog .el-form-item__content,
+.web-certificate-drawer .el-drawer__body {
+  min-width: 0;
+}
+.web-certificate-dialog .el-dialog__title,
+.web-certificate-drawer .el-drawer__title {
+  overflow-wrap: anywhere;
+}
+.web-certificate-dialog .el-alert__content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .web-certificate-dialog .el-form-item__content > .el-select {
+    width: 100%;
+    min-width: 0;
+  }
+}

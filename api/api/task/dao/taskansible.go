@@ -69,6 +69,9 @@ func (d *TaskAnsibleDao) clearCache(pattern string) {
 	d.cache = make(map[string]*cacheItem)
 }
 
+// InvalidateCache clears task and work snapshots after transactional edits.
+func (d *TaskAnsibleDao) InvalidateCache() { d.clearCache("") }
+
 // Create 创建Ansible任务
 func (d *TaskAnsibleDao) Create(task *model.TaskAnsible) error {
 	return d.DB.Create(task).Error
@@ -202,7 +205,7 @@ func (d *TaskAnsibleDao) GetTaskDetail(taskID uint) (*model.TaskAnsible, error) 
 	var task model.TaskAnsible
 	// 只预加载Works的关键字段，减少数据传输
 	err := d.DB.Preload("Works", func(db *gorm.DB) *gorm.DB {
-		return db.Select("id, task_id, entry_file_name, status, start_time, end_time, duration")
+		return db.Select("id, task_id, entry_file_name, entry_file_path, status, start_time, end_time, duration").Order("id ASC")
 	}).Where("id = ?", taskID).First(&task).Error
 
 	if err == nil {

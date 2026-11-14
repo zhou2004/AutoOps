@@ -68,7 +68,7 @@ class PureHttp {
           }
         }
         // 白名单接口不需要 token
-        const whiteList = ["/login", "/captcha"];
+        const whiteList = ["/login", "/captcha", "/auth/options", "/auth/email-code", "/auth/register", "/auth/reset-password"];
         const isWhiteListed = whiteList.some(url => config.url?.endsWith(url));
         if (!isWhiteListed) {
           const token = getToken();
@@ -126,7 +126,8 @@ class PureHttp {
             }
             return new Promise(() => { });
           }
-          if (!isRedirectingToLogin) {
+          const handledByCaller = (error.config as PureHttpRequestConfig)?.silentErrorStatuses?.includes(status);
+          if (!isRedirectingToLogin && !handledByCaller) {
             const msg = error.response.data || `请求失败(${status})`;
             ElMessage.error(msg);
           }

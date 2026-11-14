@@ -88,4 +88,4 @@ kubectl create secret generic autoops-auth --from-literal=jwt-secret="$AUTOOPS_J
 
 全量 `vue-tsc` 仍受仓库已有 cmdb/k8s 等类型错误影响；使用 `--ignoreDeprecations 5.0` 验证时，本次新增 API Token、角色权限页面及公共权限 API/工具文件未出现在错误列表中。
 
-界面示例（浏览器测试数据）：[角色权限](images/role-permissions-light.png)、[用户 API Token](images/user-api-tokens-dark.png)。
+界面示例（浏览器测试数据）：[角色权限](../assets/screenshots/role-permissions-light.png)、[用户 API Token](../assets/screenshots/user-api-tokens-dark.png)。

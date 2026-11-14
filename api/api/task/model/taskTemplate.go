@@ -8,6 +8,8 @@ type IDDto struct {
 }
 
 type TaskTemplate struct {
+	Parameters map[string]string `json:"parameters" gorm:"serializer:json;type:text"`
+
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `gorm:"size:100;not null" json:"name"`                                     // 任务名称
 	Type      int       `gorm:"not null" json:"type"`                                              // 模板语言，见 TemplateType* 常量

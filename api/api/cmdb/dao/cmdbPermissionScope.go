@@ -11,7 +11,7 @@ import (
 )
 
 // PermissionActions is the common vocabulary shared by asset management and sessions.
-var PermissionActions = []string{"get", "list", "connect", "connect_ssh", "connect_vnc", "connect_rdp", "file_list", "file_upload", "file_download", "file_delete", "command", "config_view", "config_backup", "config_restore", "db_query", "db_execute", "db_cluster_view", "db_cluster_manage", "db_cluster_switch", "db_cluster_backup", "db_cluster_restore", "db_cluster_config", "db_cluster_audit", "docker_view", "docker_logs", "docker_operate", "docker_remove", "audit", "create", "update", "delete", "admin"}
+var PermissionActions = []string{"web_view", "web_manage", "web_config_view", "web_config_edit", "web_publish", "web_certificate_use", "web_certificate_manage", "web_logs", "web_terminal", "web_audit", "get", "list", "connect", "connect_ssh", "connect_vnc", "connect_rdp", "file_list", "file_upload", "file_download", "file_delete", "command", "config_view", "config_backup", "config_restore", "db_query", "db_execute", "db_cluster_view", "db_cluster_manage", "db_cluster_switch", "db_cluster_backup", "db_cluster_restore", "db_cluster_config", "db_cluster_audit", "docker_view", "docker_logs", "docker_operate", "docker_remove", "audit", "create", "update", "delete", "admin"}
 
 func ValidPermissionAction(action string) bool {
 	for _, a := range PermissionActions {
@@ -194,6 +194,12 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 			direct = p.NetworkIDs
 		case "database":
 			direct = p.DatabaseIDs
+		case "web_source":
+			direct = p.WebSourceIDs
+		case "web_cluster":
+			direct = p.WebClusterIDs
+		case "web_certificate":
+			direct = p.WebCertificateIDs
 		case "database_cluster":
 			direct = p.DatabaseClusterIDs
 		case "idc":
@@ -209,7 +215,7 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 				result[id] = true
 			}
 		}
-		if assetType == "host" || assetType == "group" || assetType == "database_cluster" {
+		if assetType == "host" || assetType == "group" || assetType == "database_cluster" || assetType == "web_source" || assetType == "web_cluster" || assetType == "web_certificate" {
 			groupIDs := permissionIDs(p.HostGroupIDs)
 			if len(groupIDs) > 0 {
 				expanded, err := d.descendantGroups(groupIDs)
@@ -220,6 +226,9 @@ func (d *CmdbAssetPermissionDao) AllowedAssetIDs(perms []model.CmdbAssetPermissi
 					for _, id := range expanded {
 						result[id] = true
 					}
+				} else if assetType == "web_source" || assetType == "web_cluster" || assetType == "web_certificate" {
+					var ids []uint
+					if err := d.db.Table(assetType).Where("group_id IN ?", expanded).Pluck("id", &ids).Error; err != nil { return nil, err }; for _, id := range ids { result[id] = true }
 				} else if assetType == "database_cluster" {
 					var ids []uint
 					if err := d.db.Table("database_cluster").Where("group_id IN ?", expanded).Pluck("id", &ids).Error; err != nil { return nil,err }

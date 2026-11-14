@@ -124,7 +124,7 @@ export function useNav() {
 
   /** 获取`logo` */
   function getLogo() {
-    return new URL("/logo.svg", import.meta.url).href;
+    return "/assets/brand/mark-light.svg";
   }
 
   return {

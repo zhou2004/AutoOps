@@ -32,6 +32,14 @@ spec:
             - containerPort: 8000
               protocol: TCP
           env:
+            - name: WEB_WORKER_MODE
+              value: external
+            - name: WEB_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: autoops-web
+                  key: encryption-key
+                  optional: true
             - name: DATABASE_WORKER_MODE
               value: external
             - name: AUTOOPS_DATABASE_AUTOMATION_DIR

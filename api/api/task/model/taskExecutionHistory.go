@@ -9,15 +9,18 @@ const (
 
 // TaskTemplateSnapshot 保存一次执行实际使用的模板版本，用于审计和回滚。
 type TaskTemplateSnapshot struct {
-	ID      uint   `json:"id"`
-	Name    string `json:"name"`
-	Type    int    `json:"type"`
-	Content string `json:"content"`
-	Remark  string `json:"remark"`
+	Parameters map[string]string `json:"parameters"`
+	ID         uint              `json:"id"`
+	Name       string            `json:"name"`
+	Type       int               `json:"type"`
+	Content    string            `json:"content"`
+	Remark     string            `json:"remark"`
 }
 
 // TaskExecutionHistory 是任务作业的一次完整执行记录。
 type TaskExecutionHistory struct {
+	Parameters map[string]string `json:"parameters" gorm:"serializer:json;type:text"`
+
 	ID                uint               `gorm:"primaryKey" json:"id"`
 	TaskID            uint               `gorm:"index;not null" json:"task_id"`
 	TaskName          string             `gorm:"size:255" json:"task_name"`
@@ -46,6 +49,8 @@ func (TaskExecutionHistory) TableName() string { return "task_execution_history"
 
 // TaskExecutionLog 保存一次执行中单个“主机 × 模板”的日志和命令快照。
 type TaskExecutionLog struct {
+	Parameters map[string]string `json:"parameters" gorm:"serializer:json;type:text"`
+
 	ID              uint       `gorm:"primaryKey" json:"id"`
 	HistoryID       uint       `gorm:"index;not null" json:"history_id"`
 	TaskID          uint       `gorm:"index;not null" json:"task_id"`

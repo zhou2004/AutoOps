@@ -93,7 +93,7 @@
       style="width: 100%"
 
     >
-      <el-table-column prop="name" :label='$tr("任务名称")' width="200">
+      <el-table-column prop="name" :label='$tr("任务名称")' min-width="200" show-overflow-tooltip>
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -106,7 +106,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="type" :label='$tr("类型")' width="130">
+      <el-table-column prop="type" :label='$tr("类型")' width="110">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -120,7 +120,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="status" :label='$tr("状态")' width="130">
+      <el-table-column prop="status" :label='$tr("状态")' width="110">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -134,12 +134,12 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="taskCount" :label='$tr("任务数量")' >
+      <el-table-column prop="taskCount" :label='$tr("任务数量")' width="90" align="center">
         <template #default="{row}">
           <span>{{ row.taskCount || 0 }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="totalDuration" :label='$tr("执行耗时")' width="150">
+      <el-table-column prop="totalDuration" :label='$tr("执行耗时")' width="110">
         <template #default="{row}">
           <div style="display: flex; align-items: center; gap: 8px;">
             <img 
@@ -151,7 +151,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="description" :label='$tr("任务描述")' >
+      <el-table-column prop="description" :label='$tr("任务描述")' min-width="160" show-overflow-tooltip>
         <template #default="{row}">
           <span :title="row.description" style="display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             {{ row.description || '暂无描述' }}
@@ -165,8 +165,8 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="createdAt" :label='$tr("创建时间")'  />
-      <el-table-column prop="updatedAt" :label='$tr("更新时间")'  />
+      <el-table-column prop="createdAt" :label='$tr("创建时间")' width="170" show-overflow-tooltip />
+      <el-table-column prop="updatedAt" :label='$tr("更新时间")' width="170" show-overflow-tooltip />
       <el-table-column prop="cron_expr" :label='$tr("Cron表达式")' width="150">
         <template #default="{ row }">
            <el-tag v-if="row.cron_expr" size="small" type="info">{{ row.cron_expr }}</el-tag>
@@ -186,23 +186,25 @@
           />
         </template>
       </el-table-column>
-      <el-table-column :label='$tr("操作")' width="120" fixed="right">
+      <el-table-column :label='$tr("操作")' width="136" fixed="right" align="center">
         <template #default="{row}">
-          <div class="operation-buttons">
-            <el-tooltip :content='$tr("启动任务")' placement="top">
+          <div class="operation-buttons task-inline-actions">
+            <el-tooltip v-if="row.status !== 2" :content='$tr("启动任务")' placement="top">
               <el-button
                 type="success"
                 :icon="VideoPlay"
+                aria-label="启动任务"
                 size="small"
                 v-authority="['task:ansible:start']"
                 circle
                 @click="() => showStartTaskDialog(row)"
               />
             </el-tooltip>
-            <el-tooltip v-if="row.status === 2" :content='$tr("停止任务")' placement="top">
+            <el-tooltip v-else :content='$tr("停止任务")' placement="top">
               <el-button
-                type="warning"
-                :icon="Delete"
+                type="danger"
+                :icon="CircleClose"
+                aria-label="停止任务"
                 size="small"
                 circle
                 @click="() => handleStopTask(row)"
@@ -211,7 +213,9 @@
             <el-tooltip :content='$tr("编辑")' placement="top">
               <el-button
                 type="primary"
-                icon="Edit"
+                :icon="Edit"
+                :disabled="row.status === 2"
+                aria-label="编辑任务"
                 size="small"
                 circle
                 @click="handleEdit(row)"
@@ -223,6 +227,8 @@
                 :icon="Delete"
                 size="small"
                 circle
+                :disabled="row.status === 2"
+                aria-label="删除任务"
                 v-authority="['task:ansible:delete']"
                 @click="handleDelete(row.id)"
               />
@@ -681,7 +687,7 @@ import { tr } from "@/locales";
 import { ref, reactive, onMounted, shallowRef, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElInput } from 'element-plus'
-import { Connection, VideoPlay, Delete, Edit, Plus, Setting } from '@element-plus/icons-vue'
+import { CircleClose, Connection, VideoPlay, Delete, Edit, Plus, Setting } from '@element-plus/icons-vue'
 import {
   GetAnsibleTaskList,
   GetAnsibleConfigList,
@@ -1127,7 +1133,7 @@ const handleEdit = async (row) => {
             description: data.Description,
             type: data.Type,
             hostGroups: typeof data.HostGroups === 'string' ? parseHostGroups(data.HostGroups) : (data.HostGroups || {}),
-            variables: data.GlobalVars || '',
+            variables: typeof data.GlobalVars === 'string' ? data.GlobalVars : JSON.stringify(data.GlobalVars || {}, null, 2),
             extra_vars: data.ExtraVars || '',
             cli_args: data.CliArgs || '',
             gitRepo: data.GitRepo || '',
@@ -1142,7 +1148,7 @@ const handleEdit = async (row) => {
             is_recurring: data.IsRecurring || 0,
             cron_expr: data.CronExpr || '',
             playbook_paths: playbookPaths,
-            view_id: data.ViewId || null
+            view_id: data.ViewID ?? data.ViewId ?? null
         }
         formVisible.value = true
      }
@@ -1296,8 +1302,8 @@ const handleSubmit = async () => {
       throw new Error(response?.data?.message || (isEdit.value ? '更新任务失败' : '创建任务失败'))
     }
   } catch (error) {
-    console.error('创建 Ansible 任务失败:', error)
-    ElMessage.error(`创建任务失败: ${error.message || '未知错误'}`)
+    console.error('保存 Ansible 任务失败:', error)
+    ElMessage.error(`${isEdit.value ? '更新' : '创建'}任务失败: ${error.response?.data?.message || error.message || '未知错误'}`)
   } finally {
     submitting.value = false
   }
@@ -1680,12 +1686,6 @@ onMounted(() => {
   border-top: 1px solid var(--border-light);
 }
 
-.operation-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
 .mb8 {
   margin-bottom: 8px;
 }
@@ -1721,6 +1721,10 @@ onMounted(() => {
 }
 
 .task-name-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--primary);
   cursor: pointer;
   font-weight: 500;

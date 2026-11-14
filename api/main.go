@@ -7,17 +7,21 @@ import (
 	"context"
 	"dodevops-api/api/cmdb/controller"
 	databaseService "dodevops-api/api/database/service"
+	monitorService "dodevops-api/api/monitor/service"
 	"dodevops-api/api/task/service"
+	webService "dodevops-api/api/webservice/service"
 	"dodevops-api/common"
 	"dodevops-api/common/config"
 	_ "dodevops-api/docs"
 	"dodevops-api/pkg/db"
 	"dodevops-api/pkg/log"
 	"dodevops-api/pkg/redis"
+	"dodevops-api/pkg/websecret"
 	"dodevops-api/router"
 	"dodevops-api/scheduler"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -38,16 +42,40 @@ func main() {
 	var configPath string
 	var mode string
 	var databaseWorker string
-	flag.StringVar(&mode, "mode", "api", "api、database-worker 或 database-collector")
+	flag.StringVar(&mode, "mode", "api", "api、database-worker、database-collector、web-worker、web-collector 或 web-key-init")
 	flag.StringVar(&databaseWorker, "database-worker", os.Getenv("DATABASE_WORKER_MODE"), "数据库任务执行器：auto（debug 模式内置）、embedded 或 external")
 	flag.StringVar(&configPath, "c", "", "配置文件路径 (默认: ./config.yaml)")
 	flag.Parse()
+	if mode == "web-key-init" {
+		location, created, err := websecret.Initialize()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		fmt.Printf("Web key ready: %s (created=%t); back up this key separately from the database.\n", location, created)
+		return
+	}
 
 	// 加载配置文件
 	if err := config.LoadConfig(configPath); err != nil {
 		panic("Failed to load config: " + err.Error())
 	}
 
+	if mode == "web-worker" || mode == "web-collector" {
+		_ = common.InitRedis()
+		if err := db.SetupDBLink(); err != nil {
+			panic(err)
+		}
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		host, _ := os.Hostname()
+		if mode == "web-collector" {
+			webService.New(common.GetDB()).RunCollector(ctx)
+		} else {
+			webService.New(common.GetDB()).RunWorker(ctx, fmt.Sprintf("%s-%d", host, os.Getpid()))
+		}
+		return
+	}
 	if mode == "database-worker" || mode == "database-collector" {
 		if err := db.SetupDBLink(); err != nil {
 			panic(err)
@@ -69,6 +97,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// 先占用监听端口，避免启动失败的实例继续迁移数据库和执行后台任务。
+	listener, err := net.Listen("tcp", config.Config.Server.Address)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "API 启动失败：无法监听 %s，请检查端口是否已被占用：%v\n", config.Config.Server.Address, err)
+		os.Exit(1)
+	}
+	defer listener.Close()
+
 	// 初始化其他服务
 	if err := initServices(); err != nil {
 		panic("Failed to initialize services: " + err.Error())
@@ -76,6 +112,17 @@ func main() {
 
 	collectorCtx, stopCollector := context.WithCancel(context.Background())
 	defer stopCollector()
+	go monitorService.RunDomainCertChecks(collectorCtx)
+	webEmbedded, err := config.EmbeddedDatabaseWorker(os.Getenv("WEB_WORKER_MODE"), config.Config.Server.Model)
+	if err != nil {
+		panic(err)
+	}
+	if webEmbedded {
+		host, _ := os.Hostname()
+		go webService.New(common.GetDB()).RunWorker(collectorCtx, fmt.Sprintf("web-dev-%s-%d", host, os.Getpid()))
+	} else {
+		go webService.New(common.GetDB()).RunCollector(collectorCtx)
+	}
 	if embeddedWorker {
 		host, _ := os.Hostname()
 		log.Log().Info("数据库任务执行器随开发 API 启动；排队任务将自动领取")
@@ -102,6 +149,7 @@ func main() {
 		Handler: router,
 	}
 	// 启动服务
+	serveErrors := make(chan error, 1)
 	go func() {
 		log.Info("Conflicting values for 'process.env.NODE_ENV'")
 		log.Info("")
@@ -115,14 +163,20 @@ func main() {
 		if config.Config.Server.EnableSwagger {
 			log.Info("API文档地址: http://" + config.Config.Server.Address + "/swagger/index.html")
 		}
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Infof("listen: %s \n", err)
-		}
+		serveErrors <- srv.Serve(listener)
 	}()
 	quit := make(chan os.Signal, 1)
 	//监听消息
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-	<-quit
+	defer signal.Stop(quit)
+	var serveErr error
+	select {
+	case <-quit:
+	case serveErr = <-serveErrors:
+		if serveErr != nil && serveErr != http.ErrServerClosed {
+			log.Errorf("API 服务异常退出: %v", serveErr)
+		}
+	}
 	log.Info("Shutdown Server ...")
 	stopCollector()
 
@@ -138,6 +192,9 @@ func main() {
 		log.Infof("Server Shutdown: %v", err)
 	}
 	log.Info("Server exiting")
+	if serveErr != nil && serveErr != http.ErrServerClosed {
+		os.Exit(1)
+	}
 }
 
 // initServices 初始化各种服务

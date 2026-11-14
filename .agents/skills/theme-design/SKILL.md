@@ -5,6 +5,14 @@ description: "AutoOps 企业级运维管理平台 UI 主题设计系统 — 双�
 
 # 主题设计系统 (theme-design)
 
+## 2026-11-14 品牌与账号入口规范
+
+- 品牌图标统一使用 `web/src/components/BrandLogo/index.vue`，矢量资源存放在 `web/public/assets/brand`，与全局明暗主题及浏览器图标联动。
+- 登录、注册、找回密码共用 `web/src/views/login/index.vue` 和 `auth.css`；保持中文与英文、桌面与手机布局一致，不预填真实账号密码。
+- 动效必须支持 `prefers-reduced-motion`，键盘焦点必须可见。验证码按原始比例完整显示，用 `object-fit: contain`，请求失败提供重试入口。
+- 公开注册的邮箱验证与管理员审批是两个步骤，界面必须明确说明验证后仍需启用并分配权限；SMTP 未配置时显示可操作的说明。
+- 文档效果图统一存放 `assets/screenshots`。品牌和账号浏览器回归入口为 `web/scripts/account-access-check.cjs`。
+
 ## 2026-10-24 全站控件规范
 
 公共控件的样式以 `web/src/style/design-system.css` 为准；该文件在 Element Plus CSS 后导入，通过 `body.autoops-ui` 同时作用于页面和传送弹窗。本节优先于下文历史按钮渐变/悬浮效果示例。
@@ -176,9 +184,27 @@ setTheme('light')  // 经典白
 
 以下截图使用模拟资产数据，展示列表标准在明暗主题下的实际浏览器效果：
 
-- [经典白列表](../../../docs/images/cmdb-asset-table-light.png)
-- [深邃黑列表](../../../docs/images/cmdb-asset-table-dark.png)
+- [经典白列表](../../../assets/screenshots/cmdb-asset-table-light.png)
+- [深邃黑列表](../../../assets/screenshots/cmdb-asset-table-dark.png)
 
 ### 验证
 
 修改后执行 `cd web && pnpm build`。有浏览器环境时检查明暗主题、长名称、空数据、加载失败、键盘操作、窄屏和横向滚动；远程功能应检查关闭/重连是否释放 WebSocket、终端与键盘监听。
+
+## 资产图标与三维视图（2026-11-14）
+
+资产列表复用 `web/src/components/AssetIcon.vue` 本地 SVG，区分物理机、机房、机柜、路由器、交换机、防火墙和负载均衡。图标使用 currentColor 和可读 aria-label，不用 PHY/NET 文本代替图标。
+
+机房管理的可视化总览必须支持完整亮暗主题；浅色用浅蓝画布/白色面板，深色用深蓝画布/深色面板，地图、机房、统计弹窗、设备抽屉与台账随全局主题切换。共享变量定义在 `three/facilityTheme.css`，局部切换按钮调用应用已有主题方法并持久化，不维护独立主题存储。覆盖 Element Plus 抽屉时同时在局部设置 `--bg-card/--text-primary` 等应用变量及组件变量，避免全局样式造成白底浅字。三维入口合并在「机房管理」，用内部标签访问机房与机柜台账。
+
+动态可视化应有真实可操作的下钻、平滑镜头、柜门开合和设备抽出，而非只有静态效果图。必须提供可键盘访问的 IDC/机柜目录和逐 U 列表，无 WebGL 仍可操作。动画运行时可使用 requestAnimationFrame，机房限制约 30fps；隐藏/停用必须暂停，卸载释放几何体、共享纹理、材质、环境贴图、OrbitControls、监听器与 WebGL 上下文。遵循 reduced-motion，关闭自转、脉冲和闪烁并简化镜头过渡。
+
+未登记坐标、未定位 U 位及历史冲突必须明确提示。展示真实资产时禁止补造机房坐标、实时指标或设备；前端示例需显式入口与持续可见标识，禁止通过示例页面自动写入台账；用户明确要求入库时使用 CMDB 的隔离标识导入命令。气流和灯光动画标为视觉示意。参考效果见 `assets/screenshots/datacenter-world-v2.png`、`datacenter-room-v2.png`、`datacenter-network-v2.png` 与 `datacenter-server-v2.png`。
+
+### 可视化窗口布局
+
+机房可视化以 `useFacilityViewport` 测量应用页头后的可用高度，布局各层使用 `min-height: 0` 与 flex/grid 填充；目录和 U 位独立滚动。禁止固定 720/800px 画布最小高度或窄屏把面板堆到画布下方。窄屏用明确按钮展开覆盖侧栏，Three.js 相机同步调整纵横比和距离。全局 `uiLayout=canvas` 页面不显示页脚，统计改为按钮打开弹窗，不能挤压画布。验收必须检查 1366×768、1280×600、1920×1080、390×844、语言及全局主题切换，画布上下边界位于当前窗口中。
+
+### 机房可视化控件与国际化（2026-11-14）
+
+机房页面统一跟随全局主题，不再提供页面内亮暗切换和全屏按钮。世界地图、机柜、U 位、统计及布局对话框均通过 `tr` 翻译，动态计数使用参数化消息；保留资产名称等用户数据原值。响应式样式不得通过 CSS `content` 写死中文按钮名称。

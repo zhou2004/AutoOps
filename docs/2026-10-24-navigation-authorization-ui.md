@@ -46,9 +46,9 @@ pnpm build
 
 以下截图使用隔离测试数据：
 
-![资产授权](images/authorization-assets-light.png)
-![容器授权深色](images/authorization-containers-dark.png)
-![Docker管理](images/container-docker-light.png)
-![窄屏授权弹窗](images/authorization-mobile.png)
+![资产授权](../assets/screenshots/authorization-assets-light.png)
+![容器授权深色](../assets/screenshots/authorization-containers-dark.png)
+![Docker管理](../assets/screenshots/container-docker-light.png)
+![窄屏授权弹窗](../assets/screenshots/authorization-mobile.png)
 
 后续 Key 权限与用户组整合见 [API Key 独立权限](2026-10-24-api-key-scopes-user-groups.md)。

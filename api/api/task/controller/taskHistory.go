@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -19,7 +21,14 @@ func RunTaskNow(c *gin.Context) {
 	if !ok {
 		return
 	}
-	history, err := service.NewTaskWorkService().RunNow(taskID, model.TaskTriggerManual, currentOperator(c))
+	var req struct {
+		Parameters map[string]string `json:"parameters"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		result.Failed(c, 400, "参数格式无效: "+err.Error())
+		return
+	}
+	history, err := service.NewTaskWorkService().RunNow(taskID, model.TaskTriggerManual, currentOperator(c), req.Parameters)
 	if err != nil {
 		result.Failed(c, http.StatusBadRequest, err.Error())
 		return

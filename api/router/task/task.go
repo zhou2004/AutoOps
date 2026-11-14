@@ -20,6 +20,12 @@ func RegisterTaskRoutes(router *gin.RouterGroup) {
 	router.GET("/template/query/name", middleware.AuthMiddleware(), controller.GetTemplatesByName)
 	router.GET("/template/query/type", middleware.AuthMiddleware(), controller.GetTemplatesByType)
 
+	// 任务作业分组（独立于执行配置，删除分组不删除任务）
+	router.GET("/task/groups", middleware.AuthMiddleware(), controller.ListTaskJobGroups)
+	router.POST("/task/groups", middleware.AuthMiddleware(), controller.SaveTaskJobGroup)
+	router.PUT("/task/groups/:group_id", middleware.AuthMiddleware(), controller.SaveTaskJobGroup)
+	router.DELETE("/task/groups/:group_id", middleware.AuthMiddleware(), controller.DeleteTaskJobGroup)
+
 	// 任务管理路由
 	router.POST("/task/add", middleware.AuthMiddleware(), controller.CreateTask)                           // 创建任务
 	router.GET("/task/get", middleware.AuthMiddleware(), controller.GetTaskByID)                           // 获取任务信息

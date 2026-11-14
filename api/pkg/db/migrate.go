@@ -12,6 +12,7 @@ import (
 	systemmodel "dodevops-api/api/system/model"
 	taskmodel "dodevops-api/api/task/model"
 	toolmodel "dodevops-api/api/tool/model"
+	webmodel "dodevops-api/api/webservice/model"
 
 	"gorm.io/gorm"
 )
@@ -53,6 +54,7 @@ var models = []interface{}{
 	&cmdbmodel.CmdbCredentialPermission{},
 	&ccmodel.AccountAuth{},
 	&taskmodel.TaskTemplate{},
+	&taskmodel.TaskJobGroup{},
 	&taskmodel.Task{},
 	&taskmodel.TaskWork{},
 	&taskmodel.TaskExecutionHistory{},
@@ -81,6 +83,10 @@ var models = []interface{}{
 	&appmodel.QuickDeployment{},
 	&appmodel.QuickDeploymentTask{},
 	&systemmodel.SysOperationLog{},
+	&systemmodel.AccountChallenge{},
+	&systemmodel.AccountRateLimit{},
+	&systemmodel.AccountRegistration{},
+	&systemmodel.AccountSessionVersion{},
 	&toolmodel.Tool{},
 	&toolmodel.ServiceDeploy{},
 	// 可以继续添加其他模型...
@@ -92,6 +98,12 @@ func AutoMigrate(db *gorm.DB) error {
 		return err
 	}
 	if err := db.AutoMigrate(databasemodel.Models()...); err != nil {
+		return err
+	}
+	if err := webmodel.Migrate(db); err != nil {
+		return err
+	}
+	if err := migrateWebNavigation(db); err != nil {
 		return err
 	}
 	if err := migrateDatabaseClusters(db); err != nil {

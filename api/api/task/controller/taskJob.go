@@ -27,16 +27,18 @@ func getTaskJobService() service.TaskJobService {
 
 // CreateTaskRequest 创建任务请求体
 type CreateTaskRequest struct {
-	Name           string `json:"name" binding:"required"`
-	Type           int    `json:"type" binding:"required"`
-	Shell          string `json:"shell"`
-	ExecutionMode  int    `json:"execution_mode"`
-	Command        string `json:"command"`
-	CommandType    int    `json:"command_type"`
-	HostIDs        string `json:"host_ids" binding:"required"`
-	CronExpr       string `json:"cron_expr,omitempty"`
-	Remark         string `json:"remark,omitempty"`
-	MaxHistoryKeep int    `json:"max_history_keep"`
+	GroupID        *uint             `json:"group_id"`
+	Parameters     map[string]string `json:"parameters"`
+	Name           string            `json:"name" binding:"required"`
+	Type           int               `json:"type" binding:"required"`
+	Shell          string            `json:"shell"`
+	ExecutionMode  int               `json:"execution_mode"`
+	Command        string            `json:"command"`
+	CommandType    int               `json:"command_type"`
+	HostIDs        string            `json:"host_ids" binding:"required"`
+	CronExpr       string            `json:"cron_expr,omitempty"`
+	Remark         string            `json:"remark,omitempty"`
+	MaxHistoryKeep int               `json:"max_history_keep"`
 }
 
 // CreateTask 创建任务
@@ -70,6 +72,8 @@ func CreateTask(ctx *gin.Context) {
 	}
 
 	task := model.Task{
+		GroupID:        req.GroupID,
+		Parameters:     req.Parameters,
 		Name:           req.Name,
 		Type:           req.Type,
 		Shell:          req.Shell,
@@ -239,7 +243,11 @@ func ListTasks(ctx *gin.Context) {
 		status, _ = strconv.Atoi(statusStr)
 	}
 
-	tasks, total, err := getTaskJobService().ListTasksWithDetails(page, pageSize, name, status)
+	groupID, ok := parseTaskGroupFilter(ctx)
+	if !ok {
+		return
+	}
+	tasks, total, err := getTaskJobService().ListTasksWithDetails(page, pageSize, name, status, groupID)
 	if err != nil {
 		result.Failed(ctx, http.StatusInternalServerError, "获取任务列表失败: "+err.Error())
 		return
@@ -279,7 +287,11 @@ func ListTasksWithDetails(ctx *gin.Context) {
 		status, _ = strconv.Atoi(statusStr)
 	}
 
-	tasks, total, err := getTaskJobService().ListTasksWithDetails(page, pageSize, name, status)
+	groupID, ok := parseTaskGroupFilter(ctx)
+	if !ok {
+		return
+	}
+	tasks, total, err := getTaskJobService().ListTasksWithDetails(page, pageSize, name, status, groupID)
 	if err != nil {
 		result.Failed(ctx, http.StatusInternalServerError, "获取任务列表失败: "+err.Error())
 		return

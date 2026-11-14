@@ -18,7 +18,7 @@ type TaskDao interface {
 	GetById(id uint) (*model.Task, error)
 	Update(task *model.Task) error
 	Delete(id uint) error
-	List(offset, limit int, name string, status int) ([]model.Task, int64, error)
+	List(offset, limit int, name string, status int, groupID *uint) ([]model.Task, int64, error)
 	ExistsByName(name string) (bool, error)
 	GetTasksByName(name string) ([]model.Task, error)
 	GetTasksByType(taskType int) ([]model.Task, error)
@@ -105,7 +105,7 @@ func (d *taskDaoImpl) Delete(id uint) error {
 	return d.db.Where("id = ?", id).Delete(&model.Task{}).Error
 }
 
-func (d *taskDaoImpl) List(offset, limit int, name string, status int) ([]model.Task, int64, error) {
+func (d *taskDaoImpl) List(offset, limit int, name string, status int, groupID *uint) ([]model.Task, int64, error) {
 	var tasks []model.Task
 	var count int64
 
@@ -117,12 +117,19 @@ func (d *taskDaoImpl) List(offset, limit int, name string, status int) ([]model.
 		query = query.Where("status = ?", status)
 	}
 
+	if groupID != nil {
+		if *groupID == 0 {
+			query = query.Where("group_id IS NULL OR group_id = 0")
+		} else {
+			query = query.Where("group_id = ?", *groupID)
+		}
+	}
 	err := query.Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
-	err = query.Offset(offset).Limit(limit).Find(&tasks).Error
+	err = query.Preload("Group").Order("id DESC").Offset(offset).Limit(limit).Find(&tasks).Error
 	return tasks, count, err
 }
 

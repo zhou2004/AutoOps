@@ -95,6 +95,8 @@ func RegisterCmdbRoutes(router *gin.RouterGroup) {
 	router.GET("/cmdb/database/byname", middleware.AuthMiddleware(), permMiddleware.RequireCmdbPermission("database"), controller.NewCmdbSQLController().GetDatabasesByName)
 	router.GET("/cmdb/database/bytype", middleware.AuthMiddleware(), permMiddleware.RequireCmdbPermission("database"), controller.NewCmdbSQLController().GetDatabasesByType)
 
+	router.GET("/cmdb/idc/:id/topology", middleware.AuthMiddleware(), permMiddleware.RequireAssetActionForID("idc", "get", "id"), controller.RackTopologyHandler(db))
+
 	// ======================= 机房管理 (assetType: idc) =======================
 	cmdbIDCCtrl := controller.NewCmdbIDCController(db)
 	router.POST("/cmdb/idc", middleware.AuthMiddleware(), permMiddleware.RequireCmdbPermission("idc"), cmdbIDCCtrl.Create)

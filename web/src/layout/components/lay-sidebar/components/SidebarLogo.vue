@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BrandLogo from "@/components/BrandLogo/index.vue";
 import { getTopMenu } from "@/router/utils";
 import { useNav } from "@/layout/hooks/useNav";
 
@@ -19,7 +20,7 @@ const { title, getLogo } = useNav();
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
-        <img :src="getLogo()" alt="logo" />
+        <BrandLogo :size="32" />
         <span class="sidebar-title">{{ $tr(title) }}</span>
       </router-link>
       <router-link
@@ -29,7 +30,7 @@ const { title, getLogo } = useNav();
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
-        <img :src="getLogo()" alt="logo" />
+        <BrandLogo :size="32" />
         <span class="sidebar-title">{{ $tr(title) }}</span>
       </router-link>
     </transition>

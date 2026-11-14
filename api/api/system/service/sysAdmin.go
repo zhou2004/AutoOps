@@ -43,7 +43,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto model.LoginDto) {
 		return
 	}
 	// 校验验证码
-	verifyRes := CaptVerify(dto.IdKey, dto.Image)
+	verifyRes := code == dto.Image
 	if !verifyRes {
 		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressByIP(ip), util.GetBrowser(c), util.GetOs(c), "验证码不正确", 2)
 		result.Failed(c, int(result.ApiCode.CAPTCHANOTTRUE), result.ApiCode.GetMessage(result.ApiCode.CAPTCHANOTTRUE))
@@ -51,7 +51,7 @@ func (s SysAdminServiceImpl) Login(c *gin.Context, dto model.LoginDto) {
 	}
 	// 校验
 	sysAdmin := dao.SysAdminDetail(dto)
-	if sysAdmin.Password != util.EncryptionMd5(dto.Password) {
+	if !util.VerifyPassword(sysAdmin.Password, dto.Password) {
 		dao.CreateSysLoginInfo(dto.Username, ip, util.GetRealAddressByIP(ip), util.GetBrowser(c), util.GetOs(c), "密码不正确", 2)
 		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
 		return
@@ -169,7 +169,7 @@ func (s SysAdminServiceImpl) UpdatePersonalPassword(c *gin.Context, dto model.Up
 	sysAdmin, _ := jwt.GetAdmin(c)
 	dto.Id = sysAdmin.ID
 	sysAdminExist := dao.GetSysAdminByUsername(sysAdmin.Username)
-	if sysAdminExist.Password != util.EncryptionMd5(dto.Password) {
+	if !util.VerifyPassword(sysAdminExist.Password, dto.Password) {
 		result.Failed(c, int(result.ApiCode.PASSWORDNOTTRUE), result.ApiCode.GetMessage(result.ApiCode.PASSWORDNOTTRUE))
 		return
 	}
@@ -177,7 +177,12 @@ func (s SysAdminServiceImpl) UpdatePersonalPassword(c *gin.Context, dto model.Up
 		result.Failed(c, int(result.ApiCode.RESETPASSWORD), result.ApiCode.GetMessage(result.ApiCode.RESETPASSWORD))
 		return
 	}
-	dto.NewPassword = util.EncryptionMd5(dto.NewPassword)
+	hash, err := util.HashPassword(dto.NewPassword)
+	if err != nil {
+		result.Failed(c, 400, "密码长度不能超过 72 字节")
+		return
+	}
+	dto.NewPassword = hash
 	sysAdminUpdatePwd := dao.UpdatePersonalPassword(dto)
 	tokenString, _ := jwt.GenerateTokenByAdmin(sysAdminUpdatePwd)
 	result.Success(c, map[string]interface{}{"token": tokenString, "sysAdmin": sysAdminUpdatePwd})

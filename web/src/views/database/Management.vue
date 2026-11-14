@@ -1279,7 +1279,7 @@ onMounted(async () => {
 }
 .el-pagination {
   margin-top: 20px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 .el-alert {
   margin-bottom: 14px;

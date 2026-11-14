@@ -15,17 +15,17 @@ func NewCmdbNetworkDeviceDao(db *gorm.DB) *CmdbNetworkDeviceDao {
 }
 
 func (d *CmdbNetworkDeviceDao) Create(data *model.CmdbNetworkDevice) error {
-	return d.db.Create(data).Error
+	return saveRackAsset(d.db, "cmdb_network_device", 0, data.IDCID, data.CabinetID, data.UnitPosition, &data.UnitHeight, data)
 }
 
 func (d *CmdbNetworkDeviceDao) Update(data *model.CmdbNetworkDevice) error {
 	data.IDC = nil
 	data.Cabinet = nil
-	return d.db.Save(data).Error
+	return saveRackAsset(d.db, "cmdb_network_device", data.ID, data.IDCID, data.CabinetID, data.UnitPosition, &data.UnitHeight, data)
 }
 
 func (d *CmdbNetworkDeviceDao) Delete(id uint) error {
-	return d.db.Delete(&model.CmdbNetworkDevice{}, id).Error
+	return deleteRackAsset(d.db, "cmdb_network_device", id)
 }
 
 func (d *CmdbNetworkDeviceDao) GetByID(id uint) (*model.CmdbNetworkDevice, error) {

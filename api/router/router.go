@@ -8,6 +8,7 @@ import (
 	"dodevops-api/middleware"
 	"dodevops-api/pkg/log"
 	databaseRoutes "dodevops-api/router/database"
+	webRoutes "dodevops-api/router/webservice"
 
 	"path/filepath"
 	"reflect"
@@ -97,7 +98,11 @@ func register(router *gin.Engine) {
 	{
 		// 不需要 JWT 的接口
 		apiGroup.GET("/captcha", controller.Captcha) // 验证码接口
-		apiGroup.POST("/login", controller.Login)    // 登录接口
+		apiGroup.GET("/auth/options", controller.AccountOptions)
+		apiGroup.POST("/auth/email-code", controller.SendAccountCode)
+		apiGroup.POST("/auth/register", controller.CompleteAccount)
+		apiGroup.POST("/auth/reset-password", controller.CompleteAccount)
+		apiGroup.POST("/login", controller.Login) // 登录接口
 		// Agent心跳接口 - 不需要认证
 		apiGroup.POST("/monitor/agent/heartbeat", agentCtrl.UpdateHeartbeat)
 
@@ -114,6 +119,7 @@ func register(router *gin.Engine) {
 			aiops.RegisterRoutes(jwtGroup)
 			cmdb.RegisterCmdbRoutes(jwtGroup)
 			databaseRoutes.RegisterRoutes(jwtGroup)
+			webRoutes.RegisterRoutes(jwtGroup)
 			configCenter.RegisterConfigCenterRoutes(jwtGroup)
 			app.RegisterJenkinsRoutes(jwtGroup)         // Jenkins模块路由
 			app.RegisterApplicationRoutes(jwtGroup)     // 应用管理路由

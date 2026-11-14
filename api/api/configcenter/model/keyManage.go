@@ -2,16 +2,18 @@ package model
 
 import (
 	"dodevops-api/common/util"
+	"dodevops-api/pkg/websecret"
+	"encoding/json"
 )
 
 type KeyManage struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	KeyType   int       `gorm:"not null" json:"keyType"`             // 云厂商类型：1=阿里云，2=腾讯云，3=百度云，4=华为云，5=AWS云
-	KeyID     string    `gorm:"type:text;not null" json:"keyId"`     // 密钥ID(加密存储)
-	KeySecret string    `gorm:"type:text;not null" json:"keySecret"` // 密钥Secret(加密存储)
-	Remark    string    `gorm:"type:text" json:"remark"`             // 备注信息
-	CreatedAt util.HTime `json:"createdAt"`                          // 创建时间
-	UpdatedAt util.HTime `json:"updatedAt"`                          // 更新时间
+	ID        uint       `gorm:"primaryKey" json:"id"`
+	KeyType   int        `gorm:"not null" json:"keyType"`             // 云厂商类型：1=阿里云，2=腾讯云，3=百度云，4=华为云，5=AWS云
+	KeyID     string     `gorm:"type:text;not null" json:"keyId"`     // 密钥ID(加密存储)
+	KeySecret string     `gorm:"type:text;not null" json:"keySecret"` // 密钥Secret(加密存储)
+	Remark    string     `gorm:"type:text" json:"remark"`             // 备注信息
+	CreatedAt util.HTime `json:"createdAt"`                           // 创建时间
+	UpdatedAt util.HTime `json:"updatedAt"`                           // 更新时间
 }
 
 // TableName 表名
@@ -21,6 +23,12 @@ func (KeyManage) TableName() string {
 
 // EncryptKeys 加密密钥信息
 func (k *KeyManage) EncryptKeys() error {
+	if k.KeyType == 6 {
+		var e error
+		k.KeyID = "cloudflare"
+		k.KeySecret, e = websecret.Seal(k.KeySecret)
+		return e
+	}
 	encryptedID, err := util.AESEncrypt(k.KeyID)
 	if err != nil {
 		return err
@@ -36,6 +44,10 @@ func (k *KeyManage) EncryptKeys() error {
 
 // DecryptKeys 解密密钥信息
 func (k *KeyManage) DecryptKeys() (string, string, error) {
+	if k.KeyType == 6 {
+		v, e := websecret.Unseal(k.KeySecret)
+		return "cloudflare", v, e
+	}
 	keyID, err := util.AESDecrypt(k.KeyID)
 	if err != nil {
 		return "", "", err
@@ -57,9 +69,20 @@ type CreateKeyManageDto struct {
 
 // UpdateKeyManageDto 更新密钥DTO
 type UpdateKeyManageDto struct {
-	ID        uint   `json:"id" binding:"required"`        // 密钥ID
-	KeyType   int    `json:"keyType" binding:"required"`   // 云厂商类型：1=阿里云，2=腾讯云，3=百度云，4=华为云，5=AWS云
-	KeyID     string `json:"keyId" binding:"required"`     // 密钥ID
-	KeySecret string `json:"keySecret" binding:"required"` // 密钥Secret
-	Remark    string `json:"remark"`                       // 备注信息
+	ID        uint   `json:"id" binding:"required"`      // 密钥ID
+	KeyType   int    `json:"keyType" binding:"required"` // 云厂商类型：1=阿里云，2=腾讯云，3=百度云，4=华为云，5=AWS云
+	KeyID     string `json:"keyId" binding:"required"`   // 密钥ID
+	KeySecret string `json:"keySecret"`                  // 密钥Secret
+	Remark    string `json:"remark"`                     // 备注信息
+}
+
+// Cloudflare tokens never leave the credential backend, including encrypted bytes.
+func (k KeyManage) MarshalJSON() ([]byte, error) {
+	type alias KeyManage
+	v := alias(k)
+	if v.KeyType == 6 {
+		v.KeyID = "cloudflare"
+		v.KeySecret = ""
+	}
+	return json.Marshal(v)
 }
