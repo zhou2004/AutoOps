@@ -130,9 +130,37 @@ jobs:
         run: |
           printf '### Published image\n\n```text\n%s\n%s\n```\n' "$TAGS" "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
 
+  smoke:
+    name: Verify a fresh Docker installation
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      COMPOSE_PROJECT_NAME: autoops-smoke
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Generate isolated configuration
+        run: |
+          bash docker/setup.sh
+          sed -i "s/^AUTOOPS_IMAGE_TAG=.*/AUTOOPS_IMAGE_TAG=sha-${GITHUB_SHA:0:12}/" docker/.env
+          sed -i 's/^WEB_PORT=.*/WEB_PORT=18081/' docker/.env
+          docker compose --project-directory docker config --quiet
+      - name: Start published containers
+        run: docker compose --project-directory docker up -d --wait --wait-timeout 240
+      - name: Verify administrator, permissions and captcha
+        run: python3 docker/ci/check-install.py
+      - name: Show service status on failure
+        if: failure()
+        run: docker compose --project-directory docker ps -a
+      - name: Remove disposable services and data
+        if: always()
+        run: docker compose --project-directory docker down --volumes --remove-orphans
+
   latest:
     name: Update latest tags after both images succeed
-    needs: build
+    needs: [build, smoke]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -166,7 +194,7 @@ jobs:
 
   release:
     name: Publish version release
-    needs: build
+    needs: [build, smoke]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     permissions:
